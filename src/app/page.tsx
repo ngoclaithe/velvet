@@ -154,32 +154,7 @@ export default function HomePage() {
     },
   ]
 
-  const features = [
-    {
-      icon: MessageCircle,
-      title: 'Kết nối & Chat',
-      description: 'Tương tác trực tiếp với creators yêu thích qua tin nhắn riêng tư và chat groups',
-      gradient: 'from-blue-500 to-purple-500'
-    },
-    {
-      icon: ImageIcon,
-      title: 'Chia sẻ Nội dung',
-      description: 'Đăng ảnh, video, blog và content độc quyền với cộng đồng của bạn',
-      gradient: 'from-pink-500 to-red-500'
-    },
-    {
-      icon: Crown,
-      title: 'Membership VIP',
-      description: 'Truy cập nội dung premium, tính năng độc quyền và ưu đãi đặc biệt',
-      gradient: 'from-yellow-500 to-orange-500'
-    },
-    {
-      icon: Shield,
-      title: 'An toàn & Riêng tư',
-      description: 'Platform được bảo mật cao, kiểm duyệt nghiêm ngặt và bảo vệ quyền riêng tư',
-      gradient: 'from-green-500 to-teal-500'
-    },
-  ]
+
 
   const stats = [
     { label: 'Thành viên hoạt động', value: '150K+', icon: Users },
