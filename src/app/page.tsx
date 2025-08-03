@@ -73,7 +73,16 @@ export default function HomePage() {
               Streaming Platform
             </Link>
             <div className="flex items-center gap-4">
-              {isGuest ? (
+              {isAuthenticated ? (
+                <>
+                  <span className="text-sm">
+                    Xin chào, <span className="font-medium">{user?.username}</span>
+                  </span>
+                  <Button variant="outline" size="sm" onClick={logout}>
+                    Đăng xuất
+                  </Button>
+                </>
+              ) : (
                 <>
                   <span className="text-sm text-muted-foreground">
                     Đang xem dưới dạng khách - Đăng nhập để đăng bài và bình luận
@@ -90,15 +99,6 @@ export default function HomePage() {
                       Đăng ký
                     </Button>
                   </Link>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm">
-                    Xin chào, <span className="font-medium">{user?.username}</span>
-                  </span>
-                  <Button variant="outline" size="sm" onClick={logout}>
-                    Đăng xuất
-                  </Button>
                 </>
               )}
             </div>
