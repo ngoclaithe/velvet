@@ -154,75 +154,14 @@ export default function HomePage() {
 
 
 
-  const stats = [
-    { label: 'Thành viên hoạt động', value: '150K+', icon: Users },
-    { label: 'Bài viết mỗi ngày', value: '25K+', icon: Edit3 },
-    { label: 'Creators verified', value: '5K+', icon: Star },
-    { label: 'Premium content', value: '50K+', icon: Crown },
-  ]
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-900">
       {/* Age Verification Banner */}
       <div className="bg-red-600 text-white py-2 text-center text-sm">
         <div className="container mx-auto px-4">
           ⚠️ Trang web chỉ dành cho người trên 18 tuổi. Bằng việc tiếp tục, bạn xác nhận đã đủ tuổi theo quy định pháp luật.
         </div>
       </div>
-
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-900 via-purple-900 to-indigo-900">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
-        </div>
-        
-        <div className="relative container mx-auto px-4 py-16 lg:py-24">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-sm font-medium text-pink-700 mb-6">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Cộng đồng adult 18+ hàng đầu Việt Nam
-            </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
-              Nơi kết nối{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400">
-                không giới hạn
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-              Chia sẻ, khám phá và kết nối với những người cùng sở thích trong cộng đồng an toàn và thân thiện
-            </p>
-            
-            {!isAuthenticated && (
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                <Link href="/(auth)/register">
-                  <Button size="lg" className="text-lg px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold">
-                    <UserPlus className="mr-2 h-5 w-5" />
-                    Tham gia miễn phí
-                  </Button>
-                </Link>
-                <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-white/20 text-white hover:bg-white/10 backdrop-blur">
-                  <Users className="mr-2 h-5 w-5" />
-                  Khám phá cộng đồng
-                </Button>
-              </div>
-            )}
-            
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-12 h-12 mx-auto mb-2 bg-white/10 rounded-full flex items-center justify-center backdrop-blur">
-                    <stat.icon className="w-6 h-6 text-pink-300" />
-                  </div>
-                  <div className="text-2xl font-bold text-white">{stat.value}</div>
-                  <div className="text-sm text-gray-300">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Main Content */}
       <section className="py-12 bg-background">
