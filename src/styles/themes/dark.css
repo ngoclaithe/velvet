@@ -1,0 +1,298 @@
+/* Dark theme styles */
+.dark {
+  /* Custom properties for dark theme */
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 84% 4.9%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 224.3 76.3% 94.1%;
+}
+
+/* Dark theme specific components */
+.dark .stream-card {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .stream-card:hover {
+  @apply bg-gray-750 border-gray-600;
+}
+
+.dark .chat-message {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .chat-bubble.user {
+  @apply bg-blue-600 text-white;
+}
+
+.dark .chat-bubble.streamer {
+  @apply bg-yellow-600 text-white;
+}
+
+.dark .chat-bubble.moderator {
+  @apply bg-green-600 text-white;
+}
+
+.dark .chat-bubble.vip {
+  @apply bg-purple-600 text-white;
+}
+
+.dark .nav-item {
+  @apply text-gray-300 hover:bg-gray-800 hover:text-white;
+}
+
+.dark .nav-item.active {
+  @apply bg-primary text-primary-foreground;
+}
+
+.dark .skeleton {
+  @apply bg-gray-700;
+}
+
+.dark .skeleton-text {
+  @apply bg-gray-700;
+}
+
+.dark .skeleton-avatar {
+  @apply bg-gray-700;
+}
+
+.dark .search-highlight {
+  @apply bg-yellow-800 text-yellow-200;
+}
+
+.dark .empty-state {
+  @apply text-gray-400;
+}
+
+.dark .empty-state svg {
+  @apply text-gray-600;
+}
+
+.dark .empty-state h3 {
+  @apply text-gray-200;
+}
+
+.dark .field-label {
+  @apply text-gray-300;
+}
+
+.dark .field-help {
+  @apply text-gray-400;
+}
+
+.dark .video-progress {
+  @apply bg-gray-700;
+}
+
+.dark .tooltip {
+  @apply bg-gray-800 border border-gray-700;
+}
+
+/* Dark theme scrollbar */
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-600;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Dark theme form elements */
+.dark input,
+.dark textarea,
+.dark select {
+  @apply bg-gray-800 border-gray-700 text-gray-200;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  @apply border-primary ring-primary/20;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  @apply text-gray-500;
+}
+
+/* Dark theme buttons */
+.dark .btn-secondary {
+  @apply bg-gray-700 text-gray-200 hover:bg-gray-600;
+}
+
+.dark .btn-outline {
+  @apply border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white;
+}
+
+.dark .btn-ghost {
+  @apply text-gray-300 hover:bg-gray-800 hover:text-white;
+}
+
+/* Dark theme modals */
+.dark .modal-overlay {
+  @apply bg-black/70;
+}
+
+.dark .modal-content {
+  @apply bg-gray-900 border-gray-700;
+}
+
+/* Dark theme dropdowns */
+.dark .dropdown-content {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .dropdown-item {
+  @apply text-gray-300 hover:bg-gray-700 hover:text-white;
+}
+
+.dark .dropdown-separator {
+  @apply border-gray-700;
+}
+
+/* Dark theme tables */
+.dark table {
+  @apply bg-gray-800;
+}
+
+.dark th {
+  @apply bg-gray-700 text-gray-300 border-gray-600;
+}
+
+.dark td {
+  @apply border-gray-700 text-gray-300;
+}
+
+.dark tr:hover {
+  @apply bg-gray-750;
+}
+
+/* Dark theme alerts */
+.dark .alert-info {
+  @apply bg-blue-900/50 border-blue-800 text-blue-200;
+}
+
+.dark .alert-success {
+  @apply bg-green-900/50 border-green-800 text-green-200;
+}
+
+.dark .alert-warning {
+  @apply bg-yellow-900/50 border-yellow-800 text-yellow-200;
+}
+
+.dark .alert-error {
+  @apply bg-red-900/50 border-red-800 text-red-200;
+}
+
+/* Dark theme code blocks */
+.dark pre,
+.dark code {
+  @apply bg-gray-800 text-gray-200;
+}
+
+.dark .code-block {
+  @apply bg-gray-800 border-gray-700;
+}
+
+/* Dark theme syntax highlighting */
+.dark .token.comment {
+  @apply text-gray-500;
+}
+
+.dark .token.string {
+  @apply text-green-400;
+}
+
+.dark .token.number {
+  @apply text-blue-400;
+}
+
+.dark .token.keyword {
+  @apply text-purple-400;
+}
+
+.dark .token.function {
+  @apply text-yellow-400;
+}
+
+/* Dark theme progress bars */
+.dark .progress-bg {
+  @apply bg-gray-700;
+}
+
+.dark .progress-fill {
+  @apply bg-primary;
+}
+
+/* Dark theme badges */
+.dark .badge-default {
+  @apply bg-gray-700 text-gray-200;
+}
+
+.dark .badge-secondary {
+  @apply bg-gray-600 text-gray-200;
+}
+
+/* Dark theme dividers */
+.dark .divider {
+  @apply border-gray-700;
+}
+
+/* Dark theme shadows */
+.dark .shadow-card {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark theme focus states */
+.dark .focus-ring {
+  @apply focus:ring-primary/30;
+}
+
+/* Dark theme selection */
+.dark ::selection {
+  @apply bg-primary/30 text-white;
+}
+
+/* Dark theme specific utilities */
+.dark .text-primary {
+  @apply text-blue-400;
+}
+
+.dark .text-secondary {
+  @apply text-gray-400;
+}
+
+.dark .text-muted {
+  @apply text-gray-500;
+}
+
+.dark .bg-subtle {
+  @apply bg-gray-800;
+}
+
+.dark .border-subtle {
+  @apply border-gray-700;
+}
