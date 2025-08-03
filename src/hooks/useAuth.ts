@@ -33,7 +33,8 @@ export function useAuth() {
     }
   }, [session, refreshToken])
 
-  const isAuthenticated = !!user && !!session
+  const isAuthenticated = !!user && !!session && user.role !== 'guest'
+  const isGuest = user?.role === 'guest'
   const isTokenExpired = session ? session.expiresAt.getTime() < Date.now() : false
 
   const hasRole = (role: User['role']) => {
@@ -47,6 +48,11 @@ export function useAuth() {
   const isCreator = () => hasAnyRole(['creator', 'admin'])
   const isModerator = () => hasAnyRole(['moderator', 'admin'])
   const isAdmin = () => hasRole('admin')
+
+  // Permissions for different actions
+  const canPost = () => isAuthenticated && hasAnyRole(['user', 'creator', 'admin'])
+  const canComment = () => isAuthenticated && hasAnyRole(['user', 'creator', 'admin'])
+  const canViewContent = () => true // Everyone can view content
 
   return {
     // State
