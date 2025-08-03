@@ -120,14 +120,12 @@ export default function HomePage() {
               Kết nối với các streamer, thưởng thức nội dung trực tiếp và tham gia cộng đồng tuyệt vời
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {isGuest ? (
+              {isAuthenticated ? (
                 <>
-                  <Link href="/register">
-                    <Button size="lg" className="text-lg px-8 py-3 bg-white text-purple-600 hover:bg-gray-100">
-                      Bắt đầu ngay
-                      <Zap className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
+                  <Button size="lg" className="text-lg px-8 py-3 bg-white text-purple-600 hover:bg-gray-100">
+                    Bắt đầu Stream
+                    <Zap className="ml-2 h-5 w-5" />
+                  </Button>
                   <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-white text-white hover:bg-white/10">
                     Khám phá Streams
                     <Play className="ml-2 h-5 w-5" />
@@ -135,10 +133,12 @@ export default function HomePage() {
                 </>
               ) : (
                 <>
-                  <Button size="lg" className="text-lg px-8 py-3 bg-white text-purple-600 hover:bg-gray-100">
-                    Bắt đầu Stream
-                    <Zap className="ml-2 h-5 w-5" />
-                  </Button>
+                  <Link href="/register">
+                    <Button size="lg" className="text-lg px-8 py-3 bg-white text-purple-600 hover:bg-gray-100">
+                      Bắt đầu ngay
+                      <Zap className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
                   <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-white text-white hover:bg-white/10">
                     Khám phá Streams
                     <Play className="ml-2 h-5 w-5" />
