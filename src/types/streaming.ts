@@ -1,5 +1,11 @@
 import type { CreatorProfile } from './user'
 
+export interface StreamQuality {
+  resolution: '720p' | '1080p' | '4K'
+  bitrate: number
+  fps: number
+}
+
 export interface Stream {
   id: string
   creatorId: string
