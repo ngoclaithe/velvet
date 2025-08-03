@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { 
-  Zap, 
-  Twitter, 
-  Instagram, 
-  Youtube, 
+import {
+  Heart,
+  Twitter,
+  Instagram,
+  Youtube,
   Facebook,
   Mail,
   MapPin,
