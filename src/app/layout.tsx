@@ -6,6 +6,12 @@ import { Toaster } from '@/components/ui/toaster'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata: Metadata = {
   title: 'Streaming Platform',
   description: 'A modern streaming platform with live video, chat, and social features',
