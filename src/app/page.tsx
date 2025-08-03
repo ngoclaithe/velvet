@@ -16,7 +16,10 @@ import {
   Crown,
   Flame,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  MapPin,
+  MessageCircle,
+  Video
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
