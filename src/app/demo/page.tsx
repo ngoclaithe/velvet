@@ -10,7 +10,8 @@ import PermissionGate from '@/components/PermissionGate'
 import StreamCard from '@/components/StreamCard'
 
 export default function DemoPage() {
-  const { user, isGuest, isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAuth()
+  const isGuest = !isAuthenticated
 
   const currentStream = {
     id: 'demo-stream',
