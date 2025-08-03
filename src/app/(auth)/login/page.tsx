@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Mail, Lock, Eye, EyeOff, Github } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+// import { useToast } from '@/hooks/use-toast'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
