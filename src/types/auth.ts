@@ -13,7 +13,7 @@ export interface User {
   updatedAt: Date
 }
 
-export type UserRole = 'user' | 'creator' | 'moderator' | 'admin'
+export type UserRole = 'guest' | 'user' | 'creator' | 'moderator' | 'admin'
 
 export interface AuthSession {
   user: User

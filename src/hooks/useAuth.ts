@@ -33,7 +33,8 @@ export function useAuth() {
     }
   }, [session, refreshToken])
 
-  const isAuthenticated = !!user && !!session
+  const isAuthenticated = !!user && !!session && user.role !== 'guest'
+  const isGuest = !user || user.role === 'guest'
   const isTokenExpired = session ? session.expiresAt.getTime() < Date.now() : false
 
   const hasRole = (role: User['role']) => {
@@ -48,6 +49,11 @@ export function useAuth() {
   const isModerator = () => hasAnyRole(['moderator', 'admin'])
   const isAdmin = () => hasRole('admin')
 
+  // Permissions for different actions
+  const canPost = () => isAuthenticated && hasAnyRole(['user', 'creator', 'admin'])
+  const canComment = () => isAuthenticated && hasAnyRole(['user', 'creator', 'admin'])
+  const canViewContent = () => true // Everyone can view content
+
   return {
     // State
     user,
@@ -55,6 +61,7 @@ export function useAuth() {
     isLoading,
     error,
     isAuthenticated,
+    isGuest,
     isTokenExpired,
 
     // Actions
@@ -70,18 +77,23 @@ export function useAuth() {
     isCreator,
     isModerator,
     isAdmin,
+
+    // Permission functions
+    canPost,
+    canComment,
+    canViewContent,
   }
 }
 
-export function useRequireAuth() {
+export function useRequireAuth(allowGuest = false) {
   const auth = useAuth()
 
   useEffect(() => {
-    if (!auth.isLoading && !auth.isAuthenticated) {
+    if (!auth.isLoading && !auth.isAuthenticated && !allowGuest) {
       // Redirect to login page or show login modal
       window.location.href = '/login'
     }
-  }, [auth.isLoading, auth.isAuthenticated])
+  }, [auth.isLoading, auth.isAuthenticated, allowGuest])
 
   return auth
 }

@@ -4,10 +4,22 @@ import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData } fro
 
 interface AuthState extends AuthStore {}
 
+// Default guest user
+const guestUser: User = {
+  id: 'guest',
+  username: 'Guest',
+  email: '',
+  role: 'guest',
+  isVerified: false,
+  isOnline: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: null,
+      user: null, // Start with null to prevent hydration mismatch
       session: null,
       isLoading: false,
       error: null,
@@ -103,7 +115,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         set({
-          user: null,
+          user: null, // Return to null state
           session: null,
           isLoading: false,
           error: null,
@@ -245,7 +257,8 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        user: state.user,
+        // Only persist authenticated users, not guest users
+        user: state.user?.role !== 'guest' ? state.user : null,
         session: state.session,
       }),
     }
