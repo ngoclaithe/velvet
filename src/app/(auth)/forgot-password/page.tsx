@@ -23,10 +23,10 @@ export default function ForgotPasswordPage() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       setIsSubmitted(true)
-      toast({
-        title: "Reset link sent!",
-        description: "Check your email for password reset instructions.",
-      })
+      // toast({
+      //   title: "Reset link sent!",
+      //   description: "Check your email for password reset instructions.",
+      // })
     } catch (error) {
       toast({
         title: "Failed to send reset link",
