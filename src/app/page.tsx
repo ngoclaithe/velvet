@@ -7,20 +7,14 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BlogPost from '@/components/social/BlogPost'
 import NewsFeed from '@/components/social/NewsFeed'
-import { 
-  Users, 
-  MessageCircle, 
-  Heart, 
-  Star, 
-  Image as ImageIcon, 
-  Video,
+import {
+  Users,
+  Heart,
+  Star,
   Edit3,
   UserPlus,
-  Crown,
   Flame,
   TrendingUp,
-  Clock,
-  Shield,
   Sparkles
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
