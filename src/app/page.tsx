@@ -353,31 +353,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Tại sao chọn VelvetSocial?</h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Nền tảng mạng xã hội adult được thiết kế đặc biệt cho cộng đồng người lớn với các tính năng hiện đại và an toàn
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
-                <CardContent className="p-8 text-center relative">
-                  <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                    <feature.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl mb-4 group-hover:text-pink-600 transition-colors">{feature.title}</CardTitle>
-                  <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* CTA Section */}
       {!isAuthenticated && (
