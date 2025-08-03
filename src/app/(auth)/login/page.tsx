@@ -35,10 +35,10 @@ export default function LoginPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      toast({
-        title: "Login successful!",
-        description: "Welcome back to the platform.",
-      })
+      // toast({
+      //   title: "Login successful!",
+      //   description: "Welcome back to the platform.",
+      // })
     } catch (error) {
       toast({
         title: "Login failed",
