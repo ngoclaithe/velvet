@@ -23,16 +23,16 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-white" />
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 flex items-center justify-center">
+                <Heart className="h-5 w-5 text-white" />
               </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                StreamHub
+              <span className="font-bold text-xl bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                VelvetSocial
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs">
-              Nền tảng streaming hàng đầu với tính năng hiện đại và cộng đồng sôi động. 
-              Kết nối, sáng tạo và chia sẻ đam mê của bạn.
+              Nền tảng mạng xã hội adult 18+ hàng đầu. Kết nối, chia sẻ và khám phá
+              trong cộng đồng an toàn và thân thiện.
             </p>
             <div className="flex space-x-3">
               <Button variant="ghost" size="icon" className="h-8 w-8">
