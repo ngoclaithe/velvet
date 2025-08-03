@@ -19,7 +19,7 @@ const guestUser: User = {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: guestUser, // Start with guest user
+      user: null, // Start with null to prevent hydration mismatch
       session: null,
       isLoading: false,
       error: null,
