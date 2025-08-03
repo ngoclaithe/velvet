@@ -1,3 +1,5 @@
+import type { SendTipData, SendGiftData } from './chat'
+
 export interface Wallet {
   id: string
   userId: string
