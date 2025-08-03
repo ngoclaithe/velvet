@@ -28,11 +28,11 @@ export default function ForgotPasswordPage() {
       //   description: "Check your email for password reset instructions.",
       // })
     } catch (error) {
-      toast({
-        title: "Failed to send reset link",
-        description: "Please try again or contact support.",
-        variant: "destructive",
-      })
+      // toast({
+      //   title: "Failed to send reset link",
+      //   description: "Please try again or contact support.",
+      //   variant: "destructive",
+      // })
     } finally {
       setIsLoading(false)
     }
