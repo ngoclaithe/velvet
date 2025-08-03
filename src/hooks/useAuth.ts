@@ -61,6 +61,7 @@ export function useAuth() {
     isLoading,
     error,
     isAuthenticated,
+    isGuest,
     isTokenExpired,
 
     // Actions
@@ -76,6 +77,11 @@ export function useAuth() {
     isCreator,
     isModerator,
     isAdmin,
+
+    // Permission functions
+    canPost,
+    canComment,
+    canViewContent,
   }
 }
 
