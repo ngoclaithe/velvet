@@ -97,13 +97,61 @@ export default function HomePage() {
     }
   ]
 
-  const categories = [
-    { name: 'Lifestyle', count: 1234, icon: '✨', color: 'from-pink-500 to-rose-500' },
-    { name: 'Fashion', count: 987, icon: '👗', color: 'from-purple-500 to-indigo-500' },
-    { name: 'Beauty', count: 756, icon: '💄', color: 'from-red-500 to-pink-500' },
-    { name: 'Photography', count: 543, icon: '📸', color: 'from-blue-500 to-cyan-500' },
-    { name: 'Fitness', count: 432, icon: '💪', color: 'from-green-500 to-emerald-500' },
-    { name: 'Art & Design', count: 321, icon: '🎨', color: 'from-yellow-500 to-orange-500' },
+  const trendingCreators = [
+    {
+      name: 'Luna Goddess',
+      username: 'luna_goddess',
+      followers: '125K',
+      avatar: '/api/placeholder/40/40',
+      isVerified: true,
+      isOnline: true,
+      specialty: 'Fashion & Beauty'
+    },
+    {
+      name: 'Angel Beauty',
+      username: 'angel_beauty',
+      followers: '89K',
+      avatar: '/api/placeholder/40/40',
+      isVerified: true,
+      isOnline: false,
+      specialty: 'Lifestyle'
+    },
+    {
+      name: 'Ruby Star',
+      username: 'ruby_star',
+      followers: '156K',
+      avatar: '/api/placeholder/40/40',
+      isVerified: true,
+      isOnline: true,
+      specialty: 'Photography'
+    },
+    {
+      name: 'Sakura Dreams',
+      username: 'sakura_dreams',
+      followers: '203K',
+      avatar: '/api/placeholder/40/40',
+      isVerified: true,
+      isOnline: true,
+      specialty: 'Art & Design'
+    },
+    {
+      name: 'Velvet Rose',
+      username: 'velvet_rose',
+      followers: '78K',
+      avatar: '/api/placeholder/40/40',
+      isVerified: false,
+      isOnline: false,
+      specialty: 'Fitness'
+    },
+    {
+      name: 'Diamond Queen',
+      username: 'diamond_queen',
+      followers: '134K',
+      avatar: '/api/placeholder/40/40',
+      isVerified: true,
+      isOnline: true,
+      specialty: 'Fashion'
+    },
   ]
 
   const features = [
