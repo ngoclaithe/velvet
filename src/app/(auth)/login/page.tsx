@@ -17,7 +17,7 @@ export default function LoginPage() {
     password: '',
     rememberMe: false,
   })
-  const { toast } = useToast()
+  // const { toast } = useToast()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
