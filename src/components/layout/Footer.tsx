@@ -118,7 +118,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="font-semibold">Cập nhật mới nhất</h4>
             <p className="text-sm text-muted-foreground">
-              Đăng ký để nhận thông tin về tính năng mới và sự kiện đặc biệt.
+              Đăng ký để nhận thông tin về tính năng mới, n��i dung hot và ưu đãi độc quyền.
             </p>
             <div className="flex space-x-2">
               <Input 
