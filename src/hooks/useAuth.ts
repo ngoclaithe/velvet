@@ -85,15 +85,15 @@ export function useAuth() {
   }
 }
 
-export function useRequireAuth() {
+export function useRequireAuth(allowGuest = false) {
   const auth = useAuth()
 
   useEffect(() => {
-    if (!auth.isLoading && !auth.isAuthenticated) {
+    if (!auth.isLoading && !auth.isAuthenticated && !allowGuest) {
       // Redirect to login page or show login modal
       window.location.href = '/login'
     }
-  }, [auth.isLoading, auth.isAuthenticated])
+  }, [auth.isLoading, auth.isAuthenticated, allowGuest])
 
   return auth
 }
