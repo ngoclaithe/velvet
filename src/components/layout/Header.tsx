@@ -61,9 +61,9 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               {/* Quick Actions */}
-              <Button variant="ghost" size="sm" className="text-purple-600">
-                <Zap className="h-4 w-4 mr-2" />
-                Go Live
+              <Button variant="ghost" size="sm" className="text-pink-600">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Tạo bài viết
               </Button>
               
               {/* Notifications */}
