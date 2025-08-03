@@ -1,3 +1,5 @@
+import type { CreatorProfile } from './user'
+
 export interface Stream {
   id: string
   creatorId: string
