@@ -257,7 +257,8 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        user: state.user,
+        // Only persist authenticated users, not guest users
+        user: state.user?.role !== 'guest' ? state.user : null,
         session: state.session,
       }),
     }
