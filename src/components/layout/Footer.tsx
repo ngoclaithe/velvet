@@ -118,7 +118,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="font-semibold">Cập nhật mới nhất</h4>
             <p className="text-sm text-muted-foreground">
-              Đăng ký để nhận thông tin về tính năng mới, n��i dung hot và ưu đãi độc quyền.
+              Đăng ký để nhận thông tin về tính năng mới, nội dung hot và ưu đãi độc quyền.
             </p>
             <div className="flex space-x-2">
               <Input 
@@ -166,7 +166,7 @@ export default function Footer() {
             </Link>
           </div>
           <div className="text-sm text-muted-foreground">
-            © {currentYear} StreamHub. Tất cả quyền được bảo lưu.
+            © {currentYear} VelvetSocial. Tất cả quyền được bảo lưu. Nền tảng dành cho người từ 18 tuổi trở lên.
           </div>
         </div>
       </div>
