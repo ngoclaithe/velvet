@@ -62,11 +62,11 @@ export default function RegisterPage() {
       //   description: "Welcome to the platform. Please verify your email.",
       // })
     } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
+      // toast({
+      //   title: "Registration failed",
+      //   description: "Something went wrong. Please try again.",
+      //   variant: "destructive",
+      // })
     } finally {
       setIsLoading(false)
     }
