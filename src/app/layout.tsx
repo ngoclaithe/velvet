@@ -46,7 +46,7 @@ export default function RootLayout({
         inter.variable
       )}>
         {children}
-        <Toaster />
+        {/* <Toaster /> */}
       </body>
     </html>
   )
