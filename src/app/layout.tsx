@@ -9,8 +9,8 @@ import { Toaster } from '@/components/ui/toaster'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'StreamHub - Nền tảng streaming hàng đầu',
-  description: 'Kết nối, sáng tạo và chia sẻ đam mê của bạn với cộng đồng streaming sôi động',
+  title: 'VelvetSocial - Mạng xã hội Adult 18+',
+  description: 'Nền tảng mạng xã hội adult hàng đầu. Kết nối, chia sẻ và khám phá trong cộng đồng an toàn cho người từ 18 tuổi trở lên',
 }
 
 export default function RootLayout({
