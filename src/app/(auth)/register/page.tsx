@@ -73,10 +73,10 @@ export default function RegisterPage() {
   }
 
   const handleSocialLogin = (provider: string) => {
-    toast({
-      title: `${provider} signup`,
-      description: "Social login integration coming soon!",
-    })
+    // toast({
+    //   title: `${provider} signup`,
+    //   description: "Social login integration coming soon!",
+    // })
   }
 
   return (
