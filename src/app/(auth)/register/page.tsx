@@ -34,20 +34,20 @@ export default function RegisterPage() {
     e.preventDefault()
     
     if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Password mismatch",
-        description: "Passwords do not match. Please try again.",
-        variant: "destructive",
-      })
+      // toast({
+      //   title: "Password mismatch",
+      //   description: "Passwords do not match. Please try again.",
+      //   variant: "destructive",
+      // })
       return
     }
 
     if (!formData.agreeToTerms) {
-      toast({
-        title: "Terms required",
-        description: "Please agree to the terms and conditions.",
-        variant: "destructive",
-      })
+      // toast({
+      //   title: "Terms required",
+      //   description: "Please agree to the terms and conditions.",
+      //   variant: "destructive",
+      // })
       return
     }
 
