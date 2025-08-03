@@ -4,107 +4,115 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Play, Users, MessageCircle, Gift, Star, Zap, LogIn, UserPlus } from 'lucide-react'
+import StreamCard from '@/components/StreamCard'
+import { Play, Users, MessageCircle, Gift, Star, Zap, TrendingUp, Award, Shield, Sparkles, ArrowRight, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function HomePage() {
-  const { user, isAuthenticated, isGuest, logout } = useAuth()
+  const { user, isAuthenticated, isGuest } = useAuth()
 
   const featuredStreams = [
     {
       id: '1',
-      title: 'Gaming Night with Sarah',
+      title: 'Epic Gaming Marathon - Chinh phục Boss cuối!',
       creator: 'sarah_gamer',
-      viewers: 1234,
+      viewers: 12847,
       category: 'Gaming',
       thumbnail: '/api/placeholder/400/225',
       isLive: true,
     },
     {
       id: '2',
-      title: 'Music & Chill Session',
+      title: 'Live Music Session - Acoustic Cover Songs',
       creator: 'music_mike',
-      viewers: 856,
+      viewers: 5632,
       category: 'Music',
       thumbnail: '/api/placeholder/400/225',
       isLive: true,
     },
     {
       id: '3',
-      title: 'Art Tutorial: Digital Painting',
+      title: 'Digital Art Tutorial: Character Design',
       creator: 'artist_anna',
-      viewers: 623,
+      viewers: 3421,
       category: 'Art',
+      thumbnail: '/api/placeholder/400/225',
+      isLive: true,
+    },
+    {
+      id: '4',
+      title: 'Cooking Show: Vietnamese Street Food',
+      creator: 'chef_vietn',
+      viewers: 2156,
+      category: 'Cooking',
+      thumbnail: '/api/placeholder/400/225',
+      isLive: true,
+    },
+    {
+      id: '5',
+      title: 'Tech Talk: Latest AI Developments',
+      creator: 'tech_guru',
+      viewers: 1987,
+      category: 'Technology',
+      thumbnail: '/api/placeholder/400/225',
+      isLive: true,
+    },
+    {
+      id: '6',
+      title: 'Fitness Live: Morning Yoga Session',
+      creator: 'yoga_master',
+      viewers: 1543,
+      category: 'Fitness',
       thumbnail: '/api/placeholder/400/225',
       isLive: true,
     },
   ]
 
+  const categories = [
+    { name: 'Gaming', count: 1234, icon: '🎮', color: 'from-purple-500 to-pink-500' },
+    { name: 'Music', count: 867, icon: '🎵', color: 'from-blue-500 to-cyan-500' },
+    { name: 'Art', count: 543, icon: '🎨', color: 'from-green-500 to-emerald-500' },
+    { name: 'Cooking', count: 432, icon: '👨‍🍳', color: 'from-orange-500 to-red-500' },
+    { name: 'Technology', count: 321, icon: '💻', color: 'from-indigo-500 to-purple-500' },
+    { name: 'Fitness', count: 234, icon: '💪', color: 'from-teal-500 to-green-500' },
+  ]
+
   const features = [
     {
-      icon: Play,
-      title: 'Live Streaming',
-      description: 'Stream in HD quality with real-time interaction',
+      icon: Zap,
+      title: 'HD Live Streaming',
+      description: 'Streaming chất lượng cao với độ trễ thấp và tính năng tương tác thời gian thực',
+      gradient: 'from-yellow-500 to-orange-500'
     },
     {
       icon: MessageCircle,
-      title: 'Interactive Chat',
-      description: 'Engage with viewers through live chat and reactions',
+      title: 'Chat Tương Tác',
+      description: 'Hệ thống chat thông minh với emoji, sticker và tính năng moderation tự động',
+      gradient: 'from-blue-500 to-purple-500'
     },
     {
       icon: Gift,
-      title: 'Virtual Gifts',
-      description: 'Send and receive virtual gifts to support creators',
+      title: 'Quà Tặng Ảo',
+      description: 'Gửi và nhận quà tặng ảo độc đáo để hỗ trợ các creator yêu thích',
+      gradient: 'from-pink-500 to-red-500'
     },
     {
-      icon: Users,
-      title: 'Private Shows',
-      description: 'Book exclusive one-on-one sessions with creators',
+      icon: Shield,
+      title: 'An Toàn & Bảo Mật',
+      description: 'Hệ thống bảo mật tiên tiến và kiểm duyệt nội dung tự động',
+      gradient: 'from-green-500 to-teal-500'
     },
+  ]
+
+  const stats = [
+    { label: 'Streamers Hoạt Động', value: '50K+', icon: Users },
+    { label: 'Giờ Streaming/Tháng', value: '2M+', icon: Play },
+    { label: 'Cộng Đ��ng', value: '500K+', icon: Star },
+    { label: 'Quốc Gia', value: '100+', icon: Award },
   ]
 
   return (
     <div className="min-h-screen">
-      {/* Navigation/Auth Bar */}
-      <nav className="bg-background border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold">
-              Streaming Platform
-            </Link>
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <>
-                  <span className="text-sm">
-                    Xin chào, <span className="font-medium">{user?.username}</span>
-                  </span>
-                  <Button variant="outline" size="sm" onClick={logout}>
-                    Đăng xuất
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm text-muted-foreground">
-                    Đang xem dưới dạng khách - Đăng nhập để đăng bài và bình luận
-                  </span>
-                  <Link href="/login">
-                    <Button variant="outline" size="sm">
-                      <LogIn className="w-4 h-4 mr-2" />
-                      Đăng nhập
-                    </Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button size="sm">
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Đăng ký
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white">
