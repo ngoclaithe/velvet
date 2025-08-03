@@ -34,7 +34,7 @@ export function useAuth() {
   }, [session, refreshToken])
 
   const isAuthenticated = !!user && !!session && user.role !== 'guest'
-  const isGuest = user?.role === 'guest'
+  const isGuest = !user || user.role === 'guest'
   const isTokenExpired = session ? session.expiresAt.getTime() < Date.now() : false
 
   const hasRole = (role: User['role']) => {
