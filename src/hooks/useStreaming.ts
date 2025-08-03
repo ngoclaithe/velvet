@@ -209,7 +209,8 @@ export function useWebRTC() {
       stopLocalStream()
       disconnect()
     }
-  }, [stopLocalStream, disconnect])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
     // State
