@@ -51,10 +51,10 @@ export default function LoginPage() {
   }
 
   const handleSocialLogin = (provider: string) => {
-    toast({
-      title: `${provider} login`,
-      description: "Social login integration coming soon!",
-    })
+    // toast({
+    //   title: `${provider} login`,
+    //   description: "Social login integration coming soon!",
+    // })
   }
 
   return (
