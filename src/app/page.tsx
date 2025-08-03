@@ -164,22 +164,22 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <section className="py-12 bg-background">
+      <section className="py-8 bg-gray-900">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="newsfeed" className="w-full">
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Sidebar */}
               <div className="lg:w-80 space-y-6">
-                <Card>
+                <Card className="bg-gray-800 border-gray-700">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
                       <Flame className="w-5 h-5 text-orange-500" />
                       Creators nổi
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {trendingCreators.map((creator, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <img
@@ -188,20 +188,20 @@ export default function HomePage() {
                               className="w-10 h-10 rounded-full object-cover"
                             />
                             {creator.isOnline && (
-                              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
                             )}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-1">
-                              <p className="font-medium text-sm">{creator.name}</p>
+                              <p className="font-medium text-sm text-white">{creator.name}</p>
                               {creator.isVerified && (
                                 <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
                                   <span className="text-white text-xs">✓</span>
                                 </div>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground">{creator.followers} followers</p>
-                            <p className="text-xs text-muted-foreground">{creator.specialty}</p>
+                            <p className="text-xs text-gray-400">{creator.followers} followers</p>
+                            <p className="text-xs text-gray-400">{creator.specialty}</p>
                           </div>
                         </div>
                       </div>
@@ -210,13 +210,13 @@ export default function HomePage() {
                 </Card>
 
                 {!isAuthenticated && (
-                  <Card className="border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-purple-50">
+                  <Card className="border-2 border-pink-500/20 bg-gradient-to-br from-pink-900/20 to-purple-900/20 backdrop-blur">
                     <CardContent className="p-6 text-center">
                       <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full flex items-center justify-center">
                         <Heart className="w-8 h-8 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold mb-2">Tham gia cộng đồng!</h3>
-                      <p className="text-muted-foreground text-sm mb-4">
+                      <h3 className="text-lg font-semibold mb-2 text-white">Tham gia cộng đồng!</h3>
+                      <p className="text-gray-300 text-sm mb-4">
                         Đăng ký để đăng bài, tương tác và khám phá nội dung độc quyền
                       </p>
                       <Link href="/(auth)/register">
@@ -231,14 +231,26 @@ export default function HomePage() {
 
               {/* Main Content */}
               <div className="flex-1">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="newsfeed" className="flex items-center gap-2">
+                <TabsList className="grid w-full grid-cols-5 mb-6 bg-gray-800 border-gray-700">
+                  <TabsTrigger value="newsfeed" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                     <TrendingUp className="w-4 h-4" />
                     Bảng tin
                   </TabsTrigger>
-                  <TabsTrigger value="blog" className="flex items-center gap-2">
+                  <TabsTrigger value="blog" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                     <Edit3 className="w-4 h-4" />
                     Blog & Bài viết
+                  </TabsTrigger>
+                  <TabsTrigger value="creators" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
+                    <MapPin className="w-4 h-4" />
+                    Creator theo địa điểm
+                  </TabsTrigger>
+                  <TabsTrigger value="chat" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
+                    <MessageCircle className="w-4 h-4" />
+                    Chat 18+
+                  </TabsTrigger>
+                  <TabsTrigger value="video" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
+                    <Video className="w-4 h-4" />
+                    Video 18+
                   </TabsTrigger>
                 </TabsList>
 
@@ -252,11 +264,55 @@ export default function HomePage() {
                       <BlogPost key={post.id} post={post} variant="card" />
                     ))}
                   </div>
-                  
+
                   <div className="text-center">
-                    <Button variant="outline" size="lg">
+                    <Button variant="outline" size="lg" className="border-gray-600 text-gray-300 hover:bg-gray-800">
                       Xem thêm bài viết
                     </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="creators" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {trendingCreators.map((creator, index) => (
+                      <Card key={index} className="bg-gray-800 border-gray-700 hover:border-pink-500/50 transition-colors">
+                        <CardContent className="p-6 text-center">
+                          <div className="relative w-20 h-20 mx-auto mb-4">
+                            <img
+                              src={creator.avatar}
+                              alt={creator.name}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                            {creator.isOnline && (
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-800 rounded-full"></div>
+                            )}
+                          </div>
+                          <h3 className="font-semibold text-white mb-1">{creator.name}</h3>
+                          <p className="text-gray-400 text-sm mb-2">@{creator.username}</p>
+                          <p className="text-gray-300 text-sm mb-3">{creator.specialty}</p>
+                          <p className="text-pink-400 text-sm font-medium">{creator.followers} followers</p>
+                          <Button size="sm" className="mt-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
+                            Theo dõi
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="chat" className="space-y-6">
+                  <div className="text-center py-12">
+                    <MessageCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Chat 18+ đang được phát triển</h3>
+                    <p className="text-gray-400">Tính năng chat riêng tư và nhóm chat 18+ sẽ có sớm!</p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="video" className="space-y-6">
+                  <div className="text-center py-12">
+                    <Video className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Video 18+ đang được phát triển</h3>
+                    <p className="text-gray-400">Kho video 18+ với nội dung độc quyền sẽ có sớm!</p>
                   </div>
                 </TabsContent>
               </div>
