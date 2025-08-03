@@ -4,10 +4,22 @@ import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData } fro
 
 interface AuthState extends AuthStore {}
 
+// Default guest user
+const guestUser: User = {
+  id: 'guest',
+  username: 'Guest',
+  email: '',
+  role: 'guest',
+  isVerified: false,
+  isOnline: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: null,
+      user: guestUser, // Start with guest user
       session: null,
       isLoading: false,
       error: null,
