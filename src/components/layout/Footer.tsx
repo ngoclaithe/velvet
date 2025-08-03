@@ -55,8 +55,18 @@ export default function Footer() {
             <h4 className="font-semibold">Khám phá</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/browse" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Duyệt Streams
+                <Link href="/feed" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Bảng tin
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Blog & Bài viết
+                </Link>
+              </li>
+              <li>
+                <Link href="/creators" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Creators
                 </Link>
               </li>
               <li>
@@ -65,18 +75,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/top-streamers" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Top Streamers
-                </Link>
-              </li>
-              <li>
-                <Link href="/events" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Sự kiện
-                </Link>
-              </li>
-              <li>
-                <Link href="/trending" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Trending
+                <Link href="/premium" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Nội dung Premium
                 </Link>
               </li>
             </ul>
