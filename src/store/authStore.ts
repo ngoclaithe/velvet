@@ -115,7 +115,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         set({
-          user: guestUser, // Return to guest mode instead of null
+          user: null, // Return to null state
           session: null,
           isLoading: false,
           error: null,
