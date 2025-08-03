@@ -182,7 +182,7 @@ export const kycSchema = z.object({
     type: z.enum(['passport', 'drivers_license', 'national_id']),
     number: z.string().min(5, 'Document number is required'),
     expiryDate: z.date().refine(date => date > new Date(), 'Document must not be expired'),
-    frontImage: z.instanceof(File, 'Front image is required'),
+    frontImage: z.instanceof(File, { message: 'Front image is required' }),
     backImage: z.instanceof(File).optional(),
   }),
   phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number'),
