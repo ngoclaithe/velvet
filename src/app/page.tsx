@@ -5,7 +5,23 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import StreamCard from '@/components/StreamCard'
-import { Play, Users, MessageCircle, Gift, Star, Zap, TrendingUp, Award, Shield, Sparkles, ArrowRight, ChevronRight } from 'lucide-react'
+import { 
+  Play, 
+  Users, 
+  MessageCircle, 
+  Gift, 
+  Star, 
+  Zap, 
+  TrendingUp, 
+  Award, 
+  Shield, 
+  Sparkles, 
+  ArrowRight, 
+  ChevronRight,
+  Eye,
+  Heart,
+  Clock
+} from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function HomePage() {
@@ -106,112 +122,161 @@ export default function HomePage() {
 
   const stats = [
     { label: 'Streamers Hoạt Động', value: '50K+', icon: Users },
-    { label: 'Giờ Streaming/Tháng', value: '2M+', icon: Play },
-    { label: 'Cộng Đ��ng', value: '500K+', icon: Star },
+    { label: 'Giờ Streaming/Tháng', value: '2M+', icon: Clock },
+    { label: 'Cộng Đồng', value: '500K+', icon: Heart },
     { label: 'Quốc Gia', value: '100+', icon: Award },
   ]
 
   return (
     <div className="min-h-screen">
-
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white">
-        <div className="container mx-auto px-4 py-24">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Chào mừng đến với tương lai của{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
-                Live Streaming
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white/90">
-              Kết nối với các streamer, thưởng thức nội dung trực tiếp và tham gia cộng đồng tuyệt vời
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {isAuthenticated ? (
-                <>
-                  <Button size="lg" className="text-lg px-8 py-3 bg-white text-purple-600 hover:bg-gray-100">
-                    Bắt đầu Stream
-                    <Zap className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-white text-white hover:bg-white/10">
-                    Khám phá Streams
-                    <Play className="ml-2 h-5 w-5" />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/register">
-                    <Button size="lg" className="text-lg px-8 py-3 bg-white text-purple-600 hover:bg-gray-100">
-                      Bắt đầu ngay
-                      <Zap className="ml-2 h-5 w-5" />
+      <section className="relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative container mx-auto px-4 py-24 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-sm font-medium text-purple-700 mb-6">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Nền tảng streaming mới nhất 2024
+              </div>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
+                Tương lai của{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
+                  Live Streaming
+                </span>
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl">
+                Kết nối với hàng triệu người xem, chia sẻ đam mê và kiếm tiền từ nội dung của bạn
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                {isAuthenticated ? (
+                  <>
+                    <Button size="lg" className="text-lg px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold">
+                      <Zap className="mr-2 h-5 w-5" />
+                      Bắt đầu Stream
                     </Button>
-                  </Link>
-                  <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-white text-white hover:bg-white/10">
-                    Khám phá Streams
-                    <Play className="ml-2 h-5 w-5" />
-                  </Button>
-                </>
-              )}
+                    <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-white/20 text-white hover:bg-white/10 backdrop-blur">
+                      <Play className="mr-2 h-5 w-5" />
+                      Khám phá Nội dung
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/(auth)/register">
+                      <Button size="lg" className="text-lg px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold">
+                        <Zap className="mr-2 h-5 w-5" />
+                        Tham gia ngay - Miễn phí
+                      </Button>
+                    </Link>
+                    <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-white/20 text-white hover:bg-white/10 backdrop-blur">
+                      <Play className="mr-2 h-5 w-5" />
+                      Xem Demo
+                    </Button>
+                  </>
+                )}
+              </div>
+              
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+                {stats.map((stat, index) => (
+                  <div key={index} className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-2 bg-white/10 rounded-full flex items-center justify-center backdrop-blur">
+                      <stat.icon className="w-6 h-6 text-purple-300" />
+                    </div>
+                    <div className="text-2xl font-bold text-white">{stat.value}</div>
+                    <div className="text-sm text-gray-300">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Hero Visual */}
+            <div className="relative">
+              <div className="relative z-10 grid grid-cols-2 gap-4">
+                {featuredStreams.slice(0, 4).map((stream, index) => (
+                  <div
+                    key={stream.id}
+                    className={`transform transition-transform hover:scale-105 ${
+                      index % 2 === 0 ? 'translate-y-4' : '-translate-y-4'
+                    }`}
+                  >
+                    <StreamCard stream={stream} showWatchButton={false} />
+                  </div>
+                ))}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-900/50 to-transparent pointer-events-none"></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Streams */}
+      {/* Categories Section */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Đang Live</h2>
-            <p className="text-muted-foreground text-lg">
-              Xem những gì đang diễn ra ngay bây giờ
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Khám phá theo Danh mục</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Tìm kiếm nội dung yêu thích của bạn trong hàng trăm danh mục đa dạng
             </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category, index) => (
+              <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
+                <CardContent className="p-6 text-center">
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center text-2xl transition-transform group-hover:scale-110`}>
+                    {category.icon}
+                  </div>
+                  <h3 className="font-semibold mb-2">{category.name}</h3>
+                  <p className="text-sm text-muted-foreground">{category.count} streams</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Streams */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">🔥 Đang Hot</h2>
+              <p className="text-lg text-muted-foreground">
+                Những stream được xem nhiều nhất hiện tại
+              </p>
+            </div>
+            <Button variant="outline" className="hidden md:flex">
+              Xem tất cả
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredStreams.map((stream) => (
-              <Card key={stream.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                <div className="relative">
-                  <div className="aspect-video bg-gray-200 relative">
-                    {stream.isLive && (
-                      <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                        LIVE
-                      </Badge>
-                    )}
-                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-                      <Users className="inline w-4 h-4 mr-1" />
-                      {stream.viewers.toLocaleString()}
-                    </div>
-                    {/* Play button overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
-                      <Button size="lg" className="rounded-full">
-                        <Play className="w-6 h-6" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg line-clamp-2">{stream.title}</CardTitle>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground">@{stream.creator}</p>
-                    <Badge variant="secondary">{stream.category}</Badge>
-                  </div>
-                </CardHeader>
-              </Card>
+              <StreamCard key={stream.id} stream={stream} />
             ))}
           </div>
           
           {!isAuthenticated && (
-            <div className="text-center mt-8">
-              <Card className="max-w-md mx-auto p-6 border-yellow-200 bg-yellow-50">
-                <CardContent className="text-center">
-                  <MessageCircle className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                  <p className="text-sm text-yellow-800 mb-3">
-                    Đăng nhập để tham gia chat và tương tác với streamer!
+            <div className="text-center mt-12">
+              <Card className="max-w-lg mx-auto border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                    <MessageCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Tham gia cuộc trò chuyện!</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Đăng nhập để chat, gửi quà và tương tác với các streamer yêu thích
                   </p>
-                  <Link href="/login">
-                    <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                  <Link href="/(auth)/login">
+                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                       Đăng nhập ngay
+                      <ChevronRight className="ml-2 w-4 h-4" />
                     </Button>
                   </Link>
                 </CardContent>
@@ -222,22 +287,25 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="py-16 bg-muted/50">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Tại sao chọn nền tảng của chúng tôi?</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Chúng tôi cung cấp mọi thứ bạn cần cho trải nghiệm streaming tuyệt vời
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Tại sao chọn StreamHub?</h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              Chúng tôi cung cấp công nghệ tiên tiến và tính năng độc đáo để mang đến trải nghiệm streaming tuyệt vời nhất
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center p-6">
-                <div className="w-12 h-12 mx-auto mb-4 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <feature.icon className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
-                <CardDescription>{feature.description}</CardDescription>
+              <Card key={index} className="relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
+                <CardContent className="p-8 text-center relative">
+                  <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                    <feature.icon className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-xl mb-4 group-hover:text-purple-600 transition-colors">{feature.title}</CardTitle>
+                  <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
+                </CardContent>
               </Card>
             ))}
           </div>
@@ -245,86 +313,51 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            {isAuthenticated ? 'Sẵn sàng bắt đầu Stream?' : 'Sẵn sàng tham gia?'}
-          </h2>
-          <p className="text-xl mb-8 text-primary-foreground/90">
-            {isAuthenticated
-              ? 'Bắt đầu streaming và kết nối với khán giả của bạn ngay hôm nay'
-              : 'Tham gia cùng hàng nghìn streamer và người xem trên nền tảng của chúng tôi'
-            }
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {isAuthenticated ? (
-              <>
-                <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-                  Bắt đầu Stream
-                </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
-                  Khám phá thêm
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link href="/register">
-                  <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-                    Tạo tài khoản
+      <section className="py-20 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
+        <div className="container mx-auto px-4 text-center relative">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              {isAuthenticated ? 'Sẵn sàng tỏa sáng?' : 'Bắt đầu hành trình của bạn'}
+            </h2>
+            <p className="text-xl md:text-2xl mb-8 text-white/90 leading-relaxed">
+              {isAuthenticated
+                ? 'Hàng triệu người đang chờ đón nội dung tuyệt vời từ bạn. Hãy bắt đầu streaming ngay hôm nay!'
+                : 'Tham gia cùng hàng nghìn creator đang kiếm tiền và xây dựng cộng đồng trên StreamHub'
+              }
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              {isAuthenticated ? (
+                <>
+                  <Button size="lg" variant="secondary" className="text-lg px-10 py-4 bg-white text-purple-600 hover:bg-gray-100 font-semibold">
+                    <Zap className="mr-2 h-5 w-5" />
+                    Bắt đầu Stream ngay
                   </Button>
-                </Link>
-                <Link href="/login">
-                  <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
-                    Đăng nhập
+                  <Button size="lg" variant="outline" className="text-lg px-10 py-4 border-white/30 text-white hover:bg-white/10 backdrop-blur">
+                    <TrendingUp className="mr-2 h-5 w-5" />
+                    Xem Analytics
                   </Button>
-                </Link>
-              </>
-            )}
+                </>
+              ) : (
+                <>
+                  <Link href="/(auth)/register">
+                    <Button size="lg" variant="secondary" className="text-lg px-10 py-4 bg-white text-purple-600 hover:bg-gray-100 font-semibold">
+                      <Star className="mr-2 h-5 w-5" />
+                      Tạo tài khoản miễn phí
+                    </Button>
+                  </Link>
+                  <Link href="/(auth)/login">
+                    <Button size="lg" variant="outline" className="text-lg px-10 py-4 border-white/30 text-white hover:bg-white/10 backdrop-blur">
+                      <Users className="mr-2 h-5 w-5" />
+                      Đã có tài khoản? Đăng nhập
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-background border-t py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4">Streaming Platform</h3>
-              <p className="text-muted-foreground">
-                Nơi tốt nhất để stream và xem nội dung trực tiếp.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Sản phẩm</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Duyệt Streams</Button></li>
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Danh mục</Button></li>
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Top Streamers</Button></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Công ty</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Về chúng tôi</Button></li>
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Hỗ trợ</Button></li>
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Quyền riêng tư</Button></li>
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Điều khoản</Button></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Tài nguyên</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Trung tâm trợ giúp</Button></li>
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">Hướng dẫn</Button></li>
-                <li><Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground">API</Button></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 Streaming Platform. Bản quyền thuộc về chúng tôi.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
