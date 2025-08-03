@@ -40,11 +40,11 @@ export default function LoginPage() {
       //   description: "Welcome back to the platform.",
       // })
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
-        variant: "destructive",
-      })
+      // toast({
+      //   title: "Login failed",
+      //   description: "Please check your credentials and try again.",
+      //   variant: "destructive",
+      // })
     } finally {
       setIsLoading(false)
     }
