@@ -117,7 +117,7 @@ export default function HomePage() {
               </span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white/90">
-              Kết nối với các streamer, thưởng thức nội dung trực tiếp và tham gia cộng đồng tuyệt vời
+              Kết nối với các streamer, thưởng thức nội dung trực tiếp và tham gia c���ng đồng tuyệt vời
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {isAuthenticated ? (
@@ -193,7 +193,7 @@ export default function HomePage() {
             ))}
           </div>
           
-          {isGuest && (
+          {!isAuthenticated && (
             <div className="text-center mt-8">
               <Card className="max-w-md mx-auto p-6 border-yellow-200 bg-yellow-50">
                 <CardContent className="text-center">
