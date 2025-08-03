@@ -92,8 +92,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/creator-guide" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Hướng dẫn Creator
+                <Link href="/verification" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Xác minh tài khoản
                 </Link>
               </li>
               <li>
@@ -107,8 +107,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Liên hệ
+                <Link href="/report" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Báo cáo vi phạm
                 </Link>
               </li>
             </ul>
