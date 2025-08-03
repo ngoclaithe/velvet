@@ -49,7 +49,7 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const { params, ...requestConfig } = config
     
-    const headers = {
+    const headers: Record<string, string> = {
       ...this.defaultHeaders,
       ...requestConfig.headers,
     }
