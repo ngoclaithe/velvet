@@ -13,6 +13,7 @@ import {
   Star,
   Edit3,
   UserPlus,
+  Crown,
   Flame,
   TrendingUp,
   Sparkles
