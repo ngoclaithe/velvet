@@ -51,7 +51,7 @@ class ApiClient {
     
     const headers: Record<string, string> = {
       ...this.defaultHeaders,
-      ...requestConfig.headers,
+      ...(requestConfig.headers as Record<string, string> || {}),
     }
 
     // Add auth token if available
