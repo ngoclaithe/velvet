@@ -22,7 +22,7 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      await login(email, password, rememberMe)
+      await login({ email, password, rememberMe })
     } catch (error) {
       console.error('Login failed:', error)
     } finally {
