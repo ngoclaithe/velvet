@@ -92,7 +92,9 @@ export const createStreamSchema = z.object({
     quality: z.object({
       resolution: z.enum(['720p', '1080p', '4K']),
       bitrate: z.number().min(1000).max(50000),
-      fps: z.enum([30, 60]),
+      fps: z.number().refine(val => val === 30 || val === 60, {
+        message: 'FPS must be either 30 or 60',
+      }),
     }),
     audio: z.object({
       enabled: z.boolean(),
