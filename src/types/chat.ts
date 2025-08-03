@@ -1,3 +1,5 @@
+import type { ViewerRole } from './streaming'
+
 export interface ChatMessage {
   id: string
   streamId?: string
