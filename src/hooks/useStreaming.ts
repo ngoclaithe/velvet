@@ -209,7 +209,7 @@ export function useWebRTC() {
       stopLocalStream()
       disconnect()
     }
-  }, [])
+  }, [stopLocalStream, disconnect])
 
   return {
     // State
