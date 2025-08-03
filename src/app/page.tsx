@@ -117,7 +117,7 @@ export default function HomePage() {
               </span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white/90">
-              Kết nối với các streamer, thưởng thức nội dung trực tiếp và tham gia c���ng đồng tuyệt vời
+              Kết nối với các streamer, thưởng thức nội dung trực tiếp và tham gia cộng đồng tuyệt vời
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {isAuthenticated ? (
@@ -240,16 +240,25 @@ export default function HomePage() {
       <section className="py-16 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            {isGuest ? 'Sẵn sàng tham gia?' : 'Sẵn sàng bắt đầu Stream?'}
+            {isAuthenticated ? 'Sẵn sàng bắt đầu Stream?' : 'Sẵn sàng tham gia?'}
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/90">
-            {isGuest 
-              ? 'Tham gia cùng hàng nghìn streamer và người xem trên nền tảng của chúng tôi'
-              : 'Bắt đầu streaming và kết nối với khán giả của bạn ngay hôm nay'
+            {isAuthenticated
+              ? 'Bắt đầu streaming và kết nối với khán giả của bạn ngay hôm nay'
+              : 'Tham gia cùng hàng nghìn streamer và người xem trên nền tảng của chúng tôi'
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {isGuest ? (
+            {isAuthenticated ? (
+              <>
+                <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
+                  Bắt đầu Stream
+                </Button>
+                <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+                  Khám phá thêm
+                </Button>
+              </>
+            ) : (
               <>
                 <Link href="/register">
                   <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
@@ -261,15 +270,6 @@ export default function HomePage() {
                     Đăng nhập
                   </Button>
                 </Link>
-              </>
-            ) : (
-              <>
-                <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-                  Bắt đầu Stream
-                </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
-                  Khám phá thêm
-                </Button>
               </>
             )}
           </div>
