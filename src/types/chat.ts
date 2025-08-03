@@ -1,4 +1,4 @@
-import type { ViewerRole } from './streaming'
+import type { ViewerRole, StreamViewer } from './streaming'
 
 export interface ChatMessage {
   id: string
