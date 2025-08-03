@@ -1,0 +1,338 @@
+/* Light theme styles */
+.light {
+  /* Custom properties for light theme */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+}
+
+/* Light theme specific components */
+.light .stream-card {
+  @apply bg-white border-gray-200 shadow-sm;
+}
+
+.light .stream-card:hover {
+  @apply shadow-md border-gray-300;
+}
+
+.light .chat-message {
+  @apply bg-white border-gray-200;
+}
+
+.light .chat-bubble.user {
+  @apply bg-blue-500 text-white;
+}
+
+.light .chat-bubble.streamer {
+  @apply bg-yellow-500 text-black;
+}
+
+.light .chat-bubble.moderator {
+  @apply bg-green-500 text-white;
+}
+
+.light .chat-bubble.vip {
+  @apply bg-purple-500 text-white;
+}
+
+.light .nav-item {
+  @apply text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+}
+
+.light .nav-item.active {
+  @apply bg-primary text-primary-foreground;
+}
+
+.light .skeleton {
+  @apply bg-gray-200;
+}
+
+.light .skeleton-text {
+  @apply bg-gray-200;
+}
+
+.light .skeleton-avatar {
+  @apply bg-gray-200;
+}
+
+.light .search-highlight {
+  @apply bg-yellow-200 text-yellow-800;
+}
+
+.light .empty-state {
+  @apply text-gray-500;
+}
+
+.light .empty-state svg {
+  @apply text-gray-300;
+}
+
+.light .empty-state h3 {
+  @apply text-gray-900;
+}
+
+.light .field-label {
+  @apply text-gray-700;
+}
+
+.light .field-help {
+  @apply text-gray-500;
+}
+
+.light .video-progress {
+  @apply bg-gray-300;
+}
+
+.light .tooltip {
+  @apply bg-gray-900 text-white;
+}
+
+/* Light theme scrollbar */
+.light .custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+.light .custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-400;
+}
+
+.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Light theme form elements */
+.light input,
+.light textarea,
+.light select {
+  @apply bg-white border-gray-300 text-gray-900;
+}
+
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
+  @apply border-primary ring-primary/20;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  @apply text-gray-400;
+}
+
+/* Light theme buttons */
+.light .btn-secondary {
+  @apply bg-gray-100 text-gray-900 hover:bg-gray-200;
+}
+
+.light .btn-outline {
+  @apply border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900;
+}
+
+.light .btn-ghost {
+  @apply text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+}
+
+/* Light theme modals */
+.light .modal-overlay {
+  @apply bg-black/50;
+}
+
+.light .modal-content {
+  @apply bg-white border-gray-200;
+}
+
+/* Light theme dropdowns */
+.light .dropdown-content {
+  @apply bg-white border-gray-200 shadow-lg;
+}
+
+.light .dropdown-item {
+  @apply text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+}
+
+.light .dropdown-separator {
+  @apply border-gray-200;
+}
+
+/* Light theme tables */
+.light table {
+  @apply bg-white;
+}
+
+.light th {
+  @apply bg-gray-50 text-gray-700 border-gray-200;
+}
+
+.light td {
+  @apply border-gray-200 text-gray-900;
+}
+
+.light tr:hover {
+  @apply bg-gray-50;
+}
+
+/* Light theme alerts */
+.light .alert-info {
+  @apply bg-blue-50 border-blue-200 text-blue-800;
+}
+
+.light .alert-success {
+  @apply bg-green-50 border-green-200 text-green-800;
+}
+
+.light .alert-warning {
+  @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.light .alert-error {
+  @apply bg-red-50 border-red-200 text-red-800;
+}
+
+/* Light theme code blocks */
+.light pre,
+.light code {
+  @apply bg-gray-100 text-gray-900;
+}
+
+.light .code-block {
+  @apply bg-gray-100 border-gray-200;
+}
+
+/* Light theme syntax highlighting */
+.light .token.comment {
+  @apply text-gray-500;
+}
+
+.light .token.string {
+  @apply text-green-600;
+}
+
+.light .token.number {
+  @apply text-blue-600;
+}
+
+.light .token.keyword {
+  @apply text-purple-600;
+}
+
+.light .token.function {
+  @apply text-yellow-600;
+}
+
+/* Light theme progress bars */
+.light .progress-bg {
+  @apply bg-gray-200;
+}
+
+.light .progress-fill {
+  @apply bg-primary;
+}
+
+/* Light theme badges */
+.light .badge-default {
+  @apply bg-gray-100 text-gray-700;
+}
+
+.light .badge-secondary {
+  @apply bg-gray-200 text-gray-800;
+}
+
+/* Light theme dividers */
+.light .divider {
+  @apply border-gray-200;
+}
+
+/* Light theme shadows */
+.light .shadow-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.light .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Light theme focus states */
+.light .focus-ring {
+  @apply focus:ring-primary/20;
+}
+
+/* Light theme selection */
+.light ::selection {
+  @apply bg-primary/20 text-primary-foreground;
+}
+
+/* Light theme specific utilities */
+.light .text-primary {
+  @apply text-blue-600;
+}
+
+.light .text-secondary {
+  @apply text-gray-600;
+}
+
+.light .text-muted {
+  @apply text-gray-500;
+}
+
+.light .bg-subtle {
+  @apply bg-gray-50;
+}
+
+.light .border-subtle {
+  @apply border-gray-200;
+}
+
+/* Light theme card variants */
+.light .card-elevated {
+  @apply bg-white shadow-lg border-gray-100;
+}
+
+.light .card-outlined {
+  @apply bg-white border-2 border-gray-200;
+}
+
+.light .card-subtle {
+  @apply bg-gray-50 border-gray-100;
+}
+
+/* Light theme navigation */
+.light .nav-primary {
+  @apply bg-white border-gray-200;
+}
+
+.light .nav-secondary {
+  @apply bg-gray-50 border-gray-100;
+}
+
+/* Light theme headers */
+.light .header-primary {
+  @apply bg-white border-b border-gray-200;
+}
+
+.light .header-secondary {
+  @apply bg-gray-50 border-b border-gray-100;
+}
+
+/* Light theme footers */
+.light .footer-primary {
+  @apply bg-white border-t border-gray-200;
+}
+
+.light .footer-secondary {
+  @apply bg-gray-50 border-t border-gray-100;
+}
