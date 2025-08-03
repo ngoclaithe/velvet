@@ -57,10 +57,10 @@ export default function RegisterPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      toast({
-        title: "Account created!",
-        description: "Welcome to the platform. Please verify your email.",
-      })
+      // toast({
+      //   title: "Account created!",
+      //   description: "Welcome to the platform. Please verify your email.",
+      // })
     } catch (error) {
       toast({
         title: "Registration failed",
