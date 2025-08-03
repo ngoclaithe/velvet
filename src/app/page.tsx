@@ -304,7 +304,7 @@ export default function HomePage() {
                   <div className="text-center py-12">
                     <MessageCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-white mb-2">Chat 18+ đang được phát triển</h3>
-                    <p className="text-gray-400">Tính năng chat riêng tư và nhóm chat 18+ sẽ có sớm!</p>
+                    <p className="text-gray-400">Tính năng chat riêng tư và nhóm chat 18+ sẽ c�� sớm!</p>
                   </div>
                 </TabsContent>
 
@@ -325,25 +325,25 @@ export default function HomePage() {
 
       {/* CTA Section */}
       {!isAuthenticated && (
-        <section className="py-20 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
+        <section className="py-16 bg-gray-800 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-900/20 via-purple-900/20 to-indigo-900/20"></div>
           <div className="container mx-auto px-4 text-center relative">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <div className="max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
                 Sẵn sàng khám phá?
               </h2>
-              <p className="text-xl md:text-2xl mb-8 text-white/90 leading-relaxed">
+              <p className="text-lg md:text-xl mb-8 text-gray-300 leading-relaxed">
                 Tham gia cộng đồng hàng nghìn thành viên đang chia sẻ và khám phá nội dung độc đáo mỗi ngày
               </p>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/(auth)/register">
-                  <Button size="lg" variant="secondary" className="text-lg px-10 py-4 bg-white text-pink-600 hover:bg-gray-100 font-semibold">
+                  <Button size="lg" className="text-lg px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 font-semibold">
                     <Star className="mr-2 h-5 w-5" />
                     Tạo tài khoản miễn phí
                   </Button>
                 </Link>
                 <Link href="/(auth)/login">
-                  <Button size="lg" variant="outline" className="text-lg px-10 py-4 border-white/30 text-white hover:bg-white/10 backdrop-blur">
+                  <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-gray-600 text-gray-300 hover:bg-gray-700">
                     <Users className="mr-2 h-5 w-5" />
                     Đã có tài khoản? Đăng nhập
                   </Button>
