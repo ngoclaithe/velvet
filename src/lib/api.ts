@@ -190,10 +190,10 @@ export const authApi = {
     api.put('/auth/updatepassword', data),
 
   // Kiểm tra username - GET /api/v1/auth/check-username/:username
-  checkUsername: (username: string) => api.get(`/auth/check-username/${username}`),
+  checkUsername: (username: string) => api.get(`/auth/check-username/${encodeURIComponent(username)}`),
 
   // Kiểm tra email - GET /api/v1/auth/check-email/:email
-  checkEmail: (email: string) => api.get(`/auth/check-email/${email}`),
+  checkEmail: (email: string) => api.get(`/auth/check-email/${encodeURIComponent(email)}`),
 
   // Đăng ký creator - POST /api/v1/auth/creator/register
   registerCreator: (data: {
