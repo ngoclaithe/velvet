@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
           })
 
           if (!response.success || !response.data) {
-            throw new Error(response.error || 'Đăng nhập thất bại')
+            throw new Error(response.error || 'Đăng nh��p thất bại')
           }
 
           // Lấy thông tin user từ response
@@ -116,13 +116,21 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
-        set({
-          user: null, // Return to null state
-          session: null,
-          isLoading: false,
-          error: null,
-        })
+      logout: async () => {
+        try {
+          // Gọi API logout để invalidate token
+          await authApi.logout()
+        } catch (error) {
+          // Vẫn logout dù API call thất bại
+          console.error('Logout API failed:', error)
+        } finally {
+          set({
+            user: null,
+            session: null,
+            isLoading: false,
+            error: null,
+          })
+        }
       },
 
       refreshToken: async () => {
@@ -130,12 +138,15 @@ export const useAuthStore = create<AuthState>()(
         if (!session) return
 
         try {
-          // Simulate token refresh
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
+          const response = await authApi.refreshToken()
+
+          if (!response.success || !response.data) {
+            throw new Error('Token refresh failed')
+          }
+
           const newSession: AuthSession = {
             ...session,
-            accessToken: 'new-access-token',
+            accessToken: response.data.token,
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           }
 
