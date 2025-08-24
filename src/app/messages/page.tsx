@@ -262,14 +262,24 @@ export default function MessagesPage() {
     return participant.username.toLowerCase().includes(searchQuery.toLowerCase())
   })
 
-  if (!user) {
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [authLoading, isAuthenticated, router])
+
+  if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Vui lòng đăng nhập để xem tin nhắn</p>
+          <Icons.spinner className="h-8 w-8 animate-spin" />
         </div>
       </div>
     )
+  }
+
+  if (!isAuthenticated) {
+    return null // Component sẽ redirect trước khi render
   }
 
   return (
