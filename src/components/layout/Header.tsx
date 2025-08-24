@@ -142,11 +142,18 @@ export default function Header() {
                       <span>Live Streams</span>
                     </Link>
                   </DropdownMenuItem>
-                  {user?.role === 'creator' && (
+                  {user?.role === 'creator' ? (
                     <DropdownMenuItem asChild>
                       <Link href="/stream" className="cursor-pointer">
                         <Zap className="mr-2 h-4 w-4 text-red-500" />
                         <span>Stream Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link href="/become-creator" className="cursor-pointer">
+                        <UserPlus className="mr-2 h-4 w-4 text-purple-500" />
+                        <span>Become Creator</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
