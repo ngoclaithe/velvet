@@ -48,7 +48,7 @@ export default function RegisterPage() {
           setErrors(prev => ({ ...prev, username: '' }))
         }
       } else {
-        // Nếu API call thất bại, không hiện lỗi để không làm phiền user
+        // Nếu API call thất bại, không hiện lỗi để không làm phi��n user
         console.warn('Check username API failed:', response.error)
       }
     } catch (error) {
@@ -133,24 +133,40 @@ export default function RegisterPage() {
     
     // Validate form
     const newErrors: Record<string, string> = {}
-    
+
+    // Required fields
     if (!formData.username) newErrors.username = 'Username là bắt buộc'
     else {
       const usernameError = validateUsername(formData.username)
       if (usernameError) newErrors.username = usernameError
     }
-    
+
     if (!formData.email) newErrors.email = 'Email là bắt buộc'
     if (!formData.password) newErrors.password = 'Mật khẩu là bắt buộc'
     else {
       const passwordError = validatePassword(formData.password)
       if (passwordError) newErrors.password = passwordError
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Mật khẩu không khớp'
     }
-    
+
+    // Optional fields validation
+    const phoneError = validatePhoneNumber(formData.phoneNumber)
+    if (phoneError) newErrors.phoneNumber = phoneError
+
+    const referralError = validateReferralCode(formData.referralCode)
+    if (referralError) newErrors.referralCode = referralError
+
+    // firstName và lastName validation (nếu c��)
+    if (formData.firstName && (formData.firstName.length < 2 || formData.firstName.length > 50)) {
+      newErrors.firstName = 'Tên phải từ 2-50 ký tự'
+    }
+    if (formData.lastName && (formData.lastName.length < 2 || formData.lastName.length > 50)) {
+      newErrors.lastName = 'Họ phải từ 2-50 ký tự'
+    }
+
     if (!agreeToTerms) {
       newErrors.terms = 'Vui lòng đồng ý với điều khoản sử dụng'
     }
