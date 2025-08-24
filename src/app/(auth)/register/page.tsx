@@ -216,6 +216,14 @@ export default function RegisterPage() {
       const error = validateReferralCode(value)
       setErrors(prev => ({ ...prev, referralCode: error }))
     }
+    if (field === 'firstName' && value) {
+      const error = (value.length < 2 || value.length > 50) ? 'Tên phải từ 2-50 ký tự' : ''
+      setErrors(prev => ({ ...prev, firstName: error }))
+    }
+    if (field === 'lastName' && value) {
+      const error = (value.length < 2 || value.length > 50) ? 'Họ phải từ 2-50 ký tự' : ''
+      setErrors(prev => ({ ...prev, lastName: error }))
+    }
   }
 
   return (
