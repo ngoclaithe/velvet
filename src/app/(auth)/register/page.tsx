@@ -52,56 +52,22 @@ export default function RegisterPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Kiểm tra username có tồn tại không
+  // Kiểm tra username có tồn tại không (tạm thời vô hiệu hóa)
   const checkUsername = async (username: string) => {
     if (username.length < 3) return
 
-    setUsernameChecking(true)
-    try {
-      const response = await authApi.checkUsername(username)
-      if (response.success && response.data) {
-        const data = response.data as CheckUsernameResponse
-        if (!data.available) {
-          setErrors(prev => ({ ...prev, username: data.message || 'Username đã được sử dụng' }))
-        } else {
-          setErrors(prev => ({ ...prev, username: '' }))
-        }
-      } else {
-        // Nếu API call thất bại, không hiện lỗi để không làm phiền user
-        console.warn('Check username API failed:', response.error)
-      }
-    } catch (error) {
-      console.error('Check username failed:', error)
-      // Không hiện lỗi cho user, chỉ log để debug
-    } finally {
-      setUsernameChecking(false)
-    }
+    // Tạm thời bỏ qua việc kiểm tra username qua API
+    // vì backend chưa sẵn sàng
+    console.log('Username check skipped for:', username)
   }
 
-  // Kiểm tra email có tồn tại không
+  // Kiểm tra email có tồn tại không (tạm thời vô hiệu hóa)
   const checkEmail = async (email: string) => {
     if (!email.includes('@')) return
 
-    setEmailChecking(true)
-    try {
-      const response = await authApi.checkEmail(email)
-      if (response.success && response.data) {
-        const data = response.data as CheckEmailResponse
-        if (!data.available) {
-          setErrors(prev => ({ ...prev, email: data.message || 'Email đã được sử dụng' }))
-        } else {
-          setErrors(prev => ({ ...prev, email: '' }))
-        }
-      } else {
-        // Nếu API call thất bại, không hiện lỗi để không làm phiền user
-        console.warn('Check email API failed:', response.error)
-      }
-    } catch (error) {
-      console.error('Check email failed:', error)
-      // Không hiện lỗi cho user, chỉ log để debug
-    } finally {
-      setEmailChecking(false)
-    }
+    // Tạm thời bỏ qua việc kiểm tra email qua API
+    // vì backend chưa sẵn sàng
+    console.log('Email check skipped for:', email)
   }
 
   const validatePassword = (password: string) => {
