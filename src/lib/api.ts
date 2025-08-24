@@ -32,14 +32,21 @@ class ApiClient {
   }
 
   private buildURL(endpoint: string, params?: Record<string, string>): string {
-    const url = new URL(endpoint, this.baseURL)
-    
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value)
-      })
+    // Xử lý relative baseURL
+    const fullPath = this.baseURL.endsWith('/')
+      ? `${this.baseURL}${endpoint.startsWith('/') ? endpoint.slice(1) : endpoint}`
+      : `${this.baseURL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
+
+    if (!params || Object.keys(params).length === 0) {
+      return fullPath
     }
-    
+
+    // Thêm query parameters
+    const url = new URL(fullPath, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.append(key, value)
+    })
+
     return url.toString()
   }
 
