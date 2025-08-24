@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox'
 import { Icons } from '@/components/common/Icons'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 export default function LoginPage() {
   const [loginField, setLoginField] = useState('') // Email hoặc username
@@ -18,6 +20,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const { login, error } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,13 +44,24 @@ export default function LoginPage() {
     
     setIsLoading(true)
     setErrors({})
-    
+
     try {
       await login({
         loginField, // Backend nhận loginField (có thể là email hoặc username)
         password,
         rememberMe
       })
+
+      // Hiện thông báo thành công
+      toast({
+        title: "Đăng nhập thành công!",
+        description: "Chào mừng bạn trở lại!",
+        variant: "default"
+      })
+
+      // Chuyển về trang chủ ngay lập tức
+      router.push('/')
+
     } catch (error) {
       console.error('Login failed:', error)
     } finally {
