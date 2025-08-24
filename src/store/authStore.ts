@@ -73,14 +73,36 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Gọi API register thật
-          const response = await authApi.register({
+          // Chuẩn bị dữ liệu theo backend validation
+          const registerData: any = {
             email: data.email,
             username: data.username,
             password: data.password,
-            firstName: data.firstName,
-            lastName: data.lastName,
-          })
+          }
+
+          // Thêm các optional fields nếu có giá trị
+          if (data.firstName && data.firstName.trim()) {
+            registerData.firstName = data.firstName.trim()
+          }
+          if (data.lastName && data.lastName.trim()) {
+            registerData.lastName = data.lastName.trim()
+          }
+          if (data.phoneNumber && data.phoneNumber.trim()) {
+            registerData.phoneNumber = data.phoneNumber.trim()
+          }
+          if (data.gender) {
+            registerData.gender = data.gender
+          }
+          if (data.dateOfBirth) {
+            // Convert date to ISO8601 format (YYYY-MM-DD -> YYYY-MM-DDTHH:mm:ss.sssZ)
+            registerData.dateOfBirth = new Date(data.dateOfBirth).toISOString()
+          }
+          if (data.referralCode && data.referralCode.trim()) {
+            registerData.referralCode = data.referralCode.trim()
+          }
+
+          // Gọi API register thật
+          const response = await authApi.register(registerData)
 
           if (!response.success || !response.data) {
             throw new Error(response.error || 'Đăng ký thất bại')
