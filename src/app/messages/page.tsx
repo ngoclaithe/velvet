@@ -65,7 +65,8 @@ interface Conversation {
 }
 
 export default function MessagesPage() {
-  const { user } = useAuth()
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth()
+  const router = useRouter()
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
