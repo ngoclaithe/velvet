@@ -183,97 +183,46 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      registerCreator: async (data: CreatorRegisterData) => {
+      upgradeToCreator: async (creatorData: {
+        stageName: string;
+        bio?: string;
+        hourlyRate?: number;
+        minBookingDuration?: number;
+        bookingPrice?: number;
+        subscriptionPrice?: number;
+        height?: number;
+        weight?: number;
+      }) => {
+        const { user } = get()
+        if (!user) {
+          throw new Error('Bạn cần đăng nhập để trở thành Creator')
+        }
+
         set({ isLoading: true, error: null })
 
         try {
-          // Chuẩn bị dữ liệu creator theo backend validation
-          const creatorData: any = {
-            // Basic info
-            email: data.email,
-            username: data.username,
-            password: data.password,
-          }
-
-          // Thêm các optional fields nếu có giá trị
-          if (data.firstName && data.firstName.trim()) {
-            creatorData.firstName = data.firstName.trim()
-          }
-          if (data.lastName && data.lastName.trim()) {
-            creatorData.lastName = data.lastName.trim()
-          }
-          if (data.phoneNumber && data.phoneNumber.trim()) {
-            creatorData.phoneNumber = data.phoneNumber.trim()
-          }
-          if (data.gender) {
-            creatorData.gender = data.gender
-          }
-          if (data.dateOfBirth) {
-            creatorData.dateOfBirth = new Date(data.dateOfBirth).toISOString()
-          }
-
-          // Creator specific data
-          if (data.creatorProfile) {
-            const { creatorProfile } = data
-            if (creatorProfile.channelName) {
-              creatorData.stageName = creatorProfile.channelName // Backend expects stageName
-            }
-            if (creatorProfile.channelDescription) {
-              creatorData.bio = creatorProfile.channelDescription // Backend expects bio
-            }
-            if (creatorProfile.contentCategory) {
-              creatorData.category = creatorProfile.contentCategory
-            }
-            if (creatorProfile.experienceLevel) {
-              creatorData.experienceLevel = creatorProfile.experienceLevel
-            }
-            if (creatorProfile.equipment) {
-              creatorData.equipment = creatorProfile.equipment
-            }
-            if (creatorProfile.contentPlan) {
-              creatorData.contentPlan = creatorProfile.contentPlan
-            }
-            if (creatorProfile.socialLinks) {
-              creatorData.socialLinks = creatorProfile.socialLinks
-            }
-          }
-
-          // Gọi API register creator
+          // Gọi API register creator (cần token)
           const response = await authApi.registerCreator(creatorData) as RegisterResponse
 
           if (!response.success) {
-            throw new Error(response.error || 'Đăng ký Creator thất bại')
+            throw new Error(response.error || 'Không thể trở thành Creator')
           }
 
-          // API trả về user và token
-          const { user, token } = response
-
-          // Tạo session từ response
-          const session: AuthSession = {
-            user: {
-              ...user,
-              role: 'creator', // Đảm bảo role là creator
-              isVerified: false,
-              isOnline: true,
-              phoneNumber: user.phoneNumber || '',
-              gender: user.gender || '',
-              dateOfBirth: user.dateOfBirth ? ensureDate(user.dateOfBirth) : undefined,
-              createdAt: ensureDate(user.createdAt || new Date()),
-              updatedAt: ensureDate(user.updatedAt || new Date()),
-            },
-            accessToken: token,
-            refreshToken: '',
-            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000),
+          // Cập nhật user hiện tại thành creator
+          const updatedUser: User = {
+            ...user,
+            role: 'creator',
+            bio: creatorData.bio || user.bio,
+            updatedAt: ensureDate(new Date()),
           }
 
           set({
-            user: session.user,
-            session: session,
+            user: updatedUser,
             isLoading: false,
             error: null,
           })
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Đăng ký Creator thất bại'
+          const errorMessage = error instanceof Error ? error.message : 'Không thể trở thành Creator'
           set({
             isLoading: false,
             error: errorMessage,
