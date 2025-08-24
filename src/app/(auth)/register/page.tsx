@@ -7,36 +7,135 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Icons } from '@/components/common/Icons'
 import { UserPlus, Eye, EyeOff } from 'lucide-react'
+import { authApi } from '@/lib/api'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    gender: '',
+    dateOfBirth: '',
+    referralCode: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [usernameChecking, setUsernameChecking] = useState(false)
+  const [emailChecking, setEmailChecking] = useState(false)
   const { register } = useAuth()
+
+  // Kiểm tra username có tồn tại không
+  const checkUsername = async (username: string) => {
+    if (username.length < 3) return
+    
+    setUsernameChecking(true)
+    try {
+      const response = await authApi.checkUsername(username)
+      if (!response.data?.available) {
+        setErrors(prev => ({ ...prev, username: 'Username đã được sử dụng' }))
+      } else {
+        setErrors(prev => ({ ...prev, username: '' }))
+      }
+    } catch (error) {
+      console.error('Check username failed:', error)
+    } finally {
+      setUsernameChecking(false)
+    }
+  }
+
+  // Kiểm tra email có tồn tại không
+  const checkEmail = async (email: string) => {
+    if (!email.includes('@')) return
+    
+    setEmailChecking(true)
+    try {
+      const response = await authApi.checkEmail(email)
+      if (!response.data?.available) {
+        setErrors(prev => ({ ...prev, email: 'Email đã được sử dụng' }))
+      } else {
+        setErrors(prev => ({ ...prev, email: '' }))
+      }
+    } catch (error) {
+      console.error('Check email failed:', error)
+    } finally {
+      setEmailChecking(false)
+    }
+  }
+
+  const validatePassword = (password: string) => {
+    const hasMinLength = password.length >= 8
+    const hasUpperCase = /[A-Z]/.test(password)
+    const hasLowerCase = /[a-z]/.test(password)
+    const hasNumbers = /\d/.test(password)
+    const hasSpecialChar = /[!@#$%^&*]/.test(password)
+    
+    if (!hasMinLength) return 'Mật khẩu phải có ít nhất 8 ký tự'
+    if (!hasUpperCase) return 'Mật khẩu phải chứa chữ hoa'
+    if (!hasLowerCase) return 'Mật khẩu phải chứa chữ thường'
+    if (!hasNumbers) return 'Mật khẩu phải chứa số'
+    if (!hasSpecialChar) return 'Mật khẩu phải chứa ký tự đặc biệt (!@#$%^&*)'
+    
+    return ''
+  }
+
+  const validateUsername = (username: string) => {
+    if (username.length < 3 || username.length > 30) {
+      return 'Username phải từ 3-30 ký tự'
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return 'Username chỉ được chứa chữ cái, số và dấu gạch dưới'
+    }
+    return ''
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      alert('Mật khẩu không khớp!')
-      return
+    
+    // Validate form
+    const newErrors: Record<string, string> = {}
+    
+    if (!formData.username) newErrors.username = 'Username là bắt buộc'
+    else {
+      const usernameError = validateUsername(formData.username)
+      if (usernameError) newErrors.username = usernameError
     }
+    
+    if (!formData.email) newErrors.email = 'Email là bắt buộc'
+    if (!formData.password) newErrors.password = 'Mật khẩu là bắt buộc'
+    else {
+      const passwordError = validatePassword(formData.password)
+      if (passwordError) newErrors.password = passwordError
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Mật khẩu không khớp'
+    }
+    
     if (!agreeToTerms) {
-      alert('Vui lòng đồng ý với điều khoản sử dụng!')
+      newErrors.terms = 'Vui lòng đồng ý với điều khoản sử dụng'
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
     
     setIsLoading(true)
     try {
-      await register(formData.username, formData.email, formData.password)
+      await register({
+        ...formData,
+        agreeToTerms
+      })
     } catch (error) {
       console.error('Registration failed:', error)
     } finally {
@@ -46,6 +145,23 @@ export default function RegisterPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+    
+    // Real-time validation
+    if (field === 'username' && value.length >= 3) {
+      checkUsername(value)
+    }
+    if (field === 'email' && value.includes('@')) {
+      checkEmail(value)
+    }
+    if (field === 'password') {
+      const error = validatePassword(value)
+      setErrors(prev => ({ ...prev, password: error }))
+    }
   }
 
   return (
@@ -58,42 +174,125 @@ export default function RegisterPage() {
         </div>
         <CardTitle className="text-2xl font-bold">Đăng ký</CardTitle>
         <CardDescription>
-          Tạo tài khoản mới để tham gia cộng đồng streaming
+          Tạo tài khoản mới để tham gia cộng đ��ng streaming
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username */}
           <div className="space-y-2">
             <Input
               id="username"
               type="text"
-              placeholder="Tên người dùng"
+              placeholder="Tên người dùng *"
               value={formData.username}
               onChange={(e) => handleInputChange('username', e.target.value)}
               required
-              className="h-11"
+              className={`h-11 ${errors.username ? 'border-red-500' : ''}`}
             />
+            {usernameChecking && <p className="text-sm text-blue-600">Đang kiểm tra...</p>}
+            {errors.username && <p className="text-sm text-red-600">{errors.username}</p>}
           </div>
+
+          {/* Email */}
           <div className="space-y-2">
             <Input
               id="email"
               type="email"
-              placeholder="Email của bạn"
+              placeholder="Email *"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               required
+              className={`h-11 ${errors.email ? 'border-red-500' : ''}`}
+            />
+            {emailChecking && <p className="text-sm text-blue-600">Đang kiểm tra...</p>}
+            {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
+          </div>
+
+          {/* First Name & Last Name */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Input
+                id="firstName"
+                type="text"
+                placeholder="Tên"
+                value={formData.firstName}
+                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Họ"
+                value={formData.lastName}
+                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                className="h-11"
+              />
+            </div>
+          </div>
+
+          {/* Phone Number */}
+          <div className="space-y-2">
+            <Input
+              id="phoneNumber"
+              type="tel"
+              placeholder="Số điện thoại"
+              value={formData.phoneNumber}
+              onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
               className="h-11"
             />
           </div>
+
+          {/* Gender & Date of Birth */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Giới tính" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Nam</SelectItem>
+                  <SelectItem value="female">Nữ</SelectItem>
+                  <SelectItem value="other">Khác</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Input
+                id="dateOfBirth"
+                type="date"
+                placeholder="Ngày sinh"
+                value={formData.dateOfBirth}
+                onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                className="h-11"
+              />
+            </div>
+          </div>
+
+          {/* Referral Code */}
+          <div className="space-y-2">
+            <Input
+              id="referralCode"
+              type="text"
+              placeholder="Mã giới thiệu (không bắt buộc)"
+              value={formData.referralCode}
+              onChange={(e) => handleInputChange('referralCode', e.target.value)}
+              className="h-11"
+            />
+          </div>
+
+          {/* Password */}
           <div className="space-y-2 relative">
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Mật khẩu"
+              placeholder="Mật khẩu *"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               required
-              className="h-11 pr-10"
+              className={`h-11 pr-10 ${errors.password ? 'border-red-500' : ''}`}
             />
             <button
               type="button"
@@ -106,16 +305,19 @@ export default function RegisterPage() {
                 <Eye className="w-4 h-4" />
               )}
             </button>
+            {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
           </div>
+
+          {/* Confirm Password */}
           <div className="space-y-2 relative">
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Xác nhận mật khẩu"
+              placeholder="Xác nhận mật khẩu *"
               value={formData.confirmPassword}
               onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
               required
-              className="h-11 pr-10"
+              className={`h-11 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
             />
             <button
               type="button"
@@ -128,8 +330,10 @@ export default function RegisterPage() {
                 <Eye className="w-4 h-4" />
               )}
             </button>
+            {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
           </div>
           
+          {/* Terms Agreement */}
           <div className="flex items-center space-x-2">
             <Checkbox
               id="terms"
@@ -150,11 +354,12 @@ export default function RegisterPage() {
               </Link>
             </label>
           </div>
+          {errors.terms && <p className="text-sm text-red-600">{errors.terms}</p>}
           
           <Button
             type="submit"
             className="w-full h-11 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-medium"
-            disabled={isLoading}
+            disabled={isLoading || usernameChecking || emailChecking}
           >
             {isLoading ? (
               <>
