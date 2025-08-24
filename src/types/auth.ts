@@ -104,7 +104,16 @@ export interface AuthStore {
   error: string | null
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
-  registerCreator: (data: CreatorRegisterData) => Promise<void>
+  upgradeToCreator: (data: {
+    stageName: string;
+    bio?: string;
+    hourlyRate?: number;
+    minBookingDuration?: number;
+    bookingPrice?: number;
+    subscriptionPrice?: number;
+    height?: number;
+    weight?: number;
+  }) => Promise<void>
   logout: () => void
   refreshToken: () => Promise<void>
   updateProfile: (data: Partial<User>) => Promise<void>
