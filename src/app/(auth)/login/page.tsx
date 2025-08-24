@@ -90,10 +90,7 @@ export default function LoginPage() {
             <LogIn className="w-6 h-6 text-white" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Đăng nhập</CardTitle>
-        <CardDescription>
-          Nhập thông tin để truy cập tài khoản của bạn
-        </CardDescription>
+        <CardTitle className="text-2xl text-black font-bold">Đăng nhập</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -146,7 +143,7 @@ export default function LoginPage() {
               />
               <label
                 htmlFor="remember"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm text-black font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Ghi nhớ đăng nhập
               </label>
