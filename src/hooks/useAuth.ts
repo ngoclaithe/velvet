@@ -13,6 +13,9 @@ export function useAuth() {
     logout,
     refreshToken,
     updateProfile,
+    forgotPassword,
+    resetPassword,
+    changePassword,
   } = useAuthStore()
 
   // Auto-refresh token when it's about to expire
