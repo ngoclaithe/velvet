@@ -183,6 +183,105 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      registerCreator: async (data: RegisterData & { creatorProfile?: any }) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          // Chuẩn bị dữ liệu creator theo backend validation
+          const creatorData: any = {
+            // Basic info
+            email: data.email,
+            username: data.username,
+            password: data.password,
+          }
+
+          // Thêm các optional fields nếu có giá trị
+          if (data.firstName && data.firstName.trim()) {
+            creatorData.firstName = data.firstName.trim()
+          }
+          if (data.lastName && data.lastName.trim()) {
+            creatorData.lastName = data.lastName.trim()
+          }
+          if (data.phoneNumber && data.phoneNumber.trim()) {
+            creatorData.phoneNumber = data.phoneNumber.trim()
+          }
+          if (data.gender) {
+            creatorData.gender = data.gender
+          }
+          if (data.dateOfBirth) {
+            creatorData.dateOfBirth = new Date(data.dateOfBirth).toISOString()
+          }
+
+          // Creator specific data
+          if (data.creatorProfile) {
+            const { creatorProfile } = data
+            if (creatorProfile.channelName) {
+              creatorData.stageName = creatorProfile.channelName // Backend expects stageName
+            }
+            if (creatorProfile.channelDescription) {
+              creatorData.bio = creatorProfile.channelDescription // Backend expects bio
+            }
+            if (creatorProfile.contentCategory) {
+              creatorData.category = creatorProfile.contentCategory
+            }
+            if (creatorProfile.experienceLevel) {
+              creatorData.experienceLevel = creatorProfile.experienceLevel
+            }
+            if (creatorProfile.equipment) {
+              creatorData.equipment = creatorProfile.equipment
+            }
+            if (creatorProfile.contentPlan) {
+              creatorData.contentPlan = creatorProfile.contentPlan
+            }
+            if (creatorProfile.socialLinks) {
+              creatorData.socialLinks = creatorProfile.socialLinks
+            }
+          }
+
+          // Gọi API register creator
+          const response = await authApi.registerCreator(creatorData) as RegisterResponse
+
+          if (!response.success) {
+            throw new Error(response.error || 'Đăng ký Creator thất bại')
+          }
+
+          // API trả về user và token
+          const { user, token } = response
+
+          // Tạo session từ response
+          const session: AuthSession = {
+            user: {
+              ...user,
+              role: 'creator', // Đảm bảo role là creator
+              isVerified: false,
+              isOnline: true,
+              phoneNumber: user.phoneNumber || '',
+              gender: user.gender || '',
+              dateOfBirth: user.dateOfBirth ? ensureDate(user.dateOfBirth) : undefined,
+              createdAt: ensureDate(user.createdAt || new Date()),
+              updatedAt: ensureDate(user.updatedAt || new Date()),
+            },
+            accessToken: token,
+            refreshToken: '',
+            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000),
+          }
+
+          set({
+            user: session.user,
+            session: session,
+            isLoading: false,
+            error: null,
+          })
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đăng ký Creator thất bại'
+          set({
+            isLoading: false,
+            error: errorMessage,
+          })
+          throw error
+        }
+      },
+
       logout: async () => {
         try {
           // Gọi API logout để invalidate token
