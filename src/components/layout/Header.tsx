@@ -61,10 +61,12 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               {/* Quick Actions */}
-              <Button variant="ghost" size="sm" className="text-pink-600">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Tạo bài viết
-              </Button>
+              <Link href="/create-post">
+                <Button variant="ghost" size="sm" className="text-pink-600">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Tạo bài viết
+                </Button>
+              </Link>
               
               {/* Notifications */}
               <Button variant="ghost" size="icon" className="relative">
@@ -113,12 +115,6 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <Zap className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
                     <Link href="/wallet" className="cursor-pointer">
                       <DollarSign className="mr-2 h-4 w-4" />
                       <span>Ví của tôi</span>
@@ -128,12 +124,6 @@ export default function Header() {
                     <Link href="/messages" className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />
                       <span>Tin nhắn</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Cài đặt</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

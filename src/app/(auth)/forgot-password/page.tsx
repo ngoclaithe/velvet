@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
               <Mail className="w-6 h-6 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Email đã được gửi</CardTitle>
+          <CardTitle className="text-2xl text-black font-bold">Email đã được gửi</CardTitle>
           <CardDescription>
             Chúng tôi đã gửi link khôi phục mật khẩu đến email của bạn
           </CardDescription>

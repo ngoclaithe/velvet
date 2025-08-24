@@ -465,14 +465,25 @@ export default function RegisterPage() {
           </Button>
         </div>
         
-        <div className="text-center text-sm">
-          <span className="text-muted-foreground">Đã có tài khoản? </span>
-          <Link
-            href="/login"
-            className="text-purple-600 hover:text-purple-500 hover:underline font-medium"
-          >
-            Đăng nhập ngay
-          </Link>
+        <div className="text-center text-sm space-y-2">
+          <div>
+            <span className="text-muted-foreground">Đã có tài khoản? </span>
+            <Link
+              href="/login"
+              className="text-purple-600 hover:text-purple-500 hover:underline font-medium"
+            >
+              Đăng nhập ngay
+            </Link>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Muốn trở thành Creator? </span>
+            <Link
+              href="/register-creator"
+              className="text-blue-600 hover:text-blue-500 hover:underline font-medium"
+            >
+              Đăng ký Creator
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>

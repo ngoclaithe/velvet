@@ -1,0 +1,648 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Slider } from '@/components/ui/slider'
+import { Icons } from '@/components/common/Icons'
+import { 
+  PenTool, 
+  Save, 
+  Send, 
+  Image as ImageIcon, 
+  Video, 
+  Mic,
+  Eye,
+  EyeOff,
+  Upload,
+  X,
+  Plus,
+  Hash,
+  DollarSign,
+  Clock,
+  Users,
+  Globe,
+  Lock,
+  Heart,
+  MessageCircle,
+  Share2,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX
+} from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+
+interface MediaFile {
+  id: string
+  file: File
+  type: 'image' | 'video' | 'audio'
+  url: string
+  thumbnail?: string
+}
+
+export default function CreatePostPage() {
+  const { user } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const [postData, setPostData] = useState({
+    title: '',
+    content: '',
+    category: '',
+    tags: [] as string[],
+    visibility: 'public' as 'public' | 'private' | 'followers',
+    allowComments: true,
+    allowLikes: true,
+    allowSharing: true,
+    isPremium: false,
+    price: 0,
+    scheduledAt: '',
+  })
+
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
+  const [currentTag, setCurrentTag] = useState('')
+  const [isPosting, setIsPosting] = useState(false)
+  const [isDraft, setIsDraft] = useState(false)
+  const [postType, setPostType] = useState<'text' | 'image' | 'video' | 'audio'>('text')
+
+  const categories = [
+    'Giải trí',
+    'Giáo dục',
+    'Công nghệ',
+    'Âm nhạc',
+    'Nghệ thuật',
+    'Gaming',
+    'Thể thao',
+    'Du lịch',
+    'Nấu ăn',
+    'Làm đẹp',
+    'Khác'
+  ]
+
+  const handleInputChange = (field: string, value: any) => {
+    setPostData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+    
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const newMediaFile: MediaFile = {
+          id: Math.random().toString(36).substr(2, 9),
+          file,
+          type: file.type.startsWith('image/') ? 'image' : 
+                file.type.startsWith('video/') ? 'video' : 'audio',
+          url: e.target?.result as string
+        }
+        
+        setMediaFiles(prev => [...prev, newMediaFile])
+        
+        // Auto-detect post type based on first uploaded media
+        if (mediaFiles.length === 0) {
+          setPostType(newMediaFile.type === 'audio' ? 'audio' : 
+                    newMediaFile.type === 'video' ? 'video' : 'image')
+        }
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeMediaFile = (id: string) => {
+    setMediaFiles(prev => prev.filter(file => file.id !== id))
+  }
+
+  const addTag = () => {
+    if (currentTag && !postData.tags.includes(currentTag)) {
+      setPostData(prev => ({
+        ...prev,
+        tags: [...prev.tags, currentTag]
+      }))
+      setCurrentTag('')
+    }
+  }
+
+  const removeTag = (tag: string) => {
+    setPostData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }))
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addTag()
+    }
+  }
+
+  const validatePost = () => {
+    if (!postData.title.trim()) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập tiêu đề bài viết",
+        variant: "destructive"
+      })
+      return false
+    }
+
+    if (!postData.content.trim() && mediaFiles.length === 0) {
+      toast({
+        title: "Lỗi", 
+        description: "Bài viết phải có nội dung hoặc media",
+        variant: "destructive"
+      })
+      return false
+    }
+
+    if (!postData.category) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn danh mục",
+        variant: "destructive"
+      })
+      return false
+    }
+
+    if (postData.isPremium && postData.price <= 0) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng đặt giá cho nội dung premium",
+        variant: "destructive"
+      })
+      return false
+    }
+
+    return true
+  }
+
+  const handlePost = async (saveAsDraft = false) => {
+    if (!validatePost() && !saveAsDraft) return
+
+    setIsPosting(true)
+    setIsDraft(saveAsDraft)
+    
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      toast({
+        title: saveAsDraft ? "Lưu nháp thành công!" : "Đăng bài thành công!",
+        description: saveAsDraft ? "Bài viết đã được lưu vào nháp" : "Bài viết của bạn đã được đăng tải",
+        variant: "default"
+      })
+
+      // Reset form
+      setPostData({
+        title: '',
+        content: '',
+        category: '',
+        tags: [],
+        visibility: 'public',
+        allowComments: true,
+        allowLikes: true,
+        allowSharing: true,
+        isPremium: false,
+        price: 0,
+        scheduledAt: '',
+      })
+      setMediaFiles([])
+      setPostType('text')
+
+      // Redirect to profile or posts
+      setTimeout(() => {
+        router.push('/')
+      }, 1500)
+
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể đăng bài. Vui lòng thử lại.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsPosting(false)
+      setIsDraft(false)
+    }
+  }
+
+  const MediaPreview = ({ file }: { file: MediaFile }) => {
+    const [isPlaying, setIsPlaying] = useState(false)
+    
+    return (
+      <div className="relative group">
+        {file.type === 'image' && (
+          <img
+            src={file.url}
+            alt="Preview"
+            className="w-full h-32 object-cover rounded-lg"
+          />
+        )}
+        
+        {file.type === 'video' && (
+          <div className="relative">
+            <video
+              src={file.url}
+              className="w-full h-32 object-cover rounded-lg"
+              controls={false}
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={() => setIsPlaying(!isPlaying)}
+              >
+                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {file.type === 'audio' && (
+          <div className="flex items-center justify-center h-32 bg-gray-100 rounded-lg">
+            <div className="text-center">
+              <Mic className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">{file.file.name}</p>
+            </div>
+          </div>
+        )}
+        
+        <Button
+          size="icon"
+          variant="destructive"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => removeMediaFile(file.id)}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Vui lòng đăng nhập để tạo bài viết</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Tạo bài viết mới</h1>
+          <p className="text-muted-foreground">Chia sẻ nội dung với cộng đ��ng</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => handlePost(true)}
+            disabled={isPosting}
+          >
+            {isDraft ? (
+              <>
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Lưu nháp
+              </>
+            )}
+          </Button>
+          <Button 
+            onClick={() => handlePost(false)}
+            disabled={isPosting}
+          >
+            {isPosting && !isDraft ? (
+              <>
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                Đang đăng...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Đăng bài
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Nội dung bài viết</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Tiêu đề *</Label>
+                <Input
+                  id="title"
+                  placeholder="Nhập tiêu đề hấp dẫn..."
+                  value={postData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  maxLength={100}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {postData.title.length}/100
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="content">Nội dung</Label>
+                <Textarea
+                  id="content"
+                  placeholder="Chia sẻ suy nghĩ, câu chuyện của bạn..."
+                  value={postData.content}
+                  onChange={(e) => handleInputChange('content', e.target.value)}
+                  rows={8}
+                  maxLength={5000}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {postData.content.length}/5000
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Media Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <ImageIcon className="h-5 w-5" />
+                <span>Media</span>
+              </CardTitle>
+              <CardDescription>
+                Thêm hình ảnh, video hoặc âm thanh vào bài viết
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Tải lên file
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,video/*,audio/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {mediaFiles.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {mediaFiles.map((file) => (
+                      <MediaPreview key={file.id} file={file} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tags */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Hash className="h-5 w-5" />
+                <span>Thẻ tag</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Thêm thẻ tag..."
+                    value={currentTag}
+                    onChange={(e) => setCurrentTag(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1"
+                  />
+                  <Button onClick={addTag} disabled={!currentTag}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {postData.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {postData.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="cursor-pointer">
+                        #{tag}
+                        <X 
+                          className="ml-1 h-3 w-3" 
+                          onClick={() => removeTag(tag)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Settings Sidebar */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Cài đặt bài viết</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Danh mục *</Label>
+                <Select value={postData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn danh mục" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Quyền riêng tư</Label>
+                <Select 
+                  value={postData.visibility} 
+                  onValueChange={(value: any) => handleInputChange('visibility', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4" />
+                        <span>Công khai</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="followers">
+                      <div className="flex items-center space-x-2">
+                        <Users className="h-4 w-4" />
+                        <span>Người theo dõi</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="private">
+                      <div className="flex items-center space-x-2">
+                        <Lock className="h-4 w-4" />
+                        <span>Riêng tư</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Cho phép bình luận</Label>
+                  <Switch
+                    checked={postData.allowComments}
+                    onCheckedChange={(checked) => handleInputChange('allowComments', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Cho phép thích</Label>
+                  <Switch
+                    checked={postData.allowLikes}
+                    onCheckedChange={(checked) => handleInputChange('allowLikes', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Cho phép chia sẻ</Label>
+                  <Switch
+                    checked={postData.allowSharing}
+                    onCheckedChange={(checked) => handleInputChange('allowSharing', checked)}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Nội dung premium</Label>
+                  <Switch
+                    checked={postData.isPremium}
+                    onCheckedChange={(checked) => handleInputChange('isPremium', checked)}
+                  />
+                </div>
+
+                {postData.isPremium && (
+                  <div className="space-y-2">
+                    <Label>Giá ($)</Label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={postData.price}
+                      onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
+                      min="0.01"
+                      step="0.01"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label>Hẹn giờ đăng</Label>
+                <Input
+                  type="datetime-local"
+                  value={postData.scheduledAt}
+                  onChange={(e) => handleInputChange('scheduledAt', e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Eye className="h-5 w-5" />
+                <span>Xem trước</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm">
+                <div className="font-medium truncate">
+                  {postData.title || 'Tiêu đề bài viết'}
+                </div>
+                <div className="text-muted-foreground line-clamp-3">
+                  {postData.content || 'Nội dung bài viết sẽ hiển thị ở đây...'}
+                </div>
+                {mediaFiles.length > 0 && (
+                  <div className="text-xs text-blue-600">
+                    📎 {mediaFiles.length} file media
+                  </div>
+                )}
+                {postData.tags.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    {postData.tags.map(tag => `#${tag}`).join(' ')}
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
+                  <div className="flex space-x-4">
+                    <span className="flex items-center space-x-1">
+                      <Heart className="h-3 w-3" />
+                      <span>0</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <MessageCircle className="h-3 w-3" />
+                      <span>0</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <Share2 className="h-3 w-3" />
+                      <span>0</span>
+                    </span>
+                  </div>
+                  {postData.isPremium && (
+                    <Badge variant="secondary" className="text-xs">
+                      ${postData.price}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
