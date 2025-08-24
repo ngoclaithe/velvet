@@ -73,6 +73,9 @@ export function useAuth() {
     logout,
     refreshToken,
     updateProfile,
+    forgotPassword,
+    resetPassword,
+    changePassword,
 
     // Utility functions
     hasRole,
