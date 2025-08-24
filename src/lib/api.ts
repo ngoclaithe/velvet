@@ -8,8 +8,9 @@ class ApiClient {
   private baseURL: string
   private defaultHeaders: Record<string, string>
 
-  constructor(baseURL: string = '/api/v1') {
-    this.baseURL = baseURL
+  constructor(baseURL?: string) {
+    // Sử dụng environment variable hoặc fallback
+    this.baseURL = baseURL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     }
