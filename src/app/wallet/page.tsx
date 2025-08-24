@@ -203,7 +203,7 @@ export default function WalletPage() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       toast({
-        title: "Yêu c���u rút tiền thành công!",
+        title: "Yêu cầu rút tiền thành công!",
         description: `Yêu cầu rút $${withdrawAmount} đang được xử lý`,
         variant: "default"
       })
@@ -248,14 +248,24 @@ export default function WalletPage() {
     return amount >= 0 ? `+$${formatted}` : `-$${formatted}`
   }
 
-  if (!user) {
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [authLoading, isAuthenticated, router])
+
+  if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Vui lòng đăng nhập để xem ví</p>
+          <Icons.spinner className="h-8 w-8 animate-spin" />
         </div>
       </div>
     )
+  }
+
+  if (!isAuthenticated) {
+    return null // Component sẽ redirect trước khi render
   }
 
   return (
@@ -498,7 +508,7 @@ export default function WalletPage() {
                   <span>Rút tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Rút tiền từ ví về tài khoản của bạn
+                  Rút tiền từ ví v�� tài khoản của bạn
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
