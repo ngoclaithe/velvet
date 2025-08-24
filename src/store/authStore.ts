@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           // Gọi API login thật
           const response = await authApi.login({
-            loginField: credentials.email, // Backend nhận loginField (có thể là email hoặc username)
+            loginField: credentials.loginField, // Backend nhận loginField (có thể là email hoặc username)
             password: credentials.password
           })
 
