@@ -8,7 +8,7 @@ class ApiClient {
   private baseURL: string
   private defaultHeaders: Record<string, string>
 
-  constructor(baseURL: string = '/api') {
+  constructor(baseURL: string = '/api/v1') {
     this.baseURL = baseURL
     this.defaultHeaders = {
       'Content-Type': 'application/json',
