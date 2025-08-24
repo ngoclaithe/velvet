@@ -71,43 +71,46 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null })
-        
+
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          // Mock user creation
-          const mockUser: User = {
-            id: '1',
-            username: data.username,
+          // Gọi API register thật
+          const response = await authApi.register({
             email: data.email,
+            username: data.username,
+            password: data.password,
             firstName: data.firstName,
             lastName: data.lastName,
-            bio: '',
-            isVerified: false,
-            isOnline: true,
-            role: 'user',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+          })
+
+          if (!response.success || !response.data) {
+            throw new Error(response.error || 'Đăng ký thất bại')
           }
 
-          const mockSession: AuthSession = {
-            user: mockUser,
-            accessToken: 'mock-access-token',
-            refreshToken: 'mock-refresh-token',
+          // Lấy thông tin user từ response
+          const { user, token } = response.data
+
+          const session: AuthSession = {
+            user: {
+              ...user,
+              createdAt: new Date(user.createdAt),
+              updatedAt: new Date(user.updatedAt),
+            },
+            accessToken: token,
+            refreshToken: '',
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           }
 
           set({
-            user: mockUser,
-            session: mockSession,
+            user: session.user,
+            session: session,
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đăng ký thất bại'
           set({
             isLoading: false,
-            error: 'Registration failed. Please try again.',
+            error: errorMessage,
           })
           throw error
         }
