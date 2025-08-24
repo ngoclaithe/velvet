@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Icons } from '@/components/common/Icons'
 import { Star, Eye, EyeOff, Video } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import type { CreatorRegisterData } from '@/types/auth'
 
 type Gender = 'male' | 'female' | 'other' | undefined;
 
@@ -407,7 +408,7 @@ export default function RegisterCreatorPage() {
             <div className="space-y-2">
               <Textarea
                 id="channelDescription"
-                placeholder="Mô tả về kênh và nội dung bạn sẽ tạo ra *"
+                placeholder="Mô tả về kênh và nội dung bạn sẽ t���o ra *"
                 value={formData.channelDescription}
                 onChange={(e) => handleInputChange('channelDescription', e.target.value)}
                 required
