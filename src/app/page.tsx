@@ -162,7 +162,7 @@ export default function HomePage() {
       {/* Age Verification Banner */}
       <div className="bg-red-600 text-white py-2 text-center text-sm">
         <div className="container mx-auto px-4">
-          ⚠️ Trang web chỉ dành cho người trên 18 tuổi. Bằng việc tiếp tục, bạn xác nh���n đã đủ tuổi theo quy định pháp luật.
+          ⚠️ Trang web chỉ dành cho người trên 18 tuổi. Bằng việc tiếp tục, bạn xác nhận đã đủ tuổi theo quy định pháp luật.
         </div>
       </div>
 
@@ -225,6 +225,25 @@ export default function HomePage() {
                       <Link href="/register">
                         <Button className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
                           Đăng ký ngay
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {isAuthenticated && user?.role === 'user' && (
+                  <Card className="border-2 border-purple-500/20 bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                        <Video className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2 text-white">Trở thành Creator!</h3>
+                      <p className="text-gray-300 text-sm mb-4">
+                        Bắt đầu streaming, kiếm tiền từ nội dung và xây dựng cộng đồng riêng
+                      </p>
+                      <Link href="/become-creator">
+                        <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                          Bắt đầu ngay
                         </Button>
                       </Link>
                     </CardContent>
@@ -455,7 +474,7 @@ export default function HomePage() {
                 <Link href="/login">
                   <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-gray-600 text-gray-300 hover:bg-gray-700">
                     <Users className="mr-2 h-5 w-5" />
-                    Đã có tài khoản? Đăng nhập
+                    Đ�� có tài khoản? Đăng nhập
                   </Button>
                 </Link>
               </div>
