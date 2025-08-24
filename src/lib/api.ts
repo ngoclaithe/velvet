@@ -14,6 +14,11 @@ class ApiClient {
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     }
+
+    // Log để debug (chỉ trong development)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log('🔗 API Base URL:', this.baseURL)
+    }
   }
 
   private getAuthToken(): string | null {
