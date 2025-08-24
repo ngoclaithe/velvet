@@ -142,21 +142,70 @@ export const api = new ApiClient()
 
 // Convenience functions for common API calls
 export const authApi = {
-  login: (credentials: { email: string; password: string }) =>
+  // Đăng nhập - POST /api/v1/auth/login
+  login: (credentials: { loginField: string; password: string }) =>
     api.post('/auth/login', credentials),
-  
-  register: (data: { username: string; email: string; password: string }) =>
-    api.post('/auth/register', data),
-  
+
+  // Đăng ký - POST /api/v1/auth/register
+  register: (data: {
+    email: string;
+    username: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    gender?: 'male' | 'female' | 'other';
+    dateOfBirth?: string;
+    referralCode?: string;
+  }) => api.post('/auth/register', data),
+
+  // Đăng xuất - POST /api/v1/auth/logout
   logout: () => api.post('/auth/logout'),
-  
-  refreshToken: () => api.post('/auth/refresh'),
-  
+
+  // Lấy thông tin user hiện tại - GET /api/v1/auth/me
+  getMe: () => api.get('/auth/me'),
+
+  // Refresh token - POST /api/v1/auth/refresh-token
+  refreshToken: () => api.post('/auth/refresh-token'),
+
+  // Quên mật khẩu - POST /api/v1/auth/forgotpassword
   forgotPassword: (email: string) =>
-    api.post('/auth/forgot-password', { email }),
-  
-  resetPassword: (data: { token: string; password: string }) =>
-    api.post('/auth/reset-password', data),
+    api.post('/auth/forgotpassword', { email }),
+
+  // Reset mật khẩu - PUT /api/v1/auth/resetpassword/:resettoken
+  resetPassword: (resettoken: string, password: string) =>
+    api.put(`/auth/resetpassword/${resettoken}`, { password }),
+
+  // Cập nhật thông tin cá nhân - PUT /api/v1/auth/updatedetails
+  updateDetails: (data: any) => api.put('/auth/updatedetails', data),
+
+  // Đổi mật khẩu - PUT /api/v1/auth/updatepassword
+  updatePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.put('/auth/updatepassword', data),
+
+  // Kiểm tra username - GET /api/v1/auth/check-username/:username
+  checkUsername: (username: string) => api.get(`/auth/check-username/${username}`),
+
+  // Kiểm tra email - GET /api/v1/auth/check-email/:email
+  checkEmail: (email: string) => api.get(`/auth/check-email/${email}`),
+
+  // Đăng ký creator - POST /api/v1/auth/creator/register
+  registerCreator: (data: {
+    stageName: string;
+    bio?: string;
+    hourlyRate?: number;
+    minBookingDuration?: number;
+    bookingPrice?: number;
+    subscriptionPrice?: number;
+    height?: number;
+    weight?: number;
+  }) => api.post('/auth/creator/register', data),
+
+  // Lấy thông tin creator profile - GET /api/v1/auth/creator/profile
+  getCreatorProfile: () => api.get('/auth/creator/profile'),
+
+  // Cập nhật creator profile - PUT /api/v1/auth/creator/profile
+  updateCreatorProfile: (data: any) => api.put('/auth/creator/profile', data),
 }
 
 export const userApi = {
