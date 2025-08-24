@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, DatePicker } from '@/components/ui/calendar'
 import { Switch } from '@/components/ui/switch'
 import { Icons } from '@/components/common/Icons'
 import { 
@@ -433,7 +432,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép theo dõi</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác theo dõi bạn
+                    Cho ph��p người khác theo dõi bạn
                   </p>
                 </div>
                 <Switch
