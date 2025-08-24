@@ -33,10 +33,19 @@ class ApiClient {
   }
 
   private buildURL(endpoint: string, params?: Record<string, string>): string {
-    // Tạo đường dẫn đầy đủ
-    const cleanBase = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
-    let fullPath = `${cleanBase}${cleanEndpoint}`
+    let fullPath: string
+
+    // Kiểm tra nếu baseURL là absolute URL (có http/https)
+    if (this.baseURL.startsWith('http://') || this.baseURL.startsWith('https://')) {
+      const cleanBase = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+      fullPath = `${cleanBase}${cleanEndpoint}`
+    } else {
+      // Xử lý relative URL (fallback)
+      const cleanBase = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+      fullPath = `${cleanBase}${cleanEndpoint}`
+    }
 
     // Thêm query parameters nếu có
     if (params && Object.keys(params).length > 0) {
