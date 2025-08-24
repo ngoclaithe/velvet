@@ -246,23 +246,33 @@ export const userApi = {
 }
 
 export const streamApi = {
-  getStreams: (params?: Record<string, string>) => api.get('/streams', params),
-  
-  getStream: (streamId: string) => api.get(`/streams/${streamId}`),
-  
-  createStream: (data: any) => api.post('/streams', data),
-  
-  updateStream: (streamId: string, data: any) =>
-    api.patch(`/streams/${streamId}`, data),
-  
-  deleteStream: (streamId: string) => api.delete(`/streams/${streamId}`),
-  
-  startStream: (streamId: string) => api.post(`/streams/${streamId}/start`),
-  
-  endStream: (streamId: string) => api.post(`/streams/${streamId}/end`),
-  
+  // Lấy danh sách streams đang live
+  getLiveStreams: (params?: Record<string, string>) => api.get('/streams/live', params),
+
+  // Lấy thông tin stream cụ thể
+  getStreamInfo: (streamId: string) => api.get(`/streams/${streamId}/info`),
+
+  // Tạo và bắt đầu stream session mới (cho creator)
+  startStream: (data: {
+    title: string;
+    description?: string;
+    category?: string;
+    tags?: string[];
+    isPrivate?: boolean;
+  }) => api.post('/streams/start', data),
+
+  // Kết thúc stream (cho creator)
+  stopStream: (streamId: string) => api.post(`/streams/${streamId}/stop`),
+
+  // Lấy thống kê stream
+  getStreamStats: () => api.get('/streams/stats'),
+
+  // Legacy methods để tương thích với code cũ
+  getStreams: (params?: Record<string, string>) => api.get('/streams/live', params),
+  getStream: (streamId: string) => api.get(`/streams/${streamId}/info`),
+  createStream: (data: any) => api.post('/streams/start', data),
+  endStream: (streamId: string) => api.post(`/streams/${streamId}/stop`),
   joinStream: (streamId: string) => api.post(`/streams/${streamId}/join`),
-  
   leaveStream: (streamId: string) => api.post(`/streams/${streamId}/leave`),
 }
 
