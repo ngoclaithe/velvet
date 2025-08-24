@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Icons } from '@/components/common/Icons'
 import { UserPlus, Eye, EyeOff } from 'lucide-react'
 import { authApi } from '@/lib/api'
+import { useToast } from '@/hooks/use-toast'
 
 // Define types for API responses
 interface CheckUsernameResponse {
@@ -47,6 +49,8 @@ export default function RegisterPage() {
   const [usernameChecking, setUsernameChecking] = useState(false)
   const [emailChecking, setEmailChecking] = useState(false)
   const { register } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
 
   // Kiểm tra username có tồn tại không
   const checkUsername = async (username: string) => {
@@ -201,6 +205,19 @@ export default function RegisterPage() {
         agreeToTerms
       }
       await register(registrationData)
+
+      // Hiện thông báo thành công
+      toast({
+        title: "Đăng ký thành công!",
+        description: "Chào mừng bạn đến với nền tảng của chúng tôi. Bạn sẽ được chuyển về trang chủ.",
+        variant: "default"
+      })
+
+      // Chuyển về trang chủ sau 2 giây
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+
     } catch (error) {
       console.error('Registration failed:', error)
     } finally {
