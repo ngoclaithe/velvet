@@ -50,14 +50,56 @@ export default function NewsFeed() {
 
   const currentFeed = feeds[activeTab]
 
+  // Mock data cho demo khi chưa có backend
+  const getMockPosts = useCallback((tab: string, page: number): Post[] => {
+    // Nếu chưa có bài viết thì trả về mảng rỗng
+    if (tab === 'following' && !isAuthenticated) {
+      return []
+    }
+
+    // Demo posts cho "for-you" và khi đã đăng nhập
+    const mockPosts: Post[] = [
+      {
+        id: '1',
+        type: 'text',
+        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt đầu khám phá các tính năng thú vị của chúng tôi.',
+        author: {
+          id: 'admin',
+          username: 'admin',
+          displayName: 'Admin',
+          avatar: '/api/placeholder/40/40',
+          isVerified: true,
+          isOnline: true
+        },
+        createdAt: new Date(Date.now() - 3600000),
+        updatedAt: new Date(Date.now() - 3600000),
+        likes: 125,
+        comments: 8,
+        shares: 3,
+        views: 450,
+        isAdult: false,
+        isPremium: false,
+        isLiked: false,
+        isBookmarked: false,
+        visibility: 'public' as const
+      }
+    ]
+
+    if (tab === 'live') {
+      return [] // Chưa có live streams
+    }
+
+    return page === 1 ? mockPosts : [] // Chỉ có 1 trang mock data
+  }, [isAuthenticated])
+
   // Load posts cho tab hiện tại
   const loadPosts = useCallback(async (
-    tab: string, 
-    page: number = 1, 
+    tab: string,
+    page: number = 1,
     refresh: boolean = false
   ) => {
     const feedKey = tab as keyof typeof feeds
-    
+
     setFeeds(prev => ({
       ...prev,
       [feedKey]: {
@@ -67,72 +109,36 @@ export default function NewsFeed() {
       }
     }))
 
+    // Sử dụng mock data thay vì gọi API
     try {
-      const params: Record<string, string> = {
-        page: page.toString(),
-        limit: POSTS_PER_PAGE.toString(),
-        type: tab === 'live' ? 'live' : tab
-      }
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500))
 
-      // Chỉ include adult content nếu user đã xác thực
-      if (isAuthenticated) {
-        params.includeAdult = 'true'
-        params.includePremium = 'true'
-      }
+      const mockPosts = getMockPosts(tab, page)
 
-      let response
-      if (tab === 'for-you') {
-        response = await postsApi.getFeed(params)
-      } else if (tab === 'following') {
-        params.type = 'following'
-        response = await postsApi.getFeed(params)
-      } else if (tab === 'live') {
-        response = await postsApi.getFeed({ ...params, type: 'live' })
-      }
+      setFeeds(prev => ({
+        ...prev,
+        [feedKey]: {
+          ...prev[feedKey],
+          posts: refresh ? mockPosts : [...prev[feedKey].posts, ...mockPosts],
+          loading: false,
+          hasMore: false, // Không có thêm trang
+          page: page,
+          total: mockPosts.length
+        }
+      }))
 
-      if (response?.success && response.data) {
-        const { posts, pagination } = response.data
-        
-        // Chuyển đổi dates từ string sang Date objects
-        const processedPosts = posts.map((post: any) => ({
-          ...post,
-          createdAt: new Date(post.createdAt),
-          updatedAt: new Date(post.updatedAt)
-        }))
-
-        setFeeds(prev => ({
-          ...prev,
-          [feedKey]: {
-            ...prev[feedKey],
-            posts: refresh ? processedPosts : [...prev[feedKey].posts, ...processedPosts],
-            loading: false,
-            hasMore: pagination?.hasNext || false,
-            page: pagination?.page || page,
-            total: pagination?.total || 0
-          }
-        }))
-      } else {
-        throw new Error(response?.error || 'Không thể tải bài viết')
-      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định'
-      
       setFeeds(prev => ({
         ...prev,
         [feedKey]: {
           ...prev[feedKey],
           loading: false,
-          error: errorMessage
+          error: 'Không thể tải bài viết'
         }
       }))
-
-      toast({
-        title: "Lỗi tải bài viết",
-        description: errorMessage,
-        variant: "destructive"
-      })
     }
-  }, [isAuthenticated, toast])
+  }, [getMockPosts])
 
   // Load more posts (infinite scroll)
   const loadMore = useCallback(() => {
@@ -519,9 +525,9 @@ export default function NewsFeed() {
         {currentFeed.error && (
           <Card className="p-6 text-center">
             <p className="text-red-600 mb-4">{currentFeed.error}</p>
-            <Button onClick={() => loadPosts(activeTab, 1, true)}>
-              Thử lại
-            </Button>
+            <p className="text-muted-foreground text-sm">
+              Backend chưa sẵn sàng. Sử dụng mock data để demo.
+            </p>
           </Card>
         )}
         
@@ -535,17 +541,40 @@ export default function NewsFeed() {
         
         {!currentFeed.loading && currentFeed.posts.length === 0 && !currentFeed.error && (
           <Card className="p-6 text-center">
-            <p className="text-muted-foreground mb-4">
-              {activeTab === 'following' 
-                ? 'Chưa có bài viết từ những người bạn theo dõi'
-                : 'Chưa có bài viết nào'
-              }
-            </p>
-            {activeTab === 'following' && (
-              <Button onClick={() => setActiveTab('for-you')}>
-                Khám phá bài viết
-              </Button>
-            )}
+            <div className="space-y-4">
+              <div className="text-6xl mb-4">
+                {activeTab === 'following' ? '👥' :
+                 activeTab === 'live' ? '📹' : '📝'}
+              </div>
+              <h3 className="text-lg font-semibold">
+                {activeTab === 'following' ? 'Chưa theo dõi ai' :
+                 activeTab === 'live' ? 'Không có live stream' :
+                 'Chưa có bài viết'}
+              </h3>
+              <p className="text-muted-foreground">
+                {activeTab === 'following'
+                  ? 'Hãy theo dõi một số người để xem bài viết của họ tại đây'
+                  : activeTab === 'live'
+                  ? 'Hiện tại không có ai đang live stream'
+                  : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
+                }
+              </p>
+              {activeTab === 'following' && (
+                <div className="space-y-2">
+                  <Button onClick={() => setActiveTab('for-you')}>
+                    Khám phá bài viết
+                  </Button>
+                  {!isAuthenticated && (
+                    <p className="text-sm text-muted-foreground">
+                      <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
+                        Đăng nhập
+                      </Button>
+                      {' '}để theo dõi người khác
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </Card>
         )}
         
