@@ -174,7 +174,7 @@ export default function RegisterPage() {
         </div>
         <CardTitle className="text-2xl font-bold">Đăng ký</CardTitle>
         <CardDescription>
-          Tạo tài khoản mới để tham gia cộng đ��ng streaming
+          Tạo tài khoản mới để tham gia cộng đồng streaming
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -395,7 +395,7 @@ export default function RegisterPage() {
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Đã có tài khoản? </span>
           <Link
-            href="/(auth)/login"
+            href="/login"
             className="text-purple-600 hover:text-purple-500 hover:underline font-medium"
           >
             Đăng nhập ngay
