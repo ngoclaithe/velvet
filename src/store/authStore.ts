@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authApi } from '@/lib/api'
-import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData, CreatorRegisterData } from '@/types/auth'
+import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData } from '@/types/auth'
 
 interface AuthState extends AuthStore {}
 
@@ -366,7 +366,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           })
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất bại'
+          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất b���i'
           set({
             isLoading: false,
             error: errorMessage,

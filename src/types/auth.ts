@@ -42,23 +42,6 @@ export interface RegisterData {
   agreeToTerms: boolean
 }
 
-export interface CreatorRegisterData extends RegisterData {
-  creatorProfile?: {
-    channelName: string
-    channelDescription: string
-    contentCategory: string
-    socialLinks?: {
-      facebook?: string
-      instagram?: string
-      youtube?: string
-      tiktok?: string
-    }
-    experienceLevel: string
-    equipment?: string
-    contentPlan?: string
-  }
-  agreeToCreatorTerms: boolean
-}
 
 export interface ForgotPasswordData {
   email: string
