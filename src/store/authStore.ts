@@ -27,44 +27,43 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null })
-        
+
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          // Mock user data
-          const mockUser: User = {
-            id: '1',
-            username: 'user123',
-            email: credentials.email,
-            avatar: '/api/placeholder/150/150',
-            firstName: 'John',
-            lastName: 'Doe',
-            bio: 'Welcome to my profile!',
-            isVerified: true,
-            isOnline: true,
-            role: 'user',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+          // Gọi API login thật
+          const response = await authApi.login({
+            loginField: credentials.email, // Backend nhận loginField (có thể là email hoặc username)
+            password: credentials.password
+          })
+
+          if (!response.success || !response.data) {
+            throw new Error(response.error || 'Đăng nhập thất bại')
           }
 
-          const mockSession: AuthSession = {
-            user: mockUser,
-            accessToken: 'mock-access-token',
-            refreshToken: 'mock-refresh-token',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          // Lấy thông tin user từ response
+          const { user, token } = response.data
+
+          const session: AuthSession = {
+            user: {
+              ...user,
+              createdAt: new Date(user.createdAt),
+              updatedAt: new Date(user.updatedAt),
+            },
+            accessToken: token,
+            refreshToken: '', // Backend có thể không trả về refresh token
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours từ token payload hoặc default
           }
 
           set({
-            user: mockUser,
-            session: mockSession,
+            user: session.user,
+            session: session,
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đăng nhập thất bại'
           set({
             isLoading: false,
-            error: 'Invalid email or password',
+            error: errorMessage,
           })
           throw error
         }
