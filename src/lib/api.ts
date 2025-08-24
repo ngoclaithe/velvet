@@ -180,7 +180,7 @@ export const authApi = {
 
   // Reset mật khẩu - PUT /api/v1/auth/resetpassword/:resettoken
   resetPassword: (resettoken: string, password: string) =>
-    api.put(`/auth/resetpassword/${resettoken}`, { password }),
+    api.put(`/auth/resetpassword/${encodeURIComponent(resettoken)}`, { password }),
 
   // Cập nhật thông tin cá nhân - PUT /api/v1/auth/updatedetails
   updateDetails: (data: any) => api.put('/auth/updatedetails', data),
