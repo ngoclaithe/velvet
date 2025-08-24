@@ -48,7 +48,7 @@ export default function RegisterPage() {
           setErrors(prev => ({ ...prev, username: '' }))
         }
       } else {
-        // Nếu API call thất bại, không hiện lỗi để không làm phi��n user
+        // Nếu API call thất bại, không hiện lỗi để không làm phiền user
         console.warn('Check username API failed:', response.error)
       }
     } catch (error) {
@@ -159,7 +159,7 @@ export default function RegisterPage() {
     const referralError = validateReferralCode(formData.referralCode)
     if (referralError) newErrors.referralCode = referralError
 
-    // firstName và lastName validation (nếu c��)
+    // firstName và lastName validation (nếu có)
     if (formData.firstName && (formData.firstName.length < 2 || formData.firstName.length > 50)) {
       newErrors.firstName = 'Tên phải từ 2-50 ký tự'
     }
@@ -207,6 +207,14 @@ export default function RegisterPage() {
     if (field === 'password') {
       const error = validatePassword(value)
       setErrors(prev => ({ ...prev, password: error }))
+    }
+    if (field === 'phoneNumber') {
+      const error = validatePhoneNumber(value)
+      setErrors(prev => ({ ...prev, phoneNumber: error }))
+    }
+    if (field === 'referralCode') {
+      const error = validateReferralCode(value)
+      setErrors(prev => ({ ...prev, referralCode: error }))
     }
   }
 
