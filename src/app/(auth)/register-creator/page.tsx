@@ -47,7 +47,7 @@ export default function RegisterCreatorPage() {
   const [agreeToCreatorTerms, setAgreeToCreatorTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const { register } = useAuth()
+  const { registerCreator } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -163,7 +163,6 @@ export default function RegisterCreatorPage() {
       const registrationData = {
         ...formData,
         gender: formData.gender || undefined as Gender,
-        role: 'creator' as const, // Set role as creator
         agreeToTerms,
         agreeToCreatorTerms,
         // Creator specific data
@@ -177,8 +176,8 @@ export default function RegisterCreatorPage() {
           contentPlan: formData.contentPlan
         }
       }
-      
-      await register(registrationData)
+
+      await registerCreator(registrationData)
 
       toast({
         title: "Đăng ký Creator thành công!",
