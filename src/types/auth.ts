@@ -35,6 +35,10 @@ export interface RegisterData {
   confirmPassword: string
   firstName?: string
   lastName?: string
+  phoneNumber?: string
+  gender?: 'male' | 'female' | 'other'
+  dateOfBirth?: string
+  referralCode?: string
   agreeToTerms: boolean
 }
 
