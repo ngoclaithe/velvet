@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
                 Gửi lại email
               </Button>
               
-              <Link href="/(auth)/login">
+              <Link href="/login">
                 <Button variant="ghost" className="w-full h-11">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Quay lại đăng nhập
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
         </div>
         <CardTitle className="text-2xl font-bold">Quên mật khẩu</CardTitle>
         <CardDescription>
-          Nhập email của bạn để nhận link khôi phục mật khẩu
+          Nh���p email của bạn để nhận link khôi phục mật khẩu
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -164,7 +164,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Nhớ mật khẩu rồi? </span>
           <Link
-            href="/(auth)/login"
+            href="/login"
             className="text-purple-600 hover:text-purple-500 hover:underline font-medium"
           >
             <ArrowLeft className="w-4 h-4 inline mr-1" />
