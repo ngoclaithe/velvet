@@ -121,12 +121,12 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       router.push('/login')
     }
-  }, [isLoading, isAuthenticated, router])
+  }, [authLoading, isAuthenticated, router])
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
@@ -412,7 +412,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Hiển thị số điện thoại</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người kh��c xem số điện thoại của bạn
+                    Cho phép người khác xem số điện thoại của bạn
                   </p>
                 </div>
                 <Switch
