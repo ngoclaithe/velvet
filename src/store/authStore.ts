@@ -8,11 +8,10 @@ interface AuthState extends AuthStore {}
 // Response types for API calls
 interface LoginResponse {
   success: boolean
+  message?: string
   error?: string
-  data?: {
-    user: any
-    token: string
-  }
+  token: string
+  user: any
 }
 
 interface RegisterResponse {
@@ -68,18 +67,24 @@ export const useAuthStore = create<AuthState>()(
             password: credentials.password
           }) as LoginResponse
 
-          if (!response.success || !response.data) {
-            throw new Error(response.error || 'Đăng nhập thất bại')
+          if (!response.success || !response.user || !response.token) {
+            throw new Error(response.error || response.message || 'Đăng nhập thất bại')
           }
 
-          // Lấy thông tin user từ response
-          const { user, token } = response.data
+          // Lấy thông tin user từ response (trực tiếp từ response, không qua response.data)
+          const { user, token } = response
 
           const session: AuthSession = {
             user: {
               ...user,
-              createdAt: ensureDate(user.createdAt),
-              updatedAt: ensureDate(user.updatedAt),
+              // Đảm bảo có đủ các field cần thiết
+              isVerified: user.isVerified || false,
+              isOnline: true,
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              avatar: user.avatar || null,
+              createdAt: ensureDate(user.createdAt || new Date()),
+              updatedAt: ensureDate(user.updatedAt || new Date()),
             },
             accessToken: token,
             refreshToken: '', // Backend có thể không trả về refresh token

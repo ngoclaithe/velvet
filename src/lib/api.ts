@@ -287,21 +287,119 @@ export const chatApi = {
 
 export const paymentApi = {
   getWallet: () => api.get('/wallet'),
-  
+
   deposit: (data: any) => api.post('/wallet/deposit', data),
-  
+
   withdraw: (data: any) => api.post('/wallet/withdraw', data),
-  
+
   getTransactions: (params?: Record<string, string>) =>
     api.get('/wallet/transactions', params),
-  
+
   sendTip: (data: any) => api.post('/payments/tip', data),
-  
+
   sendGift: (data: any) => api.post('/payments/gift', data),
-  
+
   subscribe: (creatorId: string, planId: string) =>
     api.post('/subscriptions', { creatorId, planId }),
-  
+
   unsubscribe: (subscriptionId: string) =>
     api.delete(`/subscriptions/${subscriptionId}`),
+}
+
+export const postsApi = {
+  // Lấy feed posts với pagination
+  getFeed: (params?: Record<string, string>) =>
+    api.get('/posts/feed', params),
+
+  // Lấy posts của user cụ thể
+  getUserPosts: (userId: string, params?: Record<string, string>) =>
+    api.get(`/users/${userId}/posts`, params),
+
+  // Lấy trending posts
+  getTrendingPosts: (params?: Record<string, string>) =>
+    api.get('/posts/trending', params),
+
+  // Lấy posts theo tag
+  getPostsByTag: (tag: string, params?: Record<string, string>) =>
+    api.get(`/posts/tags/${encodeURIComponent(tag)}`, params),
+
+  // Lấy chi tiết một post
+  getPost: (postId: string) =>
+    api.get(`/posts/${postId}`),
+
+  // Tạo post mới
+  createPost: (data: any) =>
+    api.post('/posts', data),
+
+  // Cập nhật post
+  updatePost: (postId: string, data: any) =>
+    api.patch(`/posts/${postId}`, data),
+
+  // Xóa post
+  deletePost: (postId: string) =>
+    api.delete(`/posts/${postId}`),
+
+  // Like/Unlike post
+  likePost: (postId: string) =>
+    api.post(`/posts/${postId}/like`),
+
+  unlikePost: (postId: string) =>
+    api.delete(`/posts/${postId}/like`),
+
+  // Share post
+  sharePost: (postId: string, data?: any) =>
+    api.post(`/posts/${postId}/share`, data),
+
+  // Bookmark/Unbookmark post
+  bookmarkPost: (postId: string) =>
+    api.post(`/posts/${postId}/bookmark`),
+
+  unbookmarkPost: (postId: string) =>
+    api.delete(`/posts/${postId}/bookmark`),
+
+  // Lấy bookmarked posts
+  getBookmarkedPosts: (params?: Record<string, string>) =>
+    api.get('/posts/bookmarks', params),
+
+  // Report post
+  reportPost: (postId: string, data: any) =>
+    api.post(`/posts/${postId}/report`, data),
+
+  // Comments
+  getComments: (postId: string, params?: Record<string, string>) =>
+    api.get(`/posts/${postId}/comments`, params),
+
+  createComment: (postId: string, data: any) =>
+    api.post(`/posts/${postId}/comments`, data),
+
+  updateComment: (commentId: string, data: any) =>
+    api.patch(`/comments/${commentId}`, data),
+
+  deleteComment: (commentId: string) =>
+    api.delete(`/comments/${commentId}`),
+
+  likeComment: (commentId: string) =>
+    api.post(`/comments/${commentId}/like`),
+
+  unlikeComment: (commentId: string) =>
+    api.delete(`/comments/${commentId}/like`),
+
+  // Media upload
+  uploadMedia: (file: File) =>
+    api.upload('/media/upload', file),
+
+  // Poll voting
+  votePoll: (postId: string, data: { optionIds: string[] }) =>
+    api.post(`/posts/${postId}/poll/vote`, data),
+
+  // Analytics (for creators/admins)
+  getPostAnalytics: (postId: string) =>
+    api.get(`/posts/${postId}/analytics`),
+
+  getPostStats: (userId?: string) =>
+    api.get('/posts/stats', userId ? { userId } : undefined),
+
+  // Search posts
+  searchPosts: (params: Record<string, string>) =>
+    api.get('/posts/search', params),
 }
