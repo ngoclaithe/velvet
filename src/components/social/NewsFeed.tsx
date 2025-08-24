@@ -1,11 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
+import { postsApi } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
+import type { Post, FeedParams } from '@/types/posts'
 import { 
   Heart, 
   MessageCircle, 
@@ -14,149 +19,159 @@ import {
   Eye,
   MoreHorizontal,
   Play,
-  Image as ImageIcon,
-  Video,
-  Clock,
   TrendingUp,
-  Users
+  Users,
+  Video,
+  Loader2,
+  RefreshCw
 } from 'lucide-react'
 
-interface FeedPost {
-  id: string
-  type: 'text' | 'image' | 'video' | 'poll' | 'live'
-  content: string
-  author: {
-    id: string
-    username: string
-    displayName: string
-    avatar?: string
-    isVerified: boolean
-    isOnline?: boolean
-  }
-  media?: {
-    type: 'image' | 'video'
-    url: string
-    thumbnail?: string
-  }[]
-  createdAt: Date
-  likes: number
-  comments: number
-  shares: number
-  views?: number
-  isAdult: boolean
-  isPremium: boolean
-  isLiked?: boolean
-  isBookmarked?: boolean
+interface FeedState {
+  posts: Post[]
+  loading: boolean
+  error: string | null
+  hasMore: boolean
+  page: number
+  total: number
 }
 
-export default function NewsFeed() {
-  const [activeTab, setActiveTab] = useState('for-you')
-  
-  const feedPosts: FeedPost[] = [
-    {
-      id: '1',
-      type: 'image',
-      content: 'Vừa hoàn thành bộ ảnh mới! Các bạn thấy concept này thế nào? 💕✨',
-      author: {
-        id: 'user1',
-        username: 'luna_goddess',
-        displayName: 'Luna Goddess',
-        avatar: '/api/placeholder/40/40',
-        isVerified: true,
-        isOnline: true
-      },
-      media: [
-        {
-          type: 'image',
-          url: '/api/placeholder/500/600',
-          thumbnail: '/api/placeholder/500/600'
-        }
-      ],
-      createdAt: new Date(Date.now() - 3600000),
-      likes: 1247,
-      comments: 89,
-      shares: 23,
-      views: 5421,
-      isAdult: true,
-      isPremium: true,
-      isLiked: false,
-      isBookmarked: false
-    },
-    {
-      id: '2',
-      type: 'text',
-      content: 'Hôm nay mình sẽ livestream lúc 8pm! Ai free thì ghé chơi nha 🥰 Sẽ có nhiều surprises đấy!',
-      author: {
-        id: 'user2',
-        username: 'angel_beauty',
-        displayName: 'Angel Beauty',
-        avatar: '/api/placeholder/40/40',
-        isVerified: false,
-        isOnline: false
-      },
-      createdAt: new Date(Date.now() - 7200000),
-      likes: 892,
-      comments: 156,
-      shares: 34,
-      isAdult: false,
-      isPremium: false,
-      isLiked: true,
-      isBookmarked: true
-    },
-    {
-      id: '3',
-      type: 'video',
-      content: 'Behind the scenes của buổi chụp hôm qua! Rất vui khi được làm việc với team tuyệt vời 🎬',
-      author: {
-        id: 'user3',
-        username: 'ruby_star',
-        displayName: 'Ruby Star',
-        avatar: '/api/placeholder/40/40',
-        isVerified: true,
-        isOnline: true
-      },
-      media: [
-        {
-          type: 'video',
-          url: '/api/placeholder/video',
-          thumbnail: '/api/placeholder/500/300'
-        }
-      ],
-      createdAt: new Date(Date.now() - 10800000),
-      likes: 2341,
-      comments: 278,
-      shares: 67,
-      views: 12450,
-      isAdult: true,
-      isPremium: false,
-      isLiked: false,
-      isBookmarked: false
-    },
-    {
-      id: '4',
-      type: 'live',
-      content: '🔴 LIVE: Q&A Session với các fans! Hãy gửi câu hỏi nhé!',
-      author: {
-        id: 'user4',
-        username: 'sakura_dreams',
-        displayName: 'Sakura Dreams',
-        avatar: '/api/placeholder/40/40',
-        isVerified: true,
-        isOnline: true
-      },
-      createdAt: new Date(Date.now() - 900000),
-      likes: 567,
-      comments: 89,
-      shares: 12,
-      views: 1234,
-      isAdult: false,
-      isPremium: true,
-      isLiked: true,
-      isBookmarked: false
-    }
-  ]
+const POSTS_PER_PAGE = 10
 
-  const formatTimeAgo = (date: Date) => {
+export default function NewsFeed() {
+  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'live'>('for-you')
+  const [feeds, setFeeds] = useState<Record<string, FeedState>>({
+    'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
+    'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
+    'live': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
+  })
+  const [refreshing, setRefreshing] = useState(false)
+  const { toast } = useToast()
+  const { isAuthenticated } = useAuth()
+
+  const currentFeed = feeds[activeTab]
+
+  // Load posts cho tab hiện tại
+  const loadPosts = useCallback(async (
+    tab: string, 
+    page: number = 1, 
+    refresh: boolean = false
+  ) => {
+    const feedKey = tab as keyof typeof feeds
+    
+    setFeeds(prev => ({
+      ...prev,
+      [feedKey]: {
+        ...prev[feedKey],
+        loading: true,
+        error: null
+      }
+    }))
+
+    try {
+      const params: Record<string, string> = {
+        page: page.toString(),
+        limit: POSTS_PER_PAGE.toString(),
+        type: tab === 'live' ? 'live' : tab
+      }
+
+      // Chỉ include adult content nếu user đã xác thực
+      if (isAuthenticated) {
+        params.includeAdult = 'true'
+        params.includePremium = 'true'
+      }
+
+      let response
+      if (tab === 'for-you') {
+        response = await postsApi.getFeed(params)
+      } else if (tab === 'following') {
+        params.type = 'following'
+        response = await postsApi.getFeed(params)
+      } else if (tab === 'live') {
+        response = await postsApi.getFeed({ ...params, type: 'live' })
+      }
+
+      if (response?.success && response.data) {
+        const { posts, pagination } = response.data
+        
+        // Chuyển đổi dates từ string sang Date objects
+        const processedPosts = posts.map((post: any) => ({
+          ...post,
+          createdAt: new Date(post.createdAt),
+          updatedAt: new Date(post.updatedAt)
+        }))
+
+        setFeeds(prev => ({
+          ...prev,
+          [feedKey]: {
+            ...prev[feedKey],
+            posts: refresh ? processedPosts : [...prev[feedKey].posts, ...processedPosts],
+            loading: false,
+            hasMore: pagination?.hasNext || false,
+            page: pagination?.page || page,
+            total: pagination?.total || 0
+          }
+        }))
+      } else {
+        throw new Error(response?.error || 'Không thể tải bài viết')
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định'
+      
+      setFeeds(prev => ({
+        ...prev,
+        [feedKey]: {
+          ...prev[feedKey],
+          loading: false,
+          error: errorMessage
+        }
+      }))
+
+      toast({
+        title: "Lỗi tải bài viết",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  }, [isAuthenticated, toast])
+
+  // Load more posts (infinite scroll)
+  const loadMore = useCallback(() => {
+    if (currentFeed.loading || !currentFeed.hasMore) return
+    
+    loadPosts(activeTab, currentFeed.page + 1, false)
+  }, [activeTab, currentFeed.loading, currentFeed.hasMore, currentFeed.page, loadPosts])
+
+  // Refresh feed
+  const refreshFeed = useCallback(async () => {
+    setRefreshing(true)
+    await loadPosts(activeTab, 1, true)
+    setRefreshing(false)
+  }, [activeTab, loadPosts])
+
+  // Load initial data khi tab thay đổi
+  useEffect(() => {
+    if (currentFeed.posts.length === 0 && !currentFeed.loading) {
+      loadPosts(activeTab, 1, true)
+    }
+  }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts])
+
+  // Infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        >= document.documentElement.offsetHeight - 1000
+      ) {
+        loadMore()
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [loadMore])
+
+  // Format time ago
+  const formatTimeAgo = useCallback((date: Date) => {
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / 60000)
@@ -167,9 +182,124 @@ export default function NewsFeed() {
     if (hours > 0) return `${hours} giờ trước`
     if (minutes > 0) return `${minutes} phút trước`
     return 'Vừa xong'
-  }
+  }, [])
 
-  const renderMediaContent = (post: FeedPost) => {
+  // Handle post interactions
+  const handleLike = useCallback(async (postId: string) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Yêu cầu đăng nhập",
+        description: "Vui lòng đăng nhập để thích bài viết",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      // Optimistic update
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? {
+                  ...post,
+                  isLiked: !post.isLiked,
+                  likes: post.isLiked ? post.likes - 1 : post.likes + 1
+                }
+              : post
+          )
+        }
+      }))
+
+      // Gọi API
+      const post = currentFeed.posts.find(p => p.id === postId)
+      if (post?.isLiked) {
+        await postsApi.unlikePost(postId)
+      } else {
+        await postsApi.likePost(postId)
+      }
+    } catch (error) {
+      // Revert optimistic update
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? {
+                  ...post,
+                  isLiked: !post.isLiked,
+                  likes: post.isLiked ? post.likes + 1 : post.likes - 1
+                }
+              : post
+          )
+        }
+      }))
+
+      toast({
+        title: "Lỗi",
+        description: "Không thể thích bài viết",
+        variant: "destructive"
+      })
+    }
+  }, [isAuthenticated, activeTab, currentFeed.posts, toast])
+
+  const handleBookmark = useCallback(async (postId: string) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Yêu cầu đăng nhập",
+        description: "Vui lòng đăng nhập để lưu bài viết",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      // Optimistic update
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? { ...post, isBookmarked: !post.isBookmarked }
+              : post
+          )
+        }
+      }))
+
+      const post = currentFeed.posts.find(p => p.id === postId)
+      if (post?.isBookmarked) {
+        await postsApi.unbookmarkPost(postId)
+      } else {
+        await postsApi.bookmarkPost(postId)
+      }
+    } catch (error) {
+      // Revert optimistic update
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? { ...post, isBookmarked: !post.isBookmarked }
+              : post
+          )
+        }
+      }))
+
+      toast({
+        title: "Lỗi",
+        description: "Không thể lưu bài viết",
+        variant: "destructive"
+      })
+    }
+  }, [isAuthenticated, activeTab, currentFeed.posts, toast])
+
+  // Render media content
+  const renderMediaContent = useCallback((post: Post) => {
     if (!post.media || post.media.length === 0) return null
 
     const media = post.media[0]
@@ -181,14 +311,15 @@ export default function NewsFeed() {
             src={media.url} 
             alt="Post content"
             className="w-full h-full object-cover"
+            loading="lazy"
           />
-          {post.isAdult && (
+          {post.isAdult && !isAuthenticated && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
               <div className="text-center text-white">
                 <div className="text-2xl mb-2">🔞</div>
                 <p className="text-sm">Nội dung 18+</p>
                 <Button size="sm" variant="secondary" className="mt-2">
-                  Xem nội dung
+                  Đăng nhập để xem
                 </Button>
               </div>
             </div>
@@ -204,6 +335,7 @@ export default function NewsFeed() {
             src={media.thumbnail} 
             alt="Video thumbnail"
             className="w-full h-full object-cover"
+            loading="lazy"
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <Button size="lg" className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur">
@@ -221,9 +353,10 @@ export default function NewsFeed() {
     }
 
     return null
-  }
+  }, [isAuthenticated])
 
-  const renderPost = (post: FeedPost) => (
+  // Render single post
+  const renderPost = useCallback((post: Post) => (
     <Card key={post.id} className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -287,6 +420,7 @@ export default function NewsFeed() {
             <Button 
               variant="ghost" 
               size="sm" 
+              onClick={() => handleLike(post.id)}
               className={`${post.isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}
             >
               <Heart className={`w-5 h-5 mr-1 ${post.isLiked ? 'fill-current' : ''}`} />
@@ -304,6 +438,7 @@ export default function NewsFeed() {
           <Button 
             variant="ghost" 
             size="sm" 
+            onClick={() => handleBookmark(post.id)}
             className={`${post.isBookmarked ? 'text-yellow-500' : 'text-muted-foreground'} hover:text-yellow-500`}
           >
             <Bookmark className={`w-5 h-5 ${post.isBookmarked ? 'fill-current' : ''}`} />
@@ -311,38 +446,115 @@ export default function NewsFeed() {
         </div>
       </CardContent>
     </Card>
-  )
+  ), [formatTimeAgo, renderMediaContent, handleLike, handleBookmark])
+
+  // Render loading skeleton
+  const renderSkeletons = useCallback(() => (
+    <>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i} className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex items-start gap-3">
+              <Skeleton className="w-12 h-12 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4 mb-4" />
+            <Skeleton className="aspect-video w-full rounded-lg" />
+            <div className="flex items-center justify-between mt-4 pt-3 border-t">
+              <div className="flex gap-6">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-16" />
+              </div>
+              <Skeleton className="h-8 w-8" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </>
+  ), [])
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="for-you" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Dành cho bạn
-          </TabsTrigger>
-          <TabsTrigger value="following" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Đang theo dõi
-          </TabsTrigger>
-          <TabsTrigger value="live" className="flex items-center gap-2">
-            <Video className="w-4 h-4" />
-            Live
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex items-center justify-between mb-6">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="for-you" className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Dành cho bạn
+            </TabsTrigger>
+            <TabsTrigger value="following" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Đang theo dõi
+            </TabsTrigger>
+            <TabsTrigger value="live" className="flex items-center gap-2">
+              <Video className="w-4 h-4" />
+              Live
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-        <TabsContent value="for-you" className="space-y-6">
-          {feedPosts.map(renderPost)}
-        </TabsContent>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={refreshFeed}
+          disabled={refreshing}
+          className="ml-4"
+        >
+          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
 
-        <TabsContent value="following" className="space-y-6">
-          {feedPosts.filter(post => post.author.isVerified).map(renderPost)}
-        </TabsContent>
-
-        <TabsContent value="live" className="space-y-6">
-          {feedPosts.filter(post => post.type === 'live').map(renderPost)}
-        </TabsContent>
-      </Tabs>
+      <div className="space-y-6">
+        {currentFeed.posts.map(renderPost)}
+        
+        {currentFeed.loading && renderSkeletons()}
+        
+        {currentFeed.error && (
+          <Card className="p-6 text-center">
+            <p className="text-red-600 mb-4">{currentFeed.error}</p>
+            <Button onClick={() => loadPosts(activeTab, 1, true)}>
+              Thử lại
+            </Button>
+          </Card>
+        )}
+        
+        {!currentFeed.loading && !currentFeed.hasMore && currentFeed.posts.length > 0 && (
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">
+              Bạn đã xem hết tất cả bài viết!
+            </p>
+          </Card>
+        )}
+        
+        {!currentFeed.loading && currentFeed.posts.length === 0 && !currentFeed.error && (
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground mb-4">
+              {activeTab === 'following' 
+                ? 'Chưa có bài viết từ những người bạn theo dõi'
+                : 'Chưa có bài viết nào'
+              }
+            </p>
+            {activeTab === 'following' && (
+              <Button onClick={() => setActiveTab('for-you')}>
+                Khám phá bài viết
+              </Button>
+            )}
+          </Card>
+        )}
+        
+        {currentFeed.loading && currentFeed.hasMore && currentFeed.posts.length > 0 && (
+          <div className="flex justify-center p-4">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
