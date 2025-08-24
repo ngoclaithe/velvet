@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authApi } from '@/lib/api'
-import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData } from '@/types/auth'
+import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData, CreatorRegisterData } from '@/types/auth'
 
 interface AuthState extends AuthStore {}
 
@@ -183,7 +183,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      registerCreator: async (data: RegisterData & { creatorProfile?: any }) => {
+      registerCreator: async (data: CreatorRegisterData) => {
         set({ isLoading: true, error: null })
 
         try {
