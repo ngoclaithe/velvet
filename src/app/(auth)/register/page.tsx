@@ -295,8 +295,9 @@ export default function RegisterPage() {
               placeholder="Số điện thoại"
               value={formData.phoneNumber}
               onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-              className="h-11"
+              className={`h-11 ${errors.phoneNumber ? 'border-red-500' : ''}`}
             />
+            {errors.phoneNumber && <p className="text-sm text-red-600">{errors.phoneNumber}</p>}
           </div>
 
           {/* Gender & Date of Birth */}
