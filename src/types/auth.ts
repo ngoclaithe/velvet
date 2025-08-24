@@ -23,7 +23,7 @@ export interface AuthSession {
 }
 
 export interface LoginCredentials {
-  email: string
+  loginField: string // Email hoặc username
   password: string
   rememberMe?: boolean
 }
