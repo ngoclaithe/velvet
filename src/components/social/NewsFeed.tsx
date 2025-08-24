@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { postsApi } from '@/lib/api'
+// import { postsApi } from '@/lib/api' // Đã loại bỏ để tránh API calls
 import { useAuth } from '@/hooks/useAuth'
 import type { Post, FeedParams } from '@/types/posts'
 import { 
@@ -190,8 +190,8 @@ export default function NewsFeed() {
     return 'Vừa xong'
   }, [])
 
-  // Handle post interactions
-  const handleLike = useCallback(async (postId: string) => {
+  // Handle post interactions (chỉ local update, không gọi API)
+  const handleLike = useCallback((postId: string) => {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
@@ -201,58 +201,33 @@ export default function NewsFeed() {
       return
     }
 
-    try {
-      // Optimistic update
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? {
-                  ...post,
-                  isLiked: !post.isLiked,
-                  likes: post.isLiked ? post.likes - 1 : post.likes + 1
-                }
-              : post
-          )
-        }
-      }))
-
-      // Gọi API
-      const post = currentFeed.posts.find(p => p.id === postId)
-      if (post?.isLiked) {
-        await postsApi.unlikePost(postId)
-      } else {
-        await postsApi.likePost(postId)
+    // Chỉ update local state, không gọi API
+    setFeeds(prev => ({
+      ...prev,
+      [activeTab]: {
+        ...prev[activeTab],
+        posts: prev[activeTab].posts.map(post =>
+          post.id === postId
+            ? {
+                ...post,
+                isLiked: !post.isLiked,
+                likes: post.isLiked ? post.likes - 1 : post.likes + 1
+              }
+            : post
+        )
       }
-    } catch (error) {
-      // Revert optimistic update
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? {
-                  ...post,
-                  isLiked: !post.isLiked,
-                  likes: post.isLiked ? post.likes + 1 : post.likes - 1
-                }
-              : post
-          )
-        }
-      }))
+    }))
 
-      toast({
-        title: "Lỗi",
-        description: "Không thể thích bài viết",
-        variant: "destructive"
-      })
-    }
+    // Hiển thị thông báo thành công
+    const post = currentFeed.posts.find(p => p.id === postId)
+    toast({
+      title: post?.isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
+      description: "Thay đổi đã được lưu cục bộ",
+      variant: "default"
+    })
   }, [isAuthenticated, activeTab, currentFeed.posts, toast])
 
-  const handleBookmark = useCallback(async (postId: string) => {
+  const handleBookmark = useCallback((postId: string) => {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
@@ -262,46 +237,26 @@ export default function NewsFeed() {
       return
     }
 
-    try {
-      // Optimistic update
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? { ...post, isBookmarked: !post.isBookmarked }
-              : post
-          )
-        }
-      }))
-
-      const post = currentFeed.posts.find(p => p.id === postId)
-      if (post?.isBookmarked) {
-        await postsApi.unbookmarkPost(postId)
-      } else {
-        await postsApi.bookmarkPost(postId)
+    // Chỉ update local state, không gọi API
+    setFeeds(prev => ({
+      ...prev,
+      [activeTab]: {
+        ...prev[activeTab],
+        posts: prev[activeTab].posts.map(post =>
+          post.id === postId
+            ? { ...post, isBookmarked: !post.isBookmarked }
+            : post
+        )
       }
-    } catch (error) {
-      // Revert optimistic update
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? { ...post, isBookmarked: !post.isBookmarked }
-              : post
-          )
-        }
-      }))
+    }))
 
-      toast({
-        title: "Lỗi",
-        description: "Không thể lưu bài viết",
-        variant: "destructive"
-      })
-    }
+    // Hiển thị thông báo thành công
+    const post = currentFeed.posts.find(p => p.id === postId)
+    toast({
+      title: post?.isBookmarked ? "Đã bỏ lưu" : "Đã lưu bài viết",
+      description: "Thay đổi đã được lưu cục bộ",
+      variant: "default"
+    })
   }, [isAuthenticated, activeTab, currentFeed.posts, toast])
 
   // Render media content
