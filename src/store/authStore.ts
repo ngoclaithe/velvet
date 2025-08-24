@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
           })
 
           if (!response.success || !response.data) {
-            throw new Error(response.error || 'Đăng nh��p thất bại')
+            throw new Error(response.error || 'Đăng nhập thất bại')
           }
 
           // Lấy thông tin user từ response
@@ -165,9 +165,12 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
+          const response = await authApi.updateDetails(data)
+
+          if (!response.success) {
+            throw new Error(response.error || 'Cập nhật thông tin thất bại')
+          }
+
           const updatedUser: User = {
             ...user,
             ...data,
@@ -180,9 +183,10 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Cập nhật thông tin thất bại'
           set({
             isLoading: false,
-            error: 'Failed to update profile',
+            error: errorMessage,
           })
           throw error
         }
@@ -192,9 +196,9 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate KYC submission
+          // KYC functionality có thể implement sau
           await new Promise(resolve => setTimeout(resolve, 2000))
-          
+
           set({
             isLoading: false,
             error: null,
@@ -212,17 +216,21 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate forgot password
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
+          const response = await authApi.forgotPassword(data.email)
+
+          if (!response.success) {
+            throw new Error(response.error || 'Gửi email khôi phục thất bại')
+          }
+
           set({
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Gửi email khôi phục thất bại'
           set({
             isLoading: false,
-            error: 'Failed to send reset email',
+            error: errorMessage,
           })
           throw error
         }
@@ -232,17 +240,21 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate password reset
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
+          const response = await authApi.resetPassword(data.token, data.password)
+
+          if (!response.success) {
+            throw new Error(response.error || 'Đặt lại mật khẩu thất bại')
+          }
+
           set({
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất bại'
           set({
             isLoading: false,
-            error: 'Failed to reset password',
+            error: errorMessage,
           })
           throw error
         }
@@ -252,17 +264,24 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate password change
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
+          const response = await authApi.updatePassword({
+            currentPassword: data.currentPassword,
+            newPassword: data.newPassword,
+          })
+
+          if (!response.success) {
+            throw new Error(response.error || 'Đổi mật khẩu thất bại')
+          }
+
           set({
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đổi mật khẩu thất bại'
           set({
             isLoading: false,
-            error: 'Failed to change password',
+            error: errorMessage,
           })
           throw error
         }
