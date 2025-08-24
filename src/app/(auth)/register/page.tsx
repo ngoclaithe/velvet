@@ -272,8 +272,9 @@ export default function RegisterPage() {
                 placeholder="Tên"
                 value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.firstName ? 'border-red-500' : ''}`}
               />
+              {errors.firstName && <p className="text-sm text-red-600">{errors.firstName}</p>}
             </div>
             <div className="space-y-2">
               <Input
@@ -282,8 +283,9 @@ export default function RegisterPage() {
                 placeholder="Họ"
                 value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className="h-11"
+                className={`h-11 ${errors.lastName ? 'border-red-500' : ''}`}
               />
+              {errors.lastName && <p className="text-sm text-red-600">{errors.lastName}</p>}
             </div>
           </div>
 
