@@ -23,7 +23,7 @@ export interface AuthSession {
 }
 
 export interface LoginCredentials {
-  email: string
+  loginField: string // Email hoặc username
   password: string
   rememberMe?: boolean
 }
@@ -35,6 +35,10 @@ export interface RegisterData {
   confirmPassword: string
   firstName?: string
   lastName?: string
+  phoneNumber?: string
+  gender?: 'male' | 'female' | 'other'
+  dateOfBirth?: string
+  referralCode?: string
   agreeToTerms: boolean
 }
 

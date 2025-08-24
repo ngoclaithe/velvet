@@ -1,8 +1,35 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { authApi } from '@/lib/api'
 import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData } from '@/types/auth'
 
 interface AuthState extends AuthStore {}
+
+// Response types for API calls
+interface LoginResponse {
+  success: boolean
+  error?: string
+  data?: {
+    user: any
+    token: string
+  }
+}
+
+interface RegisterResponse {
+  success: boolean
+  error?: string
+  message?: string
+  user: any
+  token: string
+}
+
+interface RefreshTokenResponse {
+  success: boolean
+  error?: string
+  data?: {
+    token: string
+  }
+}
 
 // Default guest user
 const guestUser: User = {
@@ -16,6 +43,13 @@ const guestUser: User = {
   updatedAt: new Date(),
 }
 
+// Helper function to ensure dates are Date objects
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date
+  if (typeof date === 'string' || typeof date === 'number') return new Date(date)
+  return new Date()
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -26,44 +60,43 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null })
-        
+
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          // Mock user data
-          const mockUser: User = {
-            id: '1',
-            username: 'user123',
-            email: credentials.email,
-            avatar: '/api/placeholder/150/150',
-            firstName: 'John',
-            lastName: 'Doe',
-            bio: 'Welcome to my profile!',
-            isVerified: true,
-            isOnline: true,
-            role: 'user',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+          // Gọi API login thật
+          const response = await authApi.login({
+            loginField: credentials.loginField, // Backend nhận loginField (có thể là email hoặc username)
+            password: credentials.password
+          }) as LoginResponse
+
+          if (!response.success || !response.data) {
+            throw new Error(response.error || 'Đăng nhập thất bại')
           }
 
-          const mockSession: AuthSession = {
-            user: mockUser,
-            accessToken: 'mock-access-token',
-            refreshToken: 'mock-refresh-token',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          // Lấy thông tin user từ response
+          const { user, token } = response.data
+
+          const session: AuthSession = {
+            user: {
+              ...user,
+              createdAt: ensureDate(user.createdAt),
+              updatedAt: ensureDate(user.updatedAt),
+            },
+            accessToken: token,
+            refreshToken: '', // Backend có thể không trả về refresh token
+            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000), // 24 hours từ token payload hoặc default
           }
 
           set({
-            user: mockUser,
-            session: mockSession,
+            user: session.user,
+            session: session,
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đăng nhập thất bại'
           set({
             isLoading: false,
-            error: 'Invalid email or password',
+            error: errorMessage,
           })
           throw error
         }
@@ -71,55 +104,95 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null })
-        
+
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          // Mock user creation
-          const mockUser: User = {
-            id: '1',
-            username: data.username,
+          // Chuẩn bị dữ liệu theo backend validation
+          const registerData: any = {
             email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            bio: '',
-            isVerified: false,
-            isOnline: true,
-            role: 'user',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            username: data.username,
+            password: data.password,
           }
 
-          const mockSession: AuthSession = {
-            user: mockUser,
-            accessToken: 'mock-access-token',
-            refreshToken: 'mock-refresh-token',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          // Thêm các optional fields nếu có giá trị
+          if (data.firstName && data.firstName.trim()) {
+            registerData.firstName = data.firstName.trim()
+          }
+          if (data.lastName && data.lastName.trim()) {
+            registerData.lastName = data.lastName.trim()
+          }
+          if (data.phoneNumber && data.phoneNumber.trim()) {
+            registerData.phoneNumber = data.phoneNumber.trim()
+          }
+          if (data.gender) {
+            registerData.gender = data.gender
+          }
+          if (data.dateOfBirth) {
+            // Convert date to ISO8601 format (YYYY-MM-DD -> YYYY-MM-DDTHH:mm:ss.sssZ)
+            registerData.dateOfBirth = new Date(data.dateOfBirth).toISOString()
+          }
+          if (data.referralCode && data.referralCode.trim()) {
+            registerData.referralCode = data.referralCode.trim()
+          }
+
+          // Gọi API register thật
+          const response = await authApi.register(registerData) as RegisterResponse
+
+          if (!response.success) {
+            throw new Error(response.error || 'Đăng ký thất bại')
+          }
+
+          // API trả về user và token trực tiếp trong response, không qua response.data
+          const { user, token } = response
+
+          // Tạo session từ response
+          const session: AuthSession = {
+            user: {
+              ...user,
+              // Set default values cho các field không có trong response
+              isVerified: false,
+              isOnline: true,
+              phoneNumber: user.phoneNumber || '',
+              gender: user.gender || '',
+              dateOfBirth: user.dateOfBirth ? ensureDate(user.dateOfBirth) : undefined,
+              createdAt: ensureDate(user.createdAt || new Date()), // API không trả về createdAt
+              updatedAt: ensureDate(user.updatedAt || new Date()), // API không trả về updatedAt
+            },
+            accessToken: token,
+            refreshToken: '',
+            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000),
           }
 
           set({
-            user: mockUser,
-            session: mockSession,
+            user: session.user,
+            session: session,
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đăng ký thất bại'
           set({
             isLoading: false,
-            error: 'Registration failed. Please try again.',
+            error: errorMessage,
           })
           throw error
         }
       },
 
-      logout: () => {
-        set({
-          user: null, // Return to null state
-          session: null,
-          isLoading: false,
-          error: null,
-        })
+      logout: async () => {
+        try {
+          // Gọi API logout để invalidate token
+          await authApi.logout()
+        } catch (error) {
+          // Vẫn logout dù API call thất bại
+          console.error('Logout API failed:', error)
+        } finally {
+          set({
+            user: null,
+            session: null,
+            isLoading: false,
+            error: null,
+          })
+        }
       },
 
       refreshToken: async () => {
@@ -127,13 +200,16 @@ export const useAuthStore = create<AuthState>()(
         if (!session) return
 
         try {
-          // Simulate token refresh
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
+          const response = await authApi.refreshToken() as RefreshTokenResponse
+
+          if (!response.success || !response.data) {
+            throw new Error('Token refresh failed')
+          }
+
           const newSession: AuthSession = {
             ...session,
-            accessToken: 'new-access-token',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            accessToken: response.data.token,
+            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000),
           }
 
           set({ session: newSession })
@@ -151,13 +227,16 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
+          const response = await authApi.updateDetails(data)
+
+          if (!response.success) {
+            throw new Error(response.error || 'Cập nhật thông tin thất bại')
+          }
+
           const updatedUser: User = {
             ...user,
             ...data,
-            updatedAt: new Date(),
+            updatedAt: ensureDate(new Date()),
           }
 
           set({
@@ -166,9 +245,10 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Cập nhật thông tin thất bại'
           set({
             isLoading: false,
-            error: 'Failed to update profile',
+            error: errorMessage,
           })
           throw error
         }
@@ -178,9 +258,9 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate KYC submission
+          // KYC functionality có thể implement sau
           await new Promise(resolve => setTimeout(resolve, 2000))
-          
+
           set({
             isLoading: false,
             error: null,
@@ -198,17 +278,21 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate forgot password
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
+          const response = await authApi.forgotPassword(data.email)
+
+          if (!response.success) {
+            throw new Error(response.error || 'Gửi email khôi phục thất bại')
+          }
+
           set({
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Gửi email khôi phục thất bại'
           set({
             isLoading: false,
-            error: 'Failed to send reset email',
+            error: errorMessage,
           })
           throw error
         }
@@ -218,17 +302,21 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate password reset
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
+          const response = await authApi.resetPassword(data.token, data.password)
+
+          if (!response.success) {
+            throw new Error(response.error || 'Đặt lại mật khẩu thất bại')
+          }
+
           set({
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất bại'
           set({
             isLoading: false,
-            error: 'Failed to reset password',
+            error: errorMessage,
           })
           throw error
         }
@@ -238,17 +326,24 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate password change
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
+          const response = await authApi.updatePassword({
+            currentPassword: data.currentPassword,
+            newPassword: data.newPassword,
+          })
+
+          if (!response.success) {
+            throw new Error(response.error || 'Đổi mật khẩu thất bại')
+          }
+
           set({
             isLoading: false,
             error: null,
           })
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Đổi mật khẩu thất bại'
           set({
             isLoading: false,
-            error: 'Failed to change password',
+            error: errorMessage,
           })
           throw error
         }
@@ -261,6 +356,22 @@ export const useAuthStore = create<AuthState>()(
         user: state.user?.role !== 'guest' ? state.user : null,
         session: state.session,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Convert string dates back to Date objects after rehydration
+        if (state?.session?.expiresAt) {
+          state.session.expiresAt = new Date(state.session.expiresAt)
+        }
+        if (state?.user?.createdAt) {
+          state.user.createdAt = new Date(state.user.createdAt)
+        }
+        if (state?.user?.updatedAt) {
+          state.user.updatedAt = new Date(state.user.updatedAt)
+        }
+        // Only convert dateOfBirth if it exists in the user object
+        if (state?.user && 'dateOfBirth' in state.user && state.user.dateOfBirth) {
+          (state.user as any).dateOfBirth = new Date((state.user as any).dateOfBirth)
+        }
+      },
     }
   )
 )

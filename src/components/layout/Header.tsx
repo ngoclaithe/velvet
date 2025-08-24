@@ -151,13 +151,13 @@ export default function Header() {
                   <span>Đang xem dưới dạng khách</span>
                 </div>
               )}
-              <Link href="/(auth)/login">
+              <Link href="/login">
                 <Button variant="ghost" size="sm">
                   <LogIn className="w-4 h-4 mr-2" />
                   Đăng nhập
                 </Button>
               </Link>
-              <Link href="/(auth)/register">
+              <Link href="/register">
                 <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                   <UserPlus className="w-4 h-4 mr-2" />
                   Đăng ký

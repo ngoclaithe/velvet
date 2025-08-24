@@ -8,10 +8,16 @@ class ApiClient {
   private baseURL: string
   private defaultHeaders: Record<string, string>
 
-  constructor(baseURL: string = '/api') {
-    this.baseURL = baseURL
+  constructor(baseURL?: string) {
+    // Sử dụng environment variable hoặc fallback
+    this.baseURL = baseURL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
     this.defaultHeaders = {
       'Content-Type': 'application/json',
+    }
+
+    // Log để debug (chỉ trong development)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log('🔗 API Base URL:', this.baseURL)
     }
   }
 
@@ -32,15 +38,30 @@ class ApiClient {
   }
 
   private buildURL(endpoint: string, params?: Record<string, string>): string {
-    const url = new URL(endpoint, this.baseURL)
-    
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value)
-      })
+    let fullPath: string
+
+    // Kiểm tra nếu baseURL là absolute URL (có http/https)
+    if (this.baseURL.startsWith('http://') || this.baseURL.startsWith('https://')) {
+      const cleanBase = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+      fullPath = `${cleanBase}${cleanEndpoint}`
+    } else {
+      // Xử lý relative URL (fallback)
+      const cleanBase = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+      fullPath = `${cleanBase}${cleanEndpoint}`
     }
-    
-    return url.toString()
+
+    // Thêm query parameters nếu có
+    if (params && Object.keys(params).length > 0) {
+      const searchParams = new URLSearchParams()
+      Object.entries(params).forEach(([key, value]) => {
+        searchParams.append(key, value)
+      })
+      fullPath += `?${searchParams.toString()}`
+    }
+
+    return fullPath
   }
 
   private async request<T>(
@@ -142,21 +163,70 @@ export const api = new ApiClient()
 
 // Convenience functions for common API calls
 export const authApi = {
-  login: (credentials: { email: string; password: string }) =>
+  // Đăng nhập - POST /api/v1/auth/login
+  login: (credentials: { loginField: string; password: string }) =>
     api.post('/auth/login', credentials),
-  
-  register: (data: { username: string; email: string; password: string }) =>
-    api.post('/auth/register', data),
-  
+
+  // Đăng ký - POST /api/v1/auth/register
+  register: (data: {
+    email: string;
+    username: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    gender?: 'male' | 'female' | 'other';
+    dateOfBirth?: string;
+    referralCode?: string;
+  }) => api.post('/auth/register', data),
+
+  // Đăng xuất - POST /api/v1/auth/logout
   logout: () => api.post('/auth/logout'),
-  
-  refreshToken: () => api.post('/auth/refresh'),
-  
+
+  // Lấy thông tin user hiện tại - GET /api/v1/auth/me
+  getMe: () => api.get('/auth/me'),
+
+  // Refresh token - POST /api/v1/auth/refresh-token
+  refreshToken: () => api.post('/auth/refresh-token'),
+
+  // Quên mật khẩu - POST /api/v1/auth/forgotpassword
   forgotPassword: (email: string) =>
-    api.post('/auth/forgot-password', { email }),
-  
-  resetPassword: (data: { token: string; password: string }) =>
-    api.post('/auth/reset-password', data),
+    api.post('/auth/forgotpassword', { email }),
+
+  // Reset mật khẩu - PUT /api/v1/auth/resetpassword/:resettoken
+  resetPassword: (resettoken: string, password: string) =>
+    api.put(`/auth/resetpassword/${encodeURIComponent(resettoken)}`, { password }),
+
+  // Cập nhật thông tin cá nhân - PUT /api/v1/auth/updatedetails
+  updateDetails: (data: any) => api.put('/auth/updatedetails', data),
+
+  // Đổi mật khẩu - PUT /api/v1/auth/updatepassword
+  updatePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.put('/auth/updatepassword', data),
+
+  // Kiểm tra username - GET /api/v1/auth/check-username/:username
+  checkUsername: (username: string) => api.get(`/auth/check-username/${encodeURIComponent(username)}`),
+
+  // Kiểm tra email - GET /api/v1/auth/check-email/:email
+  checkEmail: (email: string) => api.get(`/auth/check-email/${encodeURIComponent(email)}`),
+
+  // Đăng ký creator - POST /api/v1/auth/creator/register
+  registerCreator: (data: {
+    stageName: string;
+    bio?: string;
+    hourlyRate?: number;
+    minBookingDuration?: number;
+    bookingPrice?: number;
+    subscriptionPrice?: number;
+    height?: number;
+    weight?: number;
+  }) => api.post('/auth/creator/register', data),
+
+  // Lấy thông tin creator profile - GET /api/v1/auth/creator/profile
+  getCreatorProfile: () => api.get('/auth/creator/profile'),
+
+  // Cập nhật creator profile - PUT /api/v1/auth/creator/profile
+  updateCreatorProfile: (data: any) => api.put('/auth/creator/profile', data),
 }
 
 export const userApi = {

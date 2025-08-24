@@ -219,7 +219,7 @@ export default function HomePage() {
                       <p className="text-gray-300 text-sm mb-4">
                         Đăng ký để đăng bài, tương tác và khám phá nội dung độc quyền
                       </p>
-                      <Link href="/(auth)/register">
+                      <Link href="/register">
                         <Button className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
                           Đăng ký ngay
                         </Button>
@@ -336,13 +336,13 @@ export default function HomePage() {
                 Tham gia cộng đồng hàng nghìn thành viên đang chia sẻ và khám phá nội dung độc đáo mỗi ngày
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/(auth)/register">
+                <Link href="/register">
                   <Button size="lg" className="text-lg px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 font-semibold">
                     <Star className="mr-2 h-5 w-5" />
                     Tạo tài khoản miễn phí
                   </Button>
                 </Link>
-                <Link href="/(auth)/login">
+                <Link href="/login">
                   <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-gray-600 text-gray-300 hover:bg-gray-700">
                     <Users className="mr-2 h-5 w-5" />
                     Đã có tài khoản? Đăng nhập
