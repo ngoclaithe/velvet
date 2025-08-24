@@ -11,22 +11,59 @@ import { Icons } from '@/components/common/Icons'
 import { LogIn, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [loginField, setLoginField] = useState('') // Email hoặc username
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const { login, error } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate form
+    const newErrors: Record<string, string> = {}
+    
+    if (!loginField) {
+      newErrors.loginField = 'Email hoặc username là bắt buộc'
+    }
+    
+    if (!password) {
+      newErrors.password = 'Mật khẩu là bắt buộc'
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    
     setIsLoading(true)
+    setErrors({})
+    
     try {
-      await login({ email, password, rememberMe })
+      await login({ 
+        email: loginField, // Backend sẽ nhận loginField, nhưng useAuth interface vẫn dùng email
+        password, 
+        rememberMe 
+      })
     } catch (error) {
       console.error('Login failed:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    if (field === 'loginField') {
+      setLoginField(value)
+    } else if (field === 'password') {
+      setPassword(value)
+    }
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }))
     }
   }
 
@@ -45,26 +82,30 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Login Field (Email hoặc Username) */}
           <div className="space-y-2">
             <Input
-              id="email"
-              type="email"
-              placeholder="Email của bạn"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="loginField"
+              type="text"
+              placeholder="Email hoặc tên người dùng"
+              value={loginField}
+              onChange={(e) => handleInputChange('loginField', e.target.value)}
               required
-              className="h-11"
+              className={`h-11 ${errors.loginField ? 'border-red-500' : ''}`}
             />
+            {errors.loginField && <p className="text-sm text-red-600">{errors.loginField}</p>}
           </div>
+
+          {/* Password */}
           <div className="space-y-2 relative">
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Mật khẩu"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => handleInputChange('password', e.target.value)}
               required
-              className="h-11 pr-10"
+              className={`h-11 pr-10 ${errors.password ? 'border-red-500' : ''}`}
             />
             <button
               type="button"
@@ -77,7 +118,10 @@ export default function LoginPage() {
                 <Eye className="w-4 h-4" />
               )}
             </button>
+            {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
           </div>
+
+          {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -99,6 +143,15 @@ export default function LoginPage() {
               Quên mật khẩu?
             </Link>
           </div>
+
+          {/* Global Error */}
+          {error && (
+            <div className="p-3 rounded-md bg-red-50 border border-red-200">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          {/* Submit Button */}
           <Button
             type="submit"
             className="w-full h-11 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium"
