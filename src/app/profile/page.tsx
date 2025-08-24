@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -87,7 +88,7 @@ export default function ProfilePage() {
       setIsEditing(false)
       toast({
         title: "Cập nhật thành công!",
-        description: "Thông tin hồ sơ đã được cập nhật.",
+        description: "Thông tin hồ sơ đ�� được cập nhật.",
         variant: "default"
       })
     } catch (error) {
