@@ -116,10 +116,7 @@ export default function ForgotPasswordPage() {
             <Mail className="w-6 h-6 text-white" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Quên mật khẩu</CardTitle>
-        <CardDescription>
-          Nh���p email của bạn để nhận link khôi phục mật khẩu
-        </CardDescription>
+        <CardTitle className="text-2xl text-black font-bold">Quên mật khẩu</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">

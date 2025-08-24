@@ -304,7 +304,7 @@ export default function HomePage() {
                   <div className="text-center py-12">
                     <MessageCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-white mb-2">Chat 18+ đang được phát triển</h3>
-                    <p className="text-gray-400">Tính năng chat riêng tư và nhóm chat 18+ sẽ c�� sớm!</p>
+                    <p className="text-gray-400">Tính năng chat riêng tư và nhóm chat 18+ sẽ có sớm!</p>
                   </div>
                 </TabsContent>
 
