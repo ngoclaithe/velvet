@@ -12,6 +12,20 @@ import { Icons } from '@/components/common/Icons'
 import { UserPlus, Eye, EyeOff } from 'lucide-react'
 import { authApi } from '@/lib/api'
 
+// Define types for API responses
+interface CheckUsernameResponse {
+  available: boolean;
+  message?: string;
+}
+
+interface CheckEmailResponse {
+  available: boolean;
+  message?: string;
+}
+
+// Define gender type
+type Gender = 'male' | 'female' | 'other' | undefined;
+
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     username: '',
@@ -21,7 +35,7 @@ export default function RegisterPage() {
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    gender: '',
+    gender: '' as Gender,
     dateOfBirth: '',
     referralCode: ''
   })
@@ -42,8 +56,9 @@ export default function RegisterPage() {
     try {
       const response = await authApi.checkUsername(username)
       if (response.success && response.data) {
-        if (!response.data.available) {
-          setErrors(prev => ({ ...prev, username: response.data.message || 'Username đã được sử dụng' }))
+        const data = response.data as CheckUsernameResponse
+        if (!data.available) {
+          setErrors(prev => ({ ...prev, username: data.message || 'Username đã được sử dụng' }))
         } else {
           setErrors(prev => ({ ...prev, username: '' }))
         }
@@ -67,8 +82,9 @@ export default function RegisterPage() {
     try {
       const response = await authApi.checkEmail(email)
       if (response.success && response.data) {
-        if (!response.data.available) {
-          setErrors(prev => ({ ...prev, email: response.data.message || 'Email đã được sử dụng' }))
+        const data = response.data as CheckEmailResponse
+        if (!data.available) {
+          setErrors(prev => ({ ...prev, email: data.message || 'Email đã được sử dụng' }))
         } else {
           setErrors(prev => ({ ...prev, email: '' }))
         }
@@ -178,10 +194,13 @@ export default function RegisterPage() {
     
     setIsLoading(true)
     try {
-      await register({
+      // Convert gender to proper type before sending
+      const registrationData = {
         ...formData,
+        gender: formData.gender || undefined as Gender,
         agreeToTerms
-      })
+      }
+      await register(registrationData)
     } catch (error) {
       console.error('Registration failed:', error)
     } finally {
@@ -226,6 +245,11 @@ export default function RegisterPage() {
     }
   }
 
+  const handleGenderChange = (value: string) => {
+    const genderValue = value as Gender
+    setFormData(prev => ({ ...prev, gender: genderValue }))
+  }
+
   return (
     <Card className="w-full shadow-xl border-0 bg-white/95 backdrop-blur-sm">
       <CardHeader className="space-y-1 text-center">
@@ -234,9 +258,9 @@ export default function RegisterPage() {
             <UserPlus className="w-6 h-6 text-white" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Đăng ký</CardTitle>
+        <CardTitle className="text-2xl font-bold text-black">Đăng ký</CardTitle>
         <CardDescription>
-          Tạo tài khoản mới để tham gia cộng đồng streaming
+          Tạo tài khoản mới để tham gia 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -313,7 +337,7 @@ export default function RegisterPage() {
           {/* Gender & Date of Birth */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+              <Select value={formData.gender || ''} onValueChange={handleGenderChange}>
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Giới tính" />
                 </SelectTrigger>
@@ -408,7 +432,7 @@ export default function RegisterPage() {
             />
             <label
               htmlFor="terms"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm text-black font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Tôi đồng ý với{' '}
               <Link href="/terms" className="text-purple-600 hover:underline">

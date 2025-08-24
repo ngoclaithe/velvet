@@ -5,6 +5,32 @@ import type { AuthStore, User, AuthSession, LoginCredentials, RegisterData } fro
 
 interface AuthState extends AuthStore {}
 
+// Response types for API calls
+interface LoginResponse {
+  success: boolean
+  error?: string
+  data?: {
+    user: any
+    token: string
+  }
+}
+
+interface RegisterResponse {
+  success: boolean
+  error?: string
+  message?: string
+  user: any
+  token: string
+}
+
+interface RefreshTokenResponse {
+  success: boolean
+  error?: string
+  data?: {
+    token: string
+  }
+}
+
 // Default guest user
 const guestUser: User = {
   id: 'guest',
@@ -15,6 +41,13 @@ const guestUser: User = {
   isOnline: true,
   createdAt: new Date(),
   updatedAt: new Date(),
+}
+
+// Helper function to ensure dates are Date objects
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date
+  if (typeof date === 'string' || typeof date === 'number') return new Date(date)
+  return new Date()
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -33,7 +66,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await authApi.login({
             loginField: credentials.loginField, // Backend nhận loginField (có thể là email hoặc username)
             password: credentials.password
-          })
+          }) as LoginResponse
 
           if (!response.success || !response.data) {
             throw new Error(response.error || 'Đăng nhập thất bại')
@@ -45,12 +78,12 @@ export const useAuthStore = create<AuthState>()(
           const session: AuthSession = {
             user: {
               ...user,
-              createdAt: new Date(user.createdAt),
-              updatedAt: new Date(user.updatedAt),
+              createdAt: ensureDate(user.createdAt),
+              updatedAt: ensureDate(user.updatedAt),
             },
             accessToken: token,
             refreshToken: '', // Backend có thể không trả về refresh token
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours từ token payload hoặc default
+            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000), // 24 hours từ token payload hoặc default
           }
 
           set({
@@ -102,24 +135,31 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Gọi API register thật
-          const response = await authApi.register(registerData)
+          const response = await authApi.register(registerData) as RegisterResponse
 
-          if (!response.success || !response.data) {
+          if (!response.success) {
             throw new Error(response.error || 'Đăng ký thất bại')
           }
 
-          // Lấy thông tin user từ response
-          const { user, token } = response.data
+          // API trả về user và token trực tiếp trong response, không qua response.data
+          const { user, token } = response
 
+          // Tạo session từ response
           const session: AuthSession = {
             user: {
               ...user,
-              createdAt: new Date(user.createdAt),
-              updatedAt: new Date(user.updatedAt),
+              // Set default values cho các field không có trong response
+              isVerified: false,
+              isOnline: true,
+              phoneNumber: user.phoneNumber || '',
+              gender: user.gender || '',
+              dateOfBirth: user.dateOfBirth ? ensureDate(user.dateOfBirth) : undefined,
+              createdAt: ensureDate(user.createdAt || new Date()), // API không trả về createdAt
+              updatedAt: ensureDate(user.updatedAt || new Date()), // API không trả về updatedAt
             },
             accessToken: token,
             refreshToken: '',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000),
           }
 
           set({
@@ -160,7 +200,7 @@ export const useAuthStore = create<AuthState>()(
         if (!session) return
 
         try {
-          const response = await authApi.refreshToken()
+          const response = await authApi.refreshToken() as RefreshTokenResponse
 
           if (!response.success || !response.data) {
             throw new Error('Token refresh failed')
@@ -169,7 +209,7 @@ export const useAuthStore = create<AuthState>()(
           const newSession: AuthSession = {
             ...session,
             accessToken: response.data.token,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            expiresAt: ensureDate(Date.now() + 24 * 60 * 60 * 1000),
           }
 
           set({ session: newSession })
@@ -196,7 +236,7 @@ export const useAuthStore = create<AuthState>()(
           const updatedUser: User = {
             ...user,
             ...data,
-            updatedAt: new Date(),
+            updatedAt: ensureDate(new Date()),
           }
 
           set({
@@ -316,6 +356,22 @@ export const useAuthStore = create<AuthState>()(
         user: state.user?.role !== 'guest' ? state.user : null,
         session: state.session,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Convert string dates back to Date objects after rehydration
+        if (state?.session?.expiresAt) {
+          state.session.expiresAt = new Date(state.session.expiresAt)
+        }
+        if (state?.user?.createdAt) {
+          state.user.createdAt = new Date(state.user.createdAt)
+        }
+        if (state?.user?.updatedAt) {
+          state.user.updatedAt = new Date(state.user.updatedAt)
+        }
+        // Only convert dateOfBirth if it exists in the user object
+        if (state?.user && 'dateOfBirth' in state.user && state.user.dateOfBirth) {
+          (state.user as any).dateOfBirth = new Date((state.user as any).dateOfBirth)
+        }
+      },
     }
   )
 )
