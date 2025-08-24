@@ -42,10 +42,10 @@ export default function LoginPage() {
     setErrors({})
     
     try {
-      await login({ 
-        email: loginField, // Backend sẽ nhận loginField, nhưng useAuth interface vẫn dùng email
-        password, 
-        rememberMe 
+      await login({
+        loginField, // Backend nhận loginField (có thể là email hoặc username)
+        password,
+        rememberMe
       })
     } catch (error) {
       console.error('Login failed:', error)
