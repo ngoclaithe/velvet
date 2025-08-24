@@ -42,6 +42,24 @@ export interface RegisterData {
   agreeToTerms: boolean
 }
 
+export interface CreatorRegisterData extends RegisterData {
+  creatorProfile?: {
+    channelName: string
+    channelDescription: string
+    contentCategory: string
+    socialLinks?: {
+      facebook?: string
+      instagram?: string
+      youtube?: string
+      tiktok?: string
+    }
+    experienceLevel: string
+    equipment?: string
+    contentPlan?: string
+  }
+  agreeToCreatorTerms: boolean
+}
+
 export interface ForgotPasswordData {
   email: string
 }
@@ -86,6 +104,7 @@ export interface AuthStore {
   error: string | null
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
+  registerCreator: (data: CreatorRegisterData) => Promise<void>
   logout: () => void
   refreshToken: () => Promise<void>
   updateProfile: (data: Partial<User>) => Promise<void>
