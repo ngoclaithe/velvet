@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
       
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        router.push('/(auth)/login')
+        router.push('/login')
       }, 3000)
     } catch (error) {
       console.error('Reset password failed:', error)
@@ -123,7 +123,7 @@ export default function ResetPasswordPage() {
               Bạn sẽ được chuyển hướng đến trang đăng nhập trong 3 giây...
             </p>
             
-            <Link href="/(auth)/login">
+            <Link href="/login">
               <Button className="w-full h-11 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-medium">
                 Đăng nhập ngay
               </Button>
@@ -237,7 +237,7 @@ export default function ResetPasswordPage() {
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Nhớ mật khẩu rồi? </span>
           <Link
-            href="/(auth)/login"
+            href="/login"
             className="text-purple-600 hover:text-purple-500 hover:underline font-medium"
           >
             Đăng nhập ngay
