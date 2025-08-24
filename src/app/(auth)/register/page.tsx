@@ -334,8 +334,9 @@ export default function RegisterPage() {
               placeholder="Mã giới thiệu (không bắt buộc)"
               value={formData.referralCode}
               onChange={(e) => handleInputChange('referralCode', e.target.value)}
-              className="h-11"
+              className={`h-11 ${errors.referralCode ? 'border-red-500' : ''}`}
             />
+            {errors.referralCode && <p className="text-sm text-red-600">{errors.referralCode}</p>}
           </div>
 
           {/* Password */}
