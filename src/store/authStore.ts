@@ -8,11 +8,10 @@ interface AuthState extends AuthStore {}
 // Response types for API calls
 interface LoginResponse {
   success: boolean
+  message?: string
   error?: string
-  data?: {
-    user: any
-    token: string
-  }
+  token: string
+  user: any
 }
 
 interface RegisterResponse {
