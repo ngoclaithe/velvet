@@ -34,20 +34,26 @@ export default function RegisterPage() {
   const [emailChecking, setEmailChecking] = useState(false)
   const { register } = useAuth()
 
-  // Kiểm tra username có tồn tại không
+  // Ki��m tra username có tồn tại không
   const checkUsername = async (username: string) => {
     if (username.length < 3) return
-    
+
     setUsernameChecking(true)
     try {
       const response = await authApi.checkUsername(username)
-      if (!response.data?.available) {
-        setErrors(prev => ({ ...prev, username: 'Username đã được sử dụng' }))
+      if (response.success && response.data) {
+        if (!response.data.available) {
+          setErrors(prev => ({ ...prev, username: response.data.message || 'Username đã được sử dụng' }))
+        } else {
+          setErrors(prev => ({ ...prev, username: '' }))
+        }
       } else {
-        setErrors(prev => ({ ...prev, username: '' }))
+        // Nếu API call thất bại, không hiện lỗi để không làm phiền user
+        console.warn('Check username API failed:', response.error)
       }
     } catch (error) {
       console.error('Check username failed:', error)
+      // Không hiện lỗi cho user, chỉ log để debug
     } finally {
       setUsernameChecking(false)
     }
