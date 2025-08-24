@@ -32,22 +32,21 @@ class ApiClient {
   }
 
   private buildURL(endpoint: string, params?: Record<string, string>): string {
-    // Xử lý relative baseURL
-    const fullPath = this.baseURL.endsWith('/')
-      ? `${this.baseURL}${endpoint.startsWith('/') ? endpoint.slice(1) : endpoint}`
-      : `${this.baseURL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
+    // Tạo đường dẫn đầy đủ
+    const cleanBase = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    let fullPath = `${cleanBase}${cleanEndpoint}`
 
-    if (!params || Object.keys(params).length === 0) {
-      return fullPath
+    // Thêm query parameters nếu có
+    if (params && Object.keys(params).length > 0) {
+      const searchParams = new URLSearchParams()
+      Object.entries(params).forEach(([key, value]) => {
+        searchParams.append(key, value)
+      })
+      fullPath += `?${searchParams.toString()}`
     }
 
-    // Thêm query parameters
-    const url = new URL(fullPath, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
-    Object.entries(params).forEach(([key, value]) => {
-      url.searchParams.append(key, value)
-    })
-
-    return url.toString()
+    return fullPath
   }
 
   private async request<T>(
