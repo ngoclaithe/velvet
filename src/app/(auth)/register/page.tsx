@@ -110,6 +110,24 @@ export default function RegisterPage() {
     return ''
   }
 
+  const validatePhoneNumber = (phone: string) => {
+    if (!phone) return '' // Optional field
+    // Basic mobile phone validation (Vietnamese format)
+    const phoneRegex = /^(\+84|84|0)(3|5|7|8|9)\d{8}$/
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+      return 'Số điện thoại không hợp lệ (VD: 0987654321 hoặc +84987654321)'
+    }
+    return ''
+  }
+
+  const validateReferralCode = (code: string) => {
+    if (!code) return '' // Optional field
+    if (code.length < 8 || code.length > 16) {
+      return 'Mã giới thiệu phải từ 8-16 ký tự'
+    }
+    return ''
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
