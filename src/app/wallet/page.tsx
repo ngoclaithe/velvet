@@ -54,7 +54,8 @@ interface PaymentMethod {
 }
 
 export default function WalletPage() {
-  const { user } = useAuth()
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth()
+  const router = useRouter()
   const { toast } = useToast()
   const [showBalance, setShowBalance] = useState(true)
   const [isDepositing, setIsDepositing] = useState(false)
@@ -202,7 +203,7 @@ export default function WalletPage() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       toast({
-        title: "Yêu cầu rút tiền thành công!",
+        title: "Yêu c���u rút tiền thành công!",
         description: `Yêu cầu rút $${withdrawAmount} đang được xử lý`,
         variant: "default"
       })
