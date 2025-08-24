@@ -37,7 +37,8 @@ import { useToast } from '@/hooks/use-toast'
 type Gender = 'male' | 'female' | 'other';
 
 export default function ProfilePage() {
-  const { user, updateProfile, isLoading } = useAuth()
+  const { user, updateProfile, isLoading: authLoading, isAuthenticated } = useAuth()
+  const router = useRouter()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -88,7 +89,7 @@ export default function ProfilePage() {
       setIsEditing(false)
       toast({
         title: "Cập nhật thành công!",
-        description: "Thông tin hồ sơ đ�� được cập nhật.",
+        description: "Thông tin hồ sơ đã được cập nhật.",
         variant: "default"
       })
     } catch (error) {
@@ -411,7 +412,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Hiển thị số điện thoại</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác xem số điện thoại của bạn
+                    Cho phép người kh��c xem số điện thoại của bạn
                   </p>
                 </div>
                 <Switch
