@@ -91,7 +91,7 @@ export default function NewsFeed() {
       const mockLiveStreams: Post[] = [
         {
           id: 'live-1',
-          type: 'livestream',
+          type: 'live',
           content: 'Epic Gaming Session - Boss Battles!',
           author: {
             id: 'gamer123',
@@ -289,7 +289,7 @@ export default function NewsFeed() {
     const post = currentFeed.posts.find(p => p.id === postId)
     toast({
       title: post?.isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
-      description: "Thay đ��i đã được lưu cục bộ",
+      description: "Thay đổi đã được lưu cục bộ",
       variant: "default"
     })
   }, [isAuthenticated, activeTab, currentFeed.posts, toast])
