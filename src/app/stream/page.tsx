@@ -95,13 +95,19 @@ export default function StreamPage() {
   }
 
   const handleStartStream = async () => {
+    console.log('🚀 handleStartStream called')
+
     if (!streamData.title.trim()) {
+      console.log('❌ No stream title provided')
       toast.error('Vui lòng nhập tiêu đề stream')
       return
     }
 
+    console.log('📝 Stream data to send:', streamData)
+
     setIsStartingStream(true)
     try {
+      console.log('🌐 Calling streamApi.startStream...')
       const response = await streamApi.startStream({
         title: streamData.title,
         description: streamData.description,
@@ -110,30 +116,40 @@ export default function StreamPage() {
         isPrivate: streamData.isPrivate
       })
 
-      if (response.success && response.data) {
-        const streamData = response.data as StreamResponse
-        // Extract stream ID từ socketEndpoint hoặc sử dụng streamKey
-        const streamId = streamData.id || streamData.streamKey || streamData.socketEndpoint?.split('/').pop() || ''
+      console.log('📨 API Response:', response)
 
-        setCurrentStream({
+      if (response.success && response.data) {
+        const apiStreamData = response.data as StreamResponse
+        console.log('✅ Stream API data:', apiStreamData)
+
+        // Extract stream ID từ socketEndpoint hoặc sử dụng streamKey
+        const streamId = apiStreamData.id || apiStreamData.streamKey || apiStreamData.socketEndpoint?.split('/').pop() || ''
+        console.log('🆔 Generated stream ID:', streamId)
+
+        const newCurrentStream = {
           id: streamId,
-          title: streamData.title || streamData.title,
-          isLive: streamData.isLive || true,
+          title: apiStreamData.title || streamData.title,
+          isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: streamData.streamKey,
-          socketEndpoint: streamData.socketEndpoint
-        })
+          streamKey: apiStreamData.streamKey,
+          socketEndpoint: apiStreamData.socketEndpoint
+        }
+
+        console.log('📺 Setting currentStream:', newCurrentStream)
+        setCurrentStream(newCurrentStream)
 
         toast.success('Stream đã được bắt đầu thành công!')
       } else {
+        console.log('❌ Stream API failed:', response.error)
         toast.error(response.error || 'Không thể bắt đầu stream')
       }
     } catch (error) {
-      console.error('Error starting stream:', error)
+      console.error('💥 Error starting stream:', error)
       toast.error('Có lỗi xảy ra khi bắt đầu stream')
     } finally {
       setIsStartingStream(false)
+      console.log('🏁 handleStartStream completed')
     }
   }
 
