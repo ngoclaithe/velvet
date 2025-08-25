@@ -61,6 +61,22 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               {/* Quick Actions */}
+              <Link href="/streams">
+                <Button variant="ghost" size="sm">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Live Streams
+                </Button>
+              </Link>
+
+              {user?.role === 'creator' && (
+                <Link href="/stream">
+                  <Button variant="ghost" size="sm" className="text-red-600">
+                    <Zap className="h-4 w-4 mr-2" />
+                    Go Live
+                  </Button>
+                </Link>
+              )}
+
               <Link href="/create-post">
                 <Button variant="ghost" size="sm" className="text-pink-600">
                   <MessageCircle className="h-4 w-4 mr-2" />
@@ -120,6 +136,27 @@ export default function Header() {
                       <span>Ví của tôi</span>
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/streams" className="cursor-pointer">
+                      <Zap className="mr-2 h-4 w-4" />
+                      <span>Live Streams</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  {user?.role === 'creator' ? (
+                    <DropdownMenuItem asChild>
+                      <Link href="/stream" className="cursor-pointer">
+                        <Zap className="mr-2 h-4 w-4 text-red-500" />
+                        <span>Stream Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link href="/become-creator" className="cursor-pointer">
+                        <UserPlus className="mr-2 h-4 w-4 text-purple-500" />
+                        <span>Become Creator</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/messages" className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />

@@ -10,6 +10,7 @@ export function useAuth() {
     error,
     login,
     register,
+    upgradeToCreator,
     logout,
     refreshToken,
     updateProfile,
@@ -70,6 +71,7 @@ export function useAuth() {
     // Actions
     login,
     register,
+    upgradeToCreator,
     logout,
     refreshToken,
     updateProfile,

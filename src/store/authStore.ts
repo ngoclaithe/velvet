@@ -183,6 +183,54 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      upgradeToCreator: async (creatorData: {
+        stageName: string;
+        bio?: string;
+        hourlyRate?: number;
+        minBookingDuration?: number;
+        bookingPrice?: number;
+        subscriptionPrice?: number;
+        height?: number;
+        weight?: number;
+      }) => {
+        const { user } = get()
+        if (!user) {
+          throw new Error('Bạn cần đăng nhập để trở thành Creator')
+        }
+
+        set({ isLoading: true, error: null })
+
+        try {
+          // Gọi API register creator (cần token)
+          const response = await authApi.registerCreator(creatorData) as RegisterResponse
+
+          if (!response.success) {
+            throw new Error(response.error || 'Không thể trở thành Creator')
+          }
+
+          // Cập nhật user hiện tại thành creator
+          const updatedUser: User = {
+            ...user,
+            role: 'creator',
+            bio: creatorData.bio || user.bio,
+            updatedAt: ensureDate(new Date()),
+          }
+
+          set({
+            user: updatedUser,
+            isLoading: false,
+            error: null,
+          })
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Không thể trở thành Creator'
+          set({
+            isLoading: false,
+            error: errorMessage,
+          })
+          throw error
+        }
+      },
+
       logout: async () => {
         try {
           // Gọi API logout để invalidate token
@@ -318,7 +366,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           })
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất bại'
+          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất b���i'
           set({
             isLoading: false,
             error: errorMessage,

@@ -15,14 +15,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Icons } from '@/components/common/Icons'
-import { 
-  User, 
-  Edit3, 
-  Save, 
-  Camera, 
-  Heart, 
-  Users, 
-  Eye, 
+import {
+  User,
+  Edit3,
+  Save,
+  Camera,
+  Heart,
+  Users,
+  Eye,
   Gift,
   Settings,
   MapPin,
@@ -30,7 +30,8 @@ import {
   Link as LinkIcon,
   Shield,
   Bell,
-  Lock
+  Lock,
+  UserPlus
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
@@ -207,6 +208,34 @@ export default function ProfilePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Become Creator Card - Only for regular users */}
+          {user.role === 'user' && (
+            <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                      <UserPlus className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold">Trở thành Creator</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Chia sẻ đam mê, kiếm tiền từ nội dung và xây dựng cộng đồng riêng
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                    onClick={() => router.push('/become-creator')}
+                  >
+                    <Gift className="w-4 h-4 mr-2" />
+                    Bắt đầu ngay
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Profile Information */}
           <Card>

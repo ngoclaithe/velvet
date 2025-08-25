@@ -475,15 +475,6 @@ export default function RegisterPage() {
               Đăng nhập ngay
             </Link>
           </div>
-          <div>
-            <span className="text-muted-foreground">Muốn trở thành Creator? </span>
-            <Link
-              href="/register-creator"
-              className="text-blue-600 hover:text-blue-500 hover:underline font-medium"
-            >
-              Đăng ký Creator
-            </Link>
-          </div>
         </div>
       </CardContent>
     </Card>
