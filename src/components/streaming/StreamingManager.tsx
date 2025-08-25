@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import io, { Socket } from 'socket.io-client'
 import { toast } from 'react-hot-toast'
-import type { StreamResponse, StreamSocketEvents } from '@/types/streaming'
+import type { StreamResponse } from '@/types/streaming'
 
 interface StreamingManagerProps {
   streamData: StreamResponse
@@ -23,8 +23,13 @@ export function StreamingManager({
   const [socket, setSocket] = useState<Socket | null>(null)
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const videoPreviewRef = useRef<HTMLVideoElement>(null)
+  const chunkCountRef = useRef(0)
+
+  // Delay config - 7 giây cho mỗi chunk
+  const CHUNK_DURATION = 7000 // 7 seconds
 
   useEffect(() => {
     initializeStreaming()
@@ -34,12 +39,12 @@ export function StreamingManager({
   }, [])
 
   useEffect(() => {
-    onStatusChange(isConnected)
-  }, [isConnected, onStatusChange])
+    onStatusChange(isConnected && isRecording)
+  }, [isConnected, isRecording, onStatusChange])
 
   const initializeStreaming = async () => {
     try {
-      // Kết nối socket
+      // Kết nối socket đơn giản
       const socketConnection = io(streamData.socketEndpoint, {
         transports: ['websocket'],
         autoConnect: true,
@@ -51,7 +56,7 @@ export function StreamingManager({
         console.log('Socket connected:', socketConnection.id)
         setIsConnected(true)
         
-        // Thông báo bắt đầu streaming
+        // Thông báo bắt đầu stream session
         socketConnection.emit('start_streaming', {
           streamId: streamData.id,
           streamKey: streamData.streamKey
@@ -61,11 +66,12 @@ export function StreamingManager({
       socketConnection.on('disconnect', (reason) => {
         console.log('Socket disconnected:', reason)
         setIsConnected(false)
+        setIsRecording(false)
       })
 
       socketConnection.on('stream_started', (data: any) => {
-        console.log('Stream started successfully:', data)
-        toast.success('Streaming đã bắt đầu thành công!')
+        console.log('Stream session started:', data)
+        toast.success('Stream session đã được khởi tạo!')
       })
 
       socketConnection.on('viewer_count_updated', (data: { count: number }) => {
@@ -84,8 +90,8 @@ export function StreamingManager({
 
       setSocket(socketConnection)
 
-      // Khởi tạo media capture
-      await setupMediaCapture(socketConnection)
+      // Setup media capture sau khi socket connected
+      await setupMediaCapture()
 
     } catch (error) {
       console.error('Error initializing streaming:', error)
@@ -93,21 +99,19 @@ export function StreamingManager({
     }
   }
 
-  const setupMediaCapture = async (socketConnection: Socket) => {
+  const setupMediaCapture = async () => {
     try {
       const constraints: MediaStreamConstraints = {
         video: cameraEnabled ? {
-          width: { ideal: 1920, max: 1920 },
-          height: { ideal: 1080, max: 1080 },
-          frameRate: { ideal: 30, max: 60 },
-          facingMode: 'user'
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30 }
         } : false,
         audio: micEnabled ? {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: { ideal: 48000 },
-          channelCount: { ideal: 2 }
+          sampleRate: { ideal: 44100 }
         } : false
       }
 
@@ -117,29 +121,49 @@ export function StreamingManager({
       // Hiển thị preview
       if (videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = stream
-        videoPreviewRef.current.muted = true // Tránh feedback
+        videoPreviewRef.current.muted = true
       }
 
-      // Thiết lập MediaRecorder để encoding và streaming
+      // Start recording với delay chunks
+      await startDelayedRecording(stream)
+
+    } catch (error) {
+      console.error('Error setting up media capture:', error)
+      handleMediaError(error)
+    }
+  }
+
+  const startDelayedRecording = async (stream: MediaStream) => {
+    try {
       const mimeType = getSupportedMimeType()
+      console.log('Starting recording with MIME type:', mimeType)
+
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType,
-        videoBitsPerSecond: 2500000, // 2.5 Mbps cho 1080p
-        audioBitsPerSecond: 128000   // 128 kbps cho audio chất lượng cao
+        videoBitsPerSecond: 1500000, // 1.5 Mbps - chất lượng vừa phải
+        audioBitsPerSecond: 96000    // 96 kbps - audio chất lượng tốt
       })
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0 && socketConnection.connected) {
-          // Chuyển blob thành ArrayBuffer và gửi qua socket
+        if (event.data.size > 0 && socket?.connected) {
+          chunkCountRef.current++
+          
+          console.log(`Sending chunk #${chunkCountRef.current}, size: ${(event.data.size / 1024).toFixed(2)}KB`)
+          
+          // Gửi chunk data qua socket (delay 7 giây)
           event.data.arrayBuffer().then(buffer => {
-            socketConnection.emit('video_data', {
-              streamId: streamData.id,
-              data: buffer,
-              timestamp: Date.now(),
-              mimeType: mimeType
-            })
+            if (socket?.connected) {
+              socket.emit('stream_chunk', {
+                streamId: streamData.id,
+                chunkData: buffer,
+                chunkNumber: chunkCountRef.current,
+                timestamp: Date.now(),
+                mimeType: mimeType,
+                size: event.data.size
+              })
+            }
           }).catch(error => {
-            console.error('Error converting blob to buffer:', error)
+            console.error('Error converting chunk to buffer:', error)
           })
         }
       }
@@ -147,41 +171,35 @@ export function StreamingManager({
       mediaRecorder.onerror = (event) => {
         console.error('MediaRecorder error:', event)
         toast.error('Lỗi recording media')
+        setIsRecording(false)
       }
 
-      // Gửi data chunks mỗi 200ms để real-time streaming
-      mediaRecorder.start(200)
+      mediaRecorder.onstart = () => {
+        console.log('MediaRecorder started')
+        setIsRecording(true)
+      }
+
+      mediaRecorder.onstop = () => {
+        console.log('MediaRecorder stopped')
+        setIsRecording(false)
+      }
+
+      // Bắt đầu recording với chunks 7 giây
+      mediaRecorder.start(CHUNK_DURATION)
       mediaRecorderRef.current = mediaRecorder
 
-      console.log('Media capture setup completed')
+      console.log(`Recording started with ${CHUNK_DURATION}ms chunks`)
 
     } catch (error) {
-      console.error('Error setting up media capture:', error)
-      
-      if (error instanceof DOMException) {
-        switch (error.name) {
-          case 'NotAllowedError':
-            toast.error('Vui lòng cấp quyền truy cập camera và microphone')
-            break
-          case 'NotFoundError':
-            toast.error('Không tìm thấy camera hoặc microphone')
-            break
-          case 'NotReadableError':
-            toast.error('Camera hoặc microphone đang được sử dụng bởi ứng dụng khác')
-            break
-          default:
-            toast.error('Không thể truy cập thiết bị media: ' + error.message)
-        }
-      } else {
-        toast.error('Lỗi không xác định khi setup media')
-      }
+      console.error('Error starting delayed recording:', error)
+      toast.error('Không thể bắt đầu recording')
     }
   }
 
   const getSupportedMimeType = (): string => {
     const types = [
       'video/webm;codecs=vp9,opus',
-      'video/webm;codecs=vp8,opus',
+      'video/webm;codecs=vp8,opus', 
       'video/webm;codecs=h264,opus',
       'video/webm',
       'video/mp4;codecs=h264,aac',
@@ -190,19 +208,43 @@ export function StreamingManager({
 
     for (const type of types) {
       if (MediaRecorder.isTypeSupported(type)) {
-        console.log('Using MIME type:', type)
         return type
       }
     }
 
-    console.warn('No supported MIME type found, using default')
+    console.warn('No optimal MIME type found, using default webm')
     return 'video/webm'
   }
 
+  const handleMediaError = (error: any) => {
+    if (error instanceof DOMException) {
+      switch (error.name) {
+        case 'NotAllowedError':
+          toast.error('Vui lòng cấp quyền truy cập camera và microphone')
+          break
+        case 'NotFoundError':
+          toast.error('Không tìm thấy camera hoặc microphone')
+          break
+        case 'NotReadableError':
+          toast.error('Camera hoặc microphone đang được sử dụng bởi ứng dụng khác')
+          break
+        default:
+          toast.error('Không thể truy cập thiết bị media: ' + error.message)
+      }
+    } else {
+      toast.error('Lỗi không xác định khi setup media')
+    }
+  }
+
   const cleanup = () => {
-    // Dừng media recorder
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop()
+    console.log('Starting cleanup...')
+
+    // Dừng recording
+    if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop()
+      }
+      mediaRecorderRef.current = null
     }
 
     // Dừng tất cả media tracks
@@ -219,40 +261,31 @@ export function StreamingManager({
       socket.emit('stop_streaming', { streamId: streamData.id })
       socket.disconnect()
       setSocket(null)
-      setIsConnected(false)
     }
 
-    console.log('Streaming cleanup completed')
+    setIsConnected(false)
+    setIsRecording(false)
+    chunkCountRef.current = 0
+
+    console.log('Cleanup completed')
   }
 
-  const updateMediaSettings = async (newCameraEnabled: boolean, newMicEnabled: boolean) => {
-    if (!mediaStream) return
-
-    try {
-      // Cập nhật video track
-      const videoTracks = mediaStream.getVideoTracks()
-      if (videoTracks.length > 0) {
-        videoTracks[0].enabled = newCameraEnabled
-      }
-
-      // Cập nhật audio track
-      const audioTracks = mediaStream.getAudioTracks()
-      if (audioTracks.length > 0) {
-        audioTracks[0].enabled = newMicEnabled
-      }
-
-      console.log(`Media settings updated - Camera: ${newCameraEnabled}, Mic: ${newMicEnabled}`)
-
-    } catch (error) {
-      console.error('Error updating media settings:', error)
-      toast.error('Không thể cập nhật cài đặt media')
-    }
-  }
-
-  // Update media settings when props change
+  // Update media settings khi props thay đổi
   useEffect(() => {
     if (mediaStream) {
-      updateMediaSettings(cameraEnabled, micEnabled)
+      // Cập nhật video track
+      const videoTracks = mediaStream.getVideoTracks()
+      videoTracks.forEach(track => {
+        track.enabled = cameraEnabled
+      })
+
+      // Cập nhật audio track  
+      const audioTracks = mediaStream.getAudioTracks()
+      audioTracks.forEach(track => {
+        track.enabled = micEnabled
+      })
+
+      console.log(`Media settings updated - Camera: ${cameraEnabled}, Mic: ${micEnabled}`)
     }
   }, [cameraEnabled, micEnabled, mediaStream])
 
@@ -277,11 +310,13 @@ export function StreamingManager({
         {/* Status indicators */}
         <div className="absolute top-2 left-2 flex gap-2">
           <div className={`px-2 py-1 rounded text-xs font-semibold ${
-            isConnected 
-              ? 'bg-green-500 text-white' 
-              : 'bg-red-500 text-white'
+            isRecording 
+              ? 'bg-red-500 text-white animate-pulse' 
+              : isConnected
+              ? 'bg-yellow-500 text-white'
+              : 'bg-gray-500 text-white'
           }`}>
-            {isConnected ? 'LIVE' : 'OFFLINE'}
+            {isRecording ? 'RECORDING' : isConnected ? 'CONNECTED' : 'OFFLINE'}
           </div>
           
           {cameraEnabled && (
@@ -296,14 +331,38 @@ export function StreamingManager({
             </div>
           )}
         </div>
+
+        {/* Delay info */}
+        <div className="absolute bottom-2 left-2">
+          <div className="px-2 py-1 rounded text-xs bg-black bg-opacity-70 text-white">
+            Delay: ~{CHUNK_DURATION / 1000}s
+          </div>
+        </div>
+      </div>
+
+      {/* Recording info */}
+      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+        <div className="flex items-center gap-2 text-sm text-blue-800">
+          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <span>
+            Stream sẽ có độ trễ khoảng {CHUNK_DURATION / 1000} giây so với thời gian thực
+          </span>
+        </div>
+        {isRecording && (
+          <div className="mt-2 text-xs text-blue-600">
+            Đã gửi {chunkCountRef.current} chunks tới server
+          </div>
+        )}
       </div>
 
       {/* Debug info (only in development) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
+        <div className="mt-4 p-2 bg-gray-100 rounded text-xs space-y-1">
           <div>Socket: {isConnected ? 'Connected' : 'Disconnected'}</div>
+          <div>Recording: {isRecording ? 'Active' : 'Inactive'}</div>
           <div>Stream ID: {streamData.id}</div>
-          <div>Endpoint: {streamData.socketEndpoint}</div>
+          <div>Chunk Duration: {CHUNK_DURATION}ms</div>
+          <div>Chunks Sent: {chunkCountRef.current}</div>
           <div>Camera: {cameraEnabled ? 'On' : 'Off'}</div>
           <div>Mic: {micEnabled ? 'On' : 'Off'}</div>
         </div>
