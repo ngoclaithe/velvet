@@ -42,8 +42,16 @@ export function StreamingManager({
   const MIN_BUFFER_SIZE = 3   // Match backend minBufferSize
 
   useEffect(() => {
+    console.log('🎬 StreamingManager MOUNTED! Starting initialization...')
+    console.log('📊 Props received:', {
+      streamData: streamData,
+      cameraEnabled,
+      micEnabled
+    })
+
     initializeStreaming()
     return () => {
+      console.log('🎬 StreamingManager UNMOUNTING! Cleaning up...')
       cleanup()
     }
   }, [])
