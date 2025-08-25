@@ -32,6 +32,8 @@ import {
 } from 'lucide-react'
 import { streamApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import type { StreamResponse } from '@/types/streaming'
+import io, { Socket } from 'socket.io-client'
 
 interface StreamData {
   title: string
@@ -47,6 +49,8 @@ interface CurrentStream {
   isLive: boolean
   viewerCount: number
   startedAt: Date
+  streamKey?: string
+  socketEndpoint?: string
 }
 
 export default function StreamPage() {
@@ -58,6 +62,9 @@ export default function StreamPage() {
   const [isStoppingStream, setIsStoppingStream] = useState(false)
   const [cameraEnabled, setCameraEnabled] = useState(true)
   const [micEnabled, setMicEnabled] = useState(true)
+  const [socket, setSocket] = useState<Socket | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
   
   const [streamData, setStreamData] = useState<StreamData>({
     title: '',
@@ -105,13 +112,20 @@ export default function StreamPage() {
       })
 
       if (response.success && response.data) {
+        const streamData = response.data as StreamResponse
         setCurrentStream({
-          id: response.data.id || 'temp-id',
+          id: streamData.id,
           title: streamData.title,
-          isLive: true,
+          isLive: streamData.isLive,
           viewerCount: 0,
-          startedAt: new Date()
+          startedAt: new Date(),
+          streamKey: streamData.streamKey,
+          socketEndpoint: streamData.socketEndpoint
         })
+
+        // Kết nối socket và bắt đầu streaming
+        await connectAndStartStreaming(streamData)
+
         toast.success('Stream đã được bắt đầu thành công!')
       } else {
         toast.error(response.error || 'Không thể bắt đầu stream')
@@ -124,13 +138,119 @@ export default function StreamPage() {
     }
   }
 
+  const connectAndStartStreaming = async (streamData: StreamResponse) => {
+    try {
+      // Kết nối socket
+      const socketConnection = io(streamData.socketEndpoint, {
+        transports: ['websocket'],
+        autoConnect: true
+      })
+
+      socketConnection.on('connect', () => {
+        console.log('Socket connected:', socketConnection.id)
+        setIsConnected(true)
+
+        // Thông báo bắt đầu streaming
+        socketConnection.emit('start_streaming', {
+          streamId: streamData.id,
+          streamKey: streamData.streamKey
+        })
+      })
+
+      socketConnection.on('disconnect', () => {
+        console.log('Socket disconnected')
+        setIsConnected(false)
+      })
+
+      socketConnection.on('stream_started', (data) => {
+        console.log('Stream started response:', data)
+      })
+
+      socketConnection.on('error', (error) => {
+        console.error('Socket error:', error)
+        toast.error('Lỗi kết nối socket: ' + error.message)
+      })
+
+      setSocket(socketConnection)
+
+      // Bắt đầu capture media
+      await startMediaCapture(socketConnection, streamData.id)
+
+    } catch (error) {
+      console.error('Error connecting socket:', error)
+      toast.error('Không thể kết nối socket streaming')
+    }
+  }
+
+  const startMediaCapture = async (socketConnection: Socket, streamId: string) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: cameraEnabled ? {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 }
+        } : false,
+        audio: micEnabled ? {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } : false
+      })
+
+      setMediaStream(stream)
+
+      // Tạo MediaRecorder để compress và stream data
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp8,opus',
+        videoBitsPerSecond: 2500000, // 2.5 Mbps
+        audioBitsPerSecond: 128000   // 128 kbps
+      })
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          // Gửi compressed data qua socket
+          event.data.arrayBuffer().then(buffer => {
+            if (socketConnection.connected) {
+              socketConnection.emit('video_data', {
+                streamId,
+                data: buffer,
+                timestamp: Date.now()
+              })
+            }
+          })
+        }
+      }
+
+      // Gửi data chunk mỗi 100ms
+      mediaRecorder.start(100)
+
+    } catch (error) {
+      console.error('Error accessing media devices:', error)
+      toast.error('Không thể truy cập camera/microphone')
+    }
+  }
+
   const handleStopStream = async () => {
     if (!currentStream) return
 
     setIsStoppingStream(true)
     try {
+      // Dừng media stream
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop())
+        setMediaStream(null)
+      }
+
+      // Thông báo socket dừng streaming
+      if (socket) {
+        socket.emit('stop_streaming', { streamId: currentStream.id })
+        socket.disconnect()
+        setSocket(null)
+        setIsConnected(false)
+      }
+
       const response = await streamApi.stopStream(currentStream.id)
-      
+
       if (response.success) {
         setCurrentStream(null)
         toast.success('Stream đã được kết thúc')
@@ -205,6 +325,7 @@ export default function StreamPage() {
                   variant={cameraEnabled ? "default" : "outline"}
                   size="sm"
                   onClick={() => setCameraEnabled(!cameraEnabled)}
+                  disabled={!!currentStream}
                 >
                   {cameraEnabled ? <Camera className="w-4 h-4 mr-2" /> : <VideoOff className="w-4 h-4 mr-2" />}
                   Camera
@@ -213,10 +334,16 @@ export default function StreamPage() {
                   variant={micEnabled ? "default" : "outline"}
                   size="sm"
                   onClick={() => setMicEnabled(!micEnabled)}
+                  disabled={!!currentStream}
                 >
                   {micEnabled ? <Mic className="w-4 h-4 mr-2" /> : <MicOff className="w-4 h-4 mr-2" />}
                   Microphone
                 </Button>
+                {isConnected && (
+                  <Badge variant="default" className="bg-green-500">
+                    Đã kết nối
+                  </Badge>
+                )}
                 {currentStream && (
                   <Button variant="outline" size="sm" onClick={copyStreamLink}>
                     <Share2 className="w-4 h-4 mr-2" />
