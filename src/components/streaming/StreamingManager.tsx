@@ -34,34 +34,24 @@ export function StreamingManager({
   
   const socketService = getSocketService()
 
-  // Optimized chunk settings (matching backend expectations)
-  const CHUNK_DURATION = 5000 // 5 seconds - matches backend buffer settings
-  const MAX_QUEUE_SIZE = 10   // Maximum 10 chunks to match backend maxBufferSize
-  const CHUNK_SEND_INTERVAL = 50 // 50ms delay between chunk sends to match backend
+  const CHUNK_DURATION = 5000
+  const MAX_QUEUE_SIZE = 10
+  const CHUNK_SEND_INTERVAL = 50
   const RECONNECT_DELAY = 3000
-  const MIN_BUFFER_SIZE = 3   // Match backend minBufferSize
+  const MIN_BUFFER_SIZE = 3
 
   useEffect(() => {
-    console.log('🎬 StreamingManager MOUNTED! Starting initialization...')
-    console.log('📊 Props received:', {
-      streamData: streamData,
-      cameraEnabled,
-      micEnabled
-    })
-
     initializeStreaming()
     return () => {
-      console.log('🎬 StreamingManager UNMOUNTING! Cleaning up...')
       cleanup()
     }
   }, [])
 
-  // Request stream stats from backend periodically
   useEffect(() => {
     if (isRecording && socketService.getIsConnected()) {
       const statsInterval = setInterval(() => {
         socketService.requestStreamStats(streamData.id)
-      }, 10000) // Request stats every 10 seconds
+      }, 10000)
 
       return () => clearInterval(statsInterval)
     }
@@ -73,9 +63,6 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
-      console.log('🚀 Initializing optimized streaming...')
-      console.log('📊 Stream Data:', streamData)
-
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
         clientType: 'creator',
@@ -83,29 +70,16 @@ export function StreamingManager({
         streamKey: streamData.streamKey
       }
 
-      console.log('🔌 Socket Config:', socketConfig)
-
-      // Setup listeners BEFORE connecting
       setupSocketEventListeners()
-
-      console.log('🔌 Connecting to socket...')
       await socketService.connect(socketConfig)
 
-      // Use socket service's connection state instead of setting our own
       const connected = socketService.getIsConnected()
-      console.log('✅ Socket connected successfully, connected state:', connected)
       setIsConnected(connected)
 
-      console.log('📡 Starting streaming session...')
       socketService.startStreaming(streamData.id, streamData.streamKey)
-
-      console.log('🎥 Setting up media capture...')
       await setupOptimizedMediaCapture()
 
-      console.log('✅ Streaming initialization completed!')
-
     } catch (error) {
-      console.error('❌ Error initializing streaming:', error)
       toast.error('Không thể khởi tạo streaming')
       setIsConnected(false)
       scheduleReconnect()
@@ -118,98 +92,74 @@ export function StreamingManager({
     }
     
     reconnectTimeoutRef.current = setTimeout(() => {
-      console.log('Attempting to reconnect...')
       initializeStreaming()
     }, RECONNECT_DELAY)
   }, [])
 
   const setupSocketEventListeners = () => {
     socketService.on('connect', () => {
-      console.log('Socket connected via service')
       const connected = socketService.getIsConnected()
-      console.log('Setting connected state to:', connected)
       setIsConnected(connected)
 
-      // Clear reconnect timeout on successful connection
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null
       }
 
-      // Start chunk processor if we have chunks waiting and recording
       if (isRecording && chunkQueueRef.current.length > 0 && !processingRef.current) {
-        console.log('🔄 Restarting chunk processor after connection')
         startChunkProcessor()
       }
     })
 
-    // Listen for room joined confirmation from backend
     socketService.onRoomJoined((data: any) => {
-      console.log('Room joined confirmed by backend:', data)
       const connected = socketService.getIsConnected()
       setIsConnected(connected)
-
-      // Start chunk processor if we have chunks waiting and recording
+      
       if (isRecording && chunkQueueRef.current.length > 0 && !processingRef.current) {
-        console.log('🔄 Starting chunk processor after room joined')
         startChunkProcessor()
       }
     })
 
     socketService.on('disconnect', (data: any) => {
-      console.log('Socket disconnected:', data.reason)
       setIsConnected(false)
       setIsRecording(false)
-
-      // Stop chunk processor
       processingRef.current = false
-
-      // Auto reconnect unless it's intentional disconnect
+      
       if (data.reason !== 'io client disconnect') {
         scheduleReconnect()
       }
     })
 
     socketService.on('connect_error', (error: any) => {
-      console.error('Connection error:', error)
       setIsConnected(false)
       processingRef.current = false
       scheduleReconnect()
     })
 
     socketService.on('reconnect', () => {
-      console.log('Socket reconnected successfully')
       const connected = socketService.getIsConnected()
       setIsConnected(connected)
-
+      
       if (streamData) {
         socketService.startStreaming(streamData.id, streamData.streamKey)
-        // Resume recording if media stream exists
         if (mediaStream && !isRecording) {
           startOptimizedRecording(mediaStream)
         }
-        // Restart chunk processor if we have chunks waiting
         if (chunkQueueRef.current.length > 0 && !processingRef.current) {
-          console.log('🔄 Restarting chunk processor after reconnection')
           startChunkProcessor()
         }
       }
     })
 
     socketService.onStreamStarted((data: any) => {
-      console.log('Stream session started:', data)
       toast.success('Stream đã khởi tạo thành công!')
     })
 
-    // Listen for stream live event from backend
     socketService.onStreamLive((data: any) => {
-      console.log('Stream is now live:', data)
       toast.success('Stream đã LIVE! Khán giả có thể xem được rồi 🎉')
     })
 
-    // Listen for stream ended event
     socketService.onStreamEnded((data: any) => {
-      console.log('Stream ended:', data)
       setIsRecording(false)
       setIsConnected(false)
       if (data.reason === 'creator_left') {
@@ -217,10 +167,7 @@ export function StreamingManager({
       }
     })
 
-    // Listen for stream stats from backend
     socketService.onStreamStats((stats: any) => {
-      console.log('Backend stream stats:', stats)
-      // Update buffer health with backend stats if available
       if (stats.bufferHealth) {
         setBufferHealth(prev => ({
           ...prev,
@@ -235,12 +182,10 @@ export function StreamingManager({
     })
 
     socketService.onChunkReceived((data: any) => {
-      console.log(`Chunk #${data.chunkNumber} processed successfully by backend`)
       setBufferHealth(prev => ({ ...prev, sent: prev.sent + 1 }))
     })
 
     socketService.onError((error: any) => {
-      console.error('Socket error:', error)
       toast.error('Stream error: ' + (error.message || 'Unknown error'))
       setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
     })
@@ -248,16 +193,12 @@ export function StreamingManager({
 
   const setupOptimizedMediaCapture = async () => {
     try {
-      console.log('🎥 Setting up media capture with camera:', cameraEnabled, 'mic:', micEnabled)
-
-      // Enhanced constraints for 1080p quality
       const constraints: MediaStreamConstraints = {
         video: cameraEnabled ? {
           width: { ideal: 1920, min: 1280 },
           height: { ideal: 1080, min: 720 },
           frameRate: { ideal: 30, min: 24 },
           facingMode: 'user',
-          // Advanced constraints for better quality
           aspectRatio: { ideal: 16/9 }
         } : false,
         audio: micEnabled ? {
@@ -269,25 +210,17 @@ export function StreamingManager({
         } : false
       }
 
-      console.log('📊 Media constraints:', constraints)
-
-      console.log('🎥 Requesting user media...')
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
-      console.log('✅ Got media stream:', stream)
-
       setMediaStream(stream)
 
       if (videoPreviewRef.current) {
-        console.log('📺 Setting video preview source')
         videoPreviewRef.current.srcObject = stream
         videoPreviewRef.current.muted = true
       }
 
-      console.log('🎬 Starting recording...')
       await startOptimizedRecording(stream)
 
     } catch (error) {
-      console.error('❌ Error setting up optimized media capture:', error)
       handleMediaError(error)
     }
   }
@@ -295,41 +228,31 @@ export function StreamingManager({
   const startOptimizedRecording = async (stream: MediaStream) => {
     try {
       const mimeType = getBestSupportedMimeType()
-      console.log('Starting optimized recording with MIME type:', mimeType)
 
-      // Enhanced MediaRecorder options
       const options: MediaRecorderOptions = {
         mimeType,
-        videoBitsPerSecond: 2500000, // 2.5 Mbps for high quality
-        audioBitsPerSecond: 128000   // 128 kbps for crystal clear audio
+        videoBitsPerSecond: 2500000,
+        audioBitsPerSecond: 128000
       }
 
       const mediaRecorder = new MediaRecorder(stream, options)
 
       mediaRecorder.ondataavailable = (event) => {
-        console.log('🎥 MediaRecorder ondataavailable fired. Data size:', event.data.size)
         if (event.data.size > 0) {
           chunkCountRef.current++
-          console.log(`📦 Creating chunk #${chunkCountRef.current}`)
 
           event.data.arrayBuffer().then(buffer => {
-            console.log(`💽 Chunk #${chunkCountRef.current} converted to buffer (${buffer.byteLength} bytes)`)
             addChunkToQueue(buffer, chunkCountRef.current, mimeType)
           }).catch(error => {
-            console.error('Error converting chunk to buffer:', error)
             setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
           })
-        } else {
-          console.warn('📦 MediaRecorder fired with empty data')
         }
       }
 
       mediaRecorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event)
         toast.error('Recording error occurred')
         setIsRecording(false)
         
-        // Try to restart recording
         setTimeout(() => {
           if (stream.active) {
             startOptimizedRecording(stream)
@@ -338,75 +261,60 @@ export function StreamingManager({
       }
 
       mediaRecorder.onstart = () => {
-        console.log('🔴 Optimized MediaRecorder started')
         setIsRecording(true)
 
-        // Only start chunk processor if socket is connected
         if (socketService.getIsConnected()) {
-          console.log('✅ Socket connected, starting chunk processor')
-          startChunkProcessor() // Start processing queued chunks
-        } else {
-          console.log('⚠️ Socket not connected, chunk processor will start when connected')
+          startChunkProcessor()
         }
       }
 
       mediaRecorder.onstop = () => {
-        console.log('MediaRecorder stopped')
         setIsRecording(false)
         processingRef.current = false
       }
 
-      // Start recording with optimized chunk duration
-      console.log(`🎬 Starting MediaRecorder with ${CHUNK_DURATION}ms chunks...`)
       mediaRecorder.start(CHUNK_DURATION)
       mediaRecorderRef.current = mediaRecorder
 
-      console.log(`✅ Optimized recording started with ${CHUNK_DURATION}ms chunks`)
-
     } catch (error) {
-      console.error('Error starting optimized recording:', error)
       toast.error('Không thể bắt đầu recording')
     }
   }
 
   const getBestSupportedMimeType = (): string => {
     const types = [
-      'video/webm;codecs=vp9,opus',   // Best quality
-      'video/webm;codecs=vp8,opus',   // Good compatibility
-      'video/webm;codecs=h264,opus',  // Hardware acceleration
-      'video/webm',                   // Fallback
-      'video/mp4;codecs=h264,aac',    // Alternative
-      'video/mp4'                     // Last resort
+      'video/mp4;codecs=h264,aac',
+      'video/webm;codecs=h264,opus',
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/webm;codecs=h264,aac',
+      'video/mp4',
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm'
     ]
 
     for (const type of types) {
       if (MediaRecorder.isTypeSupported(type)) {
-        console.log('Selected MIME type:', type)
         return type
       }
     }
 
-    console.warn('No optimal MIME type found, using default webm')
     return 'video/webm'
   }
 
   const addChunkToQueue = (buffer: ArrayBuffer, chunkNumber: number, mimeType: string) => {
     const chunkQueue = chunkQueueRef.current
     
-    // Add to queue with timestamp
     chunkQueue.push({
       buffer,
       number: chunkNumber,
       timestamp: Date.now()
     })
 
-    // Update buffer health
     setBufferHealth(prev => ({ ...prev, queued: chunkQueue.length }))
 
-    // Maintain queue size - remove oldest if too large
     if (chunkQueue.length > MAX_QUEUE_SIZE) {
       const removed = chunkQueue.shift()
-      console.warn(`Queue overflow: removed chunk #${removed?.number}`)
       setBufferHealth(prev => ({ 
         ...prev, 
         queued: chunkQueue.length,
@@ -414,42 +322,30 @@ export function StreamingManager({
       }))
     }
 
-    console.log(`Chunk #${chunkNumber} queued (${(buffer.byteLength / 1024).toFixed(2)}KB). Queue size: ${chunkQueue.length}`)
-
-    // Auto-start chunk processor if socket is connected and processor not running
     if (socketService.getIsConnected() && !processingRef.current && isRecording) {
-      console.log('🚀 Auto-starting chunk processor - socket connected and chunks ready')
       startChunkProcessor()
     }
   }
 
   const startChunkProcessor = () => {
-    console.log('🚀 Starting chunk processor...')
     if (processingRef.current) {
-      console.log('⚠️  Chunk processor already running')
       return
     }
 
     processingRef.current = true
-    console.log('✅ Chunk processor started')
     processChunkQueue()
   }
 
   const processChunkQueue = async () => {
     const socketConnected = socketService.getIsConnected()
-    console.log('🔄 Processing chunk queue. socketConnected:', socketConnected, 'localConnected:', isConnected, 'processingRef.current:', processingRef.current)
 
-    // Use socket service connection state as primary source of truth
     while (processingRef.current && socketConnected) {
       const chunkQueue = chunkQueueRef.current
-
-      console.log(`📊 Queue status: ${chunkQueue.length} chunks waiting`)
 
       if (chunkQueue.length > 0) {
         const chunk = chunkQueue.shift()
         if (chunk) {
           try {
-            console.log(`🚀 Processing chunk #${chunk.number} from queue`)
             await sendChunkWithRetry(chunk.buffer, chunk.number)
             setBufferHealth(prev => ({
               ...prev,
@@ -457,7 +353,6 @@ export function StreamingManager({
               sent: prev.sent + 1
             }))
           } catch (error) {
-            console.error(`Failed to send chunk #${chunk.number}:`, error)
             setBufferHealth(prev => ({
               ...prev,
               failed: prev.failed + 1
@@ -466,27 +361,18 @@ export function StreamingManager({
         }
       }
 
-      // Check connection state again in case it changed during processing
       if (!socketService.getIsConnected()) {
-        console.log('❌ Socket disconnected during chunk processing, stopping')
         break
       }
 
-      // Wait before processing next chunk to avoid overwhelming
       await sleep(CHUNK_SEND_INTERVAL)
     }
-
-    console.log('🛑 Chunk processor stopped. socketConnected:', socketService.getIsConnected(), 'localConnected:', isConnected, 'processingRef.current:', processingRef.current)
   }
 
   const sendChunkWithRetry = async (buffer: ArrayBuffer, chunkNumber: number, retries = 3): Promise<void> => {
-    console.log(`📡 sendChunkWithRetry called for chunk #${chunkNumber}`)
-
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        console.log(`🔌 Socket connected: ${socketService.getIsConnected()}`)
         if (socketService.getIsConnected()) {
-          console.log(`⬆️  Attempt ${attempt}: Calling socketService.sendStreamChunk for chunk #${chunkNumber}`)
           const success = await socketService.sendStreamChunk(
             streamData.id,
             buffer,
@@ -495,8 +381,7 @@ export function StreamingManager({
           )
 
           if (success) {
-            console.log(`✅ Chunk #${chunkNumber} successfully sent to backend`)
-            return // Success
+            return
           } else {
             throw new Error(`Backend rejected chunk #${chunkNumber}`)
           }
@@ -504,13 +389,10 @@ export function StreamingManager({
           throw new Error('Socket not connected')
         }
       } catch (error) {
-        console.warn(`❌ Chunk #${chunkNumber} send attempt ${attempt} failed:`, error)
-
         if (attempt === retries) {
-          throw error // Final attempt failed
+          throw error
         }
 
-        // Wait before retry with exponential backoff
         await sleep(100 * attempt)
       }
     }
@@ -544,21 +426,14 @@ export function StreamingManager({
   }
 
   const cleanup = () => {
-    console.log('Starting comprehensive cleanup...')
-
-    // Clear reconnect timeout
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
     }
 
-    // Stop chunk processing
     processingRef.current = false
-
-    // Clear chunk queue
     chunkQueueRef.current = []
 
-    // Stop recording
     if (mediaRecorderRef.current) {
       if (mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop()
@@ -566,16 +441,13 @@ export function StreamingManager({
       mediaRecorderRef.current = null
     }
 
-    // Stop all media tracks
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => {
         track.stop()
-        console.log(`Stopped ${track.kind} track`)
       })
       setMediaStream(null)
     }
 
-    // Stop streaming and disconnect socket
     if (socketService.getIsConnected()) {
       socketService.stopStreaming(streamData.id)
       socketService.disconnect()
@@ -585,11 +457,8 @@ export function StreamingManager({
     setIsRecording(false)
     chunkCountRef.current = 0
     setBufferHealth({ queued: 0, sent: 0, failed: 0 })
-
-    console.log('Comprehensive cleanup completed')
   }
 
-  // Update media settings when props change
   useEffect(() => {
     if (mediaStream) {
       const videoTracks = mediaStream.getVideoTracks()
@@ -601,21 +470,16 @@ export function StreamingManager({
       audioTracks.forEach(track => {
         track.enabled = micEnabled
       })
-
-      console.log(`Media settings updated - Camera: ${cameraEnabled}, Mic: ${micEnabled}`)
     }
   }, [cameraEnabled, micEnabled, mediaStream])
 
-  // Monitor buffer health and show warnings
   useEffect(() => {
     if (bufferHealth.queued > MAX_QUEUE_SIZE * 0.8) {
-      console.warn('Buffer queue is getting full:', bufferHealth.queued)
     }
   }, [bufferHealth.queued])
 
   return (
     <div className="streaming-manager">
-      {/* Enlarged Video Preview */}
       <div className="relative mb-6">
         <video
           ref={videoPreviewRef}
@@ -634,7 +498,6 @@ export function StreamingManager({
           </div>
         )}
         
-        {/* Simplified Status Indicators */}
         <div className="absolute top-4 left-4 flex gap-3">
           <div className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
             isRecording
@@ -660,7 +523,6 @@ export function StreamingManager({
         </div>
       </div>
 
-      {/* Simplified Stream Quality Info - Only when recording */}
       {isRecording && (
         <div className="mt-6 text-center">
           <div className="inline-flex items-center gap-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full text-white shadow-lg">
