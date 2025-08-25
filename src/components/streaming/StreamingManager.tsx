@@ -240,10 +240,14 @@ export function StreamingManager({
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          chunkCountRef.current++
-
           event.data.arrayBuffer().then(buffer => {
-            addChunkToQueue(buffer, chunkCountRef.current, mimeType)
+            if (!initSegmentSentRef.current && mimeType.includes('mp4')) {
+              sendMp4InitSegment(buffer)
+              initSegmentSentRef.current = true
+            } else {
+              chunkCountRef.current++
+              addChunkToQueue(buffer, chunkCountRef.current, mimeType)
+            }
           }).catch(error => {
             setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
           })
