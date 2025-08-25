@@ -313,7 +313,7 @@ export default function StreamPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Thời gian live</p>
+                    <p className="text-sm text-muted-foreground">Thời gian stream</p>
                     <p className="text-2xl font-bold">
                       {Math.floor((Date.now() - currentStream.startedAt.getTime()) / 60000)}m
                     </p>
@@ -353,9 +353,9 @@ export default function StreamPage() {
         {currentStream && (
           <Card>
             <CardHeader>
-              <CardTitle>Live Preview</CardTitle>
+              <CardTitle>Stream Preview</CardTitle>
               <CardDescription>
-                Xem trước stream của bạn và quản lý kết nối
+                Xem trước stream của bạn (viewers sẽ thấy sau ~7 giây)
               </CardDescription>
             </CardHeader>
             <CardContent>
