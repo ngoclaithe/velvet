@@ -44,8 +44,15 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
-      // Kết nối socket đơn giản
-      const socketConnection = io(streamData.socketEndpoint, {
+      // Xây dựng URL đầy đủ cho socket connection
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+      const socketBaseUrl = baseUrl.replace('/api/v1', '').replace('http://', 'ws://').replace('https://', 'wss://')
+      const fullSocketUrl = `${socketBaseUrl}${streamData.socketEndpoint}`
+
+      console.log('Connecting to socket:', fullSocketUrl)
+
+      // Kết nối socket với URL đầy đủ
+      const socketConnection = io(fullSocketUrl, {
         transports: ['websocket'],
         autoConnect: true,
         timeout: 10000
