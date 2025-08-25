@@ -31,6 +31,7 @@ export function StreamingManager({
   const chunkQueueRef = useRef<Array<{ buffer: ArrayBuffer, number: number, timestamp: number }>>([])
   const processingRef = useRef(false)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const initSegmentSentRef = useRef(false)
   
   const socketService = getSocketService()
 
