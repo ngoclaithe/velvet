@@ -380,23 +380,29 @@ export function StreamingManager({
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         if (socketService.getIsConnected()) {
-          await socketService.sendStreamChunk(
+          const success = await socketService.sendStreamChunk(
             streamData.id,
             buffer,
             chunkNumber,
             getBestSupportedMimeType()
           )
-          return // Success
+
+          if (success) {
+            console.log(`Chunk #${chunkNumber} successfully sent to backend`)
+            return // Success
+          } else {
+            throw new Error(`Backend rejected chunk #${chunkNumber}`)
+          }
         } else {
           throw new Error('Socket not connected')
         }
       } catch (error) {
         console.warn(`Chunk #${chunkNumber} send attempt ${attempt} failed:`, error)
-        
+
         if (attempt === retries) {
           throw error // Final attempt failed
         }
-        
+
         // Wait before retry with exponential backoff
         await sleep(100 * attempt)
       }
