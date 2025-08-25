@@ -241,7 +241,7 @@ export function StreamingManager({
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           event.data.arrayBuffer().then(buffer => {
-            if (!initSegmentSentRef.current && mimeType.includes('mp4')) {
+            if (!initSegmentSentRef.current && mimeType.includes('mp4') && chunkCountRef.current === 0) {
               sendMp4InitSegment(buffer)
               initSegmentSentRef.current = true
             } else {
