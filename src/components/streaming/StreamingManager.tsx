@@ -34,11 +34,12 @@ export function StreamingManager({
   
   const socketService = getSocketService()
 
-  // Optimized chunk settings
-  const CHUNK_DURATION = 5000 // 5 seconds - tối ưu cho buffer management
-  const MAX_QUEUE_SIZE = 12   // Maximum 12 chunks in queue (60 seconds buffer)
-  const CHUNK_SEND_INTERVAL = 200 // 200ms delay between chunk sends
+  // Optimized chunk settings (matching backend expectations)
+  const CHUNK_DURATION = 5000 // 5 seconds - matches backend buffer settings
+  const MAX_QUEUE_SIZE = 10   // Maximum 10 chunks to match backend maxBufferSize
+  const CHUNK_SEND_INTERVAL = 50 // 50ms delay between chunk sends to match backend
   const RECONNECT_DELAY = 3000
+  const MIN_BUFFER_SIZE = 3   // Match backend minBufferSize
 
   useEffect(() => {
     initializeStreaming()
@@ -94,12 +95,18 @@ export function StreamingManager({
     socketService.on('connect', () => {
       console.log('Socket connected via service')
       setIsConnected(true)
-      
+
       // Clear reconnect timeout on successful connection
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null
       }
+    })
+
+    // Listen for room joined confirmation from backend
+    socketService.onRoomJoined((data: any) => {
+      console.log('Room joined confirmed by backend:', data)
+      setIsConnected(true)
     })
 
     socketService.on('disconnect', (data: any) => {
@@ -136,12 +143,41 @@ export function StreamingManager({
       toast.success('Stream đã khởi tạo thành công!')
     })
 
+    // Listen for stream live event from backend
+    socketService.onStreamLive((data: any) => {
+      console.log('Stream is now live:', data)
+      toast.success('Stream đã LIVE! Khán giả có thể xem được rồi 🎉')
+    })
+
+    // Listen for stream ended event
+    socketService.onStreamEnded((data: any) => {
+      console.log('Stream ended:', data)
+      setIsRecording(false)
+      setIsConnected(false)
+      if (data.reason === 'creator_left') {
+        toast.info('Stream đã kết thúc')
+      }
+    })
+
+    // Listen for stream stats from backend
+    socketService.onStreamStats((stats: any) => {
+      console.log('Backend stream stats:', stats)
+      // Update buffer health with backend stats if available
+      if (stats.bufferHealth) {
+        setBufferHealth(prev => ({
+          ...prev,
+          sent: stats.totalChunks || prev.sent,
+          failed: stats.dropCount || prev.failed
+        }))
+      }
+    })
+
     socketService.onViewerCountUpdated((data: { count: number }) => {
       onViewerCountUpdate(data.count)
     })
 
     socketService.onChunkReceived((data: any) => {
-      console.log(`Chunk #${data.chunkNumber} processed successfully`)
+      console.log(`Chunk #${data.chunkNumber} processed successfully by backend`)
       setBufferHealth(prev => ({ ...prev, sent: prev.sent + 1 }))
     })
 
