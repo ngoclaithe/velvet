@@ -111,10 +111,13 @@ export default function StreamPage() {
 
       if (response.success && response.data) {
         const streamData = response.data as StreamResponse
+        // Extract stream ID từ socketEndpoint hoặc sử dụng streamKey
+        const streamId = streamData.id || streamData.streamKey || streamData.socketEndpoint?.split('/').pop() || ''
+
         setCurrentStream({
-          id: streamData.id,
-          title: streamData.title,
-          isLive: streamData.isLive,
+          id: streamId,
+          title: streamData.title || streamData.title,
+          isLive: streamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
           streamKey: streamData.streamKey,
