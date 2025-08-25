@@ -251,15 +251,20 @@ export function StreamingManager({
       const mediaRecorder = new MediaRecorder(stream, options)
 
       mediaRecorder.ondataavailable = (event) => {
+        console.log('🎥 MediaRecorder ondataavailable fired. Data size:', event.data.size)
         if (event.data.size > 0) {
           chunkCountRef.current++
-          
+          console.log(`📦 Creating chunk #${chunkCountRef.current}`)
+
           event.data.arrayBuffer().then(buffer => {
+            console.log(`💽 Chunk #${chunkCountRef.current} converted to buffer (${buffer.byteLength} bytes)`)
             addChunkToQueue(buffer, chunkCountRef.current, mimeType)
           }).catch(error => {
             console.error('Error converting chunk to buffer:', error)
             setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
           })
+        } else {
+          console.warn('📦 MediaRecorder fired with empty data')
         }
       }
 
@@ -277,7 +282,7 @@ export function StreamingManager({
       }
 
       mediaRecorder.onstart = () => {
-        console.log('Optimized MediaRecorder started')
+        console.log('🔴 Optimized MediaRecorder started')
         setIsRecording(true)
         startChunkProcessor() // Start processing queued chunks
       }
@@ -289,10 +294,11 @@ export function StreamingManager({
       }
 
       // Start recording with optimized chunk duration
+      console.log(`🎬 Starting MediaRecorder with ${CHUNK_DURATION}ms chunks...`)
       mediaRecorder.start(CHUNK_DURATION)
       mediaRecorderRef.current = mediaRecorder
 
-      console.log(`Optimized recording started with ${CHUNK_DURATION}ms chunks`)
+      console.log(`✅ Optimized recording started with ${CHUNK_DURATION}ms chunks`)
 
     } catch (error) {
       console.error('Error starting optimized recording:', error)
@@ -349,31 +355,41 @@ export function StreamingManager({
   }
 
   const startChunkProcessor = () => {
-    if (processingRef.current) return
+    console.log('🚀 Starting chunk processor...')
+    if (processingRef.current) {
+      console.log('⚠️  Chunk processor already running')
+      return
+    }
 
     processingRef.current = true
+    console.log('✅ Chunk processor started')
     processChunkQueue()
   }
 
   const processChunkQueue = async () => {
+    console.log('🔄 Processing chunk queue. isConnected:', isConnected, 'processingRef.current:', processingRef.current)
+
     while (processingRef.current && isConnected) {
       const chunkQueue = chunkQueueRef.current
+
+      console.log(`📊 Queue status: ${chunkQueue.length} chunks waiting`)
 
       if (chunkQueue.length > 0) {
         const chunk = chunkQueue.shift()
         if (chunk) {
           try {
+            console.log(`🚀 Processing chunk #${chunk.number} from queue`)
             await sendChunkWithRetry(chunk.buffer, chunk.number)
-            setBufferHealth(prev => ({ 
-              ...prev, 
+            setBufferHealth(prev => ({
+              ...prev,
               queued: chunkQueue.length,
-              sent: prev.sent + 1 
+              sent: prev.sent + 1
             }))
           } catch (error) {
             console.error(`Failed to send chunk #${chunk.number}:`, error)
-            setBufferHealth(prev => ({ 
-              ...prev, 
-              failed: prev.failed + 1 
+            setBufferHealth(prev => ({
+              ...prev,
+              failed: prev.failed + 1
             }))
           }
         }
@@ -383,13 +399,17 @@ export function StreamingManager({
       await sleep(CHUNK_SEND_INTERVAL)
     }
 
-    console.log('Chunk processor stopped')
+    console.log('🛑 Chunk processor stopped. isConnected:', isConnected, 'processingRef.current:', processingRef.current)
   }
 
   const sendChunkWithRetry = async (buffer: ArrayBuffer, chunkNumber: number, retries = 3): Promise<void> => {
+    console.log(`📡 sendChunkWithRetry called for chunk #${chunkNumber}`)
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
+        console.log(`🔌 Socket connected: ${socketService.getIsConnected()}`)
         if (socketService.getIsConnected()) {
+          console.log(`⬆️  Attempt ${attempt}: Calling socketService.sendStreamChunk for chunk #${chunkNumber}`)
           const success = await socketService.sendStreamChunk(
             streamData.id,
             buffer,
@@ -398,7 +418,7 @@ export function StreamingManager({
           )
 
           if (success) {
-            console.log(`Chunk #${chunkNumber} successfully sent to backend`)
+            console.log(`✅ Chunk #${chunkNumber} successfully sent to backend`)
             return // Success
           } else {
             throw new Error(`Backend rejected chunk #${chunkNumber}`)
@@ -407,7 +427,7 @@ export function StreamingManager({
           throw new Error('Socket not connected')
         }
       } catch (error) {
-        console.warn(`Chunk #${chunkNumber} send attempt ${attempt} failed:`, error)
+        console.warn(`❌ Chunk #${chunkNumber} send attempt ${attempt} failed:`, error)
 
         if (attempt === retries) {
           throw error // Final attempt failed
