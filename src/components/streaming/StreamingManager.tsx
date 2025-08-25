@@ -340,7 +340,14 @@ export function StreamingManager({
       mediaRecorder.onstart = () => {
         console.log('🔴 Optimized MediaRecorder started')
         setIsRecording(true)
-        startChunkProcessor() // Start processing queued chunks
+
+        // Only start chunk processor if socket is connected
+        if (socketService.getIsConnected()) {
+          console.log('✅ Socket connected, starting chunk processor')
+          startChunkProcessor() // Start processing queued chunks
+        } else {
+          console.log('⚠️ Socket not connected, chunk processor will start when connected')
+        }
       }
 
       mediaRecorder.onstop = () => {
@@ -514,7 +521,7 @@ export function StreamingManager({
           toast.error('Vui lòng cấp quyền truy cập camera và microphone')
           break
         case 'NotFoundError':
-          toast.error('Không tìm thấy camera hoặc microphone')
+          toast.error('Không tìm th���y camera hoặc microphone')
           break
         case 'NotReadableError':
           toast.error('Camera/microphone đang được sử dụng bởi ứng dụng khác')
