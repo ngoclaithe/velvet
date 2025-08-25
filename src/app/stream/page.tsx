@@ -32,6 +32,8 @@ import {
 } from 'lucide-react'
 import { streamApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import type { StreamResponse } from '@/types/streaming'
+import StreamingManager from '@/components/streaming/StreamingManager'
 
 interface StreamData {
   title: string
@@ -47,6 +49,8 @@ interface CurrentStream {
   isLive: boolean
   viewerCount: number
   startedAt: Date
+  streamKey?: string
+  socketEndpoint?: string
 }
 
 export default function StreamPage() {
@@ -58,6 +62,7 @@ export default function StreamPage() {
   const [isStoppingStream, setIsStoppingStream] = useState(false)
   const [cameraEnabled, setCameraEnabled] = useState(true)
   const [micEnabled, setMicEnabled] = useState(true)
+  const [isConnected, setIsConnected] = useState(false)
   
   const [streamData, setStreamData] = useState<StreamData>({
     title: '',
@@ -105,16 +110,20 @@ export default function StreamPage() {
       })
 
       if (response.success && response.data) {
+        const streamData = response.data as StreamResponse
         setCurrentStream({
-          id: response.data.id || 'temp-id',
+          id: streamData.id,
           title: streamData.title,
-          isLive: true,
+          isLive: streamData.isLive,
           viewerCount: 0,
-          startedAt: new Date()
+          startedAt: new Date(),
+          streamKey: streamData.streamKey,
+          socketEndpoint: streamData.socketEndpoint
         })
+
         toast.success('Stream đã được bắt đầu thành công!')
       } else {
-        toast.error(response.error || 'Không thể bắt đầu stream')
+        toast.error(response.error || 'Không thể b��t đầu stream')
       }
     } catch (error) {
       console.error('Error starting stream:', error)
@@ -124,15 +133,26 @@ export default function StreamPage() {
     }
   }
 
+  const handleStreamingStatusChange = (connected: boolean) => {
+    setIsConnected(connected)
+  }
+
+  const handleViewerCountUpdate = (count: number) => {
+    if (currentStream) {
+      setCurrentStream(prev => prev ? { ...prev, viewerCount: count } : null)
+    }
+  }
+
   const handleStopStream = async () => {
     if (!currentStream) return
 
     setIsStoppingStream(true)
     try {
       const response = await streamApi.stopStream(currentStream.id)
-      
+
       if (response.success) {
         setCurrentStream(null)
+        setIsConnected(false)
         toast.success('Stream đã được kết thúc')
       } else {
         toast.error(response.error || 'Không thể kết thúc stream')
@@ -177,12 +197,12 @@ export default function StreamPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Stream Dashboard</h1>
-            <p className="text-muted-foreground">Quản lý stream trực tiếp của bạn</p>
+            <p className="text-muted-foreground">Quản lý stream của bạn (độ trễ ~7 giây)</p>
           </div>
           {currentStream && (
-            <Badge variant="default" className="bg-red-500 hover:bg-red-600">
+            <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
-              ĐANG LIVE
+              STREAMING (DELAY)
             </Badge>
           )}
         </div>
@@ -195,7 +215,7 @@ export default function StreamPage() {
               Điều khiển Stream
             </CardTitle>
             <CardDescription>
-              Quản lý thiết bị và trạng thái stream của bạn
+              Quản lý thiết bị và stream (độ trễ 5-10 giây)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -205,6 +225,7 @@ export default function StreamPage() {
                   variant={cameraEnabled ? "default" : "outline"}
                   size="sm"
                   onClick={() => setCameraEnabled(!cameraEnabled)}
+                  disabled={!!currentStream}
                 >
                   {cameraEnabled ? <Camera className="w-4 h-4 mr-2" /> : <VideoOff className="w-4 h-4 mr-2" />}
                   Camera
@@ -213,10 +234,16 @@ export default function StreamPage() {
                   variant={micEnabled ? "default" : "outline"}
                   size="sm"
                   onClick={() => setMicEnabled(!micEnabled)}
+                  disabled={!!currentStream}
                 >
                   {micEnabled ? <Mic className="w-4 h-4 mr-2" /> : <MicOff className="w-4 h-4 mr-2" />}
                   Microphone
                 </Button>
+                {isConnected && (
+                  <Badge variant="default" className="bg-green-500">
+                    Recording (Delay ~7s)
+                  </Badge>
+                )}
                 {currentStream && (
                   <Button variant="outline" size="sm" onClick={copyStreamLink}>
                     <Share2 className="w-4 h-4 mr-2" />
@@ -286,7 +313,7 @@ export default function StreamPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Thời gian live</p>
+                    <p className="text-sm text-muted-foreground">Thời gian stream</p>
                     <p className="text-2xl font-bold">
                       {Math.floor((Date.now() - currentStream.startedAt.getTime()) / 60000)}m
                     </p>
@@ -322,6 +349,33 @@ export default function StreamPage() {
           </div>
         )}
 
+        {/* Streaming Preview & Manager */}
+        {currentStream && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Stream Preview</CardTitle>
+              <CardDescription>
+                Xem trước stream của bạn (viewers sẽ thấy sau ~7 giây)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StreamingManager
+                streamData={{
+                  id: currentStream.id,
+                  streamKey: currentStream.streamKey || '',
+                  socketEndpoint: currentStream.socketEndpoint || '',
+                  title: currentStream.title,
+                  isLive: currentStream.isLive
+                }}
+                cameraEnabled={cameraEnabled}
+                micEnabled={micEnabled}
+                onStatusChange={handleStreamingStatusChange}
+                onViewerCountUpdate={handleViewerCountUpdate}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stream Settings */}
         <Card>
           <CardHeader>
@@ -333,12 +387,12 @@ export default function StreamPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Tiêu đề Stream</Label>
+                <Label htmlFor="title">Tiêu ��ề Stream</Label>
                 <Input
                   id="title"
                   value={streamData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="Nhập tiêu đề cho stream"
+                  placeholder="Nh��p tiêu đề cho stream"
                   disabled={!!currentStream}
                 />
               </div>
@@ -376,7 +430,7 @@ export default function StreamPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
+              <Label htmlFor="tags">Tags (c��ch nhau bởi dấu phẩy)</Label>
               <Input
                 id="tags"
                 value={streamData.tags.join(', ')}

@@ -259,7 +259,13 @@ export const streamApi = {
     category?: string;
     tags?: string[];
     isPrivate?: boolean;
-  }) => api.post('/streams/start', data),
+  }) => api.post<{
+    id: string;
+    streamKey: string;
+    socketEndpoint: string;
+    title: string;
+    isLive: boolean;
+  }>('/streams/start', data),
 
   // Kết thúc stream (cho creator)
   stopStream: (streamId: string) => api.post(`/streams/${streamId}/stop`),
