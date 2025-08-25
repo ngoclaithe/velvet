@@ -466,145 +466,63 @@ export function StreamingManager({
 
   return (
     <div className="streaming-manager">
-      {/* Enhanced Video Preview */}
-      <div className="relative">
+      {/* Enlarged Video Preview */}
+      <div className="relative mb-6">
         <video
           ref={videoPreviewRef}
           autoPlay
           playsInline
           muted
-          className="w-full max-w-lg h-auto rounded-lg border-2 border-gray-300 shadow-lg"
+          className="w-full max-w-4xl h-auto rounded-xl border-4 border-purple-500 shadow-2xl mx-auto"
           style={{ display: cameraEnabled ? 'block' : 'none' }}
         />
         {!cameraEnabled && (
-          <div className="w-full max-w-lg h-64 rounded-lg border-2 border-gray-300 bg-gray-100 flex items-center justify-center shadow-lg">
+          <div className="w-full max-w-4xl h-96 rounded-xl border-4 border-gray-300 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-2xl mx-auto">
             <div className="text-center">
-              <div className="text-4xl mb-2">📹</div>
-              <span className="text-gray-500">Camera đã tắt</span>
+              <div className="text-6xl mb-4">📹</div>
+              <span className="text-gray-600 text-xl font-medium">Camera đã tắt</span>
             </div>
           </div>
         )}
         
-        {/* Enhanced Status Indicators */}
-        <div className="absolute top-2 left-2 flex gap-2">
-          <div className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
-            isRecording 
-              ? 'bg-red-500 text-white animate-pulse shadow-lg' 
+        {/* Simplified Status Indicators */}
+        <div className="absolute top-4 left-4 flex gap-3">
+          <div className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+            isRecording
+              ? 'bg-red-500 text-white animate-pulse shadow-xl'
               : isConnected
-              ? 'bg-yellow-500 text-white shadow-md'
+              ? 'bg-green-500 text-white shadow-lg'
               : 'bg-gray-500 text-white'
           }`}>
-            {isRecording ? 'LIVE' : isConnected ? 'READY' : 'OFFLINE'}
+            {isRecording ? '🔴 ĐANG LIVE' : isConnected ? '✅ SẴN SÀNG' : '⚫ OFFLINE'}
           </div>
-          
-          {cameraEnabled && (
-            <div className="px-2 py-1 rounded text-xs font-semibold bg-blue-500 text-white shadow-md">
-              1080p
+
+          {cameraEnabled && isRecording && (
+            <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-blue-500 text-white shadow-lg">
+              📹 1080p HD
             </div>
           )}
-          
-          {micEnabled && (
-            <div className="px-2 py-1 rounded text-xs font-semibold bg-purple-500 text-white shadow-md">
-              128k
+
+          {micEnabled && isRecording && (
+            <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-500 text-white shadow-lg">
+              🎤 128k Audio
             </div>
           )}
         </div>
-
-        {/* Buffer Health Indicator */}
-        <div className="absolute top-2 right-2">
-          <div className={`px-2 py-1 rounded text-xs font-semibold ${
-            bufferHealth.queued < MAX_QUEUE_SIZE * 0.5
-              ? 'bg-green-500 text-white'
-              : bufferHealth.queued < MAX_QUEUE_SIZE * 0.8
-              ? 'bg-yellow-500 text-white'
-              : 'bg-red-500 text-white'
-          }`}>
-            Buffer: {bufferHealth.queued}/{MAX_QUEUE_SIZE}
-          </div>
-        </div>
-
-        {/* Quality Settings Display */}
-        <div className="absolute bottom-2 left-2">
-          <div className="px-2 py-1 rounded text-xs bg-black bg-opacity-70 text-white">
-            {CHUNK_DURATION / 1000}s chunks | 2.5Mbps
-          </div>
-        </div>
       </div>
 
-      {/* Enhanced Stream Information */}
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Stream Status */}
-        <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border">
-          <h3 className="font-semibold text-gray-800 mb-2">Stream Status</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Connection:</span>
-              <span className={isConnected ? 'text-green-600 font-semibold' : 'text-red-600'}>
-                {isConnected ? 'Connected' : 'Disconnected'}
-              </span>
+      {/* Simplified Stream Quality Info - Only when recording */}
+      {isRecording && (
+        <div className="mt-6 text-center">
+          <div className="inline-flex items-center gap-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full text-white shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+              <span className="font-semibold">Streaming chất lượng cao 1080p</span>
             </div>
-            <div className="flex justify-between">
-              <span>Recording:</span>
-              <span className={isRecording ? 'text-red-600 font-semibold' : 'text-gray-600'}>
-                {isRecording ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Chunks Sent:</span>
-              <span className="font-mono">{bufferHealth.sent}</span>
+            <div className="text-white/80 text-sm">
+              📹 2.5Mbps • 🎤 128kbps
             </div>
           </div>
-        </div>
-
-        {/* Buffer Health */}
-        <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border">
-          <h3 className="font-semibold text-gray-800 mb-2">Buffer Health</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Queued:</span>
-              <span className="font-mono">{bufferHealth.queued}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Processed:</span>
-              <span className="font-mono text-green-600">{bufferHealth.sent}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Failed:</span>
-              <span className="font-mono text-red-600">{bufferHealth.failed}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quality Information */}
-      <div className="mt-4 p-4 bg-purple-50 rounded-lg border">
-        <div className="flex items-center gap-2 text-sm text-purple-800">
-          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-          <span className="font-semibold">Streaming tối ưu cho chất lượng 1080p</span>
-        </div>
-        <div className="mt-2 text-xs text-purple-600 space-y-1">
-          <div>• Chunk duration: {CHUNK_DURATION / 1000}s (tối ưu cho buffer)</div>
-          <div>• Video bitrate: 2.5Mbps (chất lượng cao)</div>
-          <div>• Audio bitrate: 128kbps (âm thanh rõ ràng)</div>
-          <div>• Adaptive buffer: {MAX_QUEUE_SIZE} chunks tối đa</div>
-        </div>
-      </div>
-
-      {/* Advanced Debug Info (Development only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-3 bg-gray-100 rounded text-xs space-y-1 font-mono">
-          <div><strong>Debug Information:</strong></div>
-          <div>Socket: {isConnected ? '✅ Connected' : '❌ Disconnected'}</div>
-          <div>Recording: {isRecording ? '🔴 Active' : '⚪ Inactive'}</div>
-          <div>Stream ID: {streamData.id}</div>
-          <div>Chunk Duration: {CHUNK_DURATION}ms</div>
-          <div>Total Chunks: {chunkCountRef.current}</div>
-          <div>Queue Size: {bufferHealth.queued}/{MAX_QUEUE_SIZE}</div>
-          <div>Success Rate: {bufferHealth.sent + bufferHealth.failed > 0 
-            ? ((bufferHealth.sent / (bufferHealth.sent + bufferHealth.failed)) * 100).toFixed(1)
-            : 0}%</div>
-          <div>Camera: {cameraEnabled ? '✅' : '❌'} | Mic: {micEnabled ? '✅' : '❌'}</div>
-          <div>MIME: {getBestSupportedMimeType()}</div>
         </div>
       )}
     </div>
