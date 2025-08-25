@@ -227,6 +227,43 @@ export class SocketService {
     })
   }
 
+  async sendMp4InitSegment(roomId: string, initData: ArrayBuffer): Promise<boolean> {
+    if (!this.socket || !this.isConnected) {
+      return false
+    }
+
+    try {
+      const initPayload = {
+        roomId: roomId,
+        initData: initData,
+        timestamp: Date.now(),
+        size: initData.byteLength
+      }
+
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          resolve(false)
+        }, 5000)
+
+        this.socket!.emit('mp4_init_segment', initPayload, (acknowledgment: any) => {
+          clearTimeout(timeout)
+          if (acknowledgment?.success) {
+            resolve(true)
+          } else {
+            resolve(false)
+          }
+        })
+
+        setTimeout(() => {
+          clearTimeout(timeout)
+          resolve(true)
+        }, 100)
+      })
+    } catch (error) {
+      return false
+    }
+  }
+
   async sendStreamChunk(streamId: string, chunkData: ArrayBuffer, chunkNumber: number, mimeType: string): Promise<boolean> {
     if (!this.socket || !this.isConnected) {
       return false
