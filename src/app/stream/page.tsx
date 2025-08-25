@@ -63,6 +63,7 @@ export default function StreamPage() {
   const [cameraEnabled, setCameraEnabled] = useState(true)
   const [micEnabled, setMicEnabled] = useState(true)
   const [isConnected, setIsConnected] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   
   const [streamData, setStreamData] = useState<StreamData>({
     title: '',
@@ -94,13 +95,19 @@ export default function StreamPage() {
   }
 
   const handleStartStream = async () => {
+    console.log('🚀 handleStartStream called')
+
     if (!streamData.title.trim()) {
+      console.log('❌ No stream title provided')
       toast.error('Vui lòng nhập tiêu đề stream')
       return
     }
 
+    console.log('📝 Stream data to send:', streamData)
+
     setIsStartingStream(true)
     try {
+      console.log('🌐 Calling streamApi.startStream...')
       const response = await streamApi.startStream({
         title: streamData.title,
         description: streamData.description,
@@ -109,30 +116,40 @@ export default function StreamPage() {
         isPrivate: streamData.isPrivate
       })
 
-      if (response.success && response.data) {
-        const streamData = response.data as StreamResponse
-        // Extract stream ID từ socketEndpoint hoặc sử dụng streamKey
-        const streamId = streamData.id || streamData.streamKey || streamData.socketEndpoint?.split('/').pop() || ''
+      console.log('📨 API Response:', response)
 
-        setCurrentStream({
+      if (response.success && response.data) {
+        const apiStreamData = response.data as StreamResponse
+        console.log('✅ Stream API data:', apiStreamData)
+
+        // Extract stream ID từ socketEndpoint hoặc sử dụng streamKey
+        const streamId = apiStreamData.id || apiStreamData.streamKey || apiStreamData.socketEndpoint?.split('/').pop() || ''
+        console.log('🆔 Generated stream ID:', streamId)
+
+        const newCurrentStream = {
           id: streamId,
-          title: streamData.title || streamData.title,
-          isLive: streamData.isLive || true,
+          title: apiStreamData.title || streamData.title,
+          isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: streamData.streamKey,
-          socketEndpoint: streamData.socketEndpoint
-        })
+          streamKey: apiStreamData.streamKey,
+          socketEndpoint: apiStreamData.socketEndpoint
+        }
+
+        console.log('📺 Setting currentStream:', newCurrentStream)
+        setCurrentStream(newCurrentStream)
 
         toast.success('Stream đã được bắt đầu thành công!')
       } else {
+        console.log('❌ Stream API failed:', response.error)
         toast.error(response.error || 'Không thể bắt đầu stream')
       }
     } catch (error) {
-      console.error('Error starting stream:', error)
+      console.error('💥 Error starting stream:', error)
       toast.error('Có lỗi xảy ra khi bắt đầu stream')
     } finally {
       setIsStartingStream(false)
+      console.log('🏁 handleStartStream completed')
     }
   }
 
@@ -379,14 +396,29 @@ export default function StreamPage() {
           </Card>
         )}
 
-        {/* Stream Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Cài đặt Stream</CardTitle>
-            <CardDescription>
-              Cấu hình thông tin và cài đặt cho stream của bạn
-            </CardDescription>
-          </CardHeader>
+        {/* Stream Settings - Hidden during live stream unless toggled */}
+        {(!currentStream || showSettings) && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Cài đặt Stream</CardTitle>
+                  <CardDescription>
+                    Cấu hình thông tin và cài đặt cho stream của bạn
+                  </CardDescription>
+                </div>
+                {currentStream && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSettings(false)}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Ẩn cài đặt
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -467,6 +499,28 @@ export default function StreamPage() {
             )}
           </CardContent>
         </Card>
+        )}
+
+        {/* Settings Toggle Button - Only show when live and settings are hidden */}
+        {currentStream && !showSettings && (
+          <Card className="border-dashed border-2 border-gray-300">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSettings(true)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Hiện cài đặt Stream
+                </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Cài đặt stream đã được ẩn để tập trung vào việc livestream
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

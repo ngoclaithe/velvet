@@ -11,11 +11,11 @@ import { useToast } from '@/hooks/use-toast'
 // import { postsApi } from '@/lib/api' // Đã loại bỏ để tránh API calls
 import { useAuth } from '@/hooks/useAuth'
 import type { Post, FeedParams } from '@/types/posts'
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Bookmark, 
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
   Eye,
   MoreHorizontal,
   Play,
@@ -25,6 +25,7 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react'
+import LiveStreamPreview from '@/components/streaming/LiveStreamPreview'
 
 interface FeedState {
   posts: Post[]
@@ -62,7 +63,7 @@ export default function NewsFeed() {
       {
         id: '1',
         type: 'text',
-        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt đầu khám phá các tính năng thú vị của chúng tôi.',
+        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt ��ầu khám phá các tính năng thú vị của chúng tôi.',
         author: {
           id: 'admin',
           username: 'admin',
@@ -86,7 +87,73 @@ export default function NewsFeed() {
     ]
 
     if (tab === 'live') {
-      return [] // Chưa có live streams
+      // Mock live streams data
+      const mockLiveStreams: Post[] = [
+        {
+          id: 'live-1',
+          type: 'live',
+          content: 'Epic Gaming Session - Boss Battles!',
+          author: {
+            id: 'gamer123',
+            username: 'gamer123',
+            displayName: 'ProGamer',
+            avatar: '/api/placeholder/40/40',
+            isVerified: true,
+            isOnline: true
+          },
+          createdAt: new Date(Date.now() - 7200000),
+          updatedAt: new Date(Date.now() - 7200000),
+          likes: 312,
+          comments: 45,
+          shares: 12,
+          views: 1247,
+          isAdult: false,
+          isPremium: false,
+          isLiked: false,
+          isBookmarked: false,
+          visibility: 'public' as const,
+          streamData: {
+            streamId: 'stream-1',
+            viewerCount: 1247,
+            category: 'Gaming',
+            tags: ['gaming', 'action', 'boss-fights'],
+            isLive: true
+          }
+        },
+        {
+          id: 'live-2',
+          type: 'live',
+          content: 'Cooking Traditional Vietnamese Food',
+          author: {
+            id: 'chef_anna',
+            username: 'chef_anna',
+            displayName: 'Chef Anna',
+            avatar: '/api/placeholder/40/40',
+            isVerified: false,
+            isOnline: true
+          },
+          createdAt: new Date(Date.now() - 3600000),
+          updatedAt: new Date(Date.now() - 3600000),
+          likes: 89,
+          comments: 23,
+          shares: 5,
+          views: 856,
+          isAdult: false,
+          isPremium: false,
+          isLiked: false,
+          isBookmarked: false,
+          visibility: 'public' as const,
+          streamData: {
+            streamId: 'stream-2',
+            viewerCount: 856,
+            category: 'Cooking',
+            tags: ['cooking', 'vietnamese', 'traditional'],
+            isLive: true
+          }
+        }
+      ]
+
+      return page === 1 ? mockLiveStreams : []
     }
 
     return page === 1 ? mockPosts : [] // Chỉ có 1 trang mock data
@@ -374,7 +441,22 @@ export default function NewsFeed() {
           {post.content}
         </p>
 
-        {renderMediaContent(post)}
+        {/* Render LiveStreamPreview for live posts */}
+        {post.type === 'live' && post.streamData ? (
+          <div className="mb-4">
+            <LiveStreamPreview
+              streamId={post.streamData.streamId}
+              title={post.content}
+              creatorName={post.author.displayName}
+              creatorAvatar={post.author.avatar}
+              viewerCount={post.streamData.viewerCount}
+              category={post.streamData.category}
+              tags={post.streamData.tags}
+            />
+          </div>
+        ) : (
+          renderMediaContent(post)
+        )}
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">

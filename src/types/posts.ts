@@ -25,6 +25,13 @@ export interface Post {
   tags?: string[]
   location?: string
   visibility: 'public' | 'followers' | 'premium' | 'private'
+  streamData?: {
+    streamId: string
+    viewerCount: number
+    category?: string
+    tags?: string[]
+    isLive: boolean
+  }
 }
 
 export interface PostMedia {

@@ -34,18 +34,38 @@ export function StreamingManager({
   
   const socketService = getSocketService()
 
-  // Optimized chunk settings
-  const CHUNK_DURATION = 5000 // 5 seconds - tối ưu cho buffer management
-  const MAX_QUEUE_SIZE = 12   // Maximum 12 chunks in queue (60 seconds buffer)
-  const CHUNK_SEND_INTERVAL = 200 // 200ms delay between chunk sends
+  // Optimized chunk settings (matching backend expectations)
+  const CHUNK_DURATION = 5000 // 5 seconds - matches backend buffer settings
+  const MAX_QUEUE_SIZE = 10   // Maximum 10 chunks to match backend maxBufferSize
+  const CHUNK_SEND_INTERVAL = 50 // 50ms delay between chunk sends to match backend
   const RECONNECT_DELAY = 3000
+  const MIN_BUFFER_SIZE = 3   // Match backend minBufferSize
 
   useEffect(() => {
+    console.log('🎬 StreamingManager MOUNTED! Starting initialization...')
+    console.log('📊 Props received:', {
+      streamData: streamData,
+      cameraEnabled,
+      micEnabled
+    })
+
     initializeStreaming()
     return () => {
+      console.log('🎬 StreamingManager UNMOUNTING! Cleaning up...')
       cleanup()
     }
   }, [])
+
+  // Request stream stats from backend periodically
+  useEffect(() => {
+    if (isRecording && socketService.getIsConnected()) {
+      const statsInterval = setInterval(() => {
+        socketService.requestStreamStats(streamData.id)
+      }, 10000) // Request stats every 10 seconds
+
+      return () => clearInterval(statsInterval)
+    }
+  }, [isRecording, streamData.id])
 
   useEffect(() => {
     onStatusChange(isConnected && isRecording)
@@ -53,7 +73,8 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
-      console.log('Initializing optimized streaming...')
+      console.log('🚀 Initializing optimized streaming...')
+      console.log('📊 Stream Data:', streamData)
 
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
@@ -62,17 +83,25 @@ export function StreamingManager({
         streamKey: streamData.streamKey
       }
 
+      console.log('🔌 Socket Config:', socketConfig)
+
       setupSocketEventListeners()
+      console.log('🔌 Connecting to socket...')
       await socketService.connect(socketConfig)
 
-      console.log('Socket connected successfully')
+      console.log('✅ Socket connected successfully')
       setIsConnected(true)
 
+      console.log('📡 Starting streaming session...')
       socketService.startStreaming(streamData.id, streamData.streamKey)
+
+      console.log('🎥 Setting up media capture...')
       await setupOptimizedMediaCapture()
 
+      console.log('✅ Streaming initialization completed!')
+
     } catch (error) {
-      console.error('Error initializing streaming:', error)
+      console.error('❌ Error initializing streaming:', error)
       toast.error('Không thể khởi tạo streaming')
       setIsConnected(false)
       scheduleReconnect()
@@ -94,12 +123,18 @@ export function StreamingManager({
     socketService.on('connect', () => {
       console.log('Socket connected via service')
       setIsConnected(true)
-      
+
       // Clear reconnect timeout on successful connection
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null
       }
+    })
+
+    // Listen for room joined confirmation from backend
+    socketService.onRoomJoined((data: any) => {
+      console.log('Room joined confirmed by backend:', data)
+      setIsConnected(true)
     })
 
     socketService.on('disconnect', (data: any) => {
@@ -136,12 +171,41 @@ export function StreamingManager({
       toast.success('Stream đã khởi tạo thành công!')
     })
 
+    // Listen for stream live event from backend
+    socketService.onStreamLive((data: any) => {
+      console.log('Stream is now live:', data)
+      toast.success('Stream đã LIVE! Khán giả có thể xem được rồi 🎉')
+    })
+
+    // Listen for stream ended event
+    socketService.onStreamEnded((data: any) => {
+      console.log('Stream ended:', data)
+      setIsRecording(false)
+      setIsConnected(false)
+      if (data.reason === 'creator_left') {
+        toast('Stream đã kết thúc', { icon: 'ℹ️' })
+      }
+    })
+
+    // Listen for stream stats from backend
+    socketService.onStreamStats((stats: any) => {
+      console.log('Backend stream stats:', stats)
+      // Update buffer health with backend stats if available
+      if (stats.bufferHealth) {
+        setBufferHealth(prev => ({
+          ...prev,
+          sent: stats.totalChunks || prev.sent,
+          failed: stats.dropCount || prev.failed
+        }))
+      }
+    })
+
     socketService.onViewerCountUpdated((data: { count: number }) => {
       onViewerCountUpdate(data.count)
     })
 
     socketService.onChunkReceived((data: any) => {
-      console.log(`Chunk #${data.chunkNumber} processed successfully`)
+      console.log(`Chunk #${data.chunkNumber} processed successfully by backend`)
       setBufferHealth(prev => ({ ...prev, sent: prev.sent + 1 }))
     })
 
@@ -154,6 +218,8 @@ export function StreamingManager({
 
   const setupOptimizedMediaCapture = async () => {
     try {
+      console.log('🎥 Setting up media capture with camera:', cameraEnabled, 'mic:', micEnabled)
+
       // Enhanced constraints for 1080p quality
       const constraints: MediaStreamConstraints = {
         video: cameraEnabled ? {
@@ -162,8 +228,7 @@ export function StreamingManager({
           frameRate: { ideal: 30, min: 24 },
           facingMode: 'user',
           // Advanced constraints for better quality
-          aspectRatio: { ideal: 16/9 },
-          resizeMode: 'crop-and-scale'
+          aspectRatio: { ideal: 16/9 }
         } : false,
         audio: micEnabled ? {
           echoCancellation: true,
@@ -174,18 +239,25 @@ export function StreamingManager({
         } : false
       }
 
+      console.log('📊 Media constraints:', constraints)
+
+      console.log('🎥 Requesting user media...')
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      console.log('✅ Got media stream:', stream)
+
       setMediaStream(stream)
 
       if (videoPreviewRef.current) {
+        console.log('📺 Setting video preview source')
         videoPreviewRef.current.srcObject = stream
         videoPreviewRef.current.muted = true
       }
 
+      console.log('🎬 Starting recording...')
       await startOptimizedRecording(stream)
 
     } catch (error) {
-      console.error('Error setting up optimized media capture:', error)
+      console.error('❌ Error setting up optimized media capture:', error)
       handleMediaError(error)
     }
   }
@@ -205,15 +277,20 @@ export function StreamingManager({
       const mediaRecorder = new MediaRecorder(stream, options)
 
       mediaRecorder.ondataavailable = (event) => {
+        console.log('🎥 MediaRecorder ondataavailable fired. Data size:', event.data.size)
         if (event.data.size > 0) {
           chunkCountRef.current++
-          
+          console.log(`📦 Creating chunk #${chunkCountRef.current}`)
+
           event.data.arrayBuffer().then(buffer => {
+            console.log(`💽 Chunk #${chunkCountRef.current} converted to buffer (${buffer.byteLength} bytes)`)
             addChunkToQueue(buffer, chunkCountRef.current, mimeType)
           }).catch(error => {
             console.error('Error converting chunk to buffer:', error)
             setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
           })
+        } else {
+          console.warn('📦 MediaRecorder fired with empty data')
         }
       }
 
@@ -231,7 +308,7 @@ export function StreamingManager({
       }
 
       mediaRecorder.onstart = () => {
-        console.log('Optimized MediaRecorder started')
+        console.log('🔴 Optimized MediaRecorder started')
         setIsRecording(true)
         startChunkProcessor() // Start processing queued chunks
       }
@@ -243,10 +320,11 @@ export function StreamingManager({
       }
 
       // Start recording with optimized chunk duration
+      console.log(`🎬 Starting MediaRecorder with ${CHUNK_DURATION}ms chunks...`)
       mediaRecorder.start(CHUNK_DURATION)
       mediaRecorderRef.current = mediaRecorder
 
-      console.log(`Optimized recording started with ${CHUNK_DURATION}ms chunks`)
+      console.log(`✅ Optimized recording started with ${CHUNK_DURATION}ms chunks`)
 
     } catch (error) {
       console.error('Error starting optimized recording:', error)
@@ -303,31 +381,41 @@ export function StreamingManager({
   }
 
   const startChunkProcessor = () => {
-    if (processingRef.current) return
+    console.log('🚀 Starting chunk processor...')
+    if (processingRef.current) {
+      console.log('⚠️  Chunk processor already running')
+      return
+    }
 
     processingRef.current = true
+    console.log('✅ Chunk processor started')
     processChunkQueue()
   }
 
   const processChunkQueue = async () => {
+    console.log('🔄 Processing chunk queue. isConnected:', isConnected, 'processingRef.current:', processingRef.current)
+
     while (processingRef.current && isConnected) {
       const chunkQueue = chunkQueueRef.current
+
+      console.log(`📊 Queue status: ${chunkQueue.length} chunks waiting`)
 
       if (chunkQueue.length > 0) {
         const chunk = chunkQueue.shift()
         if (chunk) {
           try {
+            console.log(`🚀 Processing chunk #${chunk.number} from queue`)
             await sendChunkWithRetry(chunk.buffer, chunk.number)
-            setBufferHealth(prev => ({ 
-              ...prev, 
+            setBufferHealth(prev => ({
+              ...prev,
               queued: chunkQueue.length,
-              sent: prev.sent + 1 
+              sent: prev.sent + 1
             }))
           } catch (error) {
             console.error(`Failed to send chunk #${chunk.number}:`, error)
-            setBufferHealth(prev => ({ 
-              ...prev, 
-              failed: prev.failed + 1 
+            setBufferHealth(prev => ({
+              ...prev,
+              failed: prev.failed + 1
             }))
           }
         }
@@ -337,30 +425,40 @@ export function StreamingManager({
       await sleep(CHUNK_SEND_INTERVAL)
     }
 
-    console.log('Chunk processor stopped')
+    console.log('🛑 Chunk processor stopped. isConnected:', isConnected, 'processingRef.current:', processingRef.current)
   }
 
   const sendChunkWithRetry = async (buffer: ArrayBuffer, chunkNumber: number, retries = 3): Promise<void> => {
+    console.log(`📡 sendChunkWithRetry called for chunk #${chunkNumber}`)
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
+        console.log(`🔌 Socket connected: ${socketService.getIsConnected()}`)
         if (socketService.getIsConnected()) {
-          await socketService.sendStreamChunk(
+          console.log(`⬆️  Attempt ${attempt}: Calling socketService.sendStreamChunk for chunk #${chunkNumber}`)
+          const success = await socketService.sendStreamChunk(
             streamData.id,
             buffer,
             chunkNumber,
             getBestSupportedMimeType()
           )
-          return // Success
+
+          if (success) {
+            console.log(`✅ Chunk #${chunkNumber} successfully sent to backend`)
+            return // Success
+          } else {
+            throw new Error(`Backend rejected chunk #${chunkNumber}`)
+          }
         } else {
           throw new Error('Socket not connected')
         }
       } catch (error) {
-        console.warn(`Chunk #${chunkNumber} send attempt ${attempt} failed:`, error)
-        
+        console.warn(`❌ Chunk #${chunkNumber} send attempt ${attempt} failed:`, error)
+
         if (attempt === retries) {
           throw error // Final attempt failed
         }
-        
+
         // Wait before retry with exponential backoff
         await sleep(100 * attempt)
       }
@@ -466,145 +564,63 @@ export function StreamingManager({
 
   return (
     <div className="streaming-manager">
-      {/* Enhanced Video Preview */}
-      <div className="relative">
+      {/* Enlarged Video Preview */}
+      <div className="relative mb-6">
         <video
           ref={videoPreviewRef}
           autoPlay
           playsInline
           muted
-          className="w-full max-w-lg h-auto rounded-lg border-2 border-gray-300 shadow-lg"
+          className="w-full max-w-4xl h-auto rounded-xl border-4 border-purple-500 shadow-2xl mx-auto"
           style={{ display: cameraEnabled ? 'block' : 'none' }}
         />
         {!cameraEnabled && (
-          <div className="w-full max-w-lg h-64 rounded-lg border-2 border-gray-300 bg-gray-100 flex items-center justify-center shadow-lg">
+          <div className="w-full max-w-4xl h-96 rounded-xl border-4 border-gray-300 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-2xl mx-auto">
             <div className="text-center">
-              <div className="text-4xl mb-2">📹</div>
-              <span className="text-gray-500">Camera đã tắt</span>
+              <div className="text-6xl mb-4">📹</div>
+              <span className="text-gray-600 text-xl font-medium">Camera đã tắt</span>
             </div>
           </div>
         )}
         
-        {/* Enhanced Status Indicators */}
-        <div className="absolute top-2 left-2 flex gap-2">
-          <div className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
-            isRecording 
-              ? 'bg-red-500 text-white animate-pulse shadow-lg' 
+        {/* Simplified Status Indicators */}
+        <div className="absolute top-4 left-4 flex gap-3">
+          <div className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+            isRecording
+              ? 'bg-red-500 text-white animate-pulse shadow-xl'
               : isConnected
-              ? 'bg-yellow-500 text-white shadow-md'
+              ? 'bg-green-500 text-white shadow-lg'
               : 'bg-gray-500 text-white'
           }`}>
-            {isRecording ? 'LIVE' : isConnected ? 'READY' : 'OFFLINE'}
+            {isRecording ? '🔴 ĐANG LIVE' : isConnected ? '✅ SẴN SÀNG' : '⚫ OFFLINE'}
           </div>
-          
-          {cameraEnabled && (
-            <div className="px-2 py-1 rounded text-xs font-semibold bg-blue-500 text-white shadow-md">
-              1080p
+
+          {cameraEnabled && isRecording && (
+            <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-blue-500 text-white shadow-lg">
+              📹 1080p HD
             </div>
           )}
-          
-          {micEnabled && (
-            <div className="px-2 py-1 rounded text-xs font-semibold bg-purple-500 text-white shadow-md">
-              128k
+
+          {micEnabled && isRecording && (
+            <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-500 text-white shadow-lg">
+              🎤 128k Audio
             </div>
           )}
         </div>
-
-        {/* Buffer Health Indicator */}
-        <div className="absolute top-2 right-2">
-          <div className={`px-2 py-1 rounded text-xs font-semibold ${
-            bufferHealth.queued < MAX_QUEUE_SIZE * 0.5
-              ? 'bg-green-500 text-white'
-              : bufferHealth.queued < MAX_QUEUE_SIZE * 0.8
-              ? 'bg-yellow-500 text-white'
-              : 'bg-red-500 text-white'
-          }`}>
-            Buffer: {bufferHealth.queued}/{MAX_QUEUE_SIZE}
-          </div>
-        </div>
-
-        {/* Quality Settings Display */}
-        <div className="absolute bottom-2 left-2">
-          <div className="px-2 py-1 rounded text-xs bg-black bg-opacity-70 text-white">
-            {CHUNK_DURATION / 1000}s chunks | 2.5Mbps
-          </div>
-        </div>
       </div>
 
-      {/* Enhanced Stream Information */}
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Stream Status */}
-        <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border">
-          <h3 className="font-semibold text-gray-800 mb-2">Stream Status</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Connection:</span>
-              <span className={isConnected ? 'text-green-600 font-semibold' : 'text-red-600'}>
-                {isConnected ? 'Connected' : 'Disconnected'}
-              </span>
+      {/* Simplified Stream Quality Info - Only when recording */}
+      {isRecording && (
+        <div className="mt-6 text-center">
+          <div className="inline-flex items-center gap-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full text-white shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+              <span className="font-semibold">Streaming chất lượng cao 1080p</span>
             </div>
-            <div className="flex justify-between">
-              <span>Recording:</span>
-              <span className={isRecording ? 'text-red-600 font-semibold' : 'text-gray-600'}>
-                {isRecording ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Chunks Sent:</span>
-              <span className="font-mono">{bufferHealth.sent}</span>
+            <div className="text-white/80 text-sm">
+              📹 2.5Mbps • 🎤 128kbps
             </div>
           </div>
-        </div>
-
-        {/* Buffer Health */}
-        <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border">
-          <h3 className="font-semibold text-gray-800 mb-2">Buffer Health</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Queued:</span>
-              <span className="font-mono">{bufferHealth.queued}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Processed:</span>
-              <span className="font-mono text-green-600">{bufferHealth.sent}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Failed:</span>
-              <span className="font-mono text-red-600">{bufferHealth.failed}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quality Information */}
-      <div className="mt-4 p-4 bg-purple-50 rounded-lg border">
-        <div className="flex items-center gap-2 text-sm text-purple-800">
-          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-          <span className="font-semibold">Streaming tối ưu cho chất lượng 1080p</span>
-        </div>
-        <div className="mt-2 text-xs text-purple-600 space-y-1">
-          <div>• Chunk duration: {CHUNK_DURATION / 1000}s (tối ưu cho buffer)</div>
-          <div>• Video bitrate: 2.5Mbps (chất lượng cao)</div>
-          <div>• Audio bitrate: 128kbps (âm thanh rõ ràng)</div>
-          <div>• Adaptive buffer: {MAX_QUEUE_SIZE} chunks tối đa</div>
-        </div>
-      </div>
-
-      {/* Advanced Debug Info (Development only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-3 bg-gray-100 rounded text-xs space-y-1 font-mono">
-          <div><strong>Debug Information:</strong></div>
-          <div>Socket: {isConnected ? '✅ Connected' : '❌ Disconnected'}</div>
-          <div>Recording: {isRecording ? '🔴 Active' : '⚪ Inactive'}</div>
-          <div>Stream ID: {streamData.id}</div>
-          <div>Chunk Duration: {CHUNK_DURATION}ms</div>
-          <div>Total Chunks: {chunkCountRef.current}</div>
-          <div>Queue Size: {bufferHealth.queued}/{MAX_QUEUE_SIZE}</div>
-          <div>Success Rate: {bufferHealth.sent + bufferHealth.failed > 0 
-            ? ((bufferHealth.sent / (bufferHealth.sent + bufferHealth.failed)) * 100).toFixed(1)
-            : 0}%</div>
-          <div>Camera: {cameraEnabled ? '✅' : '❌'} | Mic: {micEnabled ? '✅' : '❌'}</div>
-          <div>MIME: {getBestSupportedMimeType()}</div>
         </div>
       )}
     </div>
