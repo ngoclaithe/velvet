@@ -166,7 +166,7 @@ export function StreamingManager({
       setIsRecording(false)
       setIsConnected(false)
       if (data.reason === 'creator_left') {
-        toast.info('Stream đã kết thúc')
+        toast('Stream đã kết thúc', { icon: 'ℹ️' })
       }
     })
 
@@ -209,8 +209,7 @@ export function StreamingManager({
           frameRate: { ideal: 30, min: 24 },
           facingMode: 'user',
           // Advanced constraints for better quality
-          aspectRatio: { ideal: 16/9 },
-          resizeMode: 'crop-and-scale'
+          aspectRatio: { ideal: 16/9 }
         } : false,
         audio: micEnabled ? {
           echoCancellation: true,
