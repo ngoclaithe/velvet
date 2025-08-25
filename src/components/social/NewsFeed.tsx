@@ -289,7 +289,7 @@ export default function NewsFeed() {
     const post = currentFeed.posts.find(p => p.id === postId)
     toast({
       title: post?.isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
-      description: "Thay đổi đã được lưu cục bộ",
+      description: "Thay đ��i đã được lưu cục bộ",
       variant: "default"
     })
   }, [isAuthenticated, activeTab, currentFeed.posts, toast])
@@ -441,7 +441,22 @@ export default function NewsFeed() {
           {post.content}
         </p>
 
-        {renderMediaContent(post)}
+        {/* Render LiveStreamPreview for live posts */}
+        {post.type === 'live' && post.streamData ? (
+          <div className="mb-4">
+            <LiveStreamPreview
+              streamId={post.streamData.streamId}
+              title={post.content}
+              creatorName={post.author.displayName}
+              creatorAvatar={post.author.avatar}
+              viewerCount={post.streamData.viewerCount}
+              category={post.streamData.category}
+              tags={post.streamData.tags}
+            />
+          </div>
+        ) : (
+          renderMediaContent(post)
+        )}
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
