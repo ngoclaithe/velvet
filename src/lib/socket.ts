@@ -16,6 +16,13 @@ export interface JoinRoomData {
   streamKey?: string
 }
 
+export interface StreamRoomData {
+  roomId: string
+  userId: string
+  username: string
+  userType: string
+}
+
 export class SocketService {
   private socket: Socket | null = null
   private isConnected: boolean = false
@@ -135,7 +142,20 @@ export class SocketService {
     }
 
     console.log('Joining room with data:', joinData)
-    this.socket.emit('join_room', joinData)
+
+    // Use correct event name based on backend expectations
+    if (config.clientType === 'creator' || config.streamId) {
+      // For streaming use join_room_stream as expected by backend
+      this.socket.emit('join_room_stream', {
+        roomId: config.streamId || config.streamKey || config.accessCode,
+        userId: 'creator_user', // TODO: get from auth
+        username: 'Creator', // TODO: get from auth
+        userType: config.clientType
+      })
+    } else {
+      // For general room joining use join_room
+      this.socket.emit('join_room', joinData)
+    }
   }
 
   disconnect() {
@@ -217,32 +237,91 @@ export class SocketService {
 
   // Streaming-specific methods
   startStreaming(streamId: string, streamKey: string) {
+    console.log(`Starting streaming session for room ${streamId}`)
     return this.emit('start_streaming', {
       streamId,
-      streamKey
+      streamKey,
+      timestamp: Date.now()
     })
   }
 
   stopStreaming(streamId: string) {
+    console.log(`Stopping streaming session for room ${streamId}`)
+    // Use leave_room_stream to properly cleanup backend resources
+    this.emit('leave_room_stream', {
+      roomId: streamId
+    })
+
     return this.emit('stop_streaming', {
-      streamId
-    })
-  }
-
-  sendStreamChunk(streamId: string, chunkData: ArrayBuffer, chunkNumber: number, mimeType: string) {
-    return this.emit('stream_chunk', {
       streamId,
-      chunkData,
-      chunkNumber,
-      timestamp: Date.now(),
-      mimeType,
-      size: chunkData.byteLength
+      timestamp: Date.now()
     })
   }
 
-  // Common event listeners for streaming
+  async sendStreamChunk(streamId: string, chunkData: ArrayBuffer, chunkNumber: number, mimeType: string): Promise<boolean> {
+    if (!this.socket || !this.isConnected) {
+      console.warn('Cannot send chunk: socket not connected')
+      return false
+    }
+
+    try {
+      // Match backend expected format exactly
+      const chunkPayload = {
+        streamId: streamId, // Backend expects this as roomId internally
+        chunkData: chunkData,
+        chunkNumber: chunkNumber,
+        mimeType: mimeType,
+        timestamp: Date.now(),
+        size: chunkData.byteLength
+      }
+
+      console.log(`Sending chunk #${chunkNumber} (${(chunkData.byteLength / 1024).toFixed(2)}KB) to backend`)
+
+      return new Promise((resolve) => {
+        // Add timeout for chunk sending
+        const timeout = setTimeout(() => {
+          console.warn(`Chunk #${chunkNumber} send timeout`)
+          resolve(false)
+        }, 5000) // 5 second timeout
+
+        this.socket!.emit('stream_chunk', chunkPayload, (acknowledgment: any) => {
+          clearTimeout(timeout)
+          if (acknowledgment?.success) {
+            console.log(`Chunk #${chunkNumber} acknowledged by backend`)
+            resolve(true)
+          } else {
+            console.warn(`Chunk #${chunkNumber} not acknowledged:`, acknowledgment)
+            resolve(false)
+          }
+        })
+
+        // If no ack support, resolve immediately
+        setTimeout(() => {
+          clearTimeout(timeout)
+          resolve(true)
+        }, 100)
+      })
+    } catch (error) {
+      console.error(`Error sending chunk #${chunkNumber}:`, error)
+      return false
+    }
+  }
+
+  // Common event listeners for streaming (matching backend events)
   onStreamStarted(callback: (data: any) => void) {
     this.on('stream_started', callback)
+  }
+
+  onStreamLive(callback: (data: any) => void) {
+    this.on('stream_live', callback) // Backend emits this when stream goes live
+  }
+
+  onStreamEnded(callback: (data: any) => void) {
+    this.on('stream_ended', callback) // Backend emits this when stream ends
+  }
+
+  onRoomJoined(callback: (data: any) => void) {
+    this.on('room_joined', callback) // Backend confirms room join
   }
 
   onViewerCountUpdated(callback: (data: { count: number }) => void) {
@@ -253,8 +332,19 @@ export class SocketService {
     this.on('chunk_received', callback)
   }
 
+  onStreamStats(callback: (data: any) => void) {
+    this.on('stream_stats', callback) // Backend provides stream statistics
+  }
+
   onError(callback: (error: any) => void) {
     this.on('error', callback)
+  }
+
+  // Request stream stats from backend
+  requestStreamStats(streamId: string) {
+    return this.emit('request_stream_stats', {
+      roomId: streamId
+    })
   }
 }
 
