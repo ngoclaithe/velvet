@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import io, { Socket } from 'socket.io-client'
 import { toast } from 'react-hot-toast'
+import { getSocketService, type SocketConnectionConfig } from '@/lib/socket'
 import type { StreamResponse } from '@/types/streaming'
 
 interface StreamingManagerProps {
@@ -20,13 +20,13 @@ export function StreamingManager({
   onStatusChange,
   onViewerCountUpdate
 }: StreamingManagerProps) {
-  const [socket, setSocket] = useState<Socket | null>(null)
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const videoPreviewRef = useRef<HTMLVideoElement>(null)
   const chunkCountRef = useRef(0)
+  const socketService = getSocketService()
 
   // Delay config - 7 giây cho mỗi chunk
   const CHUNK_DURATION = 7000 // 7 seconds
@@ -44,66 +44,84 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
-      // Xây dựng URL đầy đủ cho socket connection
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
-      const socketBaseUrl = baseUrl.replace('/api/v1', '').replace('http://', 'ws://').replace('https://', 'wss://')
-      const fullSocketUrl = `${socketBaseUrl}${streamData.socketEndpoint}`
+      console.log('Initializing streaming with SocketService...')
 
-      console.log('Connecting to socket:', fullSocketUrl)
+      // Configure socket connection for creator
+      const socketConfig: SocketConnectionConfig = {
+        accessCode: streamData.streamKey,
+        clientType: 'creator',
+        streamId: streamData.id,
+        streamKey: streamData.streamKey
+      }
 
-      // Kết nối socket với URL đầy đủ
-      const socketConnection = io(fullSocketUrl, {
-        transports: ['websocket'],
-        autoConnect: true,
-        timeout: 10000
-      })
+      // Setup event listeners before connecting
+      setupSocketEventListeners()
 
-      // Socket event handlers
-      socketConnection.on('connect', () => {
-        console.log('Socket connected:', socketConnection.id)
-        setIsConnected(true)
-        
-        // Thông báo bắt đầu stream session
-        socketConnection.emit('start_streaming', {
-          streamId: streamData.id,
-          streamKey: streamData.streamKey
-        })
-      })
+      // Connect to socket service
+      await socketService.connect(socketConfig)
 
-      socketConnection.on('disconnect', (reason) => {
-        console.log('Socket disconnected:', reason)
-        setIsConnected(false)
-        setIsRecording(false)
-      })
+      console.log('Socket connected successfully')
+      setIsConnected(true)
 
-      socketConnection.on('stream_started', (data: any) => {
-        console.log('Stream session started:', data)
-        toast.success('Stream session đã được khởi tạo!')
-      })
+      // Start streaming session
+      socketService.startStreaming(streamData.id, streamData.streamKey)
 
-      socketConnection.on('viewer_count_updated', (data: { count: number }) => {
-        onViewerCountUpdate(data.count)
-      })
-
-      socketConnection.on('error', (error: any) => {
-        console.error('Socket error:', error)
-        toast.error('Lỗi socket: ' + error.message)
-      })
-
-      socketConnection.on('connect_error', (error) => {
-        console.error('Connection error:', error)
-        toast.error('Không thể kết nối tới server streaming')
-      })
-
-      setSocket(socketConnection)
-
-      // Setup media capture sau khi socket connected
+      // Setup media capture after socket connected
       await setupMediaCapture()
 
     } catch (error) {
       console.error('Error initializing streaming:', error)
       toast.error('Không thể khởi tạo streaming')
+      setIsConnected(false)
     }
+  }
+
+  const setupSocketEventListeners = () => {
+    // Connection events
+    socketService.on('connect', () => {
+      console.log('Socket connected via service')
+      setIsConnected(true)
+    })
+
+    socketService.on('disconnect', (data: any) => {
+      console.log('Socket disconnected:', data.reason)
+      setIsConnected(false)
+      setIsRecording(false)
+    })
+
+    socketService.on('connect_error', (error: any) => {
+      console.error('Connection error:', error)
+      toast.error('Không thể kết nối tới server streaming')
+      setIsConnected(false)
+    })
+
+    socketService.on('reconnect', () => {
+      console.log('Socket reconnected successfully')
+      setIsConnected(true)
+      // Restart streaming session after reconnection
+      if (streamData) {
+        socketService.startStreaming(streamData.id, streamData.streamKey)
+      }
+    })
+
+    // Streaming events
+    socketService.onStreamStarted((data: any) => {
+      console.log('Stream session started:', data)
+      toast.success('Stream session đã được khởi tạo!')
+    })
+
+    socketService.onViewerCountUpdated((data: { count: number }) => {
+      onViewerCountUpdate(data.count)
+    })
+
+    socketService.onChunkReceived((data: any) => {
+      console.log(`Chunk #${data.chunkNumber} received successfully`)
+    })
+
+    socketService.onError((error: any) => {
+      console.error('Socket error:', error)
+      toast.error('Lỗi socket: ' + (error.message || 'Unknown error'))
+    })
   }
 
   const setupMediaCapture = async () => {
@@ -152,22 +170,20 @@ export function StreamingManager({
       })
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0 && socket?.connected) {
+        if (event.data.size > 0 && socketService.getIsConnected()) {
           chunkCountRef.current++
-          
+
           console.log(`Sending chunk #${chunkCountRef.current}, size: ${(event.data.size / 1024).toFixed(2)}KB`)
-          
-          // Gửi chunk data qua socket (delay 7 giây)
+
+          // Send chunk data via SocketService (delay 7 seconds)
           event.data.arrayBuffer().then(buffer => {
-            if (socket?.connected) {
-              socket.emit('stream_chunk', {
-                streamId: streamData.id,
-                chunkData: buffer,
-                chunkNumber: chunkCountRef.current,
-                timestamp: Date.now(),
-                mimeType: mimeType,
-                size: event.data.size
-              })
+            if (socketService.getIsConnected()) {
+              socketService.sendStreamChunk(
+                streamData.id,
+                buffer,
+                chunkCountRef.current,
+                mimeType
+              )
             }
           }).catch(error => {
             console.error('Error converting chunk to buffer:', error)
@@ -246,7 +262,7 @@ export function StreamingManager({
   const cleanup = () => {
     console.log('Starting cleanup...')
 
-    // Dừng recording
+    // Stop recording
     if (mediaRecorderRef.current) {
       if (mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop()
@@ -254,7 +270,7 @@ export function StreamingManager({
       mediaRecorderRef.current = null
     }
 
-    // Dừng tất cả media tracks
+    // Stop all media tracks
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => {
         track.stop()
@@ -263,11 +279,10 @@ export function StreamingManager({
       setMediaStream(null)
     }
 
-    // Ngắt kết nối socket
-    if (socket) {
-      socket.emit('stop_streaming', { streamId: streamData.id })
-      socket.disconnect()
-      setSocket(null)
+    // Stop streaming and disconnect socket
+    if (socketService.getIsConnected()) {
+      socketService.stopStreaming(streamData.id)
+      socketService.disconnect()
     }
 
     setIsConnected(false)
