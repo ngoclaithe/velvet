@@ -11,11 +11,11 @@ import { useToast } from '@/hooks/use-toast'
 // import { postsApi } from '@/lib/api' // Đã loại bỏ để tránh API calls
 import { useAuth } from '@/hooks/useAuth'
 import type { Post, FeedParams } from '@/types/posts'
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Bookmark, 
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
   Eye,
   MoreHorizontal,
   Play,
@@ -25,6 +25,7 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react'
+import LiveStreamPreview from '@/components/streaming/LiveStreamPreview'
 
 interface FeedState {
   posts: Post[]
