@@ -126,26 +126,44 @@ export function StreamingManager({
   const setupSocketEventListeners = () => {
     socketService.on('connect', () => {
       console.log('Socket connected via service')
-      setIsConnected(true)
+      const connected = socketService.getIsConnected()
+      console.log('Setting connected state to:', connected)
+      setIsConnected(connected)
 
       // Clear reconnect timeout on successful connection
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null
       }
+
+      // Start chunk processor if we have chunks waiting and recording
+      if (isRecording && chunkQueueRef.current.length > 0 && !processingRef.current) {
+        console.log('🔄 Restarting chunk processor after connection')
+        startChunkProcessor()
+      }
     })
 
     // Listen for room joined confirmation from backend
     socketService.onRoomJoined((data: any) => {
       console.log('Room joined confirmed by backend:', data)
-      setIsConnected(true)
+      const connected = socketService.getIsConnected()
+      setIsConnected(connected)
+
+      // Start chunk processor if we have chunks waiting and recording
+      if (isRecording && chunkQueueRef.current.length > 0 && !processingRef.current) {
+        console.log('🔄 Starting chunk processor after room joined')
+        startChunkProcessor()
+      }
     })
 
     socketService.on('disconnect', (data: any) => {
       console.log('Socket disconnected:', data.reason)
       setIsConnected(false)
       setIsRecording(false)
-      
+
+      // Stop chunk processor
+      processingRef.current = false
+
       // Auto reconnect unless it's intentional disconnect
       if (data.reason !== 'io client disconnect') {
         scheduleReconnect()
@@ -155,17 +173,25 @@ export function StreamingManager({
     socketService.on('connect_error', (error: any) => {
       console.error('Connection error:', error)
       setIsConnected(false)
+      processingRef.current = false
       scheduleReconnect()
     })
 
     socketService.on('reconnect', () => {
       console.log('Socket reconnected successfully')
-      setIsConnected(true)
+      const connected = socketService.getIsConnected()
+      setIsConnected(connected)
+
       if (streamData) {
         socketService.startStreaming(streamData.id, streamData.streamKey)
         // Resume recording if media stream exists
         if (mediaStream && !isRecording) {
           startOptimizedRecording(mediaStream)
+        }
+        // Restart chunk processor if we have chunks waiting
+        if (chunkQueueRef.current.length > 0 && !processingRef.current) {
+          console.log('🔄 Restarting chunk processor after reconnection')
+          startChunkProcessor()
         }
       }
     })
