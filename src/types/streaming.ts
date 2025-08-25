@@ -182,7 +182,7 @@ export interface BookPrivateShowData {
 }
 
 export interface StreamSocketEvents {
-  // Creator events
+  // Creator events - Simplified for chunked recording
   'start_streaming': {
     streamId: string
     streamKey: string
@@ -190,17 +190,15 @@ export interface StreamSocketEvents {
   'stop_streaming': {
     streamId: string
   }
-  'video_data': {
+  'stream_chunk': {
     streamId: string
-    data: ArrayBuffer
+    chunkData: ArrayBuffer
+    chunkNumber: number
     timestamp: number
+    mimeType: string
+    size: number
   }
-  'audio_data': {
-    streamId: string
-    data: ArrayBuffer
-    timestamp: number
-  }
-  
+
   // Viewer events
   'join_room_stream': {
     roomId: string
@@ -211,14 +209,20 @@ export interface StreamSocketEvents {
   'leave_room_stream': {
     roomId: string
   }
-  
+
   // Server responses
   'stream_started': {
     streamId: string
     success: boolean
+    message?: string
   }
   'stream_stopped': {
     streamId: string
+    success: boolean
+  }
+  'chunk_received': {
+    streamId: string
+    chunkNumber: number
     success: boolean
   }
   'room_joined': {
@@ -242,5 +246,6 @@ export interface StreamSocketEvents {
   }
   'error': {
     message: string
+    code?: string
   }
 }
