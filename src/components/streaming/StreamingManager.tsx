@@ -65,7 +65,8 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
-      console.log('Initializing optimized streaming...')
+      console.log('🚀 Initializing optimized streaming...')
+      console.log('📊 Stream Data:', streamData)
 
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
@@ -74,17 +75,25 @@ export function StreamingManager({
         streamKey: streamData.streamKey
       }
 
+      console.log('🔌 Socket Config:', socketConfig)
+
       setupSocketEventListeners()
+      console.log('🔌 Connecting to socket...')
       await socketService.connect(socketConfig)
 
-      console.log('Socket connected successfully')
+      console.log('✅ Socket connected successfully')
       setIsConnected(true)
 
+      console.log('📡 Starting streaming session...')
       socketService.startStreaming(streamData.id, streamData.streamKey)
+
+      console.log('🎥 Setting up media capture...')
       await setupOptimizedMediaCapture()
 
+      console.log('✅ Streaming initialization completed!')
+
     } catch (error) {
-      console.error('Error initializing streaming:', error)
+      console.error('❌ Error initializing streaming:', error)
       toast.error('Không thể khởi tạo streaming')
       setIsConnected(false)
       scheduleReconnect()
@@ -201,6 +210,8 @@ export function StreamingManager({
 
   const setupOptimizedMediaCapture = async () => {
     try {
+      console.log('🎥 Setting up media capture with camera:', cameraEnabled, 'mic:', micEnabled)
+
       // Enhanced constraints for 1080p quality
       const constraints: MediaStreamConstraints = {
         video: cameraEnabled ? {
@@ -220,18 +231,25 @@ export function StreamingManager({
         } : false
       }
 
+      console.log('📊 Media constraints:', constraints)
+
+      console.log('🎥 Requesting user media...')
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      console.log('✅ Got media stream:', stream)
+
       setMediaStream(stream)
 
       if (videoPreviewRef.current) {
+        console.log('📺 Setting video preview source')
         videoPreviewRef.current.srcObject = stream
         videoPreviewRef.current.muted = true
       }
 
+      console.log('🎬 Starting recording...')
       await startOptimizedRecording(stream)
 
     } catch (error) {
-      console.error('Error setting up optimized media capture:', error)
+      console.error('❌ Error setting up optimized media capture:', error)
       handleMediaError(error)
     }
   }
