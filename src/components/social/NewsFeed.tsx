@@ -122,7 +122,7 @@ export default function NewsFeed() {
         },
         {
           id: 'live-2',
-          type: 'livestream',
+          type: 'live',
           content: 'Cooking Traditional Vietnamese Food',
           author: {
             id: 'chef_anna',
