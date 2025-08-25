@@ -215,7 +215,7 @@ export default function StreamPage() {
               Điều khiển Stream
             </CardTitle>
             <CardDescription>
-              Quản l�� thiết bị và trạng thái stream của bạn
+              Quản lý thiết bị và stream (độ trễ 5-10 giây)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
