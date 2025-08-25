@@ -472,6 +472,7 @@ export function StreamingManager({
     setIsConnected(false)
     setIsRecording(false)
     chunkCountRef.current = 0
+    initSegmentSentRef.current = false
     setBufferHealth({ queued: 0, sent: 0, failed: 0 })
   }
 
