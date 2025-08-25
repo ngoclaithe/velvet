@@ -260,6 +260,8 @@ export function StreamingManager({
         
         setTimeout(() => {
           if (stream.active) {
+            chunkCountRef.current = 0
+            initSegmentSentRef.current = false
             startOptimizedRecording(stream)
           }
         }, 2000)
