@@ -285,10 +285,10 @@ export function StreamingManager({
   const getBestSupportedMimeType = (): string => {
     const types = [
       'video/mp4;codecs=h264,aac',
-      'video/webm;codecs=h264,opus',
       'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-      'video/webm;codecs=h264,aac',
       'video/mp4',
+      'video/webm;codecs=h264,opus',
+      'video/webm;codecs=h264,aac',
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm'
@@ -300,7 +300,7 @@ export function StreamingManager({
       }
     }
 
-    return 'video/webm'
+    return 'video/mp4'
   }
 
   const addChunkToQueue = (buffer: ArrayBuffer, chunkNumber: number, mimeType: string) => {
