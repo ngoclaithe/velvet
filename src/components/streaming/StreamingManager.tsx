@@ -308,6 +308,16 @@ export function StreamingManager({
     return 'video/mp4'
   }
 
+  const sendMp4InitSegment = async (initBuffer: ArrayBuffer) => {
+    try {
+      if (socketService.getIsConnected()) {
+        await socketService.sendMp4InitSegment(streamData.id, initBuffer)
+      }
+    } catch (error) {
+      setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
+    }
+  }
+
   const addChunkToQueue = (buffer: ArrayBuffer, chunkNumber: number, mimeType: string) => {
     const chunkQueue = chunkQueueRef.current
     
