@@ -20,13 +20,13 @@ export function StreamingManager({
   onStatusChange,
   onViewerCountUpdate
 }: StreamingManagerProps) {
-  const [socket, setSocket] = useState<Socket | null>(null)
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const videoPreviewRef = useRef<HTMLVideoElement>(null)
   const chunkCountRef = useRef(0)
+  const socketService = getSocketService()
 
   // Delay config - 7 giây cho mỗi chunk
   const CHUNK_DURATION = 7000 // 7 seconds
