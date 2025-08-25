@@ -415,6 +415,12 @@ export function StreamingManager({
     }
 
     console.log(`Chunk #${chunkNumber} queued (${(buffer.byteLength / 1024).toFixed(2)}KB). Queue size: ${chunkQueue.length}`)
+
+    // Auto-start chunk processor if socket is connected and processor not running
+    if (socketService.getIsConnected() && !processingRef.current && isRecording) {
+      console.log('🚀 Auto-starting chunk processor - socket connected and chunks ready')
+      startChunkProcessor()
+    }
   }
 
   const startChunkProcessor = () => {
@@ -521,7 +527,7 @@ export function StreamingManager({
           toast.error('Vui lòng cấp quyền truy cập camera và microphone')
           break
         case 'NotFoundError':
-          toast.error('Không tìm th���y camera hoặc microphone')
+          toast.error('Không tìm thấy camera hoặc microphone')
           break
         case 'NotReadableError':
           toast.error('Camera/microphone đang được sử dụng bởi ứng dụng khác')
