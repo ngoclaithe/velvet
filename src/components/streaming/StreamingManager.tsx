@@ -267,6 +267,7 @@ export function StreamingManager({
 
       mediaRecorder.onstart = () => {
         setIsRecording(true)
+        initSegmentSentRef.current = false
 
         if (socketService.getIsConnected()) {
           startChunkProcessor()
