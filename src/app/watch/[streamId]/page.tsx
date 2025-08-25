@@ -24,6 +24,7 @@ import {
   DollarSign
 } from 'lucide-react'
 import StreamPlayer from '@/components/streaming/StreamPlayer'
+import LiveStreamViewer from '@/components/streaming/LiveStreamViewer'
 import { streamApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
