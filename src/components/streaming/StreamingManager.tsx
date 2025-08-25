@@ -397,9 +397,11 @@ export function StreamingManager({
   }
 
   const processChunkQueue = async () => {
-    console.log('🔄 Processing chunk queue. isConnected:', isConnected, 'processingRef.current:', processingRef.current)
+    const socketConnected = socketService.getIsConnected()
+    console.log('🔄 Processing chunk queue. socketConnected:', socketConnected, 'localConnected:', isConnected, 'processingRef.current:', processingRef.current)
 
-    while (processingRef.current && isConnected) {
+    // Use socket service connection state as primary source of truth
+    while (processingRef.current && socketConnected) {
       const chunkQueue = chunkQueueRef.current
 
       console.log(`📊 Queue status: ${chunkQueue.length} chunks waiting`)
@@ -425,11 +427,17 @@ export function StreamingManager({
         }
       }
 
+      // Check connection state again in case it changed during processing
+      if (!socketService.getIsConnected()) {
+        console.log('❌ Socket disconnected during chunk processing, stopping')
+        break
+      }
+
       // Wait before processing next chunk to avoid overwhelming
       await sleep(CHUNK_SEND_INTERVAL)
     }
 
-    console.log('🛑 Chunk processor stopped. isConnected:', isConnected, 'processingRef.current:', processingRef.current)
+    console.log('🛑 Chunk processor stopped. socketConnected:', socketService.getIsConnected(), 'localConnected:', isConnected, 'processingRef.current:', processingRef.current)
   }
 
   const sendChunkWithRetry = async (buffer: ArrayBuffer, chunkNumber: number, retries = 3): Promise<void> => {
