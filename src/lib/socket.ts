@@ -259,8 +259,11 @@ export class SocketService {
   }
 
   async sendStreamChunk(streamId: string, chunkData: ArrayBuffer, chunkNumber: number, mimeType: string): Promise<boolean> {
+    console.log(`📡 sendStreamChunk called - streamId: ${streamId}, chunkNumber: ${chunkNumber}`)
+    console.log(`🔌 Socket status - connected: ${this.isConnected}, socket exists: ${!!this.socket}`)
+
     if (!this.socket || !this.isConnected) {
-      console.warn('Cannot send chunk: socket not connected')
+      console.warn('❌ Cannot send chunk: socket not connected')
       return false
     }
 
@@ -275,28 +278,41 @@ export class SocketService {
         size: chunkData.byteLength
       }
 
-      console.log(`Sending chunk #${chunkNumber} (${(chunkData.byteLength / 1024).toFixed(2)}KB) to backend`)
+      console.log(`📊 Chunk payload:`, {
+        streamId: chunkPayload.streamId,
+        chunkNumber: chunkPayload.chunkNumber,
+        mimeType: chunkPayload.mimeType,
+        size: chunkPayload.size,
+        timestamp: chunkPayload.timestamp
+      })
+
+      console.log(`🚀 Sending chunk #${chunkNumber} (${(chunkData.byteLength / 1024).toFixed(2)}KB) to backend`)
 
       return new Promise((resolve) => {
+        console.log(`⏱️  Setting up timeout and emitting stream_chunk event...`)
+
         // Add timeout for chunk sending
         const timeout = setTimeout(() => {
-          console.warn(`Chunk #${chunkNumber} send timeout`)
+          console.warn(`⏰ Chunk #${chunkNumber} send timeout`)
           resolve(false)
         }, 5000) // 5 second timeout
 
+        console.log(`🚀 Emitting 'stream_chunk' event to backend...`)
         this.socket!.emit('stream_chunk', chunkPayload, (acknowledgment: any) => {
+          console.log(`📨 Received acknowledgment for chunk #${chunkNumber}:`, acknowledgment)
           clearTimeout(timeout)
           if (acknowledgment?.success) {
-            console.log(`Chunk #${chunkNumber} acknowledged by backend`)
+            console.log(`✅ Chunk #${chunkNumber} acknowledged by backend`)
             resolve(true)
           } else {
-            console.warn(`Chunk #${chunkNumber} not acknowledged:`, acknowledgment)
+            console.warn(`❌ Chunk #${chunkNumber} not acknowledged:`, acknowledgment)
             resolve(false)
           }
         })
 
         // If no ack support, resolve immediately
         setTimeout(() => {
+          console.log(`⏲️  Auto-resolving chunk #${chunkNumber} after 100ms (no ack expected)`)
           clearTimeout(timeout)
           resolve(true)
         }, 100)
