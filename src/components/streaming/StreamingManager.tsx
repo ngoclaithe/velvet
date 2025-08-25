@@ -144,6 +144,8 @@ export function StreamingManager({
       if (streamData) {
         socketService.startStreaming(streamData.id, streamData.streamKey)
         if (mediaStream && !isRecording) {
+          chunkCountRef.current = 0
+          initSegmentSentRef.current = false
           startOptimizedRecording(mediaStream)
         }
         if (chunkQueueRef.current.length > 0 && !processingRef.current) {
