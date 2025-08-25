@@ -48,6 +48,17 @@ export function StreamingManager({
     }
   }, [])
 
+  // Request stream stats from backend periodically
+  useEffect(() => {
+    if (isRecording && socketService.getIsConnected()) {
+      const statsInterval = setInterval(() => {
+        socketService.requestStreamStats(streamData.id)
+      }, 10000) // Request stats every 10 seconds
+
+      return () => clearInterval(statsInterval)
+    }
+  }, [isRecording, streamData.id])
+
   useEffect(() => {
     onStatusChange(isConnected && isRecording)
   }, [isConnected, isRecording, onStatusChange])
