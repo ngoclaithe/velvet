@@ -114,11 +114,11 @@ export default function Header() {
                       <div className="flex items-center space-x-2 mt-2">
                         <Badge variant="secondary" className="text-xs">
                           <DollarSign className="h-3 w-3 mr-1" />
-                          ${user?.balance || 0}
+                          $0
                         </Badge>
                         <Badge variant="outline" className="text-xs">
                           <Heart className="h-3 w-3 mr-1 text-red-500" />
-                          {user?.followers || 0}
+                          0
                         </Badge>
                       </div>
                     </div>
