@@ -63,6 +63,7 @@ export default function StreamPage() {
   const [cameraEnabled, setCameraEnabled] = useState(true)
   const [micEnabled, setMicEnabled] = useState(true)
   const [isConnected, setIsConnected] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   
   const [streamData, setStreamData] = useState<StreamData>({
     title: '',
@@ -379,14 +380,29 @@ export default function StreamPage() {
           </Card>
         )}
 
-        {/* Stream Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Cài đặt Stream</CardTitle>
-            <CardDescription>
-              Cấu hình thông tin và cài đặt cho stream của bạn
-            </CardDescription>
-          </CardHeader>
+        {/* Stream Settings - Hidden during live stream unless toggled */}
+        {(!currentStream || showSettings) && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Cài đặt Stream</CardTitle>
+                  <CardDescription>
+                    Cấu hình thông tin và cài đặt cho stream của bạn
+                  </CardDescription>
+                </div>
+                {currentStream && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSettings(false)}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Ẩn cài đặt
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -467,6 +483,28 @@ export default function StreamPage() {
             )}
           </CardContent>
         </Card>
+        )}
+
+        {/* Settings Toggle Button - Only show when live and settings are hidden */}
+        {currentStream && !showSettings && (
+          <Card className="border-dashed border-2 border-gray-300">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSettings(true)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Hiện cài đặt Stream
+                </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Cài đặt stream đã được ẩn để tập trung vào việc livestream
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
