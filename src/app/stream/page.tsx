@@ -197,12 +197,12 @@ export default function StreamPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Stream Dashboard</h1>
-            <p className="text-muted-foreground">Quản lý stream trực tiếp của bạn</p>
+            <p className="text-muted-foreground">Quản lý stream của bạn (độ trễ ~7 giây)</p>
           </div>
           {currentStream && (
-            <Badge variant="default" className="bg-red-500 hover:bg-red-600">
+            <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
-              ĐANG LIVE
+              STREAMING (DELAY)
             </Badge>
           )}
         </div>
@@ -392,7 +392,7 @@ export default function StreamPage() {
                   id="title"
                   value={streamData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="Nhập tiêu đề cho stream"
+                  placeholder="Nh��p tiêu đề cho stream"
                   disabled={!!currentStream}
                 />
               </div>
@@ -430,7 +430,7 @@ export default function StreamPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
+              <Label htmlFor="tags">Tags (c��ch nhau bởi dấu phẩy)</Label>
               <Input
                 id="tags"
                 value={streamData.tags.join(', ')}
