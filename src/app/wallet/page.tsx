@@ -508,7 +508,7 @@ export default function WalletPage() {
                   <span>Rút tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Rút tiền từ ví v�� tài khoản của bạn
+                  Rút tiền từ ví về tài khoản của bạn
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

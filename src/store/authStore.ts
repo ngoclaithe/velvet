@@ -366,7 +366,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           })
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất b���i'
+          const errorMessage = error instanceof Error ? error.message : 'Đặt lại mật khẩu thất bại'
           set({
             isLoading: false,
             error: errorMessage,

@@ -123,7 +123,7 @@ export default function StreamPage() {
 
         toast.success('Stream đã được bắt đầu thành công!')
       } else {
-        toast.error(response.error || 'Không thể b��t đầu stream')
+        toast.error(response.error || 'Không thể bắt đầu stream')
       }
     } catch (error) {
       console.error('Error starting stream:', error)
@@ -387,12 +387,12 @@ export default function StreamPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Tiêu ��ề Stream</Label>
+                <Label htmlFor="title">Tiêu đề Stream</Label>
                 <Input
                   id="title"
                   value={streamData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="Nh��p tiêu đề cho stream"
+                  placeholder="Nhập tiêu đề cho stream"
                   disabled={!!currentStream}
                 />
               </div>
@@ -430,7 +430,7 @@ export default function StreamPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (c��ch nhau bởi dấu phẩy)</Label>
+              <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
               <Input
                 id="tags"
                 value={streamData.tags.join(', ')}

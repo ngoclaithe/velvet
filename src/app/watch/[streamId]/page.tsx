@@ -136,7 +136,7 @@ export default function WatchStreamPage() {
 
   const handleFollow = async () => {
     if (!user) {
-      toast.error('Vui l��ng đăng nhập để follow')
+      toast.error('Vui lòng đăng nhập để follow')
       router.push('/login')
       return
     }

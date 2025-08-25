@@ -307,7 +307,7 @@ export default function CreatePostPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Tạo bài viết mới</h1>
-          <p className="text-muted-foreground">Chia sẻ nội dung với cộng đ��ng</p>
+          <p className="text-muted-foreground">Chia sẻ nội dung với cộng đồng</p>
         </div>
         <div className="flex space-x-2">
           <Button 
