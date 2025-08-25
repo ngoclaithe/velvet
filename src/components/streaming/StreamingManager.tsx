@@ -262,7 +262,7 @@ export function StreamingManager({
   const cleanup = () => {
     console.log('Starting cleanup...')
 
-    // Dừng recording
+    // Stop recording
     if (mediaRecorderRef.current) {
       if (mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop()
@@ -270,7 +270,7 @@ export function StreamingManager({
       mediaRecorderRef.current = null
     }
 
-    // Dừng tất cả media tracks
+    // Stop all media tracks
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => {
         track.stop()
@@ -279,11 +279,10 @@ export function StreamingManager({
       setMediaStream(null)
     }
 
-    // Ngắt kết nối socket
-    if (socket) {
-      socket.emit('stop_streaming', { streamId: streamData.id })
-      socket.disconnect()
-      setSocket(null)
+    // Stop streaming and disconnect socket
+    if (socketService.getIsConnected()) {
+      socketService.stopStreaming(streamData.id)
+      socketService.disconnect()
     }
 
     setIsConnected(false)
