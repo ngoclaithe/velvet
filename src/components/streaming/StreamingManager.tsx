@@ -85,12 +85,16 @@ export function StreamingManager({
 
       console.log('🔌 Socket Config:', socketConfig)
 
+      // Setup listeners BEFORE connecting
       setupSocketEventListeners()
+
       console.log('🔌 Connecting to socket...')
       await socketService.connect(socketConfig)
 
-      console.log('✅ Socket connected successfully')
-      setIsConnected(true)
+      // Use socket service's connection state instead of setting our own
+      const connected = socketService.getIsConnected()
+      console.log('✅ Socket connected successfully, connected state:', connected)
+      setIsConnected(connected)
 
       console.log('📡 Starting streaming session...')
       socketService.startStreaming(streamData.id, streamData.streamKey)
