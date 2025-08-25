@@ -170,22 +170,20 @@ export function StreamingManager({
       })
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0 && socket?.connected) {
+        if (event.data.size > 0 && socketService.getIsConnected()) {
           chunkCountRef.current++
-          
+
           console.log(`Sending chunk #${chunkCountRef.current}, size: ${(event.data.size / 1024).toFixed(2)}KB`)
-          
-          // Gửi chunk data qua socket (delay 7 giây)
+
+          // Send chunk data via SocketService (delay 7 seconds)
           event.data.arrayBuffer().then(buffer => {
-            if (socket?.connected) {
-              socket.emit('stream_chunk', {
-                streamId: streamData.id,
-                chunkData: buffer,
-                chunkNumber: chunkCountRef.current,
-                timestamp: Date.now(),
-                mimeType: mimeType,
-                size: event.data.size
-              })
+            if (socketService.getIsConnected()) {
+              socketService.sendStreamChunk(
+                streamData.id,
+                buffer,
+                chunkCountRef.current,
+                mimeType
+              )
             }
           }).catch(error => {
             console.error('Error converting chunk to buffer:', error)
