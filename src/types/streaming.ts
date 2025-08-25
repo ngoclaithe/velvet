@@ -27,6 +27,14 @@ export interface Stream {
   updatedAt: Date
 }
 
+export interface StreamResponse {
+  id: string
+  streamKey: string
+  socketEndpoint: string
+  title: string
+  isLive: boolean
+}
+
 export interface StreamSettings {
   quality: {
     resolution: '720p' | '1080p' | '4K'
@@ -79,7 +87,7 @@ export interface StreamViewer {
   isBanned: boolean
 }
 
-export type ViewerRole = 'viewer' | 'subscriber' | 'moderator' | 'vip'
+export type ViewerRole = 'viewer' | 'subscriber' | 'moderator' | 'vip' | 'streamer'
 
 export interface StreamAnalytics {
   streamId: string
@@ -171,4 +179,68 @@ export interface BookPrivateShowData {
   duration: number
   scheduledFor?: Date
   message?: string
+}
+
+export interface StreamSocketEvents {
+  // Creator events
+  'start_streaming': {
+    streamId: string
+    streamKey: string
+  }
+  'stop_streaming': {
+    streamId: string
+  }
+  'video_data': {
+    streamId: string
+    data: ArrayBuffer
+    timestamp: number
+  }
+  'audio_data': {
+    streamId: string
+    data: ArrayBuffer
+    timestamp: number
+  }
+  
+  // Viewer events
+  'join_room_stream': {
+    roomId: string
+    userId: string
+    username: string
+    userType: ViewerRole
+  }
+  'leave_room_stream': {
+    roomId: string
+  }
+  
+  // Server responses
+  'stream_started': {
+    streamId: string
+    success: boolean
+  }
+  'stream_stopped': {
+    streamId: string
+    success: boolean
+  }
+  'room_joined': {
+    roomId: string
+    viewerCount: number
+    timestamp: number
+  }
+  'user_joined': {
+    userId: string
+    username: string
+    userType: ViewerRole
+    timestamp: number
+  }
+  'user_left': {
+    userId: string
+    username: string
+    timestamp: number
+  }
+  'viewer_count_updated': {
+    count: number
+  }
+  'error': {
+    message: string
+  }
 }
