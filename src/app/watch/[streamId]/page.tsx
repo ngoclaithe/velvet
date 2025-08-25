@@ -240,13 +240,12 @@ export default function WatchStreamPage() {
         <div className="lg:col-span-3 space-y-4">
           {/* Video Player */}
           <div className="w-full">
-            <StreamPlayer
+            <LiveStreamViewer
               streamId={streamId}
-              title={streamInfo.title}
-              creator={streamInfo.creator.stageName}
-              viewerCount={streamInfo.viewerCount}
+              streamTitle={streamInfo.title}
+              creatorName={streamInfo.creator.stageName}
+              creatorAvatar={streamInfo.creator.avatar}
               isLive={streamInfo.isLive}
-              thumbnail={streamInfo.thumbnail}
             />
           </div>
 
