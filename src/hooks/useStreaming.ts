@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStreamingStore } from '@/store/streamingStore'
-import type { Stream, StreamSettings } from '@/types/streaming'
+import type { StreamSettings } from '@/types/streaming'
 
 export function useStreaming() {
   const {
