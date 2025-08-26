@@ -13,9 +13,14 @@ import {
   DollarSign,
   BarChart3,
   TrendingUp,
-  Activity
+  Activity,
+  Clock,
+  AlertTriangle
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import type { UserProfile, Report } from '@/types/user'
+import type { StreamResponse } from '@/types/streaming'
+import type { PaymentMethod } from '@/types/payments'
 
 interface AdminStats {
   totalUsers: number
@@ -24,6 +29,49 @@ interface AdminStats {
   totalRevenue: number
   pendingVerifications: number
   reportedContent: number
+}
+
+interface User {
+  id: string
+  username: string
+  email: string
+  role: 'user' | 'creator' | 'admin'
+  status: 'active' | 'suspended' | 'banned'
+  createdAt: string
+  lastLogin: string
+  isVerified: boolean
+}
+
+interface Stream {
+  id: string
+  title: string
+  creator: string
+  viewers: number
+  status: 'live' | 'ended' | 'scheduled'
+  category: string
+  startTime: string
+}
+
+interface PaymentInfo {
+  id: string
+  bankName: string
+  accountNumber: string
+  accountHolderName: string
+  qrCodeUrl: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface AdminReport {
+  id: string
+  type: string
+  reportedBy: string
+  targetId: string
+  targetName: string
+  reason: string
+  status: 'pending' | 'resolved' | 'dismissed'
+  createdAt: string
 }
 
 
@@ -44,7 +92,7 @@ export default function AdminDashboard() {
 
   const [users, setUsers] = useState<User[]>([])
   const [streams, setStreams] = useState<Stream[]>([])
-  const [reports, setReports] = useState<Report[]>([])
+  const [reports, setReports] = useState<AdminReport[]>([])
   const [paymentInfos, setPaymentInfos] = useState<PaymentInfo[]>([])
 
   // Payment info form states
@@ -376,7 +424,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const getReportStatusBadge = (status: Report['status']) => {
+  const getReportStatusBadge = (status: AdminReport['status']) => {
     switch (status) {
       case 'pending':
         return <Badge className="bg-orange-500">Chờ xử lý</Badge>
