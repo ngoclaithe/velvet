@@ -127,6 +127,7 @@ export default function StreamChatBox({
         }
         
         // Join stream chat room
+        console.log('Joining stream chat for streamId:', streamId)
         chatWebSocket.joinStreamChat(streamId)
         setIsWebSocketConnected(true)
         
