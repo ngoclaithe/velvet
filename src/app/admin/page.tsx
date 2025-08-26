@@ -394,11 +394,12 @@ export default function AdminDashboard() {
 
       {/* Admin Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="users">Quản lý Users</TabsTrigger>
           <TabsTrigger value="streams">Quản lý Streams</TabsTrigger>
           <TabsTrigger value="reports">Báo cáo</TabsTrigger>
+          <TabsTrigger value="payments">Thông tin thanh toán</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
