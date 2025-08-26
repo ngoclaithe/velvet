@@ -126,7 +126,8 @@ export default function WatchStreamPage() {
         const response = await streamApi.getStreamInfo(streamId)
         
         if (response.success && response.data) {
-          setStreamData(response.data)
+          // Type cast để đảm bảo response.data khớp với StreamData interface
+          setStreamData(response.data as StreamData)
         } else {
           // Fallback sample data
           const sampleData: StreamData = {
