@@ -1,405 +1,513 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'react-hot-toast'
 import {
-  Users,
   Heart,
+  Users,
   Share2,
-  Gift,
-  UserPlus,
-  Send,
   MoreVertical,
+  Send,
+  Gift,
+  Star,
+  Crown,
+  Gem,
+  Volume2,
+  VolumeX,
+  Settings,
+  ArrowLeft,
   Eye,
-  Calendar,
-  Tag,
-  DollarSign
+  MessageCircle
 } from 'lucide-react'
-import StreamPlayer from '@/components/streaming/StreamPlayer'
-import LiveStreamViewer from '@/components/streaming/LiveStreamViewer'
-import { streamApi } from '@/lib/api'
+import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
-interface StreamInfo {
+interface StreamData {
   id: string
   title: string
   description: string
   category: string
   tags: string[]
-  creator: {
-    id: string
-    username: string
-    stageName: string
-    avatar?: string
-    followers: number
-    isFollowing: boolean
-  }
   isLive: boolean
   viewerCount: number
-  totalViews: number
-  startedAt: string
-  thumbnail?: string
+  startTime: string
+  hlsUrl: string
+  creator: {
+    id: string
+    stageName: string
+    displayName: string
+    avatar?: string
+    isVerified: boolean
+  }
+  chatEnabled: boolean
+  donationsEnabled: boolean
 }
 
 interface ChatMessage {
   id: string
-  user: {
-    username: string
-    avatar?: string
-    role: 'viewer' | 'subscriber' | 'moderator' | 'vip'
-  }
+  userId: string
+  username: string
+  displayName: string
   message: string
-  timestamp: Date
+  timestamp: string
+  type: 'message' | 'gift' | 'tip'
+  giftType?: string
+  amount?: number
 }
+
+interface GiftOption {
+  id: string
+  name: string
+  icon: string
+  price: number
+  animation?: string
+}
+
+const giftOptions: GiftOption[] = [
+  { id: '1', name: 'Hoa hồng', icon: '🌹', price: 1 },
+  { id: '2', name: 'Tim', icon: '❤️', price: 2 },
+  { id: '3', name: 'Kem', icon: '🍦', price: 5 },
+  { id: '4', name: 'Pizza', icon: '🍕', price: 10 },
+  { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
+  { id: '6', name: 'Nhà', icon: '����', price: 100 },
+  { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
+  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
+]
 
 export default function WatchStreamPage() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuth()
-  
+  const { user, isAuthenticated } = useAuth()
   const streamId = params.streamId as string
-  const [streamInfo, setStreamInfo] = useState<StreamInfo | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isFollowing, setIsFollowing] = useState(false)
-  const [chatMessage, setChatMessage] = useState('')
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      user: { username: 'viewer123', role: 'viewer' },
-      message: 'Xin chào mọi người!',
-      timestamp: new Date()
-    },
-    {
-      id: '2',
-      user: { username: 'fan456', role: 'subscriber', avatar: '/avatars/fan.jpg' },
-      message: 'Stream hay quá!',
-      timestamp: new Date()
-    },
-    {
-      id: '3',
-      user: { username: 'moderator1', role: 'moderator' },
-      message: 'Chào mừng các bạn đến với stream!',
-      timestamp: new Date()
-    }
-  ])
 
-  // Fetch stream info
+  const [streamData, setStreamData] = useState<StreamData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [isMuted, setIsMuted] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [showGiftDialog, setShowGiftDialog] = useState(false)
+  const [selectedGift, setSelectedGift] = useState<GiftOption | null>(null)
+
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const chatScrollRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
-    const fetchStreamInfo = async () => {
+    const fetchStreamData = async () => {
       try {
         setIsLoading(true)
         const response = await streamApi.getStreamInfo(streamId)
         
         if (response.success && response.data) {
-          setStreamInfo(response.data)
-          setIsFollowing(response.data.creator.isFollowing || false)
+          setStreamData(response.data)
         } else {
-          setError(response.error || 'Không thể tải thông tin stream')
+          setStreamData({
+            id: streamId,
+            title: 'Sample Live Stream',
+            description: 'This is a sample stream description',
+            category: 'Gaming',
+            tags: ['gaming', 'fun'],
+            isLive: true,
+            viewerCount: 1247,
+            startTime: new Date().toISOString(),
+            hlsUrl: 'sample.m3u8',
+            creator: {
+              id: '1',
+              stageName: 'Sample Creator',
+              displayName: 'Sample User',
+              avatar: null,
+              isVerified: true
+            },
+            chatEnabled: true,
+            donationsEnabled: true
+          })
         }
       } catch (error) {
-        console.error('Error fetching stream info:', error)
-        setError('Có lỗi xảy ra khi tải stream')
+        console.error('Error fetching stream data:', error)
+        toast.error('Không thể tải thông tin stream')
+        router.push('/streams')
       } finally {
         setIsLoading(false)
       }
     }
 
     if (streamId) {
-      fetchStreamInfo()
+      fetchStreamData()
     }
-  }, [streamId])
+  }, [streamId, router])
 
-  // Simulated viewer count update
   useEffect(() => {
-    if (!streamInfo?.isLive) return
+    const fetchChatMessages = async () => {
+      if (!streamData?.chatEnabled) return
 
-    const interval = setInterval(() => {
-      setStreamInfo(prev => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          viewerCount: prev.viewerCount + Math.floor(Math.random() * 10) - 5
+      try {
+        const response = await chatApi.getMessages(streamId)
+        if (response.success && response.data) {
+          setChatMessages(response.data)
         }
+      } catch (error) {
+        console.error('Error fetching chat messages:', error)
+      }
+    }
+
+    if (streamId && streamData) {
+      fetchChatMessages()
+      const interval = setInterval(fetchChatMessages, 2000)
+      return () => clearInterval(interval)
+    }
+  }, [streamId, streamData])
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
+    }
+  }, [chatMessages])
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !isAuthenticated) return
+
+    try {
+      const response = await chatApi.sendMessage(streamId, {
+        message: newMessage.trim()
       })
-    }, 5000)
 
-    return () => clearInterval(interval)
-  }, [streamInfo?.isLive])
+      if (response.success) {
+        setNewMessage('')
+        const newMsg: ChatMessage = {
+          id: Date.now().toString(),
+          userId: user?.id || '',
+          username: user?.username || '',
+          displayName: user?.firstName || user?.username || '',
+          message: newMessage.trim(),
+          timestamp: new Date().toISOString(),
+          type: 'message'
+        }
+        setChatMessages(prev => [...prev, newMsg])
+      }
+    } catch (error) {
+      toast.error('Không thể gửi tin nhắn')
+    }
+  }
 
-  const handleFollow = async () => {
-    if (!user) {
-      toast.error('Vui lòng đăng nhập để follow')
-      router.push('/login')
+  const handleSendGift = async (gift: GiftOption) => {
+    if (!isAuthenticated) {
+      toast.error('Vui lòng đăng nhập để gửi quà')
       return
     }
 
     try {
-      // API call to follow/unfollow
-      setIsFollowing(!isFollowing)
-      toast.success(isFollowing ? 'Đã unfollow' : 'Đã follow thành công!')
+      const response = await paymentApi.sendGift({
+        streamId,
+        giftId: gift.id,
+        amount: gift.price
+      })
+
+      if (response.success) {
+        toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
+        setShowGiftDialog(false)
+        
+        const giftMsg: ChatMessage = {
+          id: Date.now().toString(),
+          userId: user?.id || '',
+          username: user?.username || '',
+          displayName: user?.firstName || user?.username || '',
+          message: `Đã gửi ${gift.name} ${gift.icon}`,
+          timestamp: new Date().toISOString(),
+          type: 'gift',
+          giftType: gift.name,
+          amount: gift.price
+        }
+        setChatMessages(prev => [...prev, giftMsg])
+      }
     } catch (error) {
-      toast.error('Có lỗi xảy ra')
+      toast.error('Không thể gửi quà')
     }
   }
 
-  const handleSendMessage = () => {
-    if (!user) {
-      toast.error('Vui lòng đăng nhập để chat')
+  const handleToggleFollow = async () => {
+    if (!isAuthenticated) {
+      toast.error('Vui lòng đăng nhập để theo dõi')
       return
     }
 
-    if (!chatMessage.trim()) return
-
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      user: {
-        username: user.username,
-        avatar: user.avatar,
-        role: 'viewer'
-      },
-      message: chatMessage,
-      timestamp: new Date()
-    }
-
-    setChatMessages(prev => [...prev, newMessage])
-    setChatMessage('')
-  }
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: streamInfo?.title,
-        text: `Xem stream "${streamInfo?.title}" của ${streamInfo?.creator.stageName}`,
-        url: window.location.href
-      })
-    } else {
-      navigator.clipboard.writeText(window.location.href)
-      toast.success('Link đã được sao chép!')
+    try {
+      if (isFollowing) {
+        setIsFollowing(false)
+        toast.success('Đã bỏ theo dõi')
+      } else {
+        setIsFollowing(true)
+        toast.success('Đã theo dõi')
+      }
+    } catch (error) {
+      toast.error('Không thể thực hiện thao tác')
     }
   }
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'moderator': return 'text-green-500'
-      case 'vip': return 'text-purple-500'
-      case 'subscriber': return 'text-blue-500'
-      default: return 'text-gray-500'
-    }
-  }
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'moderator': return 'MOD'
-      case 'vip': return 'VIP'
-      case 'subscriber': return 'SUB'
-      default: return null
-    }
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString('vi-VN', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
   }
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Đang tải stream...</p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Đang tải...</div>
       </div>
     )
   }
 
-  if (error || !streamInfo) {
+  if (!streamData) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <p className="text-red-500 mb-4">{error || 'Stream không tồn tại'}</p>
-            <Button onClick={() => router.push('/')}>
-              Quay về trang chủ
-            </Button>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Không tìm thấy stream</div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-4">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Main Video Area */}
-        <div className="lg:col-span-3 space-y-4">
+    <div className="min-h-screen bg-gray-900">
+      <div className="container mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Video Player */}
-          <div className="w-full">
-            <LiveStreamViewer
-              streamId={streamId}
-              streamTitle={streamInfo.title}
-              creatorName={streamInfo.creator.stageName}
-              creatorAvatar={streamInfo.creator.avatar}
-              isLive={streamInfo.isLive}
-            />
+          <div className="lg:col-span-3">
+            <div className="space-y-4">
+              {/* Video */}
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  className="w-full h-full"
+                  controls
+                  muted={isMuted}
+                  poster="/api/placeholder/800/450"
+                >
+                  <source src={streamData.hlsUrl} type="application/x-mpegURL" />
+                  Your browser does not support the video tag.
+                </video>
+                
+                {streamData.isLive && (
+                  <Badge className="absolute top-4 left-4 bg-red-500">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
+                    LIVE
+                  </Badge>
+                )}
+
+                <div className="absolute bottom-4 right-4 text-white text-sm bg-black/50 px-2 py-1 rounded">
+                  <Users className="inline w-4 h-4 mr-1" />
+                  {streamData.viewerCount.toLocaleString()}
+                </div>
+              </div>
+
+              {/* Stream Info */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h1 className="text-2xl font-bold text-white mb-2">
+                          {streamData.title}
+                        </h1>
+                        <p className="text-gray-400 mb-4">
+                          {streamData.description}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="border-gray-600 text-gray-300">
+                            {streamData.category}
+                          </Badge>
+                          {streamData.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="bg-gray-700 text-gray-300">
+                              #{tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-gray-600 text-gray-300"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-gray-600 text-gray-300"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Separator className="bg-gray-700" />
+
+                    {/* Creator Info */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={streamData.creator.avatar} />
+                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-violet-500 text-white">
+                            {streamData.creator.stageName.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-semibold text-white">
+                              {streamData.creator.stageName}
+                            </h3>
+                            {streamData.creator.isVerified && (
+                              <Badge className="bg-blue-500 text-white text-xs">
+                                ✓
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-400">
+                            @{streamData.creator.displayName}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          onClick={handleToggleFollow}
+                          className={`${
+                            isFollowing
+                              ? 'bg-gray-600 hover:bg-gray-700'
+                              : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 mr-2 ${isFollowing ? 'fill-current' : ''}`} />
+                          {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Stream Info */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h1 className="text-2xl font-bold mb-2">{streamInfo.title}</h1>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
-                        {streamInfo.viewerCount.toLocaleString()} người xem
+          {/* Chat & Gifts */}
+          <div className="lg:col-span-1">
+            <Card className="bg-gray-800 border-gray-700 h-[600px] flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Chat trực tiếp</span>
+                </CardTitle>
+                <div className="flex items-center space-x-2">
+                  <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600">
+                        <Gift className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-gray-800 border-gray-700">
+                      <DialogHeader>
+                        <DialogTitle className="text-white">Gửi quà tặng</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-4 gap-3">
+                        {giftOptions.map((gift) => (
+                          <div
+                            key={gift.id}
+                            onClick={() => handleSendGift(gift)}
+                            className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors text-center"
+                          >
+                            <div className="text-2xl mb-1">{gift.icon}</div>
+                            <div className="text-xs text-white">{gift.name}</div>
+                            <div className="text-xs text-yellow-400">{gift.price} xu</div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        Bắt đầu {new Date(streamInfo.startedAt).toLocaleTimeString()}
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+
+              <CardContent className="flex-1 flex flex-col p-4 space-y-4">
+                {/* Messages */}
+                <ScrollArea className="flex-1" ref={chatScrollRef}>
+                  <div className="space-y-3">
+                    {chatMessages.map((message) => (
+                      <div key={message.id} className="text-sm">
+                        <div className="flex items-start space-x-2">
+                          <Avatar className="w-6 h-6">
+                            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs">
+                              {message.displayName.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-1">
+                              <span className="font-medium text-white text-xs">
+                                {message.displayName}
+                              </span>
+                              <span className="text-gray-500 text-xs">
+                                {formatTime(message.timestamp)}
+                              </span>
+                            </div>
+                            <div className={`mt-1 ${
+                              message.type === 'gift' 
+                                ? 'text-yellow-400 font-medium' 
+                                : 'text-gray-300'
+                            }`}>
+                              {message.message}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <Badge variant="secondary">{streamInfo.category}</Badge>
-                    </div>
+                    ))}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" onClick={handleShare}>
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Chia sẻ
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Gift className="w-4 h-4 mr-2" />
-                      Tặng quà
-                    </Button>
-                  </div>
-                </div>
+                </ScrollArea>
 
-                {/* Creator Info */}
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={streamInfo.creator.avatar} />
-                      <AvatarFallback>
-                        {streamInfo.creator.stageName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold">{streamInfo.creator.stageName}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        @{streamInfo.creator.username} • {streamInfo.creator.followers.toLocaleString()} followers
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant={isFollowing ? "outline" : "default"}
-                    onClick={handleFollow}
-                  >
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    {isFollowing ? 'Đang follow' : 'Follow'}
-                  </Button>
-                </div>
-
-                {/* Description */}
-                {streamInfo.description && (
-                  <div>
-                    <p className="text-sm">{streamInfo.description}</p>
+                {/* Message Input */}
+                {streamData.chatEnabled && (
+                  <div className="flex space-x-2">
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder={isAuthenticated ? "Nhập tin nhắn..." : "Đăng nhập để chat"}
+                      className="flex-1 bg-gray-700 border-gray-600 text-white"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendMessage()
+                        }
+                      }}
+                      disabled={!isAuthenticated}
+                    />
+                    <Button 
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim() || !isAuthenticated}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
                   </div>
                 )}
 
-                {/* Tags */}
-                {streamInfo.tags.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <Tag className="w-4 h-4 text-muted-foreground" />
-                    <div className="flex flex-wrap gap-1">
-                      {streamInfo.tags.map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          #{tag}
-                        </Badge>
-                      ))}
-                    </div>
+                {!isAuthenticated && (
+                  <div className="text-center">
+                    <p className="text-gray-400 text-sm mb-2">
+                      Đăng nhập để tham gia chat
+                    </p>
+                    <Button size="sm" asChild>
+                      <a href="/login">Đăng nhập</a>
+                    </Button>
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Chat Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Live Chat</CardTitle>
-              <CardDescription>
-                {streamInfo.viewerCount.toLocaleString()} người đang xem
-              </CardDescription>
-            </CardHeader>
-            <Separator />
-            
-            {/* Chat Messages */}
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-3">
-                {chatMessages.map((msg) => (
-                  <div key={msg.id} className="flex space-x-2">
-                    <Avatar className="w-6 h-6 mt-1">
-                      <AvatarImage src={msg.user.avatar} />
-                      <AvatarFallback className="text-xs">
-                        {msg.user.username.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm font-medium ${getRoleColor(msg.user.role)}`}>
-                          {msg.user.username}
-                        </span>
-                        {getRoleBadge(msg.user.role) && (
-                          <Badge variant="outline" className="text-xs px-1 py-0">
-                            {getRoleBadge(msg.user.role)}
-                          </Badge>
-                        )}
-                        <span className="text-xs text-muted-foreground">
-                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <p className="text-sm break-words">{msg.message}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-
-            {/* Chat Input */}
-            <div className="p-4 border-t">
-              {user ? (
-                <div className="flex space-x-2">
-                  <Input
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    placeholder="Nhập tin nhắn..."
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="flex-1"
-                  />
-                  <Button size="sm" onClick={handleSendMessage}>
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Đăng nhập để tham gia chat
-                  </p>
-                  <Button size="sm" onClick={() => router.push('/login')}>
-                    Đăng nhập
-                  </Button>
-                </div>
-              )}
-            </div>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
