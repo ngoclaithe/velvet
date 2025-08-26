@@ -106,6 +106,18 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [streams, setStreams] = useState<Stream[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [paymentInfos, setPaymentInfos] = useState<PaymentInfo[]>([])
+
+  // Payment info form states
+  const [isEditingPayment, setIsEditingPayment] = useState(false)
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null)
+  const [paymentForm, setPaymentForm] = useState({
+    bankName: '',
+    accountNumber: '',
+    accountHolderName: '',
+    qrCodeUrl: '',
+    isActive: true
+  })
 
   // Check admin access
   useEffect(() => {
