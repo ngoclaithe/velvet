@@ -1,4 +1,5 @@
 import type { ApiResponse, ApiError } from '@/types/api'
+import type { StreamsApiResponse } from '@/types/streaming'
 
 interface RequestConfig extends RequestInit {
   params?: Record<string, string>
