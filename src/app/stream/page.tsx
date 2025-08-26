@@ -43,6 +43,15 @@ interface StreamData {
   isPrivate: boolean
 }
 
+// Interface cho response từ startStream API
+interface StartStreamResponse {
+  id: string
+  streamKey: string
+  socketEndpoint: string
+  title: string
+  isLive: boolean
+}
+
 interface CurrentStream {
   id: string
   title: string
@@ -51,6 +60,15 @@ interface CurrentStream {
   startedAt: Date
   streamKey?: string
   socketEndpoint?: string
+}
+
+// Interface cho StreamingManager props
+interface StreamingManagerData {
+  id: string
+  streamKey: string
+  socketEndpoint: string
+  title: string
+  isLive: boolean
 }
 
 export default function StreamPage() {
@@ -119,14 +137,14 @@ export default function StreamPage() {
       console.log('📨 API Response:', response)
 
       if (response.success && response.data) {
-        const apiStreamData = response.data as StreamResponse
+        const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
         // Extract stream ID từ socketEndpoint hoặc sử dụng streamKey
         const streamId = apiStreamData.id || apiStreamData.streamKey || apiStreamData.socketEndpoint?.split('/').pop() || ''
         console.log('🆔 Generated stream ID:', streamId)
 
-        const newCurrentStream = {
+        const newCurrentStream: CurrentStream = {
           id: streamId,
           title: apiStreamData.title || streamData.title,
           isLive: apiStreamData.isLive || true,
@@ -386,7 +404,7 @@ export default function StreamPage() {
                   socketEndpoint: currentStream.socketEndpoint || '',
                   title: currentStream.title,
                   isLive: currentStream.isLive
-                }}
+                } as StreamingManagerData}
                 cameraEnabled={cameraEnabled}
                 micEnabled={micEnabled}
                 onStatusChange={handleStreamingStatusChange}

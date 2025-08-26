@@ -41,6 +41,7 @@
     "date-fns": "^2.30.0",
     "emoji-picker-react": "^4.5.16",
     "framer-motion": "^10.16.4",
+    "hls.js": "^1.6.11",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.292.0",
     "next": "14.0.3",
@@ -68,6 +69,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/hls.js": "^0.13.3",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/react-virtualized": "^9.21.29",
     "@types/simple-peer": "^9.11.8",

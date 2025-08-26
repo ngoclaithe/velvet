@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+// Remove hls.js import - sẽ dùng dynamic import
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -32,24 +33,40 @@ import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
 interface StreamData {
-  id: string
+  streamId: number
   title: string
   description: string
   category: string
   tags: string[]
+  quality: string
   isLive: boolean
+  isPrivate: boolean
   viewerCount: number
+  maxViewers: number
   startTime: string
+  endTime?: string
+  duration?: number
   hlsUrl: string
+  streamKey: string
+  thumbnail?: string
   creator: {
-    id: string
+    id: number
+    userId: number
     stageName: string
     displayName: string
     avatar?: string
     isVerified: boolean
+    bio: string
+    rating: string
+    totalRatings: number
+    hourlyRate: string
+    bookingPrice: string
+    subscriptionPrice: string
   }
   chatEnabled: boolean
   donationsEnabled: boolean
+  pricePerMinute?: string
+  totalDonations: string
 }
 
 interface ChatMessage {
@@ -100,6 +117,7 @@ export default function WatchStreamPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const chatScrollRef = useRef<HTMLDivElement>(null)
+  const hlsRef = useRef<any>(null)
 
   useEffect(() => {
     const fetchStreamData = async () => {
@@ -108,33 +126,87 @@ export default function WatchStreamPage() {
         const response = await streamApi.getStreamInfo(streamId)
         
         if (response.success && response.data) {
-          setStreamData(response.data)
+          // Kiểm tra và validate response data
+          const streamData = response.data
+          if (streamData && typeof streamData === 'object' && 'streamId' in streamData) {
+            setStreamData(streamData as StreamData)
+          } else {
+            console.error('Invalid stream data format:', streamData)
+            throw new Error('Dữ liệu stream không hợp lệ')
+          }
         } else {
-          setStreamData({
-            id: streamId,
+          // Fallback sample data
+          const sampleData: StreamData = {
+            streamId: parseInt(streamId) || 0,
             title: 'Sample Live Stream',
             description: 'This is a sample stream description',
             category: 'Gaming',
             tags: ['gaming', 'fun'],
+            quality: 'HD',
             isLive: true,
+            isPrivate: false,
             viewerCount: 1247,
+            maxViewers: 1247,
             startTime: new Date().toISOString(),
             hlsUrl: 'sample.m3u8',
+            streamKey: 'sample-key',
             creator: {
-              id: '1',
+              id: 1,
+              userId: 1,
               stageName: 'Sample Creator',
               displayName: 'Sample User',
-              avatar: null,
-              isVerified: true
+              avatar: undefined,
+              isVerified: true,
+              bio: 'Sample bio',
+              rating: '5.00',
+              totalRatings: 10,
+              hourlyRate: '10.00',
+              bookingPrice: '15.00',
+              subscriptionPrice: '20.00'
             },
             chatEnabled: true,
-            donationsEnabled: true
-          })
+            donationsEnabled: true,
+            totalDonations: '0.00'
+          }
+          setStreamData(sampleData)
         }
       } catch (error) {
         console.error('Error fetching stream data:', error)
         toast.error('Không thể tải thông tin stream')
-        router.push('/streams')
+        // Set sample data instead of redirecting
+        const sampleData: StreamData = {
+          streamId: parseInt(streamId) || 0,
+          title: 'Sample Live Stream',
+          description: 'This is a sample stream description',
+          category: 'Gaming',
+          tags: ['gaming', 'fun'],
+          quality: 'HD',
+          isLive: true,
+          isPrivate: false,
+          viewerCount: 1247,
+          maxViewers: 1247,
+          startTime: new Date().toISOString(),
+          hlsUrl: 'sample.m3u8',
+          streamKey: 'sample-key',
+          creator: {
+            id: 1,
+            userId: 1,
+            stageName: 'Sample Creator',
+            displayName: 'Sample User',
+            avatar: undefined,
+            isVerified: true,
+            bio: 'Sample bio',
+            rating: '5.00',
+            totalRatings: 10,
+            hourlyRate: '10.00',
+            bookingPrice: '15.00',
+            subscriptionPrice: '20.00'
+          },
+          chatEnabled: true,
+          donationsEnabled: true,
+          totalDonations: '0.00'
+        }
+        setStreamData(sampleData)
       } finally {
         setIsLoading(false)
       }
@@ -150,10 +222,34 @@ export default function WatchStreamPage() {
       if (!streamData?.chatEnabled) return
 
       try {
-        const response = await chatApi.getMessages(streamId)
-        if (response.success && response.data) {
-          setChatMessages(response.data)
-        }
+        // TODO: Uncomment when backend is ready
+        // const response = await chatApi.getMessages(streamId)
+        // if (response.success && response.data) {
+        //   setChatMessages(response.data)
+        // }
+
+        // Mock data for now
+        const mockMessages: ChatMessage[] = [
+          {
+            id: '1',
+            userId: 'user1',
+            username: 'viewer1',
+            displayName: 'Viewer One',
+            message: 'Chào mọi người!',
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          },
+          {
+            id: '2',
+            userId: 'user2',
+            username: 'viewer2',
+            displayName: 'Viewer Two',
+            message: 'Stream hay quá!',
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          }
+        ]
+        setChatMessages(mockMessages)
       } catch (error) {
         console.error('Error fetching chat messages:', error)
       }
@@ -161,8 +257,9 @@ export default function WatchStreamPage() {
 
     if (streamId && streamData) {
       fetchChatMessages()
-      const interval = setInterval(fetchChatMessages, 2000)
-      return () => clearInterval(interval)
+      // TODO: Uncomment when backend is ready
+      // const interval = setInterval(fetchChatMessages, 2000)
+      // return () => clearInterval(interval)
     }
   }, [streamId, streamData])
 
@@ -172,54 +269,140 @@ export default function WatchStreamPage() {
     }
   }, [chatMessages])
 
+  // Initialize HLS player với dynamic import
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !streamData?.hlsUrl) return
+
+    // Dynamic import hls.js để tránh lỗi SSR và import
+    const initializeHLS = async () => {
+      try {
+        // Kiểm tra native HLS support trước (Safari)
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          console.log('Using native HLS support')
+          video.src = streamData.hlsUrl
+          video.addEventListener('loadedmetadata', () => {
+            video.play().catch(console.error)
+          })
+          return
+        }
+
+        // Dynamic import hls.js
+        const HlsModule = await import('hls.js')
+        const Hls = HlsModule.default
+
+        if (Hls && Hls.isSupported()) {
+          console.log('Using HLS.js')
+
+          // Clean up existing HLS instance
+          if (hlsRef.current) {
+            hlsRef.current.destroy()
+          }
+
+          const hls = new Hls({
+            enableWorker: false,
+            lowLatencyMode: true,
+            backBufferLength: 90
+          })
+
+          hlsRef.current = hls
+          hls.loadSource(streamData.hlsUrl)
+          hls.attachMedia(video)
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('HLS manifest parsed, playing video')
+            video.play().catch(console.error)
+          })
+
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            console.error('HLS error:', data)
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.log('Fatal network error encountered, trying to recover')
+                  hls.startLoad()
+                  break
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.log('Fatal media error encountered, trying to recover')
+                  hls.recoverMediaError()
+                  break
+                default:
+                  console.log('Fatal error, destroying HLS instance')
+                  hls.destroy()
+                  break
+              }
+            }
+          })
+        } else {
+          console.error('HLS is not supported in this browser')
+          toast.error('Trình duyệt không hỗ trợ phát stream')
+        }
+      } catch (error) {
+        console.error('Failed to load HLS.js:', error)
+        toast.error('Không thể tải HLS player')
+      }
+    }
+
+    initializeHLS()
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+        hlsRef.current = null
+      }
+    }
+  }, [streamData?.hlsUrl])
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !isAuthenticated) return
+    if (!newMessage.trim() || !isAuthenticated || !user) return
 
     try {
-      const response = await chatApi.sendMessage(streamId, {
-        message: newMessage.trim()
-      })
+      // TODO: Uncomment when backend is ready
+      // const response = await chatApi.sendMessage(streamId, {
+      //   message: newMessage.trim()
+      // })
 
-      if (response.success) {
+      // if (response.success) {
         setNewMessage('')
         const newMsg: ChatMessage = {
           id: Date.now().toString(),
-          userId: user?.id || '',
-          username: user?.username || '',
-          displayName: user?.firstName || user?.username || '',
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
           message: newMessage.trim(),
           timestamp: new Date().toISOString(),
           type: 'message'
         }
         setChatMessages(prev => [...prev, newMsg])
-      }
+      // }
     } catch (error) {
       toast.error('Không thể gửi tin nhắn')
     }
   }
 
   const handleSendGift = async (gift: GiftOption) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       toast.error('Vui lòng đăng nhập để gửi quà')
       return
     }
 
     try {
-      const response = await paymentApi.sendGift({
-        streamId,
-        giftId: gift.id,
-        amount: gift.price
-      })
+      // TODO: Uncomment when backend is ready
+      // const response = await paymentApi.sendGift({
+      //   streamId,
+      //   giftId: gift.id,
+      //   amount: gift.price
+      // })
 
-      if (response.success) {
+      // if (response.success) {
         toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
         setShowGiftDialog(false)
-        
+
         const giftMsg: ChatMessage = {
           id: Date.now().toString(),
-          userId: user?.id || '',
-          username: user?.username || '',
-          displayName: user?.firstName || user?.username || '',
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
           message: `Đã gửi ${gift.name} ${gift.icon}`,
           timestamp: new Date().toISOString(),
           type: 'gift',
@@ -227,7 +410,7 @@ export default function WatchStreamPage() {
           amount: gift.price
         }
         setChatMessages(prev => [...prev, giftMsg])
-      }
+      // }
     } catch (error) {
       toast.error('Không thể gửi quà')
     }
@@ -290,9 +473,9 @@ export default function WatchStreamPage() {
                   className="w-full h-full"
                   controls
                   muted={isMuted}
-                  poster="/api/placeholder/800/450"
+                  playsInline
+                  autoPlay={false}
                 >
-                  <source src={streamData.hlsUrl} type="application/x-mpegURL" />
                   Your browser does not support the video tag.
                 </video>
                 

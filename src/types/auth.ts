@@ -6,9 +6,19 @@ export interface User {
   firstName?: string
   lastName?: string
   bio?: string
+  phoneNumber?: string
+  location?: string
+  website?: string
+  gender?: 'male' | 'female' | 'other'
+  dateOfBirth?: Date | string
   isVerified: boolean
   isOnline: boolean
   role: UserRole
+  // Social stats
+  followers?: number
+  following?: number
+  totalViews?: number
+  // Timestamps
   createdAt: Date
   updatedAt: Date
 }

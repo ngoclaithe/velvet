@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Icons } from '@/components/common/Icons'
 import {
-  User,
+  User as UserIcon,
   Edit3,
   Save,
   Camera,
@@ -34,8 +34,22 @@ import {
   UserPlus
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import type { User } from '@/types/auth'
 
 type Gender = 'male' | 'female' | 'other';
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  bio: string;
+  location: string;
+  website: string;
+  gender: Gender | '';
+  dateOfBirth: string;
+}
 
 export default function ProfilePage() {
   const { user, updateProfile, isLoading: authLoading, isAuthenticated } = useAuth()
@@ -43,7 +57,7 @@ export default function ProfilePage() {
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     username: user?.username || '',
@@ -84,8 +98,9 @@ export default function ProfilePage() {
     try {
       await updateProfile({
         ...formData,
+        gender: formData.gender || undefined,
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
-      })
+      } as Partial<User>)
       
       setIsEditing(false)
       toast({
@@ -106,18 +121,20 @@ export default function ProfilePage() {
   }
 
   const handleCancel = () => {
-    setFormData({
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      username: user?.username || '',
-      email: user?.email || '',
-      phoneNumber: user?.phoneNumber || '',
-      bio: user?.bio || '',
-      location: user?.location || '',
-      website: user?.website || '',
-      gender: user?.gender || '',
-      dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
-    })
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        username: user.username || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        website: user.website || '',
+        gender: user.gender || '',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+      })
+    }
     setIsEditing(false)
   }
 
@@ -126,6 +143,23 @@ export default function ProfilePage() {
       router.push('/login')
     }
   }, [authLoading, isAuthenticated, router])
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        username: user.username || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        website: user.website || '',
+        gender: user.gender || '',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+      })
+    }
+  }, [user])
 
   if (authLoading) {
     return (
@@ -137,8 +171,8 @@ export default function ProfilePage() {
     )
   }
 
-  if (!isAuthenticated) {
-    return null // Component sẽ redirect trước khi render
+  if (!isAuthenticated || !user) {
+    return null // Component sẽ redirect trước khi render hoặc user chưa load
   }
 
   return (
@@ -157,9 +191,9 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
                 <div className="relative">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={user.avatar} alt={user.username} />
+                    <AvatarImage src={user?.avatar} alt={user?.username} />
                     <AvatarFallback className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-2xl">
-                      {user.username?.charAt(0).toUpperCase()}
+                      {user?.username?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <Button
@@ -172,28 +206,28 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="flex-1 text-center sm:text-left">
-                  <h1 className="text-2xl font-bold">{user.username}</h1>
-                  <p className="text-muted-foreground">{user.email}</p>
-                  {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
+                  <h1 className="text-2xl font-bold">{user?.username}</h1>
+                  <p className="text-muted-foreground">{user?.email}</p>
+                  {user?.bio && <p className="text-sm mt-2">{user.bio}</p>}
                   
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{user.followers || 0} người theo dõi</span>
+                      <span className="text-sm">{user?.followers || 0} người theo dõi</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Heart className="h-4 w-4 text-red-500" />
-                      <span className="text-sm">{user.following || 0} đang theo dõi</span>
+                      <span className="text-sm">{user?.following || 0} đang theo dõi</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Eye className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{user.totalViews || 0} lượt xem</span>
+                      <span className="text-sm">{user?.totalViews || 0} lượt xem</span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2 mt-4">
-                    <Badge variant="secondary">{user.role}</Badge>
-                    {user.isVerified && <Badge variant="default" className="bg-blue-600">Đã xác minh</Badge>}
+                    <Badge variant="secondary">{user?.role}</Badge>
+                    {user?.isVerified && <Badge variant="default" className="bg-blue-600">Đã xác minh</Badge>}
                   </div>
                 </div>
 
@@ -210,7 +244,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Become Creator Card - Only for regular users */}
-          {user.role === 'user' && (
+          {user?.role === 'user' && (
             <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6">

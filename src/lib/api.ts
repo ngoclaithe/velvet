@@ -1,4 +1,5 @@
 import type { ApiResponse, ApiError } from '@/types/api'
+import type { StreamsApiResponse } from '@/types/streaming'
 
 interface RequestConfig extends RequestInit {
   params?: Record<string, string>
@@ -247,10 +248,21 @@ export const userApi = {
 
 export const streamApi = {
   // Lấy danh sách streams đang live
-  getLiveStreams: (params?: Record<string, string>) => api.get('/streams', params),
+  getLiveStreams: (params?: {
+    limit?: number;
+    offset?: number;
+    category?: string;
+  }) => {
+    const queryParams: Record<string, string> = {};
+    if (params?.limit !== undefined) queryParams.limit = params.limit.toString();
+    if (params?.offset !== undefined) queryParams.offset = params.offset.toString();
+    if (params?.category) queryParams.category = params.category;
+
+    return api.get<StreamsApiResponse['data']>('/streams/live', queryParams);
+  },
 
   // Lấy thông tin stream cụ thể
-  getStreamInfo: (streamId: string) => api.get(`/streams/${streamId}/info`),
+  getStreamInfo: (streamId: string) => api.get<any>(`/streams/${streamId}/info`),
 
   // Tạo và bắt đầu stream session mới (cho creator)
   startStream: (data: {
