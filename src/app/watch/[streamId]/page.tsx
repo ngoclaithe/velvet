@@ -301,49 +301,6 @@ export default function WatchStreamPage() {
   }, [streamData?.hlsUrl])
 
 
-  const handleSendGift = async (gift: GiftOption) => {
-    if (!isAuthenticated || !user) {
-      toast.error('Vui lòng đăng nhập để gửi quà')
-      return
-    }
-
-    try {
-      // Send gift via API
-      const response = await paymentApi.sendGift({
-        streamId,
-        giftId: gift.id,
-        amount: gift.price
-      })
-
-      if (response.success) {
-        toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
-        setShowGiftDialog(false)
-
-        const giftMsg: ChatMessage = {
-          id: Date.now().toString(),
-          userId: user.id,
-          username: user.username,
-          displayName: user.firstName || user.username,
-          message: `Đã gửi ${gift.name} ${gift.icon}`,
-          timestamp: new Date().toISOString(),
-          type: 'gift',
-          giftType: gift.name,
-          amount: gift.price
-        }
-
-        // Send gift message via WebSocket for real-time delivery
-        if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, giftMsg.message)
-        }
-
-        setChatMessages(prev => [...prev, giftMsg])
-      } else {
-        toast.error(response.error || 'Không thể gửi quà')
-      }
-    } catch (error) {
-      toast.error('Không thể gửi quà')
-    }
-  }
 
   const handleToggleFollow = async () => {
     if (!isAuthenticated) {
