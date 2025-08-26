@@ -424,7 +424,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const getReportStatusBadge = (status: Report['status']) => {
+  const getReportStatusBadge = (status: AdminReport['status']) => {
     switch (status) {
       case 'pending':
         return <Badge className="bg-orange-500">Chờ xử lý</Badge>
