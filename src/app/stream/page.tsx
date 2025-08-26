@@ -142,7 +142,7 @@ export default function StreamPage() {
           isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: apiStreamData.streamKey,
+          streamKey: apiStreamData.streamKey || streamId || 'default-key',
           socketEndpoint: apiStreamData.socketEndpoint
         }
 
@@ -159,7 +159,7 @@ export default function StreamPage() {
       toast.error('Có lỗi xảy ra khi bắt đầu stream')
     } finally {
       setIsStartingStream(false)
-      console.log('🏁 handleStartStream completed')
+      console.log('�� handleStartStream completed')
     }
   }
 
