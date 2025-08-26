@@ -28,6 +28,140 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { streamApi } from '@/lib/api'
 
+function LiveStreamsTab() {
+  const [liveStreams, setLiveStreams] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLiveStreams = async () => {
+      try {
+        setIsLoading(true)
+        const response = await streamApi.getLiveStreams()
+
+        if (response.success && response.data?.streams) {
+          setLiveStreams(response.data.streams.slice(0, 6))
+        }
+      } catch (error) {
+        console.error('Error fetching live streams:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchLiveStreams()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">Live Streams</h2>
+            <p className="text-gray-400">Xem các creator đang stream trực tiếp</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="bg-gray-800 border-gray-700 animate-pulse">
+              <div className="aspect-video bg-gray-700 rounded-t-lg" />
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-700 rounded w-3/4" />
+                  <div className="h-3 bg-gray-700 rounded w-1/2" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">Live Streams</h2>
+          <p className="text-gray-400">Xem các creator đang stream trực tiếp</p>
+        </div>
+        <Link href="/streams">
+          <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+            Xem tất cả
+          </Button>
+        </Link>
+      </div>
+
+      {liveStreams.length === 0 ? (
+        <div className="text-center py-12">
+          <Video className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-white mb-2">Chưa có stream nào đang live</h3>
+          <p className="text-gray-400">Hãy quay lại sau để xem các creator yêu thích!</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {liveStreams.map((stream) => (
+              <Link key={stream.id} href={`/watch/${stream.id}`}>
+                <Card className="bg-gray-800 border-gray-700 hover:border-red-500/50 transition-colors cursor-pointer group">
+                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                    <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                      <Play className="w-12 h-12 text-white opacity-70 group-hover:opacity-100 transition-opacity" />
+                    </div>
+
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+
+                    <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
+                      LIVE
+                    </Badge>
+
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                      <Eye className="inline w-3 h-3 mr-1" />
+                      {stream.viewerCount?.toLocaleString() || '0'}
+                    </div>
+
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur">
+                        <Play className="w-8 h-8 text-white ml-1" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-white mb-2 line-clamp-2">{stream.title}</h3>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">
+                          {stream.creator?.stageName?.charAt(0) || stream.creator?.displayName?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-400">
+                        {stream.creator?.stageName || stream.creator?.displayName || 'Unknown'}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
+                      {stream.category || 'General'}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link href="/streams">
+              <Button size="lg" className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700">
+                <Zap className="w-4 h-4 mr-2" />
+                Xem tất cả Live Streams
+              </Button>
+            </Link>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function HomePage() {
   const { user, isAuthenticated, isGuest } = useAuth()
 
@@ -299,7 +433,7 @@ export default function HomePage() {
 
                   <div className="text-center">
                     <Button variant="outline" size="lg" className="border-gray-600 text-gray-300 hover:bg-gray-800">
-                      Xem thêm bài viết
+                      Xem thêm b��i viết
                     </Button>
                   </div>
                 </TabsContent>
