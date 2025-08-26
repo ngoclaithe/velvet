@@ -98,53 +98,44 @@ export default function WalletPage() {
     }
   ]
 
-  const transactions: Transaction[] = [
-    {
-      id: '1',
-      type: 'earning',
-      amount: 25.50,
-      description: 'Thu nhập từ bài viết "Tutorial JavaScript"',
-      date: new Date('2024-01-15'),
-      status: 'completed',
-      transactionId: 'TXN001'
-    },
-    {
-      id: '2',
-      type: 'gift_received',
-      amount: 10.00,
-      description: 'Quà tặng từ @user123',
-      date: new Date('2024-01-14'),
-      status: 'completed',
-      transactionId: 'TXN002'
-    },
-    {
-      id: '3',
-      type: 'deposit',
-      amount: 100.00,
-      description: 'Nạp tiền từ Vietcombank',
-      date: new Date('2024-01-13'),
-      status: 'completed',
-      transactionId: 'TXN003'
-    },
-    {
-      id: '4',
-      type: 'withdrawal',
-      amount: -50.00,
-      description: 'Rút tiền về Vietcombank',
-      date: new Date('2024-01-12'),
-      status: 'pending',
-      transactionId: 'TXN004'
-    },
-    {
-      id: '5',
-      type: 'spending',
-      amount: -5.00,
-      description: 'Tặng quà cho @creator456',
-      date: new Date('2024-01-11'),
-      status: 'completed',
-      transactionId: 'TXN005'
+  // Load wallet data and transactions from API
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      if (!user) return
+
+      setIsLoadingWallet(true)
+      try {
+        // Fetch wallet balance
+        const walletResponse = await paymentApi.getWallet()
+        if (walletResponse.success && walletResponse.data) {
+          setBalance(walletResponse.data.balance || 0)
+          setLockedBalance(walletResponse.data.lockedBalance || 0)
+          setTotalEarnings(walletResponse.data.totalEarnings || 0)
+          setMonthlyIncome(walletResponse.data.monthlyIncome || 0)
+        }
+
+        // Fetch transactions
+        const transactionsResponse = await paymentApi.getTransactions()
+        if (transactionsResponse.success && transactionsResponse.data) {
+          setTransactions(transactionsResponse.data.map((t: any) => ({
+            ...t,
+            date: new Date(t.date || t.createdAt)
+          })))
+        }
+      } catch (error) {
+        console.error('Failed to load wallet data:', error)
+        toast({
+          title: "Không thể tải dữ liệu ví",
+          description: "Vui lòng thử lại sau",
+          variant: "destructive"
+        })
+      } finally {
+        setIsLoadingWallet(false)
+      }
     }
-  ]
+
+    fetchWalletData()
+  }, [user, toast])
 
   const handleDeposit = async () => {
     if (!depositAmount || !selectedPaymentMethod) {
