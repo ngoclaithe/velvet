@@ -172,28 +172,28 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="flex-1 text-center sm:text-left">
-                  <h1 className="text-2xl font-bold">{user.username}</h1>
-                  <p className="text-muted-foreground">{user.email}</p>
-                  {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
+                  <h1 className="text-2xl font-bold">{user?.username}</h1>
+                  <p className="text-muted-foreground">{user?.email}</p>
+                  {user?.bio && <p className="text-sm mt-2">{user.bio}</p>}
                   
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{user.followers || 0} người theo dõi</span>
+                      <span className="text-sm">{user?.followers || 0} người theo dõi</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Heart className="h-4 w-4 text-red-500" />
-                      <span className="text-sm">{user.following || 0} đang theo dõi</span>
+                      <span className="text-sm">{user?.following || 0} đang theo dõi</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Eye className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{user.totalViews || 0} lượt xem</span>
+                      <span className="text-sm">{user?.totalViews || 0} lượt xem</span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2 mt-4">
-                    <Badge variant="secondary">{user.role}</Badge>
-                    {user.isVerified && <Badge variant="default" className="bg-blue-600">Đã xác minh</Badge>}
+                    <Badge variant="secondary">{user?.role}</Badge>
+                    {user?.isVerified && <Badge variant="default" className="bg-blue-600">Đã xác minh</Badge>}
                   </div>
                 </div>
 
