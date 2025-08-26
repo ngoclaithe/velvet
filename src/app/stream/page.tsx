@@ -94,7 +94,7 @@ export default function StreamPage() {
   // Kiểm tra quyền truy cập
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'creator')) {
-      toast.error('Bạn cần đăng nh���p với tài kho��n creator để truy cập trang này')
+      toast.error('Bạn cần đăng nhập với tài kho��n creator để truy cập trang này')
       router.push('/login')
     }
   }, [user, authLoading, router])
@@ -136,8 +136,8 @@ export default function StreamPage() {
         const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
-        const streamId = String(apiStreamData.streamId) 
-        const streamKey = apiStreamData.streamKey        
+        const streamId = String(apiStreamData.id)
+        const streamKey = apiStreamData.streamKey
         console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
         const newCurrentStream: CurrentStream = {
@@ -314,7 +314,7 @@ export default function StreamPage() {
                     {isStoppingStream ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Đang dừng...
+                        Đang d���ng...
                       </>
                     ) : (
                       <>
