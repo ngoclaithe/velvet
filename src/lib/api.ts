@@ -431,3 +431,35 @@ export const postsApi = {
   searchPosts: (params: Record<string, string>) =>
     api.get('/posts/search', params),
 }
+
+export const infoPaymentApi = {
+  // Lấy tất cả thông tin thanh toán - GET /info-payments/
+  getInfoPayments: (params?: Record<string, string>) =>
+    api.get('/info-payments/', params),
+
+  // Tạo thông tin thanh toán mới - POST /info-payments/
+  createInfoPayment: (data: {
+    bankName: string;
+    accountNumber: string;
+    accountHolderName: string;
+    qrCodeUrl?: string;
+    isActive?: boolean;
+  }) => api.post('/info-payments/', data),
+
+  // Lấy thông tin thanh toán theo ID - GET /info-payments/:id
+  getInfoPayment: (id: string) =>
+    api.get(`/info-payments/${id}`),
+
+  // Cập nhật thông tin thanh toán - PUT /info-payments/:id
+  updateInfoPayment: (id: string, data: {
+    bankName?: string;
+    accountNumber?: string;
+    accountHolderName?: string;
+    qrCodeUrl?: string;
+    isActive?: boolean;
+  }) => api.put(`/info-payments/${id}`, data),
+
+  // Xóa thông tin thanh toán - DELETE /info-payments/:id
+  deleteInfoPayment: (id: string) =>
+    api.delete(`/info-payments/${id}`),
+}
