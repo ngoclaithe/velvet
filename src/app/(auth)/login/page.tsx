@@ -62,10 +62,7 @@ export default function LoginPage() {
       // Redirect dựa trên role của user
       // Delay nhỏ để đảm bảo user context được cập nhật
       setTimeout(() => {
-        // Access user từ auth store sau khi login
-        const { user: currentUser } = require('@/store/authStore').useAuthStore.getState()
-
-        if (currentUser?.role === 'admin') {
+        if (user?.role === 'admin') {
           router.push('/admin')
         } else {
           router.push('/')
