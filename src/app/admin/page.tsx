@@ -207,6 +207,30 @@ export default function AdminDashboard() {
           }
         ])
 
+        // Mock payment info data
+        setPaymentInfos([
+          {
+            id: '1',
+            bankName: 'Vietcombank',
+            accountNumber: '1234567890',
+            accountHolderName: 'NGUYEN VAN A',
+            qrCodeUrl: 'https://example.com/qr1.jpg',
+            isActive: true,
+            createdAt: '2024-01-15T10:00:00Z',
+            updatedAt: '2024-01-15T10:00:00Z'
+          },
+          {
+            id: '2',
+            bankName: 'Techcombank',
+            accountNumber: '0987654321',
+            accountHolderName: 'TRAN THI B',
+            qrCodeUrl: '',
+            isActive: false,
+            createdAt: '2024-01-10T15:30:00Z',
+            updatedAt: '2024-01-18T09:20:00Z'
+          }
+        ])
+
       } catch (error) {
         console.error('Failed to load admin data:', error)
         toast.error('Không thể tải dữ liệu admin')
@@ -527,7 +551,7 @@ export default function AdminDashboard() {
                           className="bg-blue-600 hover:bg-blue-700"
                         >
                           <UserCheck className="w-4 h-4 mr-1" />
-                          Xác thực
+                          X��c thực
                         </Button>
                       )}
                       {user.status === 'active' && (
