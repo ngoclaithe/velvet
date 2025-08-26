@@ -83,7 +83,9 @@ export default function StreamPage() {
     description: '',
     category: 'Gaming',
     tags: [],
-    isPrivate: false
+    isPrivate: false,
+    chatEnabled: true,
+    donationsEnabled: true
   })
 
   const categories = [
