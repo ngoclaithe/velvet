@@ -368,8 +368,12 @@ export class SocketService {
   }
 
   requestStreamStats(streamId: string) {
+    const endpoint = this.currentConfig?.endpoint
+    const roomId = endpoint || streamId
+
     return this.emit('request_stream_stats', {
-      roomId: streamId
+      roomId: roomId,
+      endpoint: endpoint
     })
   }
 }
