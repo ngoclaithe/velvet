@@ -61,12 +61,14 @@ export default function WalletPage() {
   const [showBalance, setShowBalance] = useState(true)
   const [isDepositing, setIsDepositing] = useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
-  
-  // Mocked data - would come from API
-  const [balance] = useState(1250.50)
-  const [lockedBalance] = useState(50.00)
-  const [totalEarnings] = useState(3500.75)
-  const [monthlyIncome] = useState(850.25)
+  const [isLoadingWallet, setIsLoadingWallet] = useState(true)
+
+  // Real API data
+  const [balance, setBalance] = useState(0)
+  const [lockedBalance, setLockedBalance] = useState(0)
+  const [totalEarnings, setTotalEarnings] = useState(0)
+  const [monthlyIncome, setMonthlyIncome] = useState(0)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   
   const [depositAmount, setDepositAmount] = useState('')
   const [withdrawAmount, setWithdrawAmount] = useState('')
@@ -526,7 +528,7 @@ export default function WalletPage() {
                     step="0.01"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Số dư khả dụng: ${(balance - lockedBalance).toFixed(2)}
+                    Số dư khả d���ng: ${(balance - lockedBalance).toFixed(2)}
                   </p>
                 </div>
 
