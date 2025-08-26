@@ -45,11 +45,11 @@ interface StreamData {
 
 // Interface cho response từ startStream API
 interface StartStreamResponse {
-  id: string
+  streamId: number
   streamKey: string
   socketEndpoint: string
-  title: string
-  isLive: boolean
+  title?: string
+  isLive?: boolean
 }
 
 interface CurrentStream {
