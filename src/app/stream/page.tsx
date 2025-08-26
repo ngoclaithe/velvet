@@ -136,18 +136,17 @@ export default function StreamPage() {
         const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
-        // Extract both streamId (for chat) and streamKey (for socket) từ response
-        const streamId = String(apiStreamData.streamId) // Convert number to string for chat payload
-        const streamKey = apiStreamData.streamKey        // For socket connection
+        const streamId = String(apiStreamData.streamId) 
+        const streamKey = apiStreamData.streamKey        
         console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
         const newCurrentStream: CurrentStream = {
-          id: streamId,  // Use streamId for chat
+          id: streamId,  
           title: apiStreamData.title || streamData.title,
           isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: streamKey,  // Use streamKey for socket
+          streamKey: streamKey, 
           socketEndpoint: apiStreamData.socketEndpoint
         }
 
