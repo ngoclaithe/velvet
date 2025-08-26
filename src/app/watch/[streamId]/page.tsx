@@ -288,15 +288,15 @@ export default function WatchStreamPage() {
         video.play().catch(console.error)
       })
 
-      hls.on(Hls.Events.ERROR, (event, data) => {
+      hls.on(Hls.default.Events.ERROR, (event, data) => {
         console.error('HLS error:', data)
         if (data.fatal) {
           switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
+            case Hls.default.ErrorTypes.NETWORK_ERROR:
               console.log('Fatal network error encountered, trying to recover')
               hls.startLoad()
               break
-            case Hls.ErrorTypes.MEDIA_ERROR:
+            case Hls.default.ErrorTypes.MEDIA_ERROR:
               console.log('Fatal media error encountered, trying to recover')
               hls.recoverMediaError()
               break
