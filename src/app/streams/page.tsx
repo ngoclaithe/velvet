@@ -169,9 +169,10 @@ export default function StreamsPage() {
 
         const response = await streamApi.getLiveStreams(apiParams)
 
-        if (response.success && response.data && typeof response.data === 'object' && response.data !== null && 'streams' in response.data && Array.isArray((response.data as any).streams)) {
+        if (response.success && response.data && (response.data as any)?.streams && Array.isArray((response.data as any).streams)) {
           // Transform API response to match our interface
-          const transformedStreams = response.data.streams.map((stream: StreamResponse) => {
+          const apiStreams = (response.data as any).streams as StreamResponse[]
+          const transformedStreams = apiStreams.map((stream: StreamResponse) => {
             const creator = stream.creator || {}
             const creatorId = creator.id?.toString() || stream.creatorId?.toString() || 'unknown'
             const creatorUsername = creator.displayName || (creator as any).username || 'unknown'
