@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const { login, error } = useAuth()
+  const { login, error, user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -46,7 +46,7 @@ export default function LoginPage() {
     setErrors({})
 
     try {
-      await login({
+      const loginResult = await login({
         loginField, // Backend nhận loginField (có thể là email hoặc username)
         password,
         rememberMe
@@ -59,8 +59,15 @@ export default function LoginPage() {
         variant: "default"
       })
 
-      // Chuyển về trang chủ ngay lập tức
-      router.push('/')
+      // Redirect dựa trên role của user
+      // Delay nhỏ để đảm bảo user context được cập nhật
+      setTimeout(() => {
+        if (user?.role === 'admin') {
+          router.push('/admin')
+        } else {
+          router.push('/')
+        }
+      }, 100)
 
     } catch (error) {
       console.error('Login failed:', error)

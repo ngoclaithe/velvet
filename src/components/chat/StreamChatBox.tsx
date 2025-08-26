@@ -79,39 +79,7 @@ export default function StreamChatBox({
   
   const chatScrollRef = useRef<HTMLDivElement>(null)
 
-  // Load initial chat messages
-  useEffect(() => {
-    const fetchChatMessages = async () => {
-      if (!chatEnabled) return
-
-      try {
-        const response = await chatApi.getMessages(streamId)
-        if (response.success && response.data && Array.isArray(response.data)) {
-          setChatMessages(response.data)
-        } else {
-          // Fallback to mock data if API fails
-          const mockMessages: ChatMessage[] = [
-            {
-              id: '1',
-              userId: 'user1',
-              username: 'viewer1',
-              displayName: 'Viewer One',
-              message: 'Chào mọi người!',
-              timestamp: new Date().toISOString(),
-              type: 'message'
-            }
-          ]
-          setChatMessages(mockMessages)
-        }
-      } catch (error) {
-        console.error('Error fetching chat messages:', error)
-      }
-    }
-
-    if (streamId && chatEnabled) {
-      fetchChatMessages()
-    }
-  }, [streamId, chatEnabled])
+  // Chat messages will be populated entirely through WebSocket real-time events
 
   // Setup WebSocket for real-time chat
   useEffect(() => {

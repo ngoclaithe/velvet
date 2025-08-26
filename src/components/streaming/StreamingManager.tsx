@@ -405,7 +405,7 @@ export function StreamingManager({
       try {
         if (socketService.getIsConnected()) {
           const success = await socketService.sendStreamChunk(
-            streamData.id,   
+            String(streamData.id),
             streamData.streamKey,
             buffer,
             chunkNumber,

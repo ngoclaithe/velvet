@@ -46,7 +46,7 @@ interface StreamData {
 }
 
 interface StartStreamResponse {
-  streamId: number
+  id: string
   streamKey: string
   socketEndpoint: string
   title?: string
@@ -94,7 +94,7 @@ export default function StreamPage() {
   // Kiểm tra quyền truy cập
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'creator')) {
-      toast.error('Bạn cần đăng nhập với tài kho��n creator để truy cập trang này')
+      toast.error('Bạn cần đăng nhập với tài khoản creator để truy cập trang này')
       router.push('/login')
     }
   }, [user, authLoading, router])
@@ -117,7 +117,7 @@ export default function StreamPage() {
       return
     }
 
-    console.log('�� Stream data to send:', streamData)
+    console.log('Stream data to send:', streamData)
 
     setIsStartingStream(true)
     try {
@@ -136,8 +136,8 @@ export default function StreamPage() {
         const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
-        const streamId = String(apiStreamData.streamId) 
-        const streamKey = apiStreamData.streamKey        
+        const streamId = String(apiStreamData.id)
+        const streamKey = apiStreamData.streamKey
         console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
         const newCurrentStream: CurrentStream = {
@@ -188,7 +188,7 @@ export default function StreamPage() {
       if (response.success) {
         setCurrentStream(null)
         setIsConnected(false)
-        toast.success('Stream ��ã được kết thúc')
+        toast.success('Stream đã được kết thúc')
       } else {
         toast.error(response.error || 'Không thể kết thúc stream')
       }

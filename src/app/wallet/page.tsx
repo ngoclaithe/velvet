@@ -34,6 +34,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { paymentApi } from '@/lib/api'
 
 interface Transaction {
   id: string
@@ -60,12 +61,14 @@ export default function WalletPage() {
   const [showBalance, setShowBalance] = useState(true)
   const [isDepositing, setIsDepositing] = useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
-  
-  // Mocked data - would come from API
-  const [balance] = useState(1250.50)
-  const [lockedBalance] = useState(50.00)
-  const [totalEarnings] = useState(3500.75)
-  const [monthlyIncome] = useState(850.25)
+  const [isLoadingWallet, setIsLoadingWallet] = useState(true)
+
+  // Real API data
+  const [balance, setBalance] = useState(0)
+  const [lockedBalance, setLockedBalance] = useState(0)
+  const [totalEarnings, setTotalEarnings] = useState(0)
+  const [monthlyIncome, setMonthlyIncome] = useState(0)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   
   const [depositAmount, setDepositAmount] = useState('')
   const [withdrawAmount, setWithdrawAmount] = useState('')
@@ -95,53 +98,44 @@ export default function WalletPage() {
     }
   ]
 
-  const transactions: Transaction[] = [
-    {
-      id: '1',
-      type: 'earning',
-      amount: 25.50,
-      description: 'Thu nhập từ bài viết "Tutorial JavaScript"',
-      date: new Date('2024-01-15'),
-      status: 'completed',
-      transactionId: 'TXN001'
-    },
-    {
-      id: '2',
-      type: 'gift_received',
-      amount: 10.00,
-      description: 'Quà tặng từ @user123',
-      date: new Date('2024-01-14'),
-      status: 'completed',
-      transactionId: 'TXN002'
-    },
-    {
-      id: '3',
-      type: 'deposit',
-      amount: 100.00,
-      description: 'Nạp tiền từ Vietcombank',
-      date: new Date('2024-01-13'),
-      status: 'completed',
-      transactionId: 'TXN003'
-    },
-    {
-      id: '4',
-      type: 'withdrawal',
-      amount: -50.00,
-      description: 'Rút tiền về Vietcombank',
-      date: new Date('2024-01-12'),
-      status: 'pending',
-      transactionId: 'TXN004'
-    },
-    {
-      id: '5',
-      type: 'spending',
-      amount: -5.00,
-      description: 'Tặng quà cho @creator456',
-      date: new Date('2024-01-11'),
-      status: 'completed',
-      transactionId: 'TXN005'
+  // Load wallet data and transactions from API
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      if (!user) return
+
+      setIsLoadingWallet(true)
+      try {
+        // Fetch wallet balance
+        const walletResponse = await paymentApi.getWallet()
+        if (walletResponse.success && walletResponse.data) {
+          setBalance(walletResponse.data.balance || 0)
+          setLockedBalance(walletResponse.data.lockedBalance || 0)
+          setTotalEarnings(walletResponse.data.totalEarnings || 0)
+          setMonthlyIncome(walletResponse.data.monthlyIncome || 0)
+        }
+
+        // Fetch transactions
+        const transactionsResponse = await paymentApi.getTransactions()
+        if (transactionsResponse.success && transactionsResponse.data) {
+          setTransactions(transactionsResponse.data.map((t: any) => ({
+            ...t,
+            date: new Date(t.date || t.createdAt)
+          })))
+        }
+      } catch (error) {
+        console.error('Failed to load wallet data:', error)
+        toast({
+          title: "Không thể tải dữ liệu ví",
+          description: "Vui lòng thử lại sau",
+          variant: "destructive"
+        })
+      } finally {
+        setIsLoadingWallet(false)
+      }
     }
-  ]
+
+    fetchWalletData()
+  }, [user, toast])
 
   const handleDeposit = async () => {
     if (!depositAmount || !selectedPaymentMethod) {
@@ -155,17 +149,33 @@ export default function WalletPage() {
 
     setIsDepositing(true)
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      toast({
-        title: "Nạp tiền thành công!",
-        description: `Đã nạp $${depositAmount} vào ví của bạn`,
-        variant: "default"
+      const response = await paymentApi.deposit({
+        amount: parseFloat(depositAmount),
+        paymentMethodId: selectedPaymentMethod
       })
-      
-      setDepositAmount('')
-      setSelectedPaymentMethod('')
+
+      if (response.success) {
+        toast({
+          title: "Nạp tiền thành công!",
+          description: `Đã nạp $${depositAmount} vào ví của bạn`,
+          variant: "default"
+        })
+
+        // Refresh wallet data
+        const walletResponse = await paymentApi.getWallet()
+        if (walletResponse.success && walletResponse.data) {
+          setBalance(walletResponse.data.balance || 0)
+        }
+
+        setDepositAmount('')
+        setSelectedPaymentMethod('')
+      } else {
+        toast({
+          title: "Lỗi nạp tiền",
+          description: response.error || "Không thể nạp tiền",
+          variant: "destructive"
+        })
+      }
     } catch (error) {
       toast({
         title: "Lỗi nạp tiền",
@@ -199,17 +209,34 @@ export default function WalletPage() {
 
     setIsWithdrawing(true)
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      toast({
-        title: "Yêu cầu rút tiền thành công!",
-        description: `Yêu cầu rút $${withdrawAmount} đang được xử lý`,
-        variant: "default"
+      const response = await paymentApi.withdraw({
+        amount: amount,
+        paymentMethodId: selectedPaymentMethod
       })
-      
-      setWithdrawAmount('')
-      setSelectedPaymentMethod('')
+
+      if (response.success) {
+        toast({
+          title: "Yêu cầu rút tiền thành công!",
+          description: `Yêu cầu rút $${withdrawAmount} đang được xử lý`,
+          variant: "default"
+        })
+
+        // Refresh wallet data
+        const walletResponse = await paymentApi.getWallet()
+        if (walletResponse.success && walletResponse.data) {
+          setBalance(walletResponse.data.balance || 0)
+          setLockedBalance(walletResponse.data.lockedBalance || 0)
+        }
+
+        setWithdrawAmount('')
+        setSelectedPaymentMethod('')
+      } else {
+        toast({
+          title: "Lỗi rút tiền",
+          description: response.error || "Không thể tạo yêu cầu rút tiền",
+          variant: "destructive"
+        })
+      }
     } catch (error) {
       toast({
         title: "Lỗi rút tiền",
@@ -254,11 +281,12 @@ export default function WalletPage() {
     }
   }, [authLoading, isAuthenticated, router])
 
-  if (authLoading) {
+  if (authLoading || isLoadingWallet) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
           <Icons.spinner className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Đang tải dữ liệu ví...</span>
         </div>
       </div>
     )
@@ -280,69 +308,91 @@ export default function WalletPage() {
         </Button>
       </div>
 
-      {/* Balance Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowBalance(!showBalance)}
-              className="h-4 w-4"
-            >
-              {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {showBalance ? `$${balance.toFixed(2)}` : '••••••'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Khả dụng: ${(balance - lockedBalance).toFixed(2)}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Balance Overview - Different for Users vs Creators */}
+      {user?.role === 'creator' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowBalance(!showBalance)}
+                className="h-4 w-4"
+              >
+                {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {showBalance ? `$${balance.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Khả dụng cho rút tiền
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Số dư bị khóa</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${lockedBalance.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              Đang xử lý rút tiền
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tổng thu nhập</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {showBalance ? `$${totalEarnings.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-xs text-green-600">
+                Tổng thu nhập từ streaming
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng thu nhập</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${totalEarnings.toFixed(2)}</div>
-            <p className="text-xs text-green-600">
-              +12.5% so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Thu nhập tháng này</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${monthlyIncome.toFixed(2)}</div>
-            <p className="text-xs text-blue-600">
-              +8.2% so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Thu nhập tháng này</CardTitle>
+              <DollarSign className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {showBalance ? `$${monthlyIncome.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-xs text-blue-600">
+                Thu nhập trong tháng
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
+          <Card className="max-w-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Số dư ví</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowBalance(!showBalance)}
+                className="h-4 w-4"
+              >
+                {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {showBalance ? `$${balance.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Số dư khả dụng để sử dụng trong ứng dụng
+              </p>
+              {balance === 0 && (
+                <p className="text-xs text-orange-600 mt-1">
+                  Chưa có số dư. Nạp tiền để bắt đầu sử dụng.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Tabs defaultValue="transactions" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
