@@ -41,15 +41,17 @@ interface StreamData {
   category: string
   tags: string[]
   isPrivate: boolean
+  chatEnabled: boolean
+  donationsEnabled: boolean
 }
 
-// Interface cho response từ startStream API
+// Interface cho response từ startStream API - match với api.ts
 interface StartStreamResponse {
-  streamId: number
+  id: string
   streamKey: string
   socketEndpoint: string
-  title?: string
-  isLive?: boolean
+  title: string
+  isLive: boolean
 }
 
 interface CurrentStream {
@@ -133,9 +135,9 @@ export default function StreamPage() {
         const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
-        // Extract stream ID từ response - API trả về streamId as number
-        const streamId = String(apiStreamData.streamId)
-        console.log('🆔 Extracted stream ID:', streamId, '(from streamId:', apiStreamData.streamId, ')')
+        // Extract stream ID từ response - API trả về id as string
+        const streamId = apiStreamData.id
+        console.log('🆔 Extracted stream ID:', streamId, '(from id:', apiStreamData.id, ')')
 
         const newCurrentStream: CurrentStream = {
           id: streamId,
