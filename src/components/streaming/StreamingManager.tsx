@@ -51,7 +51,7 @@ export function StreamingManager({
   useEffect(() => {
     if (isRecording && socketService.getIsConnected()) {
       const statsInterval = setInterval(() => {
-        socketService.requestStreamStats(streamData.id)
+        socketService.requestStreamStats(String(streamData.id))
       }, 10000)
 
       return () => clearInterval(statsInterval)
