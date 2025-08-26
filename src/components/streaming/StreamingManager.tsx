@@ -8,6 +8,7 @@ import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamingManagerProps {
   streamData: StreamResponse
+  socketEndpoint?: string
   cameraEnabled: boolean
   micEnabled: boolean
   onStatusChange: (connected: boolean) => void
@@ -16,6 +17,7 @@ interface StreamingManagerProps {
 
 export function StreamingManager({
   streamData,
+  socketEndpoint,
   cameraEnabled,
   micEnabled,
   onStatusChange,
@@ -69,9 +71,11 @@ export function StreamingManager({
         accessCode: streamData.streamKey,
         clientType: 'creator',
         streamId: String(streamData.id),
-        streamKey: streamData.streamKey
+        streamKey: streamData.streamKey,
+        endpoint: socketEndpoint // Use socketEndpoint from API response
       }
 
+      console.log('🔌 Connecting to socket with endpoint:', socketEndpoint)
       setupSocketEventListeners()
       await socketService.connect(socketConfig)
 
