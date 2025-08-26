@@ -77,7 +77,7 @@ export function StreamingManager({
       const connected = socketService.getIsConnected()
       setIsConnected(connected)
 
-      socketService.startStreaming(streamData.id, streamData.streamKey)
+      socketService.startStreaming(String(streamData.id), streamData.streamKey)
       await setupOptimizedMediaCapture()
 
     } catch (error) {
