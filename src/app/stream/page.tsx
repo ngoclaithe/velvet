@@ -49,7 +49,7 @@ interface StreamData {
 interface StartStreamResponse {
   streamId: number  // For chat payload
   streamKey: string // For socket connection
-  socketEndpoint: string
+  socketEndpoint: string // Socket endpoint for connection
   title?: string
   isLive?: boolean
 }
@@ -431,6 +431,7 @@ export default function StreamPage() {
                     avatar: user?.avatar
                   }
                 } as StreamResponse}
+                socketEndpoint={currentStream.socketEndpoint}
                 cameraEnabled={cameraEnabled}
                 micEnabled={micEnabled}
                 onStatusChange={handleStreamingStatusChange}
@@ -537,7 +538,7 @@ export default function StreamPage() {
               <div className="flex justify-end">
                 <Button onClick={handleStartStream} disabled={isStartingStream}>
                   <Save className="w-4 h-4 mr-2" />
-                  Lưu & Bắt đầu Stream
+                  Lưu & Bắt đ���u Stream
                 </Button>
               </div>
             )}
