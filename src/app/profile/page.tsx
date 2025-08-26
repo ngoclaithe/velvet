@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Icons } from '@/components/common/Icons'
 import {
-  User,
+  User as UserIcon,
   Edit3,
   Save,
   Camera,
@@ -460,7 +460,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Hiển thị email</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác xem địa ch��� email của bạn
+                    Cho phép người khác xem địa chỉ email của bạn
                   </p>
                 </div>
                 <Switch
