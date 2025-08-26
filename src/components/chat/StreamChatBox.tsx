@@ -20,7 +20,6 @@ import {
 } from 'lucide-react'
 import { chatApi, paymentApi } from '@/lib/api'
 import { chatWebSocket, getWebSocket } from '@/lib/websocket'
-import { getSocketService } from '@/lib/socket'
 import { useAuth } from '@/hooks/useAuth'
 
 interface ChatMessage {
@@ -80,9 +79,6 @@ export default function StreamChatBox({
   
   const chatScrollRef = useRef<HTMLDivElement>(null)
 
-  // Use the same socket service that creators use for consistency
-  const socketService = getSocketService()
-
   // Load initial chat messages
   useEffect(() => {
     const fetchChatMessages = async () => {
@@ -121,19 +117,18 @@ export default function StreamChatBox({
   useEffect(() => {
     if (!streamId || !chatEnabled) return
 
+    const webSocket = getWebSocket()
+    
     const setupWebSocket = async () => {
       try {
-        // Connect to socket if not already connected
-        if (!socketService.getIsConnected()) {
-          await socketService.connect({
-            clientType: isCreator ? 'creator' : 'viewer',
-            streamId: streamId
-          })
+        // Connect to WebSocket if not already connected
+        if (!webSocket.isConnected()) {
+          await webSocket.connect(user?.id)
         }
-
-        // Join stream chat room using socket service
-        console.log('Joining stream chat for streamId:', streamId, 'as', isCreator ? 'creator' : 'viewer')
-        socketService.emit('join_stream_chat', { streamId })
+        
+        // Join stream chat room
+        console.log('Joining stream chat for streamId:', streamId)
+        chatWebSocket.joinStreamChat(streamId)
         setIsWebSocketConnected(true)
         
         // Listen for new chat messages from backend 'stream_chat_message' event
@@ -168,15 +163,14 @@ export default function StreamChatBox({
             }
           }
         }
-
+        
         // Listen for user count updates
         const handleUserCountUpdate = (data: any) => {
           setConnectedUsers(data.count || 0)
         }
-
-        // Use socket service for consistent event handling
-        socketService.on('stream_chat_message', handleNewMessage)
-        socketService.on('chat_user_count', handleUserCountUpdate)
+        
+        chatWebSocket.onStreamChatMessage(handleNewMessage)
+        webSocket.on('chat_user_count', handleUserCountUpdate)
 
         console.log('WebSocket setup complete for stream:', streamId)
         
@@ -194,10 +188,11 @@ export default function StreamChatBox({
     return () => {
       if (streamId) {
         console.log('Leaving stream chat for streamId:', streamId)
-        socketService.emit('leave_stream_chat', { streamId })
+        chatWebSocket.leaveStreamChat(streamId)
         // Clean up event listeners to prevent memory leaks
-        socketService.off('stream_chat_message')
-        socketService.off('chat_user_count')
+        const ws = getWebSocket()
+        ws.off('stream_chat_message')
+        ws.off('chat_user_count')
       }
     }
   }, [streamId, chatEnabled, isAuthenticated, user?.id, isSoundEnabled])
@@ -222,10 +217,9 @@ export default function StreamChatBox({
       })
 
       if (response.success) {
-        // If API succeeds, also send via Socket for real-time delivery
+        // If API succeeds, also send via WebSocket for real-time delivery
         if (isWebSocketConnected) {
-          socketService.emit('chat_message', {
-            streamId,
+          chatWebSocket.sendChatMessage(streamId, {
             userId: user.id,
             username: user.username,
             displayName: user.firstName || user.username,
@@ -248,10 +242,9 @@ export default function StreamChatBox({
           setChatMessages(prev => [...prev, newMsg])
         }
       } else {
-        // If API fails, try Socket only
+        // If API fails, try WebSocket only
         if (isWebSocketConnected) {
-          socketService.emit('chat_message', {
-            streamId,
+          chatWebSocket.sendChatMessage(streamId, {
             userId: user.id,
             username: user.username,
             displayName: user.firstName || user.username,
@@ -266,10 +259,9 @@ export default function StreamChatBox({
         }
       }
     } catch (error) {
-      // On error, try Socket as fallback
+      // On error, try WebSocket as fallback
       if (isWebSocketConnected) {
-        socketService.emit('chat_message', {
-          streamId,
+        chatWebSocket.sendChatMessage(streamId, {
           userId: user.id,
           username: user.username,
           displayName: user.firstName || user.username,
@@ -315,10 +307,9 @@ export default function StreamChatBox({
           amount: gift.price
         }
         
-        // Send gift message via Socket for real-time delivery
+        // Send gift message via WebSocket for real-time delivery
         if (isWebSocketConnected) {
-          socketService.emit('chat_message', {
-            streamId,
+          chatWebSocket.sendChatMessage(streamId, {
             userId: user.id,
             username: user.username,
             displayName: user.firstName || user.username,
