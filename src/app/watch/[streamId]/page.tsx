@@ -117,7 +117,7 @@ export default function WatchStreamPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const chatScrollRef = useRef<HTMLDivElement>(null)
-  const hlsRef = useRef<Hls | null>(null)
+  const hlsRef = useRef<any>(null)
 
   useEffect(() => {
     const fetchStreamData = async () => {
