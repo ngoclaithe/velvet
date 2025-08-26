@@ -80,6 +80,9 @@ export default function StreamChatBox({
   
   const chatScrollRef = useRef<HTMLDivElement>(null)
 
+  // Use the same socket service that creators use for consistency
+  const socketService = getSocketService()
+
   // Load initial chat messages
   useEffect(() => {
     const fetchChatMessages = async () => {
@@ -117,9 +120,6 @@ export default function StreamChatBox({
   // Setup WebSocket for real-time chat
   useEffect(() => {
     if (!streamId || !chatEnabled) return
-
-    // Use the same socket service that creators use for consistency
-    const socketService = getSocketService()
 
     const setupWebSocket = async () => {
       try {
