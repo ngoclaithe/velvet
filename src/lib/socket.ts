@@ -226,20 +226,28 @@ export class SocketService {
   }
 
   startStreaming(streamId: string, streamKey: string) {
+    const endpoint = this.currentConfig?.endpoint
+    console.log('🚀 Starting streaming with endpoint:', endpoint, 'streamId:', streamId)
+
     return this.emit('start_streaming', {
       streamId,
       streamKey,
+      endpoint,
       timestamp: Date.now()
     })
   }
 
   stopStreaming(streamId: string) {
+    const endpoint = this.currentConfig?.endpoint
+    const roomId = endpoint || streamId
+
     this.emit('leave_room_stream', {
-      roomId: streamId
+      roomId: roomId
     })
 
     return this.emit('stop_streaming', {
       streamId,
+      endpoint,
       timestamp: Date.now()
     })
   }
