@@ -34,6 +34,7 @@ import { streamApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import type { StreamResponse } from '@/types/streaming'
 import StreamingManager from '@/components/streaming/StreamingManager'
+import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamData {
   title: string
