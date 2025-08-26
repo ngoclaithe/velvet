@@ -56,36 +56,6 @@ interface StreamData {
   totalDonations: string
 }
 
-interface ChatMessage {
-  id: string
-  userId: string
-  username: string
-  displayName: string
-  message: string
-  timestamp: string
-  type: 'message' | 'gift' | 'tip'
-  giftType?: string
-  amount?: number
-}
-
-interface GiftOption {
-  id: string
-  name: string
-  icon: string
-  price: number
-  animation?: string
-}
-
-const giftOptions: GiftOption[] = [
-  { id: '1', name: 'Hoa hồng', icon: '🌹', price: 1 },
-  { id: '2', name: 'Tim', icon: '❤️', price: 2 },
-  { id: '3', name: 'Kem', icon: '🍦', price: 5 },
-  { id: '4', name: 'Pizza', icon: '🍕', price: 10 },
-  { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
-  { id: '6', name: 'Nhà', icon: '����', price: 100 },
-  { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
-  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
-]
 
 export default function WatchStreamPage() {
   const params = useParams()
