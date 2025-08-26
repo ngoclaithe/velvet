@@ -142,6 +142,23 @@ export default function ProfilePage() {
     }
   }, [authLoading, isAuthenticated, router])
 
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        username: user.username || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        website: user.website || '',
+        gender: user.gender || '',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+      })
+    }
+  }, [user])
+
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -218,7 +235,7 @@ export default function ProfilePage() {
                   className="w-full sm:w-auto"
                 >
                   <Edit3 className="h-4 w-4 mr-2" />
-                  {isEditing ? 'Hủy chỉnh sửa' : 'Chỉnh sửa hồ sơ'}
+                  {isEditing ? 'Hủy chỉnh sửa' : 'Chỉnh sửa h��� sơ'}
                 </Button>
               </div>
             </CardContent>
