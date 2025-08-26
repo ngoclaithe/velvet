@@ -257,7 +257,12 @@ export const streamApi = {
     if (params?.offset !== undefined) queryParams.offset = params.offset.toString();
     if (params?.category) queryParams.category = params.category;
 
-    return api.get('/streams/live', queryParams);
+    return api.get<{
+      streams: any[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>('/streams/live', queryParams);
   },
 
   // Lấy thông tin stream cụ thể
