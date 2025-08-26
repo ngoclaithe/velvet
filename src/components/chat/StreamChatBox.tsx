@@ -222,9 +222,10 @@ export default function StreamChatBox({
       })
 
       if (response.success) {
-        // If API succeeds, also send via WebSocket for real-time delivery
+        // If API succeeds, also send via Socket for real-time delivery
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, {
+          socketService.emit('chat_message', {
+            streamId,
             userId: user.id,
             username: user.username,
             displayName: user.firstName || user.username,
@@ -247,9 +248,10 @@ export default function StreamChatBox({
           setChatMessages(prev => [...prev, newMsg])
         }
       } else {
-        // If API fails, try WebSocket only
+        // If API fails, try Socket only
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, {
+          socketService.emit('chat_message', {
+            streamId,
             userId: user.id,
             username: user.username,
             displayName: user.firstName || user.username,
@@ -264,9 +266,10 @@ export default function StreamChatBox({
         }
       }
     } catch (error) {
-      // On error, try WebSocket as fallback
+      // On error, try Socket as fallback
       if (isWebSocketConnected) {
-        chatWebSocket.sendChatMessage(streamId, {
+        socketService.emit('chat_message', {
+          streamId,
           userId: user.id,
           username: user.username,
           displayName: user.firstName || user.username,
