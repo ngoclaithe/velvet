@@ -172,9 +172,10 @@ export default function StreamsPage() {
         if (response.success && response.data && 'streams' in response.data && Array.isArray(response.data.streams)) {
           // Transform API response to match our interface
           const transformedStreams = response.data.streams.map((stream: StreamResponse) => {
-            const creatorId = stream.creator?.id?.toString() || stream.creatorId?.toString() || 'unknown'
-            const creatorUsername = stream.creator?.displayName || stream.creator?.username || 'unknown'
-            const creatorStageName = stream.creator?.stageName || stream.creator?.displayName || 'Unknown Creator'
+            const creator = stream.creator || {}
+            const creatorId = creator.id?.toString() || stream.creatorId?.toString() || 'unknown'
+            const creatorUsername = creator.displayName || (creator as any).username || 'unknown'
+            const creatorStageName = creator.stageName || creator.displayName || 'Unknown Creator'
 
             return {
               id: stream.id?.toString() || 'unknown',
