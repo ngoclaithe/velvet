@@ -26,49 +26,6 @@ interface AdminStats {
   reportedContent: number
 }
 
-interface User {
-  id: string
-  username: string
-  email: string
-  role: 'user' | 'creator' | 'admin'
-  status: 'active' | 'suspended' | 'banned'
-  createdAt: string
-  lastLogin?: string
-  isVerified: boolean
-}
-
-interface Stream {
-  id: string
-  title: string
-  creator: string
-  viewers: number
-  status: 'live' | 'ended' | 'scheduled'
-  category: string
-  startTime: string
-  duration?: string
-}
-
-interface Report {
-  id: string
-  type: 'stream' | 'user' | 'chat'
-  reportedBy: string
-  targetId: string
-  targetName: string
-  reason: string
-  status: 'pending' | 'resolved' | 'dismissed'
-  createdAt: string
-}
-
-interface PaymentInfo {
-  id: string
-  bankName: string
-  accountNumber: string
-  accountHolderName: string
-  qrCodeUrl?: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
 
 export default function AdminDashboard() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
@@ -347,7 +304,7 @@ export default function AdminDashboard() {
 
       toast.success('Đã cập nhật thông tin thanh toán thành công')
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi cập nhật thông tin thanh toán')
+      toast.error('Có lỗi x��y ra khi cập nhật thông tin thanh toán')
     }
   }
 
@@ -426,7 +383,7 @@ export default function AdminDashboard() {
       case 'resolved':
         return <Badge className="bg-green-500">Đã giải quyết</Badge>
       case 'dismissed':
-        return <Badge variant="secondary">Đã bỏ qua</Badge>
+        return <Badge variant="secondary">��ã bỏ qua</Badge>
       default:
         return <Badge variant="secondary">Không xác định</Badge>
     }
