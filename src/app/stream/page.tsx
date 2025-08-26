@@ -46,7 +46,7 @@ interface StreamData {
 }
 
 interface StartStreamResponse {
-  streamId: number
+  id: string
   streamKey: string
   socketEndpoint: string
   title?: string
@@ -94,7 +94,7 @@ export default function StreamPage() {
   // Kiểm tra quyền truy cập
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'creator')) {
-      toast.error('Bạn cần đăng nhập với tài kho��n creator để truy cập trang này')
+      toast.error('Bạn cần đăng nh���p với tài kho��n creator để truy cập trang này')
       router.push('/login')
     }
   }, [user, authLoading, router])
