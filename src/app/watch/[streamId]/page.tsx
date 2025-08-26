@@ -214,61 +214,6 @@ export default function WatchStreamPage() {
     }
   }, [streamId, router])
 
-  useEffect(() => {
-    const fetchChatMessages = async () => {
-      if (!streamData?.chatEnabled) return
-
-      try {
-        // Load initial chat messages from API
-        const response = await chatApi.getMessages(streamId)
-        if (response.success && response.data) {
-          setChatMessages(response.data)
-        } else {
-          // Fallback to mock data if API fails
-          const mockMessages: ChatMessage[] = [
-            {
-              id: '1',
-              userId: 'user1',
-              username: 'viewer1',
-              displayName: 'Viewer One',
-              message: 'Chào mọi người!',
-              timestamp: new Date().toISOString(),
-              type: 'message'
-            },
-            {
-              id: '2',
-              userId: 'user2',
-              username: 'viewer2',
-              displayName: 'Viewer Two',
-              message: 'Stream hay quá!',
-              timestamp: new Date().toISOString(),
-              type: 'message'
-            }
-          ]
-          setChatMessages(mockMessages)
-        }
-      } catch (error) {
-        console.error('Error fetching chat messages:', error)
-        // Keep mock data as fallback
-        const mockMessages: ChatMessage[] = [
-          {
-            id: '1',
-            userId: 'user1',
-            username: 'viewer1',
-            displayName: 'Viewer One',
-            message: 'Chào mọi người!',
-            timestamp: new Date().toISOString(),
-            type: 'message'
-          }
-        ]
-        setChatMessages(mockMessages)
-      }
-    }
-
-    if (streamId && streamData) {
-      fetchChatMessages()
-    }
-  }, [streamId, streamData])
 
   // Setup WebSocket for real-time chat
   useEffect(() => {
