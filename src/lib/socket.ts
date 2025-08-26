@@ -5,6 +5,7 @@ export interface SocketConnectionConfig {
   clientType?: 'creator' | 'viewer' | 'client'
   streamId?: string
   streamKey?: string
+  socketEndpoint?: string  // Use this endpoint path instead of constructing from streamKey
 }
 
 export interface JoinRoomData {
@@ -127,15 +128,22 @@ export class SocketService {
     }
 
     // Determine roomId based on user requirements:
+    // - If socketEndpoint is provided, use that (removes leading slash if present)
     // - Creators: use streamKey for socket connections (streaming ingest)
     // - Viewers: can use streamId or streamKey depending on what's available
     let roomId: string
-    if (config.clientType === 'creator') {
+    if (config.socketEndpoint) {
+      // Use the socketEndpoint from API response, clean up the path
+      roomId = config.socketEndpoint.startsWith('/') ? config.socketEndpoint.substring(1) : config.socketEndpoint
+      console.log('🔌 Using socketEndpoint as roomId:', roomId)
+    } else if (config.clientType === 'creator') {
       // For creators, prioritize streamKey for socket connections
       roomId = config.streamKey || config.streamId || config.accessCode || 'unknown'
+      console.log('🔑 Using streamKey as roomId:', roomId)
     } else {
       // For viewers, can use either streamId or streamKey
       roomId = config.streamId || config.streamKey || config.accessCode || 'unknown'
+      console.log('👁️ Using streamId/streamKey as roomId:', roomId)
     }
 
     if (config.clientType === 'creator' || config.streamId) {
