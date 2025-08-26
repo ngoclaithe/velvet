@@ -568,7 +568,7 @@ export function StreamingManager({
           <StreamChatBox
             streamId={String(streamData.id)}
             isCreator={true}
-            chatEnabled={true}
+            chatEnabled={streamData.chatEnabled}
             className="h-[500px] lg:h-[600px]"
           />
         </div>
