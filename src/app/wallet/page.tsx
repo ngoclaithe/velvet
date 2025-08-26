@@ -34,6 +34,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { paymentApi } from '@/lib/api'
 
 interface Transaction {
   id: string
