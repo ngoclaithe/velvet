@@ -269,63 +269,81 @@ export default function WatchStreamPage() {
     }
   }, [chatMessages])
 
-  // Initialize HLS player
+  // Initialize HLS player với dynamic import
   useEffect(() => {
     const video = videoRef.current
     if (!video || !streamData?.hlsUrl) return
 
-    if (Hls.default && Hls.default.isSupported()) {
-      // Clean up existing HLS instance
-      if (hlsRef.current) {
-        hlsRef.current.destroy()
-      }
-
-      const hls = new Hls.default({
-        enableWorker: false,
-        lowLatencyMode: true,
-        backBufferLength: 90
-      })
-
-      hlsRef.current = hls
-      hls.loadSource(streamData.hlsUrl)
-      hls.attachMedia(video)
-
-      hls.on(Hls.default.Events.MANIFEST_PARSED, () => {
-        console.log('HLS manifest parsed, playing video')
-        video.play().catch(console.error)
-      })
-
-      hls.on(Hls.default.Events.ERROR, (event, data) => {
-        console.error('HLS error:', data)
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.default.ErrorTypes.NETWORK_ERROR:
-              console.log('Fatal network error encountered, trying to recover')
-              hls.startLoad()
-              break
-            case Hls.default.ErrorTypes.MEDIA_ERROR:
-              console.log('Fatal media error encountered, trying to recover')
-              hls.recoverMediaError()
-              break
-            default:
-              console.log('Fatal error, destroying HLS instance')
-              hls.destroy()
-              break
-          }
+    // Dynamic import hls.js để tránh lỗi SSR và import
+    const initializeHLS = async () => {
+      try {
+        // Kiểm tra native HLS support trước (Safari)
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          console.log('Using native HLS support')
+          video.src = streamData.hlsUrl
+          video.addEventListener('loadedmetadata', () => {
+            video.play().catch(console.error)
+          })
+          return
         }
-      })
+
+        // Dynamic import hls.js
+        const HlsModule = await import('hls.js')
+        const Hls = HlsModule.default
+
+        if (Hls && Hls.isSupported()) {
+          console.log('Using HLS.js')
+
+          // Clean up existing HLS instance
+          if (hlsRef.current) {
+            hlsRef.current.destroy()
+          }
+
+          const hls = new Hls({
+            enableWorker: false,
+            lowLatencyMode: true,
+            backBufferLength: 90
+          })
+
+          hlsRef.current = hls
+          hls.loadSource(streamData.hlsUrl)
+          hls.attachMedia(video)
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('HLS manifest parsed, playing video')
+            video.play().catch(console.error)
+          })
+
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            console.error('HLS error:', data)
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.log('Fatal network error encountered, trying to recover')
+                  hls.startLoad()
+                  break
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.log('Fatal media error encountered, trying to recover')
+                  hls.recoverMediaError()
+                  break
+                default:
+                  console.log('Fatal error, destroying HLS instance')
+                  hls.destroy()
+                  break
+              }
+            }
+          })
+        } else {
+          console.error('HLS is not supported in this browser')
+          toast.error('Trình duyệt không hỗ trợ phát stream')
+        }
+      } catch (error) {
+        console.error('Failed to load HLS.js:', error)
+        toast.error('Không thể tải HLS player')
+      }
     }
-    // For Safari which has native HLS support
-    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = streamData.hlsUrl
-      video.addEventListener('loadedmetadata', () => {
-        video.play().catch(console.error)
-      })
-    }
-    else {
-      console.error('This browser does not support HLS')
-      toast.error('Trình duyệt không hỗ trợ phát stream')
-    }
+
+    initializeHLS()
 
     return () => {
       if (hlsRef.current) {
