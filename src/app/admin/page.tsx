@@ -18,6 +18,9 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import type { UserProfile, Report } from '@/types/user'
+import type { StreamResponse } from '@/types/streaming'
+import type { PaymentMethod } from '@/types/payments'
 
 interface AdminStats {
   totalUsers: number
@@ -542,7 +545,7 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span>Tỷ lệ Creator hoạt động</span>
+                  <span>Tỷ l�� Creator hoạt động</span>
                   <span>78%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
