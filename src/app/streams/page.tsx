@@ -154,11 +154,19 @@ export default function StreamsPage() {
     const fetchStreams = async () => {
       try {
         setIsLoading(true)
-        const response = await streamApi.getLiveStreams({
-          category: selectedCategory !== 'all' ? selectedCategory : undefined,
-          search: searchQuery || undefined,
-          sort: sortBy
-        })
+        const apiParams: Record<string, string> = {}
+
+        if (selectedCategory !== 'all') {
+          apiParams.category = selectedCategory
+        }
+
+        if (searchQuery.trim()) {
+          apiParams.search = searchQuery.trim()
+        }
+
+        apiParams.sort = sortBy
+
+        const response = await streamApi.getLiveStreams(apiParams)
 
         if (response.success && response.data && 'streams' in response.data && Array.isArray(response.data.streams)) {
           // Transform API response to match our interface
