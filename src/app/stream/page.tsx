@@ -47,7 +47,7 @@ interface StreamData {
 
 // Interface cho response từ startStream API - actual API response format
 interface StartStreamResponse {
-  id: string        // API returns id, use this for chat payload as streamId
+  streamId: number  // API returns streamId, use this for chat payload
   streamKey: string // For socket connection
   socketEndpoint: string
   title?: string
@@ -95,7 +95,7 @@ export default function StreamPage() {
   // Kiểm tra quyền truy cập
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'creator')) {
-      toast.error('Bạn cần đăng nhập với tài khoản creator để truy cập trang này')
+      toast.error('Bạn cần đăng nhập với tài kho��n creator để truy cập trang này')
       router.push('/login')
     }
   }, [user, authLoading, router])
@@ -138,7 +138,7 @@ export default function StreamPage() {
         console.log('✅ Stream API data:', apiStreamData)
 
         // Extract both streamId (for chat) and streamKey (for socket) từ response
-        const streamId = apiStreamData.id               // Use id as streamId for chat payload
+        const streamId = String(apiStreamData.streamId) // Convert number to string for chat payload
         const streamKey = apiStreamData.streamKey        // For socket connection
         console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
