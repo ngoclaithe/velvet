@@ -67,17 +67,19 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
-      // Use socketEndpoint from API response instead of constructing /stream/streamId
-      const roomId = socketEndpoint || `/stream/${streamData.streamKey}`
-
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
         clientType: 'creator',
         streamId: String(streamData.id),
-        streamKey: streamData.streamKey
+        streamKey: streamData.streamKey,
+        socketEndpoint: socketEndpoint  // Pass the socketEndpoint from API response
       }
 
-      console.log('🔌 Using socketEndpoint for connection:', roomId)
+      console.log('🔌 Initializing streaming with config:', {
+        streamId: socketConfig.streamId,
+        streamKey: socketConfig.streamKey,
+        socketEndpoint: socketConfig.socketEndpoint
+      })
 
       setupSocketEventListeners()
       await socketService.connect(socketConfig)
