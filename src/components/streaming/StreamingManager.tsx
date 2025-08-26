@@ -67,7 +67,7 @@ export function StreamingManager({
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
         clientType: 'creator',
-        streamId: streamData.id,
+        streamId: String(streamData.id),
         streamKey: streamData.streamKey
       }
 
