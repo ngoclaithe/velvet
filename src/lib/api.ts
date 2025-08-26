@@ -247,7 +247,7 @@ export const userApi = {
 
 export const streamApi = {
   // Lấy danh sách streams đang live
-  getLiveStreams: (params?: Record<string, string>) => api.get('/streams/live', params),
+  getLiveStreams: (params?: Record<string, string>) => api.get('/streams', params),
 
   // Lấy thông tin stream cụ thể
   getStreamInfo: (streamId: string) => api.get(`/streams/${streamId}/info`),

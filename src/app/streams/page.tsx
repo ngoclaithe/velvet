@@ -21,6 +21,7 @@ import {
   Heart
 } from 'lucide-react'
 import { streamApi } from '@/lib/api'
+import type { StreamResponse } from '@/types/streaming'
 
 interface StreamCard {
   id: string
@@ -41,6 +42,20 @@ interface StreamCard {
   totalViews: number
   startedAt: string
   duration?: string
+}
+
+// Type guard helper
+function hasStreamsData(data: unknown): data is { streams: StreamResponse[] } {
+  try {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      'streams' in data &&
+      Array.isArray((data as any).streams)
+    )
+  } catch {
+    return false
+  }
 }
 
 export default function StreamsPage() {
@@ -154,19 +169,55 @@ export default function StreamsPage() {
     const fetchStreams = async () => {
       try {
         setIsLoading(true)
-        const response = await streamApi.getLiveStreams({
-          category: selectedCategory !== 'all' ? selectedCategory : undefined,
-          search: searchQuery || undefined,
-          sort: sortBy
-        })
-        
-        if (response.success && response.data) {
-          setStreams(response.data)
+        const apiParams: Record<string, string> = {}
+
+        if (selectedCategory !== 'all') {
+          apiParams.category = selectedCategory
+        }
+
+        if (searchQuery.trim()) {
+          apiParams.search = searchQuery.trim()
+        }
+
+        apiParams.sort = sortBy
+
+        const response = await streamApi.getLiveStreams(apiParams)
+
+        if (response.success && hasStreamsData(response.data)) {
+          // Transform API response to match our interface
+          const transformedStreams = response.data.streams.map((stream: StreamResponse) => {
+            const creator = stream.creator || {}
+            const creatorId = creator.id?.toString() || stream.creatorId?.toString() || 'unknown'
+            const creatorUsername = creator.displayName || (creator as any).username || 'unknown'
+            const creatorStageName = creator.stageName || creator.displayName || 'Unknown Creator'
+
+            return {
+              id: stream.id?.toString() || 'unknown',
+              title: stream.title || 'Untitled Stream',
+              description: stream.description || '',
+              category: stream.category || 'General',
+              tags: Array.isArray(stream.tags) ? stream.tags : [],
+              creator: {
+                id: creatorId,
+                username: creatorUsername,
+                stageName: creatorStageName,
+                avatar: creator.avatar || undefined,
+                isVerified: Boolean(creator.isVerified)
+              },
+              thumbnail: stream.thumbnail || undefined,
+              isLive: Boolean(stream.isLive),
+              viewerCount: Number(stream.viewerCount) || 0,
+              totalViews: Number(stream.maxViewers) || 0,
+              startedAt: stream.startTime || new Date().toISOString()
+            }
+          })
+          setStreams(transformedStreams)
         } else {
-          // Fallback to mock data if API fails
+          // Fallback to mock data if API response is invalid
+          console.warn('API response does not contain streams array:', response)
           setStreams(mockStreams.filter(stream => {
             const matchesCategory = selectedCategory === 'all' || stream.category === selectedCategory
-            const matchesSearch = !searchQuery || 
+            const matchesSearch = !searchQuery ||
               stream.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
               stream.creator.stageName.toLowerCase().includes(searchQuery.toLowerCase()) ||
               stream.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -176,7 +227,14 @@ export default function StreamsPage() {
       } catch (error) {
         console.error('Error fetching streams:', error)
         // Use mock data on error
-        setStreams(mockStreams)
+        setStreams(mockStreams.filter(stream => {
+          const matchesCategory = selectedCategory === 'all' || stream.category === selectedCategory
+          const matchesSearch = !searchQuery ||
+            stream.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            stream.creator.stageName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            stream.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          return matchesCategory && matchesSearch
+        }))
       } finally {
         setIsLoading(false)
       }
@@ -186,16 +244,22 @@ export default function StreamsPage() {
   }, [selectedCategory, searchQuery, sortBy])
 
   const formatDuration = (startedAt: string) => {
-    const start = new Date(startedAt)
-    const now = new Date()
-    const diff = now.getTime() - start.getTime()
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`
+    if (!startedAt) return '0m'
+
+    try {
+      const start = new Date(startedAt)
+      const now = new Date()
+      const diff = now.getTime() - start.getTime()
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`
+      }
+      return `${minutes}m`
+    } catch (error) {
+      return '0m'
     }
-    return `${minutes}m`
   }
 
   const handleStreamClick = (streamId: string) => {
@@ -330,7 +394,7 @@ export default function StreamsPage() {
                     {/* Creator */}
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-6 h-6">
-                        <AvatarImage src={stream.creator.avatar} />
+                        <AvatarImage src={stream.creator.avatar || ''} />
                         <AvatarFallback className="text-xs">
                           {stream.creator.stageName.charAt(0).toUpperCase()}
                         </AvatarFallback>
