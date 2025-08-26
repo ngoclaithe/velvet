@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import { chatWebSocket, getWebSocket } from '@/lib/websocket'
 
 interface StreamData {
   streamId: number
@@ -109,6 +110,7 @@ export default function WatchStreamPage() {
   const [streamData, setStreamData] = useState<StreamData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [isWebSocketConnected, setIsWebSocketConnected] = useState(false)
   const [newMessage, setNewMessage] = useState('')
   const [isMuted, setIsMuted] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
@@ -222,13 +224,37 @@ export default function WatchStreamPage() {
       if (!streamData?.chatEnabled) return
 
       try {
-        // TODO: Uncomment when backend is ready
-        // const response = await chatApi.getMessages(streamId)
-        // if (response.success && response.data) {
-        //   setChatMessages(response.data)
-        // }
-
-        // Mock data for now
+        // Load initial chat messages from API
+        const response = await chatApi.getMessages(streamId)
+        if (response.success && response.data) {
+          setChatMessages(response.data)
+        } else {
+          // Fallback to mock data if API fails
+          const mockMessages: ChatMessage[] = [
+            {
+              id: '1',
+              userId: 'user1',
+              username: 'viewer1',
+              displayName: 'Viewer One',
+              message: 'Chào mọi người!',
+              timestamp: new Date().toISOString(),
+              type: 'message'
+            },
+            {
+              id: '2',
+              userId: 'user2',
+              username: 'viewer2',
+              displayName: 'Viewer Two',
+              message: 'Stream hay quá!',
+              timestamp: new Date().toISOString(),
+              type: 'message'
+            }
+          ]
+          setChatMessages(mockMessages)
+        }
+      } catch (error) {
+        console.error('Error fetching chat messages:', error)
+        // Keep mock data as fallback
         const mockMessages: ChatMessage[] = [
           {
             id: '1',
@@ -238,30 +264,73 @@ export default function WatchStreamPage() {
             message: 'Chào mọi người!',
             timestamp: new Date().toISOString(),
             type: 'message'
-          },
-          {
-            id: '2',
-            userId: 'user2',
-            username: 'viewer2',
-            displayName: 'Viewer Two',
-            message: 'Stream hay quá!',
-            timestamp: new Date().toISOString(),
-            type: 'message'
           }
         ]
         setChatMessages(mockMessages)
-      } catch (error) {
-        console.error('Error fetching chat messages:', error)
       }
     }
 
     if (streamId && streamData) {
       fetchChatMessages()
-      // TODO: Uncomment when backend is ready
-      // const interval = setInterval(fetchChatMessages, 2000)
-      // return () => clearInterval(interval)
     }
   }, [streamId, streamData])
+
+  // Setup WebSocket for real-time chat
+  useEffect(() => {
+    if (!streamId || !isAuthenticated) return
+
+    const webSocket = getWebSocket()
+
+    const setupWebSocket = async () => {
+      try {
+        // Connect to WebSocket if not already connected
+        if (!webSocket.isConnected()) {
+          await webSocket.connect(user?.id)
+        }
+
+        // Join stream chat room
+        chatWebSocket.joinStreamChat(streamId)
+        setIsWebSocketConnected(true)
+
+        // Listen for new chat messages
+        const handleNewMessage = (data: any) => {
+          const newMessage: ChatMessage = {
+            id: data.id || Date.now().toString(),
+            userId: data.userId,
+            username: data.username || data.displayName,
+            displayName: data.displayName || data.username,
+            message: data.message,
+            timestamp: data.timestamp || new Date().toISOString(),
+            type: data.type || 'message',
+            giftType: data.giftType,
+            amount: data.amount
+          }
+
+          setChatMessages(prev => {
+            // Avoid duplicate messages
+            const exists = prev.some(msg => msg.id === newMessage.id)
+            if (exists) return prev
+            return [...prev, newMessage]
+          })
+        }
+
+        chatWebSocket.onChatMessage(handleNewMessage)
+
+      } catch (error) {
+        console.error('Error setting up WebSocket:', error)
+        setIsWebSocketConnected(false)
+      }
+    }
+
+    setupWebSocket()
+
+    // Cleanup on unmount
+    return () => {
+      if (streamId) {
+        chatWebSocket.leaveStreamChat(streamId)
+      }
+    }
+  }, [streamId, isAuthenticated, user?.id])
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -356,27 +425,59 @@ export default function WatchStreamPage() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !isAuthenticated || !user) return
 
-    try {
-      // TODO: Uncomment when backend is ready
-      // const response = await chatApi.sendMessage(streamId, {
-      //   message: newMessage.trim()
-      // })
+    const messageText = newMessage.trim()
+    setNewMessage('') // Clear input immediately for better UX
 
-      // if (response.success) {
-        setNewMessage('')
-        const newMsg: ChatMessage = {
-          id: Date.now().toString(),
-          userId: user.id,
-          username: user.username,
-          displayName: user.firstName || user.username,
-          message: newMessage.trim(),
-          timestamp: new Date().toISOString(),
-          type: 'message'
+    try {
+      // Try to send message via API first
+      const response = await chatApi.sendMessage(streamId, {
+        message: messageText
+      })
+
+      if (response.success) {
+        // If API succeeds, also send via WebSocket for real-time delivery
+        if (isWebSocketConnected) {
+          chatWebSocket.sendChatMessage(streamId, messageText)
+        } else {
+          // If WebSocket not connected, add to local state as fallback
+          const newMsg: ChatMessage = {
+            id: Date.now().toString(),
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: messageText,
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          }
+          setChatMessages(prev => [...prev, newMsg])
         }
-        setChatMessages(prev => [...prev, newMsg])
-      // }
+      } else {
+        // If API fails, try WebSocket only
+        if (isWebSocketConnected) {
+          chatWebSocket.sendChatMessage(streamId, messageText)
+        } else {
+          // Both failed, add to local state and show error
+          const newMsg: ChatMessage = {
+            id: Date.now().toString(),
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: messageText,
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          }
+          setChatMessages(prev => [...prev, newMsg])
+          toast.error('Tin nhắn được gửi cục bộ, có thể không đồng bộ với người khác')
+        }
+      }
     } catch (error) {
-      toast.error('Không thể gửi tin nhắn')
+      // On error, try WebSocket as fallback
+      if (isWebSocketConnected) {
+        chatWebSocket.sendChatMessage(streamId, messageText)
+      } else {
+        toast.error('Không thể gửi tin nhắn')
+        setNewMessage(messageText) // Restore message for retry
+      }
     }
   }
 
@@ -387,14 +488,14 @@ export default function WatchStreamPage() {
     }
 
     try {
-      // TODO: Uncomment when backend is ready
-      // const response = await paymentApi.sendGift({
-      //   streamId,
-      //   giftId: gift.id,
-      //   amount: gift.price
-      // })
+      // Send gift via API
+      const response = await paymentApi.sendGift({
+        streamId,
+        giftId: gift.id,
+        amount: gift.price
+      })
 
-      // if (response.success) {
+      if (response.success) {
         toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
         setShowGiftDialog(false)
 
@@ -409,8 +510,16 @@ export default function WatchStreamPage() {
           giftType: gift.name,
           amount: gift.price
         }
+
+        // Send gift message via WebSocket for real-time delivery
+        if (isWebSocketConnected) {
+          chatWebSocket.sendChatMessage(streamId, giftMsg.message)
+        }
+
         setChatMessages(prev => [...prev, giftMsg])
-      // }
+      } else {
+        toast.error(response.error || 'Không thể gửi quà')
+      }
     } catch (error) {
       toast.error('Không thể gửi quà')
     }
@@ -587,6 +696,9 @@ export default function WatchStreamPage() {
                 <CardTitle className="text-white flex items-center space-x-2">
                   <MessageCircle className="w-5 h-5" />
                   <span>Chat trực tiếp</span>
+                  {isWebSocketConnected && (
+                    <div className="w-2 h-2 bg-green-500 rounded-full ml-2" title="Kết nối real-time" />
+                  )}
                 </CardTitle>
                 <div className="flex items-center space-x-2">
                   <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>
