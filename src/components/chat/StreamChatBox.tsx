@@ -132,6 +132,7 @@ export default function StreamChatBox({
         
         // Listen for new chat messages from backend 'stream_chat_message' event
         const handleNewMessage = (data: any) => {
+          console.log('Received stream_chat_message:', data)
           // Backend sends: { messageId, streamId, userId, username, displayName, avatar, message, timestamp }
           const newMessage: ChatMessage = {
             id: data.messageId || data.id || Date.now().toString(),
