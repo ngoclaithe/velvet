@@ -1,5 +1,6 @@
-import type { ApiResponse, ApiError } from '@/types/api'
+import type { ApiResponse, ApiError, WalletApiResponse } from '@/types/api'
 import type { StreamsApiResponse } from '@/types/streaming'
+import type { Transaction } from '@/types/payments'
 
 interface RequestConfig extends RequestInit {
   params?: Record<string, string>
@@ -314,14 +315,14 @@ export const chatApi = {
 }
 
 export const paymentApi = {
-  getWallet: () => api.get('/wallet'),
+  getWallet: () => api.get<WalletApiResponse>('/wallet'),
 
   deposit: (data: any) => api.post('/wallet/deposit', data),
 
   withdraw: (data: any) => api.post('/wallet/withdraw', data),
 
   getTransactions: (params?: Record<string, string>) =>
-    api.get('/wallet/transactions', params),
+    api.get<Transaction[]>('/wallet/transactions', params),
 
   sendTip: (data: any) => api.post('/payments/tip', data),
 
