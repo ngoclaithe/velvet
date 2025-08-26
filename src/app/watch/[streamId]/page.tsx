@@ -96,7 +96,7 @@ const giftOptions: GiftOption[] = [
   { id: '3', name: 'Kem', icon: '🍦', price: 5 },
   { id: '4', name: 'Pizza', icon: '🍕', price: 10 },
   { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
-  { id: '6', name: 'Nhà', icon: '����', price: 100 },
+  { id: '6', name: 'Nhà', icon: '�����', price: 100 },
   { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
   { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
 ]
@@ -215,68 +215,6 @@ export default function WatchStreamPage() {
   }, [streamId, router])
 
 
-  // Setup WebSocket for real-time chat
-  useEffect(() => {
-    if (!streamId || !isAuthenticated) return
-
-    const webSocket = getWebSocket()
-
-    const setupWebSocket = async () => {
-      try {
-        // Connect to WebSocket if not already connected
-        if (!webSocket.isConnected()) {
-          await webSocket.connect(user?.id)
-        }
-
-        // Join stream chat room
-        chatWebSocket.joinStreamChat(streamId)
-        setIsWebSocketConnected(true)
-
-        // Listen for new chat messages
-        const handleNewMessage = (data: any) => {
-          const newMessage: ChatMessage = {
-            id: data.id || Date.now().toString(),
-            userId: data.userId,
-            username: data.username || data.displayName,
-            displayName: data.displayName || data.username,
-            message: data.message,
-            timestamp: data.timestamp || new Date().toISOString(),
-            type: data.type || 'message',
-            giftType: data.giftType,
-            amount: data.amount
-          }
-
-          setChatMessages(prev => {
-            // Avoid duplicate messages
-            const exists = prev.some(msg => msg.id === newMessage.id)
-            if (exists) return prev
-            return [...prev, newMessage]
-          })
-        }
-
-        chatWebSocket.onChatMessage(handleNewMessage)
-
-      } catch (error) {
-        console.error('Error setting up WebSocket:', error)
-        setIsWebSocketConnected(false)
-      }
-    }
-
-    setupWebSocket()
-
-    // Cleanup on unmount
-    return () => {
-      if (streamId) {
-        chatWebSocket.leaveStreamChat(streamId)
-      }
-    }
-  }, [streamId, isAuthenticated, user?.id])
-
-  useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
-    }
-  }, [chatMessages])
 
   // Initialize HLS player với dynamic import
   useEffect(() => {
