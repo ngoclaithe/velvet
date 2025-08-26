@@ -98,7 +98,7 @@ const giftOptions: GiftOption[] = [
   { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
   { id: '6', name: 'Nhà', icon: '����', price: 100 },
   { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
-  { id: '8', name: 'Tên lửa', icon: '����', price: 1000 }
+  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
 ]
 
 export default function WatchStreamPage() {
@@ -109,19 +109,12 @@ export default function WatchStreamPage() {
 
   const [streamData, setStreamData] = useState<StreamData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const [newMessage, setNewMessage] = useState('')
   const [isMuted, setIsMuted] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
-  const [showGiftDialog, setShowGiftDialog] = useState(false)
-  const [selectedGift, setSelectedGift] = useState<GiftOption | null>(null)
+  const [isCreator, setIsCreator] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  const chatScrollRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<any>(null)
-  const socketService = getSocketService()
-  const [isCreator, setIsCreator] = useState(false)
-  const [socketConnected, setSocketConnected] = useState(false)
 
   useEffect(() => {
     const fetchStreamData = async () => {
