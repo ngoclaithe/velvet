@@ -32,6 +32,7 @@ import {
   VolumeX
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import type { UserRole } from '@/types/auth'
 
 interface ChatMessage {
   id: string
@@ -59,6 +60,22 @@ interface ChatUser {
 
 export default function StreamChat() {
   const { user, isAuthenticated } = useAuth()
+
+  // Map auth UserRole to chat role
+  const mapUserRoleToChipRole = (userRole: UserRole): 'viewer' | 'subscriber' | 'moderator' | 'vip' | 'streamer' => {
+    switch (userRole) {
+      case 'creator':
+        return 'streamer'
+      case 'moderator':
+        return 'moderator'
+      case 'admin':
+        return 'moderator' // Admin treated as moderator in chat
+      case 'user':
+      case 'guest':
+      default:
+        return 'viewer'
+    }
+  }
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [connectedUsers, setConnectedUsers] = useState<ChatUser[]>([])
@@ -144,7 +161,7 @@ export default function StreamChat() {
       message: newMessage,
       timestamp: new Date(),
       type: 'message',
-      role: user?.role || 'viewer'
+      role: user?.role ? mapUserRoleToChipRole(user.role) : 'viewer'
     }
 
     setMessages(prev => [...prev, message])
