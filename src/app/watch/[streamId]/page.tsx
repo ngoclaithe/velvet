@@ -126,8 +126,14 @@ export default function WatchStreamPage() {
         const response = await streamApi.getStreamInfo(streamId)
         
         if (response.success && response.data) {
-          // Type cast để đảm bảo response.data khớp với StreamData interface
-          setStreamData(response.data as StreamData)
+          // Kiểm tra và validate response data
+          const streamData = response.data
+          if (streamData && typeof streamData === 'object' && 'streamId' in streamData) {
+            setStreamData(streamData as StreamData)
+          } else {
+            console.error('Invalid stream data format:', streamData)
+            throw new Error('Dữ liệu stream không hợp lệ')
+          }
         } else {
           // Fallback sample data
           const sampleData: StreamData = {
