@@ -13,18 +13,7 @@ import {
   Heart,
   Users,
   Share2,
-  MoreVertical,
-  Send,
-  Gift,
-  Star,
-  Crown,
-  Gem,
-  Volume2,
-  VolumeX,
-  Settings,
-  ArrowLeft,
-  Eye,
-  MessageCircle
+  MoreVertical
 } from 'lucide-react'
 import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
