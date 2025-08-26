@@ -5,6 +5,7 @@ export interface SocketConnectionConfig {
   clientType?: 'creator' | 'viewer' | 'client'
   streamId?: string
   streamKey?: string
+  endpoint?: string
 }
 
 export interface JoinRoomData {
@@ -49,8 +50,19 @@ export class SocketService {
     this.disconnect()
     this.currentConfig = config
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-    const socketUrl = baseUrl.replace('/api/v1', '').replace('http://', 'ws://').replace('https://', 'wss://')
+    let socketUrl: string
+
+    if (config.endpoint) {
+      // Use the socketEndpoint from API response
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+      const wsBaseUrl = baseUrl.replace('/api/v1', '').replace('http://', 'ws://').replace('https://', 'wss://')
+      socketUrl = wsBaseUrl
+      console.log('🔌 Using custom socket endpoint:', config.endpoint, 'with base:', socketUrl)
+    } else {
+      // Fallback to default URL
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+      socketUrl = baseUrl.replace('/api/v1', '').replace('http://', 'ws://').replace('https://', 'wss://')
+    }
 
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(socketUrl, {
