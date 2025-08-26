@@ -308,69 +308,91 @@ export default function WalletPage() {
         </Button>
       </div>
 
-      {/* Balance Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowBalance(!showBalance)}
-              className="h-4 w-4"
-            >
-              {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {showBalance ? `$${balance.toFixed(2)}` : '••••••'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Khả dụng: ${(balance - lockedBalance).toFixed(2)}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Balance Overview - Different for Users vs Creators */}
+      {user?.role === 'creator' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowBalance(!showBalance)}
+                className="h-4 w-4"
+              >
+                {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {showBalance ? `$${balance.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Khả dụng cho rút tiền
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Số dư bị khóa</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${lockedBalance.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              Đang xử lý rút tiền
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tổng thu nhập</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {showBalance ? `$${totalEarnings.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-xs text-green-600">
+                Tổng thu nhập từ streaming
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng thu nhập</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${totalEarnings.toFixed(2)}</div>
-            <p className="text-xs text-green-600">
-              +12.5% so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Thu nhập tháng này</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${monthlyIncome.toFixed(2)}</div>
-            <p className="text-xs text-blue-600">
-              +8.2% so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Thu nhập tháng này</CardTitle>
+              <DollarSign className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {showBalance ? `$${monthlyIncome.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-xs text-blue-600">
+                Thu nhập trong tháng
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
+          <Card className="max-w-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Số dư ví</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowBalance(!showBalance)}
+                className="h-4 w-4"
+              >
+                {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {showBalance ? `$${balance.toFixed(2)}` : '••••••'}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Số dư khả dụng để sử dụng trong ứng dụng
+              </p>
+              {balance === 0 && (
+                <p className="text-xs text-orange-600 mt-1">
+                  Chưa có số dư. Nạp tiền để bắt đầu sử dụng.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Tabs defaultValue="transactions" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
