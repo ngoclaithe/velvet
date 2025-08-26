@@ -187,8 +187,8 @@ export default function StreamsPage() {
                 id: creatorId,
                 username: creatorUsername,
                 stageName: creatorStageName,
-                avatar: stream.creator?.avatar || undefined,
-                isVerified: Boolean(stream.creator?.isVerified)
+                avatar: creator.avatar || undefined,
+                isVerified: Boolean(creator.isVerified)
               },
               thumbnail: stream.thumbnail || undefined,
               isLive: Boolean(stream.isLive),
