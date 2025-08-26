@@ -40,8 +40,8 @@ function LiveStreamsTab() {
         const response = await streamApi.getLiveStreams()
 
         if (response.success && response.data) {
-          // Type cast và validate response data
-          const data = response.data as any
+          // Type cast với proper StreamsApiResponse type
+          const data = response.data as StreamsApiResponse['data']
           if (data && Array.isArray(data.streams)) {
             setLiveStreams(data.streams.slice(0, 6))
           } else {
@@ -509,7 +509,7 @@ export default function HomePage() {
                 Sẵn sàng khám phá?
               </h2>
               <p className="text-lg md:text-xl mb-8 text-gray-300 leading-relaxed">
-                Tham gia cộng đồng hàng nghìn thành viên đang chia sẻ và khám phá nội dung độc đáo mỗi ngày
+                Tham gia cộng đồng hàng nghìn thành viên đang chia sẻ v�� khám phá nội dung độc đáo mỗi ngày
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/register">
