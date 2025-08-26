@@ -247,10 +247,10 @@ export const chatWebSocket = {
     return ws.emit('direct_message', { recipientId, message })
   },
 
-  // Lắng nghe tin nhắn chat mới
+  // L��ng nghe tin nhắn chat mới - Backend emits 'stream_chat_message'
   onChatMessage: (callback: EventCallback) => {
     const ws = getWebSocket()
-    ws.on('chat_message', callback)
+    ws.on('stream_chat_message', callback)
   },
 
   // Lắng nghe tin nhắn trực tiếp

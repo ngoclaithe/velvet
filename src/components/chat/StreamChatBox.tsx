@@ -130,11 +130,12 @@ export default function StreamChatBox({
         chatWebSocket.joinStreamChat(streamId)
         setIsWebSocketConnected(true)
         
-        // Listen for new chat messages
+        // Listen for new chat messages from backend 'stream_chat_message' event
         const handleNewMessage = (data: any) => {
+          // Backend sends: { messageId, streamId, userId, username, displayName, avatar, message, timestamp }
           const newMessage: ChatMessage = {
-            id: data.id || Date.now().toString(),
-            userId: data.userId,
+            id: data.messageId || data.id || Date.now().toString(),
+            userId: data.userId?.toString() || data.userId,
             username: data.username || data.displayName,
             displayName: data.displayName || data.username,
             message: data.message,
@@ -144,17 +145,20 @@ export default function StreamChatBox({
             amount: data.amount,
             avatar: data.avatar
           }
-          
-          setChatMessages(prev => {
-            // Avoid duplicate messages
-            const exists = prev.some(msg => msg.id === newMessage.id)
-            if (exists) return prev
-            return [...prev, newMessage]
-          })
 
-          // Play sound notification for new messages (except own messages)
-          if (isSoundEnabled && data.userId !== user?.id) {
-            // Could add sound notification here
+          // Only add message if it's for this stream
+          if (data.streamId === streamId) {
+            setChatMessages(prev => {
+              // Avoid duplicate messages
+              const exists = prev.some(msg => msg.id === newMessage.id)
+              if (exists) return prev
+              return [...prev, newMessage]
+            })
+
+            // Play sound notification for new messages (except own messages)
+            if (isSoundEnabled && data.userId?.toString() !== user?.id?.toString()) {
+              // Could add sound notification here
+            }
           }
         }
         
