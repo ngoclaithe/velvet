@@ -8,6 +8,7 @@ import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamingManagerProps {
   streamData: StreamResponse
+  socketEndpoint?: string  // Use this instead of /stream/streamId
   cameraEnabled: boolean
   micEnabled: boolean
   onStatusChange: (connected: boolean) => void
@@ -16,6 +17,7 @@ interface StreamingManagerProps {
 
 export function StreamingManager({
   streamData,
+  socketEndpoint,
   cameraEnabled,
   micEnabled,
   onStatusChange,
@@ -65,12 +67,17 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
+      // Use socketEndpoint from API response instead of constructing /stream/streamId
+      const roomId = socketEndpoint || `/stream/${streamData.streamKey}`
+
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
         clientType: 'creator',
         streamId: String(streamData.id),
         streamKey: streamData.streamKey
       }
+
+      console.log('🔌 Using socketEndpoint for connection:', roomId)
 
       setupSocketEventListeners()
       await socketService.connect(socketConfig)
@@ -82,6 +89,7 @@ export function StreamingManager({
       await setupOptimizedMediaCapture()
 
     } catch (error) {
+      console.error('💥 Streaming initialization error:', error)
       toast.error('Không thể khởi tạo streaming')
       setIsConnected(false)
       scheduleReconnect()
