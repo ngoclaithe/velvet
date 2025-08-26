@@ -143,11 +143,13 @@ export default function StreamPage() {
           isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: apiStreamData.streamKey,
+          streamKey: apiStreamData.streamKey || streamId, // Fallback to streamId if streamKey is undefined
           socketEndpoint: apiStreamData.socketEndpoint
         }
 
         console.log('📺 Setting currentStream:', newCurrentStream)
+        console.log('🔑 Stream Key:', newCurrentStream.streamKey)
+        console.log('🆔 Stream ID:', newCurrentStream.id)
         setCurrentStream(newCurrentStream)
 
         toast.success('Stream đã được bắt đầu thành công!')
@@ -559,7 +561,7 @@ export default function StreamPage() {
               <div className="space-y-0.5">
                 <Label>Stream riêng tư</Label>
                 <p className="text-sm text-muted-foreground">
-                  Chỉ những người được mời mới có thể xem
+                  Chỉ những ngư��i được mời mới có thể xem
                 </p>
               </div>
               <Switch
