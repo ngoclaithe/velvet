@@ -6,18 +6,32 @@ import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'react-hot-toast'
 import {
   Heart,
   Users,
   Share2,
-  MoreVertical
+  MoreVertical,
+  Send,
+  Gift,
+  Star,
+  Crown,
+  Gem,
+  Volume2,
+  VolumeX,
+  Settings,
+  ArrowLeft,
+  Eye,
+  MessageCircle
 } from 'lucide-react'
 import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
-import StreamChatBox from '@/components/chat/StreamChatBox'
+import { getSocketService } from '@/lib/socket'
 
 interface StreamData {
   streamId: number
@@ -56,6 +70,36 @@ interface StreamData {
   totalDonations: string
 }
 
+interface ChatMessage {
+  id: string
+  userId: string
+  username: string
+  displayName: string
+  message: string
+  timestamp: string
+  type: 'message' | 'gift' | 'tip'
+  giftType?: string
+  amount?: number
+}
+
+interface GiftOption {
+  id: string
+  name: string
+  icon: string
+  price: number
+  animation?: string
+}
+
+const giftOptions: GiftOption[] = [
+  { id: '1', name: 'Hoa hồng', icon: '🌹', price: 1 },
+  { id: '2', name: 'Tim', icon: '❤️', price: 2 },
+  { id: '3', name: 'Kem', icon: '🍦', price: 5 },
+  { id: '4', name: 'Pizza', icon: '🍕', price: 10 },
+  { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
+  { id: '6', name: 'Nhà', icon: '����', price: 100 },
+  { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
+  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
+]
 
 export default function WatchStreamPage() {
   const params = useParams()
@@ -65,12 +109,19 @@ export default function WatchStreamPage() {
 
   const [streamData, setStreamData] = useState<StreamData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [newMessage, setNewMessage] = useState('')
   const [isMuted, setIsMuted] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
-  const [isCreator, setIsCreator] = useState(false)
+  const [showGiftDialog, setShowGiftDialog] = useState(false)
+  const [selectedGift, setSelectedGift] = useState<GiftOption | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
+  const chatScrollRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<any>(null)
+  const socketService = getSocketService()
+  const [isCreator, setIsCreator] = useState(false)
+  const [socketConnected, setSocketConnected] = useState(false)
 
   useEffect(() => {
     const fetchStreamData = async () => {
@@ -174,6 +225,138 @@ export default function WatchStreamPage() {
     }
   }, [streamId, router, user])
 
+  // Initialize socket connection for chat
+  useEffect(() => {
+    if (!streamData || !streamData.chatEnabled) return
+
+    const initializeSocket = async () => {
+      try {
+        const socketConfig = {
+          accessCode: streamId,
+          clientType: isCreator ? 'creator' : 'viewer' as 'creator' | 'viewer',
+          streamId: streamId
+        }
+
+        await socketService.connect(socketConfig)
+        setSocketConnected(socketService.getIsConnected())
+
+        // Set up chat event listeners
+        socketService.on('chat_message', (data: any) => {
+          const newMessage: ChatMessage = {
+            id: data.id || Date.now().toString(),
+            userId: data.userId,
+            username: data.username,
+            displayName: data.displayName || data.username,
+            message: data.message,
+            timestamp: data.timestamp || new Date().toISOString(),
+            type: data.type || 'message',
+            giftType: data.giftType,
+            amount: data.amount
+          }
+          setChatMessages(prev => [...prev, newMessage])
+        })
+
+        socketService.on('user_joined', (data: any) => {
+          const systemMessage: ChatMessage = {
+            id: Date.now().toString(),
+            userId: 'system',
+            username: 'System',
+            displayName: 'System',
+            message: `${data.displayName || data.username} đã tham gia`,
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          }
+          setChatMessages(prev => [...prev, systemMessage])
+        })
+
+        socketService.on('user_left', (data: any) => {
+          const systemMessage: ChatMessage = {
+            id: Date.now().toString(),
+            userId: 'system',
+            username: 'System',
+            displayName: 'System',
+            message: `${data.displayName || data.username} đã rời khỏi`,
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          }
+          setChatMessages(prev => [...prev, systemMessage])
+        })
+
+        socketService.on('gift_sent', (data: any) => {
+          const giftMessage: ChatMessage = {
+            id: data.id || Date.now().toString(),
+            userId: data.senderId,
+            username: data.senderUsername,
+            displayName: data.senderDisplayName || data.senderUsername,
+            message: `đã gửi ${data.giftName} ${data.giftIcon}`,
+            timestamp: data.timestamp || new Date().toISOString(),
+            type: 'gift',
+            giftType: data.giftName,
+            amount: data.amount
+          }
+          setChatMessages(prev => [...prev, giftMessage])
+        })
+
+        socketService.onViewerCountUpdated((data: { count: number }) => {
+          if (streamData) {
+            setStreamData(prev => prev ? { ...prev, viewerCount: data.count } : null)
+          }
+        })
+
+        // Load initial chat messages
+        try {
+          const response = await chatApi.getMessages(streamId)
+          if (response.success && response.data) {
+            setChatMessages(response.data)
+          } else {
+            // Set initial mock messages
+            const mockMessages: ChatMessage[] = [
+              {
+                id: '1',
+                userId: 'user1',
+                username: 'viewer1',
+                displayName: 'Viewer One',
+                message: 'Chào mọi người!',
+                timestamp: new Date().toISOString(),
+                type: 'message'
+              },
+              {
+                id: '2',
+                userId: 'user2',
+                username: 'viewer2',
+                displayName: 'Viewer Two',
+                message: 'Stream hay quá!',
+                timestamp: new Date().toISOString(),
+                type: 'message'
+              }
+            ]
+            setChatMessages(mockMessages)
+          }
+        } catch (error) {
+          console.error('Error loading chat messages:', error)
+        }
+
+      } catch (error) {
+        console.error('Error initializing socket:', error)
+        setSocketConnected(false)
+      }
+    }
+
+    initializeSocket()
+
+    return () => {
+      socketService.off('chat_message')
+      socketService.off('user_joined')
+      socketService.off('user_left')
+      socketService.off('gift_sent')
+    }
+  }, [streamId, streamData, isCreator, socketService])
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
+    }
+  }, [chatMessages])
 
   // Initialize HLS player với dynamic import
   useEffect(() => {
@@ -259,6 +442,122 @@ export default function WatchStreamPage() {
     }
   }, [streamData?.hlsUrl])
 
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !isAuthenticated || !user) return
+
+    try {
+      // Send message via socket
+      if (socketConnected) {
+        const messageData = {
+          streamId: streamId,
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
+          message: newMessage.trim(),
+          timestamp: new Date().toISOString(),
+          type: 'message',
+          isCreator: isCreator
+        }
+
+        socketService.emit('send_chat_message', messageData)
+        setNewMessage('')
+
+        // Also add to local state immediately for responsive UI
+        const newMsg: ChatMessage = {
+          id: Date.now().toString(),
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
+          message: newMessage.trim(),
+          timestamp: new Date().toISOString(),
+          type: 'message'
+        }
+        setChatMessages(prev => [...prev, newMsg])
+      } else {
+        // Fallback to API if socket not connected
+        const response = await chatApi.sendMessage(streamId, {
+          message: newMessage.trim()
+        })
+
+        if (response.success) {
+          setNewMessage('')
+          const newMsg: ChatMessage = {
+            id: Date.now().toString(),
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: newMessage.trim(),
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          }
+          setChatMessages(prev => [...prev, newMsg])
+        } else {
+          toast.error('Không thể gửi tin nhắn')
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+      toast.error('Không thể gửi tin nhắn')
+    }
+  }
+
+  const handleSendGift = async (gift: GiftOption) => {
+    if (!isAuthenticated || !user) {
+      toast.error('Vui lòng đăng nhập để gửi quà')
+      return
+    }
+
+    try {
+      // Send gift via socket
+      if (socketConnected) {
+        const giftData = {
+          streamId: streamId,
+          giftId: gift.id,
+          giftName: gift.name,
+          giftIcon: gift.icon,
+          amount: gift.price,
+          senderId: user.id,
+          senderUsername: user.username,
+          senderDisplayName: user.firstName || user.username,
+          timestamp: new Date().toISOString()
+        }
+
+        socketService.emit('send_gift', giftData)
+        toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
+        setShowGiftDialog(false)
+      } else {
+        // Fallback to API if socket not connected
+        const response = await paymentApi.sendGift({
+          streamId,
+          giftId: gift.id,
+          amount: gift.price
+        })
+
+        if (response.success) {
+          toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
+          setShowGiftDialog(false)
+
+          const giftMsg: ChatMessage = {
+            id: Date.now().toString(),
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: `Đã gửi ${gift.name} ${gift.icon}`,
+            timestamp: new Date().toISOString(),
+            type: 'gift',
+            giftType: gift.name,
+            amount: gift.price
+          }
+          setChatMessages(prev => [...prev, giftMsg])
+        } else {
+          toast.error('Không thể gửi quà')
+        }
+      }
+    } catch (error) {
+      console.error('Error sending gift:', error)
+      toast.error('Không thể gửi quà')
+    }
+  }
 
   const handleToggleFollow = async () => {
     if (!isAuthenticated) {
@@ -279,6 +578,13 @@ export default function WatchStreamPage() {
     }
   }
 
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString('vi-VN', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
+  }
 
   if (isLoading) {
     return (
@@ -417,14 +723,116 @@ export default function WatchStreamPage() {
             </div>
           </div>
 
-          {/* Chat */}
+          {/* Chat & Gifts */}
           <div className="lg:col-span-1">
-            <StreamChatBox
-              streamId={streamId}
-              isCreator={isCreator}
-              height="600px"
-              className="h-full"
-            />
+            <Card className="bg-gray-800 border-gray-700 h-[600px] flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Chat trực tiếp</span>
+                </CardTitle>
+                <div className="flex items-center space-x-2">
+                  <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600">
+                        <Gift className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-gray-800 border-gray-700">
+                      <DialogHeader>
+                        <DialogTitle className="text-white">Gửi quà tặng</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-4 gap-3">
+                        {giftOptions.map((gift) => (
+                          <div
+                            key={gift.id}
+                            onClick={() => handleSendGift(gift)}
+                            className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors text-center"
+                          >
+                            <div className="text-2xl mb-1">{gift.icon}</div>
+                            <div className="text-xs text-white">{gift.name}</div>
+                            <div className="text-xs text-yellow-400">{gift.price} xu</div>
+                          </div>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+
+              <CardContent className="flex-1 flex flex-col p-4 space-y-4">
+                {/* Messages */}
+                <ScrollArea className="flex-1" ref={chatScrollRef}>
+                  <div className="space-y-3">
+                    {chatMessages.map((message) => (
+                      <div key={message.id} className="text-sm">
+                        <div className="flex items-start space-x-2">
+                          <Avatar className="w-6 h-6">
+                            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs">
+                              {message.displayName.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-1">
+                              <span className="font-medium text-white text-xs">
+                                {message.displayName}
+                              </span>
+                              <span className="text-gray-500 text-xs">
+                                {formatTime(message.timestamp)}
+                              </span>
+                            </div>
+                            <div className={`mt-1 ${
+                              message.type === 'gift' 
+                                ? 'text-yellow-400 font-medium' 
+                                : 'text-gray-300'
+                            }`}>
+                              {message.message}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                {/* Message Input */}
+                {streamData.chatEnabled && (
+                  <div className="flex space-x-2">
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder={isAuthenticated ? "Nhập tin nhắn..." : "Đăng nhập để chat"}
+                      className="flex-1 bg-gray-700 border-gray-600 text-white"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendMessage()
+                        }
+                      }}
+                      disabled={!isAuthenticated}
+                    />
+                    <Button 
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim() || !isAuthenticated}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {!isAuthenticated && (
+                  <div className="text-center">
+                    <p className="text-gray-400 text-sm mb-2">
+                      Đăng nhập để tham gia chat
+                    </p>
+                    <Button size="sm" asChild>
+                      <a href="/login">Đăng nhập</a>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

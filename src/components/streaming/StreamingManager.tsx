@@ -64,19 +64,6 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
-      console.log('🎬 StreamingManager: Initializing streaming...')
-      console.log('📊 Stream Data:', {
-        id: streamData.id,
-        streamKey: streamData.streamKey,
-        title: streamData.title
-      })
-
-      if (!streamData.id || !streamData.streamKey) {
-        console.error('❌ Missing required stream data:', { id: streamData.id, streamKey: streamData.streamKey })
-        toast.error('Thiếu thông tin stream cần thiết')
-        return
-      }
-
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
         clientType: 'creator',
@@ -84,23 +71,16 @@ export function StreamingManager({
         streamKey: streamData.streamKey
       }
 
-      console.log('🔧 Socket Config:', socketConfig)
       setupSocketEventListeners()
       await socketService.connect(socketConfig)
 
       const connected = socketService.getIsConnected()
-      console.log('🔗 Socket connected:', connected)
       setIsConnected(connected)
 
-      console.log('🚀 Starting streaming with ID:', String(streamData.id), 'Key:', streamData.streamKey)
       socketService.startStreaming(String(streamData.id), streamData.streamKey)
-
-      console.log('📹 Setting up media capture...')
       await setupOptimizedMediaCapture()
-      console.log('✅ StreamingManager initialization complete')
 
     } catch (error) {
-      console.error('💥 StreamingManager initialization failed:', error)
       toast.error('Không thể khởi tạo streaming')
       setIsConnected(false)
       scheduleReconnect()

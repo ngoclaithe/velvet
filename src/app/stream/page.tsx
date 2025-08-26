@@ -34,7 +34,6 @@ import { streamApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import type { StreamResponse } from '@/types/streaming'
 import StreamingManager from '@/components/streaming/StreamingManager'
-import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamData {
   title: string
@@ -143,13 +142,11 @@ export default function StreamPage() {
           isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: apiStreamData.streamKey || streamId, // Fallback to streamId if streamKey is undefined
+          streamKey: apiStreamData.streamKey,
           socketEndpoint: apiStreamData.socketEndpoint
         }
 
         console.log('📺 Setting currentStream:', newCurrentStream)
-        console.log('🔑 Stream Key:', newCurrentStream.streamKey)
-        console.log('🆔 Stream ID:', newCurrentStream.id)
         setCurrentStream(newCurrentStream)
 
         toast.success('Stream đã được bắt đầu thành công!')
@@ -382,100 +379,84 @@ export default function StreamPage() {
           </div>
         )}
 
-        {/* Streaming Preview & Manager with Chat */}
-        {currentStream && currentStream.id && currentStream.streamKey && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Stream Preview - Takes up 2/3 of space */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Stream Preview</CardTitle>
-                  <CardDescription>
-                    Xem trước stream của bạn (viewers sẽ thấy sau ~7 giây)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <StreamingManager
-                    streamData={{
-                      id: currentStream.id,
-                      streamKey: currentStream.streamKey || '',
-                      // Minimal required fields to satisfy StreamResponse interface
-                      creatorId: user?.id || 0,
-                      title: currentStream.title,
-                      description: streamData.description || '',
-                      thumbnail: undefined,
-                      streamUrl: currentStream.socketEndpoint || '',
-                      hlsUrl: '',
-                      isLive: currentStream.isLive,
-                      isPrivate: streamData.isPrivate,
-                      viewerCount: currentStream.viewerCount,
-                      maxViewers: currentStream.viewerCount,
-                      category: streamData.category,
-                      tags: streamData.tags,
-                      quality: 'HD',
-                      startTime: currentStream.startedAt.toISOString(),
-                      endTime: undefined,
-                      duration: undefined,
-                      recordingUrl: undefined,
-                      chatEnabled: true,
-                      donationsEnabled: true,
-                      pricePerMinute: undefined,
-                      totalDonations: '0.00',
-                      createdAt: currentStream.startedAt.toISOString(),
-                      updatedAt: currentStream.startedAt.toISOString(),
-                      creator: {
-                        id: user?.id || 0,
-                        userId: user?.id || 0,
-                        stageName: user?.firstName || user?.username || 'Creator',
-                        bio: '',
-                        tags: [],
-                        rating: '5.00',
-                        totalRatings: 0,
-                        isVerified: false,
-                        isLive: true,
-                        streamTitle: currentStream.title,
-                        streamThumbnail: undefined,
-                        hourlyRate: '0.00',
-                        minBookingDuration: 30,
-                        maxConcurrentBookings: 1,
-                        currentBookingsCount: 0,
-                        totalEarnings: '0.00',
-                        availabilitySchedule: {},
-                        specialties: [],
-                        languages: ['vi'],
-                        bodyType: undefined,
-                        height: undefined,
-                        weight: undefined,
-                        eyeColor: undefined,
-                        hairColor: undefined,
-                        isAvailableForBooking: false,
-                        bookingPrice: '0.00',
-                        subscriptionPrice: '0.00',
-                        createdAt: user?.createdAt || new Date().toISOString(),
-                        updatedAt: user?.updatedAt || new Date().toISOString(),
-                        displayName: user?.firstName || user?.username || 'Creator',
-                        avatar: user?.avatar
-                      }
-                    } as StreamResponse}
-                    cameraEnabled={cameraEnabled}
-                    micEnabled={micEnabled}
-                    onStatusChange={handleStreamingStatusChange}
-                    onViewerCountUpdate={handleViewerCountUpdate}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Chat - Takes up 1/3 of space */}
-            <div className="lg:col-span-1">
-              <StreamChatBox
-                streamId={currentStream.id}
-                isCreator={true}
-                height="600px"
-                className="h-full"
+        {/* Streaming Preview & Manager */}
+        {currentStream && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Stream Preview</CardTitle>
+              <CardDescription>
+                Xem trước stream của bạn (viewers sẽ thấy sau ~7 giây)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StreamingManager
+                streamData={{
+                  id: currentStream.id,
+                  creatorId: user?.id || 0,
+                  title: currentStream.title,
+                  description: streamData.description,
+                  thumbnail: undefined,
+                  streamKey: currentStream.streamKey || '',
+                  streamUrl: currentStream.socketEndpoint || '',
+                  hlsUrl: `${window.location.origin}/hls/${currentStream.id}.m3u8`,
+                  isLive: currentStream.isLive,
+                  isPrivate: streamData.isPrivate,
+                  viewerCount: currentStream.viewerCount,
+                  maxViewers: currentStream.viewerCount,
+                  category: streamData.category,
+                  tags: streamData.tags,
+                  quality: 'HD',
+                  startTime: currentStream.startedAt.toISOString(),
+                  endTime: undefined,
+                  duration: undefined,
+                  recordingUrl: undefined,
+                  chatEnabled: true,
+                  donationsEnabled: true,
+                  pricePerMinute: undefined,
+                  totalDonations: '0.00',
+                  createdAt: currentStream.startedAt.toISOString(),
+                  updatedAt: currentStream.startedAt.toISOString(),
+                  creator: {
+                    id: user?.id || 0,
+                    userId: user?.id || 0,
+                    stageName: user?.firstName || user?.username || 'Creator',
+                    bio: '',
+                    tags: [],
+                    rating: '5.00',
+                    totalRatings: 0,
+                    isVerified: false,
+                    isLive: true,
+                    streamTitle: currentStream.title,
+                    streamThumbnail: undefined,
+                    hourlyRate: '0.00',
+                    minBookingDuration: 30,
+                    maxConcurrentBookings: 1,
+                    currentBookingsCount: 0,
+                    totalEarnings: '0.00',
+                    availabilitySchedule: {},
+                    specialties: [],
+                    languages: ['vi'],
+                    bodyType: undefined,
+                    height: undefined,
+                    weight: undefined,
+                    eyeColor: undefined,
+                    hairColor: undefined,
+                    isAvailableForBooking: false,
+                    bookingPrice: '0.00',
+                    subscriptionPrice: '0.00',
+                    createdAt: user?.createdAt || new Date().toISOString(),
+                    updatedAt: user?.updatedAt || new Date().toISOString(),
+                    displayName: user?.firstName || user?.username || 'Creator',
+                    avatar: user?.avatar
+                  }
+                } as StreamResponse}
+                cameraEnabled={cameraEnabled}
+                micEnabled={micEnabled}
+                onStatusChange={handleStreamingStatusChange}
+                onViewerCountUpdate={handleViewerCountUpdate}
               />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Stream Settings - Hidden during live stream unless toggled */}
@@ -561,7 +542,7 @@ export default function StreamPage() {
               <div className="space-y-0.5">
                 <Label>Stream riêng tư</Label>
                 <p className="text-sm text-muted-foreground">
-                  Chỉ những ngư��i được mời mới có thể xem
+                  Chỉ những người được mời mới có thể xem
                 </p>
               </div>
               <Switch
