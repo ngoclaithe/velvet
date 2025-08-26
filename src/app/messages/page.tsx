@@ -378,7 +378,7 @@ export default function MessagesPage() {
                           </div>
                           {conversation.lastMessage && (
                             <p className="text-sm text-muted-foreground truncate">
-                              {conversation.lastMessage.senderId === user.id && 'Bạn: '}
+                              {conversation.lastMessage.senderId === user?.id && 'Bạn: '}
                               {conversation.lastMessage.content}
                             </p>
                           )}
@@ -441,7 +441,7 @@ export default function MessagesPage() {
                 <ScrollArea className="h-[calc(80vh-200px)] p-4">
                   <div className="space-y-4">
                     {getMessagesForConversation(selectedConversation).map((message) => {
-                      const isOwnMessage = message.senderId === user.id
+                      const isOwnMessage = message.senderId === user?.id
                       
                       return (
                         <div
