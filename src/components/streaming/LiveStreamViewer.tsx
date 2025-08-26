@@ -249,10 +249,12 @@ export function LiveStreamViewer({
 
   const cleanup = () => {
     if (socketService.getIsConnected()) {
-      socketService.stopStreaming(streamId)
+      // For viewers, we might not have streamKey, so pass streamId as fallback
+      // The socket service will handle this appropriately
+      socketService.stopStreaming(streamId, streamId)
       socketService.disconnect()
     }
-    
+
     if (videoRef.current) {
       videoRef.current.src = ''
     }
