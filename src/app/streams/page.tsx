@@ -44,6 +44,16 @@ interface StreamCard {
   duration?: string
 }
 
+// Type guard helper
+function hasStreamsData(data: unknown): data is { streams: StreamResponse[] } {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'streams' in data &&
+    Array.isArray((data as any).streams)
+  )
+}
+
 export default function StreamsPage() {
   const router = useRouter()
   const [streams, setStreams] = useState<StreamCard[]>([])
