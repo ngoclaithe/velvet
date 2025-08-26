@@ -59,8 +59,14 @@ export default function LoginPage() {
         variant: "default"
       })
 
-      // Chuyển về trang chủ ngay lập tức
-      router.push('/')
+      // Redirect dựa trên role của user
+      // Cần delay nhỏ để đảm bảo user context được cập nhật
+      setTimeout(() => {
+        // Note: Cần access user role từ response hoặc context sau khi login
+        // Tạm thời redirect về trang chủ, logic này có thể cần cập nhật
+        // khi có thông tin user sau login
+        router.push('/')
+      }, 100)
 
     } catch (error) {
       console.error('Login failed:', error)
