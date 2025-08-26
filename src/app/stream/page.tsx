@@ -383,7 +383,7 @@ export default function StreamPage() {
         )}
 
         {/* Streaming Preview & Manager with Chat */}
-        {currentStream && (
+        {currentStream && currentStream.id && currentStream.streamKey && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Stream Preview - Takes up 2/3 of space */}
             <div className="lg:col-span-2">
