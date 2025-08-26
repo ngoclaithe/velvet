@@ -4,10 +4,20 @@ export interface Wallet {
   id: string
   userId: string
   balance: number
+  lockedBalance: number
+  totalEarnings: number
+  monthlyIncome: number
   currency: string
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+}
+
+export interface WalletData {
+  balance: number
+  lockedBalance: number
+  totalEarnings: number
+  monthlyIncome: number
 }
 
 export interface Transaction {

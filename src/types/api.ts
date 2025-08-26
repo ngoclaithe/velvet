@@ -32,6 +32,13 @@ export interface UploadResponse {
   duration?: number
 }
 
+export interface WalletApiResponse {
+  balance: number
+  lockedBalance: number
+  totalEarnings: number
+  monthlyIncome: number
+}
+
 export interface SearchParams {
   query: string
   filters?: Record<string, any>

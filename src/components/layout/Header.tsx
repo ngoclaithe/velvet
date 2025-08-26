@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
   Search,
   Bell,
   LogIn,
@@ -24,7 +24,8 @@ import {
   Zap,
   DollarSign,
   Heart,
-  MessageCircle
+  MessageCircle,
+  Shield
 } from 'lucide-react'
 
 export default function Header() {
@@ -163,6 +164,14 @@ export default function Header() {
                       <span>Tin nhắn</span>
                     </Link>
                   </DropdownMenuItem>
+                  {user?.role === 'admin' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4 text-blue-500" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
