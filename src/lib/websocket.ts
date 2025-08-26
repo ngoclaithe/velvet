@@ -25,7 +25,7 @@ type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
 export class WebSocketClient {
   private socket: Socket | null = null
-  private isConnected: boolean = false
+  private _isConnected: boolean = false
   private currentUserId: string | null = null
   private listeners: Map<string, Set<EventCallback>> = new Map()
   private connectionPromise: Promise<Socket> | null = null
@@ -33,7 +33,7 @@ export class WebSocketClient {
 
   constructor() {
     this.socket = null
-    this.isConnected = false
+    this._isConnected = false
     this.currentUserId = null
     this.listeners = new Map()
     this.connectionPromise = null
@@ -41,7 +41,7 @@ export class WebSocketClient {
   }
 
   async connect(userId?: string): Promise<Socket> {
-    if (this.socket && this.isConnected && this.currentUserId === userId) {
+    if (this.socket && this._isConnected && this.currentUserId === userId) {
       return this.socket
     }
 
@@ -66,21 +66,21 @@ export class WebSocketClient {
       })
 
       this.socket.on('connect', () => {
-        this.isConnected = true
+        this._isConnected = true
         this.status = 'connected'
         this.emitStatusChange()
         resolve(this.socket!)
       })
 
       this.socket.on('disconnect', (reason) => {
-        this.isConnected = false
+        this._isConnected = false
         this.status = 'disconnected'
         this.emitStatusChange()
         this.emitEvent('disconnect', { reason })
       })
 
       this.socket.on('connect_error', (error) => {
-        this.isConnected = false
+        this._isConnected = false
         this.status = 'error'
         this.emitStatusChange()
         this.emitEvent('connect_error', error)
@@ -88,7 +88,7 @@ export class WebSocketClient {
       })
 
       this.socket.on('reconnect', () => {
-        this.isConnected = true
+        this._isConnected = true
         this.status = 'connected'
         this.emitStatusChange()
         this.emitEvent('reconnect', {})
@@ -118,7 +118,7 @@ export class WebSocketClient {
       this.socket.disconnect()
       this.socket = null
     }
-    this.isConnected = false
+    this._isConnected = false
     this.status = 'disconnected'
     this.currentUserId = null
     this.connectionPromise = null
@@ -153,7 +153,7 @@ export class WebSocketClient {
   }
 
   emit(event: string, data: any) {
-    if (this.socket && this.isConnected) {
+    if (this.socket && this._isConnected) {
       this.socket.emit(event, data)
       return true
     }
@@ -185,7 +185,7 @@ export class WebSocketClient {
   }
 
   isConnected(): boolean {
-    return this.isConnected && this.socket?.connected === true
+    return this._isConnected && this.socket?.connected === true
   }
 }
 
