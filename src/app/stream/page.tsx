@@ -45,13 +45,13 @@ interface StreamData {
   donationsEnabled: boolean
 }
 
-// Interface cho response từ startStream API - match với api.ts
+// Interface cho response từ startStream API - actual API response format
 interface StartStreamResponse {
-  id: string
-  streamKey: string
+  streamId: number  // For chat payload
+  streamKey: string // For socket connection
   socketEndpoint: string
-  title: string
-  isLive: boolean
+  title?: string
+  isLive?: boolean
 }
 
 interface CurrentStream {
@@ -137,17 +137,18 @@ export default function StreamPage() {
         const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
-        // Extract stream ID từ response - API trả về id as string
-        const streamId = apiStreamData.id
-        console.log('🆔 Extracted stream ID:', streamId, '(from id:', apiStreamData.id, ')')
+        // Extract both streamId (for chat) and streamKey (for socket) từ response
+        const streamId = String(apiStreamData.streamId) // For chat payload
+        const streamKey = apiStreamData.streamKey        // For socket connection
+        console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
         const newCurrentStream: CurrentStream = {
-          id: streamId,
+          id: streamId,  // Use streamId for chat
           title: apiStreamData.title || streamData.title,
           isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: apiStreamData.streamKey,
+          streamKey: streamKey,  // Use streamKey for socket
           socketEndpoint: apiStreamData.socketEndpoint
         }
 
