@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
-import { getSocketService } from '@/lib/socket'
+import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamData {
   streamId: number
@@ -98,7 +98,7 @@ const giftOptions: GiftOption[] = [
   { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
   { id: '6', name: 'Nhà', icon: '����', price: 100 },
   { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
-  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
+  { id: '8', name: 'Tên lửa', icon: '����', price: 1000 }
 ]
 
 export default function WatchStreamPage() {
