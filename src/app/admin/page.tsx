@@ -6,34 +6,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Icons } from '@/components/common/Icons'
 import {
   Users,
   Video,
   DollarSign,
-  Settings,
-  Shield,
   BarChart3,
-  UserCheck,
-  UserX,
-  Eye,
-  Edit,
-  Trash,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Ban,
-  MessageSquare,
   TrendingUp,
-  Activity,
-  Plus,
-  CreditCard,
-  EyeOff
+  Activity
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -46,55 +26,11 @@ interface AdminStats {
   reportedContent: number
 }
 
-interface User {
-  id: string
-  username: string
-  email: string
-  role: 'user' | 'creator' | 'admin'
-  status: 'active' | 'suspended' | 'banned'
-  createdAt: string
-  lastLogin?: string
-  isVerified: boolean
-}
-
-interface Stream {
-  id: string
-  title: string
-  creator: string
-  viewers: number
-  status: 'live' | 'ended' | 'scheduled'
-  category: string
-  startTime: string
-  duration?: string
-}
-
-interface Report {
-  id: string
-  type: 'stream' | 'user' | 'chat'
-  reportedBy: string
-  targetId: string
-  targetName: string
-  reason: string
-  status: 'pending' | 'resolved' | 'dismissed'
-  createdAt: string
-}
-
-interface PaymentInfo {
-  id: string
-  bankName: string
-  accountNumber: string
-  accountHolderName: string
-  qrCodeUrl?: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
 
 export default function AdminDashboard() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
 
   // Mock data - would come from API
   const [stats, setStats] = useState<AdminStats>({
@@ -368,7 +304,7 @@ export default function AdminDashboard() {
 
       toast.success('Đã cập nhật thông tin thanh toán thành công')
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi cập nhật thông tin thanh toán')
+      toast.error('Có lỗi x��y ra khi cập nhật thông tin thanh toán')
     }
   }
 
@@ -447,7 +383,7 @@ export default function AdminDashboard() {
       case 'resolved':
         return <Badge className="bg-green-500">Đã giải quyết</Badge>
       case 'dismissed':
-        return <Badge variant="secondary">Đã bỏ qua</Badge>
+        return <Badge variant="secondary">��ã bỏ qua</Badge>
       default:
         return <Badge variant="secondary">Không xác định</Badge>
     }
@@ -562,429 +498,77 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Admin Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-          <TabsTrigger value="users">Quản lý Users</TabsTrigger>
-          <TabsTrigger value="streams">Quản lý Streams</TabsTrigger>
-          <TabsTrigger value="reports">Báo cáo</TabsTrigger>
-          <TabsTrigger value="payments">Thông tin thanh toán</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2" />
-                  Hoạt động gần đây
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">User đăng ký mới</span>
-                    <Badge>+142 hôm nay</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Streams được tạo</span>
-                    <Badge>+23 hôm nay</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Giao dịch thành công</span>
-                    <Badge>+1,234 hôm nay</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Báo cáo mới</span>
-                    <Badge variant="destructive">+3 hôm nay</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2" />
-                  Thống kê nhanh
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Tỷ lệ Creator hoạt động</span>
-                      <span>78%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-600 h-2 rounded-full" style={{ width: '78%' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Streams thành công</span>
-                      <span>92%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-600 h-2 rounded-full" style={{ width: '92%' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Mức độ hài lòng</span>
-                      <span>85%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-purple-600 h-2 rounded-full" style={{ width: '85%' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quản lý Users</CardTitle>
-              <CardDescription>Quản lý tài khoản người dùng và creator</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {users.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <p className="font-medium">{user.username}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline">{user.role}</Badge>
-                          {getUserStatusBadge(user.status)}
-                          {user.isVerified && <Badge className="bg-blue-500">Xác thực</Badge>}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {!user.isVerified && user.role === 'creator' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleUserAction(user.id, 'verify')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <UserCheck className="w-4 h-4 mr-1" />
-                          Xác thực
-                        </Button>
-                      )}
-                      {user.status === 'active' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleUserAction(user.id, 'suspend')}
-                        >
-                          <Clock className="w-4 h-4 mr-1" />
-                          Tạm khóa
-                        </Button>
-                      )}
-                      {user.status === 'suspended' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleUserAction(user.id, 'activate')}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Kích hoạt
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleUserAction(user.id, 'ban')}
-                      >
-                        <Ban className="w-4 h-4 mr-1" />
-                        Cấm
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="streams" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quản lý Streams</CardTitle>
-              <CardDescription>Theo dõi và quản lý các stream đang diễn ra</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {streams.map((stream) => (
-                  <div key={stream.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <p className="font-medium">{stream.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Creator: {stream.creator} • Category: {stream.category}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          {getStreamStatusBadge(stream.status)}
-                          <Badge variant="outline">{stream.viewers} viewers</Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="w-4 h-4 mr-1" />
-                        Xem
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <MessageSquare className="w-4 h-4 mr-1" />
-                        Chat
-                      </Button>
-                      <Button size="sm" variant="destructive">
-                        <Ban className="w-4 h-4 mr-1" />
-                        Dừng
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="reports" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Báo cáo vi phạm</CardTitle>
-              <CardDescription>Xử lý các báo cáo từ người dùng</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {reports.map((report) => (
-                  <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <p className="font-medium">{report.targetName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Báo cáo bởi: {report.reportedBy} • Lý do: {report.reason}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline">{report.type}</Badge>
-                          {getReportStatusBadge(report.status)}
-                        </div>
-                      </div>
-                    </div>
-                    {report.status === 'pending' && (
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleReportAction(report.id, 'resolve')}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Giải quyết
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleReportAction(report.id, 'dismiss')}
-                        >
-                          <UserX className="w-4 h-4 mr-1" />
-                          Bỏ qua
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="payments" className="space-y-6">
-          <Card>
-            <CardHeader>
+      {/* Overview Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2" />
+              Hoạt động gần đây
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Quản lý thông tin thanh toán</CardTitle>
-                  <CardDescription>Thêm và quản lý thông tin ngân hàng cho thanh toán</CardDescription>
-                </div>
-                <Button
-                  onClick={() => setIsEditingPayment(true)}
-                  disabled={isEditingPayment}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Thêm thông tin thanh toán
-                </Button>
+                <span className="text-sm">User đăng ký mới</span>
+                <Badge>+142 hôm nay</Badge>
               </div>
-            </CardHeader>
-            <CardContent>
-              {isEditingPayment && (
-                <Card className="mb-6 border-blue-200 bg-blue-50/50">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {editingPaymentId ? 'Chỉnh sửa thông tin thanh toán' : 'Thêm thông tin thanh toán mới'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="bankName">Tên ngân hàng *</Label>
-                        <Input
-                          id="bankName"
-                          value={paymentForm.bankName}
-                          onChange={(e) => setPaymentForm(prev => ({ ...prev, bankName: e.target.value }))}
-                          placeholder="VD: Vietcombank"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="accountNumber">Số tài khoản *</Label>
-                        <Input
-                          id="accountNumber"
-                          value={paymentForm.accountNumber}
-                          onChange={(e) => setPaymentForm(prev => ({ ...prev, accountNumber: e.target.value }))}
-                          placeholder="VD: 1234567890"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="accountHolderName">Tên chủ tài khoản *</Label>
-                      <Input
-                        id="accountHolderName"
-                        value={paymentForm.accountHolderName}
-                        onChange={(e) => setPaymentForm(prev => ({ ...prev, accountHolderName: e.target.value }))}
-                        placeholder="VD: NGUYEN VAN A"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="qrCodeUrl">URL QR Code</Label>
-                      <Input
-                        id="qrCodeUrl"
-                        value={paymentForm.qrCodeUrl}
-                        onChange={(e) => setPaymentForm(prev => ({ ...prev, qrCodeUrl: e.target.value }))}
-                        placeholder="https://example.com/qr-code.jpg"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Label htmlFor="isActive" className="text-sm font-medium">
-                        Trạng thái hoạt động
-                      </Label>
-                      <input
-                        type="checkbox"
-                        id="isActive"
-                        checked={paymentForm.isActive}
-                        onChange={(e) => setPaymentForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2 pt-4">
-                      <Button
-                        onClick={editingPaymentId ? handleUpdatePaymentInfo : handleCreatePaymentInfo}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        {editingPaymentId ? 'Cập nhật' : 'Tạo mới'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsEditingPayment(false)
-                          setEditingPaymentId(null)
-                          setPaymentForm({
-                            bankName: '',
-                            accountNumber: '',
-                            accountHolderName: '',
-                            qrCodeUrl: '',
-                            isActive: true
-                          })
-                        }}
-                      >
-                        Hủy
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Streams được tạo</span>
+                <Badge>+23 hôm nay</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Giao dịch thành công</span>
+                <Badge>+1,234 hôm nay</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Báo cáo mới</span>
+                <Badge variant="destructive">+3 hôm nay</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="space-y-4">
-                {paymentInfos.length === 0 ? (
-                  <div className="text-center py-8">
-                    <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có thông tin thanh toán</h3>
-                    <p className="text-gray-500">Thêm thông tin ngân hàng để quản lý thanh toán</p>
-                  </div>
-                ) : (
-                  paymentInfos.map((paymentInfo) => (
-                    <div key={paymentInfo.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <CreditCard className="w-8 h-8 text-blue-600" />
-                        <div>
-                          <p className="font-medium">{paymentInfo.bankName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Số TK: {paymentInfo.accountNumber}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Chủ TK: {paymentInfo.accountHolderName}
-                          </p>
-                          {paymentInfo.qrCodeUrl && (
-                            <p className="text-sm text-blue-600">Có QR Code</p>
-                          )}
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge variant={paymentInfo.isActive ? 'default' : 'secondary'}>
-                              {paymentInfo.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              Cập nhật: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditPaymentInfo(paymentInfo)}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Sửa
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleTogglePaymentStatus(paymentInfo.id)}
-                        >
-                          {paymentInfo.isActive ? (
-                            <>
-                              <EyeOff className="w-4 h-4 mr-1" />
-                              Tắt
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="w-4 h-4 mr-1" />
-                              Bật
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeletePaymentInfo(paymentInfo.id)}
-                        >
-                          <Trash className="w-4 h-4 mr-1" />
-                          Xóa
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Thống kê nhanh
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Tỷ lệ Creator hoạt động</span>
+                  <span>78%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-green-600 h-2 rounded-full" style={{ width: '78%' }}></div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Streams thành công</span>
+                  <span>92%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: '92%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Mức độ hài lòng</span>
+                  <span>85%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-purple-600 h-2 rounded-full" style={{ width: '85%' }}></div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

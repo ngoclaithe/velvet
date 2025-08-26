@@ -213,31 +213,16 @@ export default function AdminLayout({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-        {/* Top Header */}
-        <header className="bg-white border-b h-16 flex items-center justify-between px-6">
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden mr-2"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-semibold text-gray-800">Admin Dashboard</h1>
-          </div>
-          
-          {/* Quick Stats */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-sm">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-gray-600">Hệ thống hoạt động</span>
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {new Date().toLocaleDateString('vi-VN')}
-            </Badge>
-          </div>
-        </header>
+        {/* Mobile menu button - only visible on mobile when sidebar is closed */}
+        <div className="lg:hidden bg-white border-b p-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto bg-gray-50">
