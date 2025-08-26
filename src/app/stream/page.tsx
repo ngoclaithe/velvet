@@ -385,29 +385,44 @@ export default function StreamPage() {
           </div>
         )}
 
-        {/* Streaming Preview & Manager */}
+        {/* Streaming Preview & Manager with Chat */}
         {currentStream && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Stream Preview</CardTitle>
-              <CardDescription>
-                Xem trước stream của bạn (viewers sẽ thấy sau ~7 giây)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <StreamingManager
-                streamData={{
-                  id: currentStream.id,
-                  streamKey: currentStream.streamKey || currentStream.id || 'default-key',
-                  title: currentStream.title
-                }}
-                cameraEnabled={cameraEnabled}
-                micEnabled={micEnabled}
-                onStatusChange={handleStreamingStatusChange}
-                onViewerCountUpdate={handleViewerCountUpdate}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Stream Preview - Takes up 2/3 of space */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Stream Preview</CardTitle>
+                  <CardDescription>
+                    Xem trước stream của bạn (viewers sẽ thấy sau ~7 giây)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <StreamingManager
+                    streamData={{
+                      id: currentStream.id,
+                      streamKey: currentStream.streamKey || currentStream.id || 'default-key',
+                      title: currentStream.title
+                    }}
+                    cameraEnabled={cameraEnabled}
+                    micEnabled={micEnabled}
+                    onStatusChange={handleStreamingStatusChange}
+                    onViewerCountUpdate={handleViewerCountUpdate}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Chat - Takes up 1/3 of space */}
+            <div className="lg:col-span-1">
+              <StreamChatBox
+                streamId={currentStream.id}
+                isCreator={true}
+                height="600px"
+                className="h-full"
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Stream Settings - Hidden during live stream unless toggled */}
