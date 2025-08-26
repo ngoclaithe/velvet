@@ -218,10 +218,27 @@ export const chatWebSocket = {
     return ws.emit('leave_stream_chat', { streamId })
   },
 
-  // Gửi tin nhắn - Client gửi lên: { streamId: 'ID_CUA_STREAM', message: 'Nội dung tin nhắn' }
-  sendChatMessage: (streamId: string, message: string) => {
+  // Gửi tin nhắn - Client gửi lên: { streamId, userId, username, displayName, message, timestamp, type, avatar }
+  sendChatMessage: (streamId: string, messageData: {
+    userId: string
+    username: string
+    displayName: string
+    message: string
+    timestamp: string
+    type?: string
+    avatar?: string
+  }) => {
     const ws = getWebSocket()
-    return ws.emit('chat_message', { streamId, message })
+    return ws.emit('chat_message', {
+      streamId,
+      userId: messageData.userId,
+      username: messageData.username,
+      displayName: messageData.displayName,
+      message: messageData.message,
+      timestamp: messageData.timestamp,
+      type: messageData.type || 'message',
+      avatar: messageData.avatar
+    })
   },
 
   // Gửi tin nhắn trực tiếp

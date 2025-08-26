@@ -206,7 +206,15 @@ export default function StreamChatBox({
       if (response.success) {
         // If API succeeds, also send via WebSocket for real-time delivery
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, messageText)
+          chatWebSocket.sendChatMessage(streamId, {
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: messageText,
+            timestamp: new Date().toISOString(),
+            type: 'message',
+            avatar: user.avatar
+          })
         } else {
           // If WebSocket not connected, add to local state as fallback
           const newMsg: ChatMessage = {
@@ -223,7 +231,15 @@ export default function StreamChatBox({
       } else {
         // If API fails, try WebSocket only
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, messageText)
+          chatWebSocket.sendChatMessage(streamId, {
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: messageText,
+            timestamp: new Date().toISOString(),
+            type: 'message',
+            avatar: user.avatar
+          })
         } else {
           toast.error('Không thể gửi tin nhắn')
           setNewMessage(messageText) // Restore message for retry
@@ -232,7 +248,15 @@ export default function StreamChatBox({
     } catch (error) {
       // On error, try WebSocket as fallback
       if (isWebSocketConnected) {
-        chatWebSocket.sendChatMessage(streamId, messageText)
+        chatWebSocket.sendChatMessage(streamId, {
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
+          message: messageText,
+          timestamp: new Date().toISOString(),
+          type: 'message',
+          avatar: user.avatar
+        })
       } else {
         toast.error('Không thể gửi tin nhắn')
         setNewMessage(messageText) // Restore message for retry
