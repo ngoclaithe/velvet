@@ -502,62 +502,77 @@ export function StreamingManager({
 
   return (
     <div className="streaming-manager">
-      <div className="relative mb-6">
-        <video
-          ref={videoPreviewRef}
-          autoPlay
-          playsInline
-          muted
-          className="w-full max-w-4xl h-auto rounded-xl border-4 border-purple-500 shadow-2xl mx-auto"
-          style={{ display: cameraEnabled ? 'block' : 'none' }}
-        />
-        {!cameraEnabled && (
-          <div className="w-full max-w-4xl h-96 rounded-xl border-4 border-gray-300 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-2xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Video Preview */}
+        <div className="lg:col-span-2">
+          <div className="relative mb-6">
+            <video
+              ref={videoPreviewRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-auto rounded-xl border-4 border-purple-500 shadow-2xl"
+              style={{ display: cameraEnabled ? 'block' : 'none' }}
+            />
+            {!cameraEnabled && (
+              <div className="w-full h-96 rounded-xl border-4 border-gray-300 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-2xl">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">📹</div>
+                  <span className="text-gray-600 text-xl font-medium">Camera đã tắt</span>
+                </div>
+              </div>
+            )}
+
+            <div className="absolute top-4 left-4 flex gap-3">
+              <div className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                isRecording
+                  ? 'bg-red-500 text-white animate-pulse shadow-xl'
+                  : isConnected
+                  ? 'bg-green-500 text-white shadow-lg'
+                  : 'bg-gray-500 text-white'
+              }`}>
+                {isRecording ? '🔴 ĐANG LIVE' : isConnected ? '✅ SẴN SÀNG' : '⚫ OFFLINE'}
+              </div>
+
+              {cameraEnabled && isRecording && (
+                <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-blue-500 text-white shadow-lg">
+                  📹 1080p HD
+                </div>
+              )}
+
+              {micEnabled && isRecording && (
+                <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-500 text-white shadow-lg">
+                  🎤 128k Audio
+                </div>
+              )}
+            </div>
+          </div>
+
+          {isRecording && (
             <div className="text-center">
-              <div className="text-6xl mb-4">📹</div>
-              <span className="text-gray-600 text-xl font-medium">Camera đã tắt</span>
-            </div>
-          </div>
-        )}
-        
-        <div className="absolute top-4 left-4 flex gap-3">
-          <div className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-            isRecording
-              ? 'bg-red-500 text-white animate-pulse shadow-xl'
-              : isConnected
-              ? 'bg-green-500 text-white shadow-lg'
-              : 'bg-gray-500 text-white'
-          }`}>
-            {isRecording ? '🔴 ĐANG LIVE' : isConnected ? '✅ SẴN SÀNG' : '⚫ OFFLINE'}
-          </div>
-
-          {cameraEnabled && isRecording && (
-            <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-blue-500 text-white shadow-lg">
-              📹 1080p HD
+              <div className="inline-flex items-center gap-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full text-white shadow-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                  <span className="font-semibold">Streaming chất lượng cao 1080p</span>
+                </div>
+                <div className="text-white/80 text-sm">
+                  📹 2.5Mbps • 🎤 128kbps
+                </div>
+              </div>
             </div>
           )}
+        </div>
 
-          {micEnabled && isRecording && (
-            <div className="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-500 text-white shadow-lg">
-              🎤 128k Audio
-            </div>
-          )}
+        {/* Chat for Creator */}
+        <div className="lg:col-span-1">
+          <StreamChatBox
+            streamId={String(streamData.id)}
+            isCreator={true}
+            chatEnabled={true}
+            className="h-[500px] lg:h-[600px]"
+          />
         </div>
       </div>
-
-      {isRecording && (
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center gap-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full text-white shadow-lg">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-              <span className="font-semibold">Streaming chất lượng cao 1080p</span>
-            </div>
-            <div className="text-white/80 text-sm">
-              📹 2.5Mbps • 🎤 128kbps
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
