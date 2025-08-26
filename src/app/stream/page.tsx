@@ -62,14 +62,7 @@ interface CurrentStream {
   socketEndpoint?: string
 }
 
-// Interface cho StreamingManager props
-interface StreamingManagerData {
-  id: string
-  streamKey: string
-  socketEndpoint: string
-  title: string
-  isLive: boolean
-}
+// Không cần StreamingManagerData riêng - dùng StreamResponse từ types
 
 export default function StreamPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -140,9 +133,9 @@ export default function StreamPage() {
         const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
-        // Extract stream ID từ socketEndpoint hoặc sử dụng streamKey
-        const streamId = apiStreamData.id || apiStreamData.streamKey || apiStreamData.socketEndpoint?.split('/').pop() || ''
-        console.log('🆔 Generated stream ID:', streamId)
+        // Extract stream ID từ response - API trả về streamId as number
+        const streamId = String(apiStreamData.streamId)
+        console.log('🆔 Extracted stream ID:', streamId, '(from streamId:', apiStreamData.streamId, ')')
 
         const newCurrentStream: CurrentStream = {
           id: streamId,
