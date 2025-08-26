@@ -469,14 +469,11 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="w-8 h-8 text-blue-600" />
-            Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">Quản lý hệ thống streaming platform</p>
+          <h1 className="text-2xl font-bold text-gray-900">Tổng quan</h1>
+          <p className="text-gray-600">Theo dõi hoạt động và thống kê hệ thống</p>
         </div>
         <Button variant="outline" onClick={() => window.location.reload()}>
           <Activity className="w-4 h-4 mr-2" />
