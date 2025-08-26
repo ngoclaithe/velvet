@@ -185,6 +185,7 @@ export default function StreamChatBox({
     // Cleanup on unmount
     return () => {
       if (streamId) {
+        console.log('Leaving stream chat for streamId:', streamId)
         chatWebSocket.leaveStreamChat(streamId)
       }
     }
