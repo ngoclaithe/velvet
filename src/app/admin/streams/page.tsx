@@ -107,11 +107,11 @@ export default function StreamsPage() {
           break
         case 'view':
           // Open stream viewer
-          toast.info('Mở stream viewer...')
+          console.log('Mở stream viewer...')
           break
         case 'chat':
           // Open chat moderator
-          toast.info('Mở chat moderator...')
+          console.log('Mở chat moderator...')
           break
       }
     } catch (error) {

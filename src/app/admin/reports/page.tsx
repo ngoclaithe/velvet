@@ -106,7 +106,7 @@ export default function ReportsPage() {
   const handleReportAction = async (reportId: string, action: 'resolve' | 'dismiss' | 'view') => {
     try {
       if (action === 'view') {
-        toast.info('Mở chi tiết báo cáo...')
+        console.log('Mở chi tiết báo cáo...')
         return
       }
 
