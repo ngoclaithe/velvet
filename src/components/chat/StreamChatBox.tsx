@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { chatApi, paymentApi } from '@/lib/api'
 import { chatWebSocket, getWebSocket } from '@/lib/websocket'
+import { getSocketService } from '@/lib/socket'
 import { useAuth } from '@/hooks/useAuth'
 
 interface ChatMessage {
@@ -117,18 +118,22 @@ export default function StreamChatBox({
   useEffect(() => {
     if (!streamId || !chatEnabled) return
 
-    const webSocket = getWebSocket()
-    
+    // Use the same socket service that creators use for consistency
+    const socketService = getSocketService()
+
     const setupWebSocket = async () => {
       try {
-        // Connect to WebSocket if not already connected
-        if (!webSocket.isConnected()) {
-          await webSocket.connect(user?.id)
+        // Connect to socket if not already connected
+        if (!socketService.getIsConnected()) {
+          await socketService.connect({
+            clientType: isCreator ? 'creator' : 'viewer',
+            streamId: streamId
+          })
         }
-        
-        // Join stream chat room
-        console.log('Joining stream chat for streamId:', streamId)
-        chatWebSocket.joinStreamChat(streamId)
+
+        // Join stream chat room using socket service
+        console.log('Joining stream chat for streamId:', streamId, 'as', isCreator ? 'creator' : 'viewer')
+        socketService.emit('join_stream_chat', { streamId })
         setIsWebSocketConnected(true)
         
         // Listen for new chat messages from backend 'stream_chat_message' event
