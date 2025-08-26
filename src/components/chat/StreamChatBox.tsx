@@ -171,6 +171,8 @@ export default function StreamChatBox({
         
         chatWebSocket.onStreamChatMessage(handleNewMessage)
         webSocket.on('chat_user_count', handleUserCountUpdate)
+
+        console.log('WebSocket setup complete for stream:', streamId)
         
       } catch (error) {
         console.error('Error setting up WebSocket:', error)
@@ -187,6 +189,10 @@ export default function StreamChatBox({
       if (streamId) {
         console.log('Leaving stream chat for streamId:', streamId)
         chatWebSocket.leaveStreamChat(streamId)
+        // Clean up event listeners to prevent memory leaks
+        const ws = getWebSocket()
+        ws.off('stream_chat_message')
+        ws.off('chat_user_count')
       }
     }
   }, [streamId, chatEnabled, isAuthenticated, user?.id, isSoundEnabled])
