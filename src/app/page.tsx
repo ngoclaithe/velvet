@@ -306,11 +306,11 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Age Verification Banner */}
-      <div className="bg-red-600 text-white py-2 text-center text-sm">
+      {/* <div className="bg-red-600 text-white py-2 text-center text-sm">
         <div className="container mx-auto px-4">
           ⚠️ Trang web chỉ dành cho người trên 18 tuổi. Bằng việc tiếp tục, bạn xác nhận đã đủ tuổi theo quy định pháp luật.
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <section className="py-8 bg-gray-900">

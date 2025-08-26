@@ -233,7 +233,7 @@ export default function StreamPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Stream Dashboard</h1>
-            <p className="text-muted-foreground">Quản lý stream của bạn (độ trễ ~7 giây)</p>
+            <p className="text-muted-foreground">Quản lý stream của bạn</p>
           </div>
           {currentStream && (
             <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">
@@ -251,7 +251,7 @@ export default function StreamPage() {
               Điều khiển Stream
             </CardTitle>
             <CardDescription>
-              Quản lý thiết bị và stream (độ trễ 5-10 giây)
+              Quản lý thiết bị và stream
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
