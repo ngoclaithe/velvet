@@ -803,6 +803,187 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="payments" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Quản lý thông tin thanh toán</CardTitle>
+                  <CardDescription>Thêm và quản lý thông tin ngân hàng cho thanh toán</CardDescription>
+                </div>
+                <Button
+                  onClick={() => setIsEditingPayment(true)}
+                  disabled={isEditingPayment}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Thêm thông tin thanh toán
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isEditingPayment && (
+                <Card className="mb-6 border-blue-200 bg-blue-50/50">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {editingPaymentId ? 'Chỉnh sửa thông tin thanh toán' : 'Thêm thông tin thanh toán mới'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bankName">Tên ngân hàng *</Label>
+                        <Input
+                          id="bankName"
+                          value={paymentForm.bankName}
+                          onChange={(e) => setPaymentForm(prev => ({ ...prev, bankName: e.target.value }))}
+                          placeholder="VD: Vietcombank"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="accountNumber">Số tài khoản *</Label>
+                        <Input
+                          id="accountNumber"
+                          value={paymentForm.accountNumber}
+                          onChange={(e) => setPaymentForm(prev => ({ ...prev, accountNumber: e.target.value }))}
+                          placeholder="VD: 1234567890"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="accountHolderName">Tên chủ tài khoản *</Label>
+                      <Input
+                        id="accountHolderName"
+                        value={paymentForm.accountHolderName}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, accountHolderName: e.target.value }))}
+                        placeholder="VD: NGUYEN VAN A"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="qrCodeUrl">URL QR Code</Label>
+                      <Input
+                        id="qrCodeUrl"
+                        value={paymentForm.qrCodeUrl}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, qrCodeUrl: e.target.value }))}
+                        placeholder="https://example.com/qr-code.jpg"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="isActive" className="text-sm font-medium">
+                        Trạng thái hoạt động
+                      </Label>
+                      <input
+                        type="checkbox"
+                        id="isActive"
+                        checked={paymentForm.isActive}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2 pt-4">
+                      <Button
+                        onClick={editingPaymentId ? handleUpdatePaymentInfo : handleCreatePaymentInfo}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        {editingPaymentId ? 'Cập nhật' : 'Tạo mới'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditingPayment(false)
+                          setEditingPaymentId(null)
+                          setPaymentForm({
+                            bankName: '',
+                            accountNumber: '',
+                            accountHolderName: '',
+                            qrCodeUrl: '',
+                            isActive: true
+                          })
+                        }}
+                      >
+                        Hủy
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="space-y-4">
+                {paymentInfos.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có thông tin thanh toán</h3>
+                    <p className="text-gray-500">Thêm thông tin ngân hàng để quản lý thanh toán</p>
+                  </div>
+                ) : (
+                  paymentInfos.map((paymentInfo) => (
+                    <div key={paymentInfo.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <CreditCard className="w-8 h-8 text-blue-600" />
+                        <div>
+                          <p className="font-medium">{paymentInfo.bankName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Số TK: {paymentInfo.accountNumber}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Chủ TK: {paymentInfo.accountHolderName}
+                          </p>
+                          {paymentInfo.qrCodeUrl && (
+                            <p className="text-sm text-blue-600">Có QR Code</p>
+                          )}
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant={paymentInfo.isActive ? 'default' : 'secondary'}>
+                              {paymentInfo.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              Cập nhật: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditPaymentInfo(paymentInfo)}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Sửa
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleTogglePaymentStatus(paymentInfo.id)}
+                        >
+                          {paymentInfo.isActive ? (
+                            <>
+                              <EyeOff className="w-4 h-4 mr-1" />
+                              Tắt
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-4 h-4 mr-1" />
+                              Bật
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeletePaymentInfo(paymentInfo.id)}
+                        >
+                          <Trash className="w-4 h-4 mr-1" />
+                          Xóa
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   )
