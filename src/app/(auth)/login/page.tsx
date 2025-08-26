@@ -46,7 +46,7 @@ export default function LoginPage() {
     setErrors({})
 
     try {
-      await login({
+      const loginResult = await login({
         loginField, // Backend nhận loginField (có thể là email hoặc username)
         password,
         rememberMe
@@ -60,12 +60,16 @@ export default function LoginPage() {
       })
 
       // Redirect dựa trên role của user
-      // Cần delay nhỏ để đảm bảo user context được cập nhật
+      // Delay nhỏ để đảm bảo user context được cập nhật
       setTimeout(() => {
-        // Note: Cần access user role từ response hoặc context sau khi login
-        // Tạm thời redirect về trang chủ, logic này có thể cần cập nhật
-        // khi có thông tin user sau login
-        router.push('/')
+        // Access user từ auth store sau khi login
+        const { user: currentUser } = require('@/store/authStore').useAuthStore.getState()
+
+        if (currentUser?.role === 'admin') {
+          router.push('/admin')
+        } else {
+          router.push('/')
+        }
       }, 100)
 
     } catch (error) {
