@@ -469,7 +469,7 @@ export function StreamingManager({
     }
 
     if (socketService.getIsConnected()) {
-      socketService.stopStreaming(streamData.id)
+      socketService.stopStreaming(String(streamData.id))
       socketService.disconnect()
     }
 
