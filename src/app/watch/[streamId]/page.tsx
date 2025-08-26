@@ -111,7 +111,6 @@ export default function WatchStreamPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isMuted, setIsMuted] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
-  const [showGiftDialog, setShowGiftDialog] = useState(false)
   const [selectedGift, setSelectedGift] = useState<GiftOption | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
