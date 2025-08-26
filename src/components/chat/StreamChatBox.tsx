@@ -168,7 +168,7 @@ export default function StreamChatBox({
           setConnectedUsers(data.count || 0)
         }
         
-        chatWebSocket.onChatMessage(handleNewMessage)
+        chatWebSocket.onStreamChatMessage(handleNewMessage)
         webSocket.on('chat_user_count', handleUserCountUpdate)
         
       } catch (error) {
