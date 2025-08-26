@@ -30,7 +30,10 @@ import {
   Ban,
   MessageSquare,
   TrendingUp,
-  Activity
+  Activity,
+  Plus,
+  CreditCard,
+  EyeOff
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
