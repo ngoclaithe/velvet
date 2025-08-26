@@ -47,7 +47,7 @@ interface StreamData {
 
 // Interface cho response từ startStream API - actual API response format
 interface StartStreamResponse {
-  streamId: number  // For chat payload
+  id: string        // API returns id, use this for chat payload as streamId
   streamKey: string // For socket connection
   socketEndpoint: string
   title?: string
@@ -118,7 +118,7 @@ export default function StreamPage() {
       return
     }
 
-    console.log('📝 Stream data to send:', streamData)
+    console.log('�� Stream data to send:', streamData)
 
     setIsStartingStream(true)
     try {
@@ -138,7 +138,7 @@ export default function StreamPage() {
         console.log('✅ Stream API data:', apiStreamData)
 
         // Extract both streamId (for chat) and streamKey (for socket) từ response
-        const streamId = String(apiStreamData.streamId) // For chat payload
+        const streamId = apiStreamData.id               // Use id as streamId for chat payload
         const streamKey = apiStreamData.streamKey        // For socket connection
         console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
@@ -184,12 +184,13 @@ export default function StreamPage() {
 
     setIsStoppingStream(true)
     try {
-      const response = await streamApi.stopStream(currentStream.id)
+      // Use streamKey for stopping stream as per user requirement
+      const response = await streamApi.stopStream(currentStream.streamKey || currentStream.id)
 
       if (response.success) {
         setCurrentStream(null)
         setIsConnected(false)
-        toast.success('Stream đã được kết thúc')
+        toast.success('Stream ��ã được kết thúc')
       } else {
         toast.error(response.error || 'Không thể kết thúc stream')
       }
