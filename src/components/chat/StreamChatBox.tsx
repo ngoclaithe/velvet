@@ -168,14 +168,15 @@ export default function StreamChatBox({
             }
           }
         }
-        
+
         // Listen for user count updates
         const handleUserCountUpdate = (data: any) => {
           setConnectedUsers(data.count || 0)
         }
-        
-        chatWebSocket.onStreamChatMessage(handleNewMessage)
-        webSocket.on('chat_user_count', handleUserCountUpdate)
+
+        // Use socket service for consistent event handling
+        socketService.on('stream_chat_message', handleNewMessage)
+        socketService.on('chat_user_count', handleUserCountUpdate)
 
         console.log('WebSocket setup complete for stream:', streamId)
         
@@ -193,11 +194,10 @@ export default function StreamChatBox({
     return () => {
       if (streamId) {
         console.log('Leaving stream chat for streamId:', streamId)
-        chatWebSocket.leaveStreamChat(streamId)
+        socketService.emit('leave_stream_chat', { streamId })
         // Clean up event listeners to prevent memory leaks
-        const ws = getWebSocket()
-        ws.off('stream_chat_message')
-        ws.off('chat_user_count')
+        socketService.off('stream_chat_message')
+        socketService.off('chat_user_count')
       }
     }
   }, [streamId, chatEnabled, isAuthenticated, user?.id, isSoundEnabled])
