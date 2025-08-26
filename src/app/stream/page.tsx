@@ -396,13 +396,14 @@ export default function StreamPage() {
                   <StreamingManager
                     streamData={{
                       id: currentStream.id,
+                      streamKey: currentStream.streamKey || '',
+                      // Minimal required fields to satisfy StreamResponse interface
                       creatorId: user?.id || 0,
                       title: currentStream.title,
-                      description: streamData.description,
+                      description: streamData.description || '',
                       thumbnail: undefined,
-                      streamKey: currentStream.streamKey || '',
                       streamUrl: currentStream.socketEndpoint || '',
-                      hlsUrl: `${window.location.origin}/hls/${currentStream.id}.m3u8`,
+                      hlsUrl: '',
                       isLive: currentStream.isLive,
                       isPrivate: streamData.isPrivate,
                       viewerCount: currentStream.viewerCount,
