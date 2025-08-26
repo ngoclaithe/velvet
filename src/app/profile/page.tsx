@@ -37,13 +37,26 @@ import { useToast } from '@/hooks/use-toast'
 
 type Gender = 'male' | 'female' | 'other';
 
+interface FormData {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  bio: string;
+  location: string;
+  website: string;
+  gender: Gender | '';
+  dateOfBirth: string;
+}
+
 export default function ProfilePage() {
   const { user, updateProfile, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     username: user?.username || '',
@@ -84,8 +97,9 @@ export default function ProfilePage() {
     try {
       await updateProfile({
         ...formData,
+        gender: formData.gender || undefined,
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
-      })
+      } as Partial<User>)
       
       setIsEditing(false)
       toast({
@@ -117,7 +131,7 @@ export default function ProfilePage() {
       website: user?.website || '',
       gender: user?.gender || '',
       dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
-    })
+    } as FormData)
     setIsEditing(false)
   }
 
