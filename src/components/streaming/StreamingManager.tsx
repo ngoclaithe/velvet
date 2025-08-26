@@ -64,6 +64,19 @@ export function StreamingManager({
 
   const initializeStreaming = async () => {
     try {
+      console.log('🎬 StreamingManager: Initializing streaming...')
+      console.log('📊 Stream Data:', {
+        id: streamData.id,
+        streamKey: streamData.streamKey,
+        title: streamData.title
+      })
+
+      if (!streamData.id || !streamData.streamKey) {
+        console.error('❌ Missing required stream data:', { id: streamData.id, streamKey: streamData.streamKey })
+        toast.error('Thiếu thông tin stream cần thiết')
+        return
+      }
+
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
         clientType: 'creator',
@@ -71,6 +84,7 @@ export function StreamingManager({
         streamKey: streamData.streamKey
       }
 
+      console.log('🔧 Socket Config:', socketConfig)
       setupSocketEventListeners()
       await socketService.connect(socketConfig)
 
