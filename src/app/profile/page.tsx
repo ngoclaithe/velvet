@@ -157,9 +157,9 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
                 <div className="relative">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={user.avatar} alt={user.username} />
+                    <AvatarImage src={user?.avatar} alt={user?.username} />
                     <AvatarFallback className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-2xl">
-                      {user.username?.charAt(0).toUpperCase()}
+                      {user?.username?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <Button
@@ -210,7 +210,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Become Creator Card - Only for regular users */}
-          {user.role === 'user' && (
+          {user?.role === 'user' && (
             <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6">
