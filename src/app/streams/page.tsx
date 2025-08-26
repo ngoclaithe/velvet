@@ -159,14 +159,34 @@ export default function StreamsPage() {
           search: searchQuery || undefined,
           sort: sortBy
         })
-        
-        if (response.success && response.data) {
-          setStreams(response.data)
+
+        if (response.success && response.data?.streams) {
+          // Transform API response to match our interface
+          const transformedStreams = response.data.streams.map((stream: any) => ({
+            id: stream.id.toString(),
+            title: stream.title,
+            description: stream.description || '',
+            category: stream.category || 'General',
+            tags: stream.tags || [],
+            creator: {
+              id: stream.creator?.id?.toString() || stream.creatorId?.toString(),
+              username: stream.creator?.displayName || 'unknown',
+              stageName: stream.creator?.stageName || stream.creator?.displayName || 'Unknown Creator',
+              avatar: stream.creator?.avatar,
+              isVerified: stream.creator?.isVerified || false
+            },
+            thumbnail: stream.thumbnail,
+            isLive: stream.isLive,
+            viewerCount: stream.viewerCount || 0,
+            totalViews: stream.maxViewers || 0,
+            startedAt: stream.startTime || new Date().toISOString()
+          }))
+          setStreams(transformedStreams)
         } else {
           // Fallback to mock data if API fails
           setStreams(mockStreams.filter(stream => {
             const matchesCategory = selectedCategory === 'all' || stream.category === selectedCategory
-            const matchesSearch = !searchQuery || 
+            const matchesSearch = !searchQuery ||
               stream.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
               stream.creator.stageName.toLowerCase().includes(searchQuery.toLowerCase()) ||
               stream.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -176,7 +196,14 @@ export default function StreamsPage() {
       } catch (error) {
         console.error('Error fetching streams:', error)
         // Use mock data on error
-        setStreams(mockStreams)
+        setStreams(mockStreams.filter(stream => {
+          const matchesCategory = selectedCategory === 'all' || stream.category === selectedCategory
+          const matchesSearch = !searchQuery ||
+            stream.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            stream.creator.stageName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            stream.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          return matchesCategory && matchesSearch
+        }))
       } finally {
         setIsLoading(false)
       }
