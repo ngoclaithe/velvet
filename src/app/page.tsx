@@ -27,9 +27,10 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { streamApi } from '@/lib/api'
+import type { StreamResponse } from '@/types/streaming'
 
 function LiveStreamsTab() {
-  const [liveStreams, setLiveStreams] = useState<any[]>([])
+  const [liveStreams, setLiveStreams] = useState<StreamResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
