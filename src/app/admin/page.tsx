@@ -76,6 +76,17 @@ interface Report {
   createdAt: string
 }
 
+interface PaymentInfo {
+  id: string
+  bankName: string
+  accountNumber: string
+  accountHolderName: string
+  qrCodeUrl?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export default function AdminDashboard() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
