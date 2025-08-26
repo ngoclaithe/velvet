@@ -6,11 +6,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'react-hot-toast'
 import {
   Heart,
@@ -98,7 +95,7 @@ const giftOptions: GiftOption[] = [
   { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
   { id: '6', name: 'Nhà', icon: '����', price: 100 },
   { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
-  { id: '8', name: 'T��n lửa', icon: '🚀', price: 1000 }
+  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
 ]
 
 export default function WatchStreamPage() {
