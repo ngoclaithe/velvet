@@ -86,7 +86,7 @@ export default function StreamChatBox({
 
       try {
         const response = await chatApi.getMessages(streamId)
-        if (response.success && response.data) {
+        if (response.success && response.data && Array.isArray(response.data)) {
           setChatMessages(response.data)
         } else {
           // Fallback to mock data if API fails
