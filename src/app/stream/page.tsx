@@ -62,14 +62,6 @@ interface CurrentStream {
   socketEndpoint?: string
 }
 
-// Interface cho StreamingManager props
-interface StreamingManagerData {
-  id: string
-  streamKey: string
-  socketEndpoint: string
-  title: string
-  isLive: boolean
-}
 
 export default function StreamPage() {
   const { user, isLoading: authLoading } = useAuth()
