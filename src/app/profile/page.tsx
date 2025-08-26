@@ -121,18 +121,20 @@ export default function ProfilePage() {
   }
 
   const handleCancel = () => {
-    setFormData({
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      username: user?.username || '',
-      email: user?.email || '',
-      phoneNumber: user?.phoneNumber || '',
-      bio: user?.bio || '',
-      location: user?.location || '',
-      website: user?.website || '',
-      gender: user?.gender || '',
-      dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
-    } as FormData)
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        username: user.username || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        website: user.website || '',
+        gender: user.gender || '',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+      })
+    }
     setIsEditing(false)
   }
 
@@ -235,7 +237,7 @@ export default function ProfilePage() {
                   className="w-full sm:w-auto"
                 >
                   <Edit3 className="h-4 w-4 mr-2" />
-                  {isEditing ? 'Hủy chỉnh sửa' : 'Chỉnh sửa h��� sơ'}
+                  {isEditing ? 'Hủy chỉnh sửa' : 'Chỉnh sửa hồ sơ'}
                 </Button>
               </div>
             </CardContent>
@@ -458,7 +460,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Hiển thị email</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác xem địa chỉ email của bạn
+                    Cho phép người khác xem địa ch��� email của bạn
                   </p>
                 </div>
                 <Switch
