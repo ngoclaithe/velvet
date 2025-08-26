@@ -229,16 +229,22 @@ export default function StreamsPage() {
   }, [selectedCategory, searchQuery, sortBy])
 
   const formatDuration = (startedAt: string) => {
-    const start = new Date(startedAt)
-    const now = new Date()
-    const diff = now.getTime() - start.getTime()
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`
+    if (!startedAt) return '0m'
+
+    try {
+      const start = new Date(startedAt)
+      const now = new Date()
+      const diff = now.getTime() - start.getTime()
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`
+      }
+      return `${minutes}m`
+    } catch (error) {
+      return '0m'
     }
-    return `${minutes}m`
   }
 
   const handleStreamClick = (streamId: string) => {
