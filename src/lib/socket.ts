@@ -258,11 +258,15 @@ export class SocketService {
     }
 
     try {
+      const endpoint = this.currentConfig?.endpoint
+      const effectiveRoomId = endpoint || roomId
+
       const initPayload = {
-        roomId: roomId,
+        roomId: effectiveRoomId,
         initData: initData,
         timestamp: Date.now(),
-        size: initData.byteLength
+        size: initData.byteLength,
+        endpoint: endpoint
       }
 
       return new Promise((resolve) => {
@@ -295,13 +299,16 @@ export class SocketService {
     }
 
     try {
+      const endpoint = this.currentConfig?.endpoint
+
       const chunkPayload = {
         streamId: streamId,
         chunkData: chunkData,
         chunkNumber: chunkNumber,
         mimeType: mimeType,
         timestamp: Date.now(),
-        size: chunkData.byteLength
+        size: chunkData.byteLength,
+        endpoint: endpoint
       }
 
       return new Promise((resolve) => {
