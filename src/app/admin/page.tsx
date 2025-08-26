@@ -94,7 +94,6 @@ export default function AdminDashboard() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
 
   // Mock data - would come from API
   const [stats, setStats] = useState<AdminStats>({
