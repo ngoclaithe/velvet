@@ -296,7 +296,15 @@ export default function StreamChatBox({
         
         // Send gift message via WebSocket for real-time delivery
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, giftMsg.message)
+          chatWebSocket.sendChatMessage(streamId, {
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: giftMsg.message,
+            timestamp: giftMsg.timestamp,
+            type: 'gift',
+            avatar: user.avatar
+          })
         }
         
         setChatMessages(prev => [...prev, giftMsg])
