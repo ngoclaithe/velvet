@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamData {
   streamId: number
@@ -95,7 +96,7 @@ const giftOptions: GiftOption[] = [
   { id: '3', name: 'Kem', icon: '🍦', price: 5 },
   { id: '4', name: 'Pizza', icon: '🍕', price: 10 },
   { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
-  { id: '6', name: 'Nhà', icon: '����', price: 100 },
+  { id: '6', name: 'Nhà', icon: '�����', price: 100 },
   { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
   { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
 ]
@@ -108,15 +109,11 @@ export default function WatchStreamPage() {
 
   const [streamData, setStreamData] = useState<StreamData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const [newMessage, setNewMessage] = useState('')
   const [isMuted, setIsMuted] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
-  const [showGiftDialog, setShowGiftDialog] = useState(false)
   const [selectedGift, setSelectedGift] = useState<GiftOption | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  const chatScrollRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<any>(null)
 
   useEffect(() => {
@@ -217,57 +214,7 @@ export default function WatchStreamPage() {
     }
   }, [streamId, router])
 
-  useEffect(() => {
-    const fetchChatMessages = async () => {
-      if (!streamData?.chatEnabled) return
 
-      try {
-        // TODO: Uncomment when backend is ready
-        // const response = await chatApi.getMessages(streamId)
-        // if (response.success && response.data) {
-        //   setChatMessages(response.data)
-        // }
-
-        // Mock data for now
-        const mockMessages: ChatMessage[] = [
-          {
-            id: '1',
-            userId: 'user1',
-            username: 'viewer1',
-            displayName: 'Viewer One',
-            message: 'Chào mọi người!',
-            timestamp: new Date().toISOString(),
-            type: 'message'
-          },
-          {
-            id: '2',
-            userId: 'user2',
-            username: 'viewer2',
-            displayName: 'Viewer Two',
-            message: 'Stream hay quá!',
-            timestamp: new Date().toISOString(),
-            type: 'message'
-          }
-        ]
-        setChatMessages(mockMessages)
-      } catch (error) {
-        console.error('Error fetching chat messages:', error)
-      }
-    }
-
-    if (streamId && streamData) {
-      fetchChatMessages()
-      // TODO: Uncomment when backend is ready
-      // const interval = setInterval(fetchChatMessages, 2000)
-      // return () => clearInterval(interval)
-    }
-  }, [streamId, streamData])
-
-  useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
-    }
-  }, [chatMessages])
 
   // Initialize HLS player với dynamic import
   useEffect(() => {
@@ -353,68 +300,7 @@ export default function WatchStreamPage() {
     }
   }, [streamData?.hlsUrl])
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !isAuthenticated || !user) return
 
-    try {
-      // TODO: Uncomment when backend is ready
-      // const response = await chatApi.sendMessage(streamId, {
-      //   message: newMessage.trim()
-      // })
-
-      // if (response.success) {
-        setNewMessage('')
-        const newMsg: ChatMessage = {
-          id: Date.now().toString(),
-          userId: user.id,
-          username: user.username,
-          displayName: user.firstName || user.username,
-          message: newMessage.trim(),
-          timestamp: new Date().toISOString(),
-          type: 'message'
-        }
-        setChatMessages(prev => [...prev, newMsg])
-      // }
-    } catch (error) {
-      toast.error('Không thể gửi tin nhắn')
-    }
-  }
-
-  const handleSendGift = async (gift: GiftOption) => {
-    if (!isAuthenticated || !user) {
-      toast.error('Vui lòng đăng nhập để gửi quà')
-      return
-    }
-
-    try {
-      // TODO: Uncomment when backend is ready
-      // const response = await paymentApi.sendGift({
-      //   streamId,
-      //   giftId: gift.id,
-      //   amount: gift.price
-      // })
-
-      // if (response.success) {
-        toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
-        setShowGiftDialog(false)
-
-        const giftMsg: ChatMessage = {
-          id: Date.now().toString(),
-          userId: user.id,
-          username: user.username,
-          displayName: user.firstName || user.username,
-          message: `Đã gửi ${gift.name} ${gift.icon}`,
-          timestamp: new Date().toISOString(),
-          type: 'gift',
-          giftType: gift.name,
-          amount: gift.price
-        }
-        setChatMessages(prev => [...prev, giftMsg])
-      // }
-    } catch (error) {
-      toast.error('Không thể gửi quà')
-    }
-  }
 
   const handleToggleFollow = async () => {
     if (!isAuthenticated) {
@@ -435,13 +321,6 @@ export default function WatchStreamPage() {
     }
   }
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString('vi-VN', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
-  }
 
   if (isLoading) {
     return (
@@ -582,114 +461,12 @@ export default function WatchStreamPage() {
 
           {/* Chat & Gifts */}
           <div className="lg:col-span-1">
-            <Card className="bg-gray-800 border-gray-700 h-[600px] flex flex-col">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Chat trực tiếp</span>
-                </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600">
-                        <Gift className="w-4 h-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-gray-800 border-gray-700">
-                      <DialogHeader>
-                        <DialogTitle className="text-white">Gửi quà tặng</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid grid-cols-4 gap-3">
-                        {giftOptions.map((gift) => (
-                          <div
-                            key={gift.id}
-                            onClick={() => handleSendGift(gift)}
-                            className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors text-center"
-                          >
-                            <div className="text-2xl mb-1">{gift.icon}</div>
-                            <div className="text-xs text-white">{gift.name}</div>
-                            <div className="text-xs text-yellow-400">{gift.price} xu</div>
-                          </div>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-
-              <CardContent className="flex-1 flex flex-col p-4 space-y-4">
-                {/* Messages */}
-                <ScrollArea className="flex-1" ref={chatScrollRef}>
-                  <div className="space-y-3">
-                    {chatMessages.map((message) => (
-                      <div key={message.id} className="text-sm">
-                        <div className="flex items-start space-x-2">
-                          <Avatar className="w-6 h-6">
-                            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs">
-                              {message.displayName.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-1">
-                              <span className="font-medium text-white text-xs">
-                                {message.displayName}
-                              </span>
-                              <span className="text-gray-500 text-xs">
-                                {formatTime(message.timestamp)}
-                              </span>
-                            </div>
-                            <div className={`mt-1 ${
-                              message.type === 'gift' 
-                                ? 'text-yellow-400 font-medium' 
-                                : 'text-gray-300'
-                            }`}>
-                              {message.message}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-
-                {/* Message Input */}
-                {streamData.chatEnabled && (
-                  <div className="flex space-x-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder={isAuthenticated ? "Nhập tin nhắn..." : "Đăng nhập để chat"}
-                      className="flex-1 bg-gray-700 border-gray-600 text-white"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSendMessage()
-                        }
-                      }}
-                      disabled={!isAuthenticated}
-                    />
-                    <Button 
-                      onClick={handleSendMessage}
-                      disabled={!newMessage.trim() || !isAuthenticated}
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-
-                {!isAuthenticated && (
-                  <div className="text-center">
-                    <p className="text-gray-400 text-sm mb-2">
-                      Đăng nhập để tham gia chat
-                    </p>
-                    <Button size="sm" asChild>
-                      <a href="/login">Đăng nhập</a>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <StreamChatBox
+              streamId={streamId}
+              isCreator={false}
+              chatEnabled={streamData.chatEnabled}
+              className="h-[600px]"
+            />
           </div>
         </div>
       </div>

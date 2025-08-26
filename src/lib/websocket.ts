@@ -231,7 +231,7 @@ let globalWs: WebSocketClient | null = null
 
 export function getWebSocket(): WebSocketClient {
   if (!globalWs) {
-    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001'
+    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:5000'
     globalWs = new WebSocketClient({ url: wsUrl })
   }
   return globalWs
