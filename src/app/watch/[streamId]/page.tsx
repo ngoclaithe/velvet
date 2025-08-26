@@ -98,7 +98,7 @@ const giftOptions: GiftOption[] = [
   { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
   { id: '6', name: 'Nhà', icon: '����', price: 100 },
   { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
-  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
+  { id: '8', name: 'T��n lửa', icon: '🚀', price: 1000 }
 ]
 
 export default function WatchStreamPage() {
@@ -461,116 +461,14 @@ export default function WatchStreamPage() {
             </div>
           </div>
 
-          {/* Chat & Gifts */}
+          {/* Chat */}
           <div className="lg:col-span-1">
-            <Card className="bg-gray-800 border-gray-700 h-[600px] flex flex-col">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Chat trực tiếp</span>
-                </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600">
-                        <Gift className="w-4 h-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-gray-800 border-gray-700">
-                      <DialogHeader>
-                        <DialogTitle className="text-white">Gửi quà tặng</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid grid-cols-4 gap-3">
-                        {giftOptions.map((gift) => (
-                          <div
-                            key={gift.id}
-                            onClick={() => handleSendGift(gift)}
-                            className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors text-center"
-                          >
-                            <div className="text-2xl mb-1">{gift.icon}</div>
-                            <div className="text-xs text-white">{gift.name}</div>
-                            <div className="text-xs text-yellow-400">{gift.price} xu</div>
-                          </div>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-
-              <CardContent className="flex-1 flex flex-col p-4 space-y-4">
-                {/* Messages */}
-                <ScrollArea className="flex-1" ref={chatScrollRef}>
-                  <div className="space-y-3">
-                    {chatMessages.map((message) => (
-                      <div key={message.id} className="text-sm">
-                        <div className="flex items-start space-x-2">
-                          <Avatar className="w-6 h-6">
-                            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs">
-                              {message.displayName.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-1">
-                              <span className="font-medium text-white text-xs">
-                                {message.displayName}
-                              </span>
-                              <span className="text-gray-500 text-xs">
-                                {formatTime(message.timestamp)}
-                              </span>
-                            </div>
-                            <div className={`mt-1 ${
-                              message.type === 'gift' 
-                                ? 'text-yellow-400 font-medium' 
-                                : 'text-gray-300'
-                            }`}>
-                              {message.message}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-
-                {/* Message Input */}
-                {streamData.chatEnabled && (
-                  <div className="flex space-x-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder={isAuthenticated ? "Nhập tin nhắn..." : "Đăng nhập để chat"}
-                      className="flex-1 bg-gray-700 border-gray-600 text-white"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSendMessage()
-                        }
-                      }}
-                      disabled={!isAuthenticated}
-                    />
-                    <Button 
-                      onClick={handleSendMessage}
-                      disabled={!newMessage.trim() || !isAuthenticated}
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-
-                {!isAuthenticated && (
-                  <div className="text-center">
-                    <p className="text-gray-400 text-sm mb-2">
-                      Đăng nhập để tham gia chat
-                    </p>
-                    <Button size="sm" asChild>
-                      <a href="/login">Đăng nhập</a>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <StreamChatBox
+              streamId={streamId}
+              isCreator={isCreator}
+              height="600px"
+              className="h-full"
+            />
           </div>
         </div>
       </div>
