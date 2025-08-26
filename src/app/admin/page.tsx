@@ -235,7 +235,7 @@ export default function AdminDashboard() {
           : r
       ))
 
-      toast.success(`��ã ${action} báo cáo thành công`)
+      toast.success(`Đã ${action} báo cáo thành công`)
     } catch (error) {
       toast.error('Có lỗi xảy ra')
     }
@@ -443,7 +443,7 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Tỷ lệ Creator ho���t động</span>
+                      <span>Tỷ lệ Creator hoạt động</span>
                       <span>78%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">

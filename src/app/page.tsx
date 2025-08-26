@@ -509,7 +509,7 @@ export default function HomePage() {
                 Sẵn sàng khám phá?
               </h2>
               <p className="text-lg md:text-xl mb-8 text-gray-300 leading-relaxed">
-                Tham gia cộng đồng hàng nghìn thành viên đang chia sẻ v�� khám phá nội dung độc đáo mỗi ngày
+                Tham gia cộng đồng hàng nghìn thành viên đang chia sẻ và khám phá nội dung độc đáo mỗi ngày
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/register">

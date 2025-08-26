@@ -63,7 +63,7 @@ export default function NewsFeed() {
       {
         id: '1',
         type: 'text',
-        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt ��ầu khám phá các tính năng thú vị của chúng tôi.',
+        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt đầu khám phá các tính năng thú vị của chúng tôi.',
         author: {
           id: 'admin',
           username: 'admin',

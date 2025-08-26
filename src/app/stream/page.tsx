@@ -94,7 +94,7 @@ export default function StreamPage() {
   // Kiểm tra quyền truy cập
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'creator')) {
-      toast.error('Bạn cần đăng nhập với tài kho��n creator để truy cập trang này')
+      toast.error('Bạn cần đăng nhập với tài khoản creator để truy cập trang này')
       router.push('/login')
     }
   }, [user, authLoading, router])
@@ -117,7 +117,7 @@ export default function StreamPage() {
       return
     }
 
-    console.log('�� Stream data to send:', streamData)
+    console.log('Stream data to send:', streamData)
 
     setIsStartingStream(true)
     try {
@@ -188,7 +188,7 @@ export default function StreamPage() {
       if (response.success) {
         setCurrentStream(null)
         setIsConnected(false)
-        toast.success('Stream ��ã được kết thúc')
+        toast.success('Stream đã được kết thúc')
       } else {
         toast.error(response.error || 'Không thể kết thúc stream')
       }
@@ -314,7 +314,7 @@ export default function StreamPage() {
                     {isStoppingStream ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Đang d���ng...
+                        Đang dừng...
                       </>
                     ) : (
                       <>

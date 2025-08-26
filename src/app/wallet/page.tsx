@@ -264,7 +264,7 @@ export default function WalletPage() {
     switch (status) {
       case 'completed': return <Badge variant="default" className="bg-green-100 text-green-800">Hoàn thành</Badge>
       case 'pending': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Đang xử lý</Badge>
-      case 'failed': return <Badge variant="destructive">Th��t bại</Badge>
+      case 'failed': return <Badge variant="destructive">Thất bại</Badge>
       default: return null
     }
   }
@@ -398,7 +398,7 @@ export default function WalletPage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
           <TabsTrigger value="deposit">Nạp tiền</TabsTrigger>
-          <TabsTrigger value="withdraw">Rút ti��n</TabsTrigger>
+          <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>
         </TabsList>
 
         <TabsContent value="transactions" className="space-y-6">
@@ -575,7 +575,7 @@ export default function WalletPage() {
                     step="0.01"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Số dư khả d���ng: ${(balance - lockedBalance).toFixed(2)}
+                    Số dư khả dụng: ${(balance - lockedBalance).toFixed(2)}
                   </p>
                 </div>
 
