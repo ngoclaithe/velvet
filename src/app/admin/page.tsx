@@ -92,7 +92,7 @@ export default function AdminDashboard() {
 
   const [users, setUsers] = useState<User[]>([])
   const [streams, setStreams] = useState<Stream[]>([])
-  const [reports, setReports] = useState<Report[]>([])
+  const [reports, setReports] = useState<AdminReport[]>([])
   const [paymentInfos, setPaymentInfos] = useState<PaymentInfo[]>([])
 
   // Payment info form states
