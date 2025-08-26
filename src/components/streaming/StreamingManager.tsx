@@ -315,7 +315,7 @@ export function StreamingManager({
   const sendMp4InitSegment = async (initBuffer: ArrayBuffer) => {
     try {
       if (socketService.getIsConnected()) {
-        await socketService.sendMp4InitSegment(streamData.id, initBuffer)
+        await socketService.sendMp4InitSegment(String(streamData.id), initBuffer)
       }
     } catch (error) {
       setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
