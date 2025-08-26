@@ -39,8 +39,14 @@ function LiveStreamsTab() {
         setIsLoading(true)
         const response = await streamApi.getLiveStreams()
 
-        if (response.success && response.data?.streams) {
-          setLiveStreams(response.data.streams.slice(0, 6))
+        if (response.success && response.data) {
+          // Type cast và validate response data
+          const data = response.data as any
+          if (data && Array.isArray(data.streams)) {
+            setLiveStreams(data.streams.slice(0, 6))
+          } else {
+            setLiveStreams([])
+          }
         } else {
           setLiveStreams([])
         }
