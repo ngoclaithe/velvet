@@ -46,12 +46,16 @@ interface StreamCard {
 
 // Type guard helper
 function hasStreamsData(data: unknown): data is { streams: StreamResponse[] } {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'streams' in data &&
-    Array.isArray((data as any).streams)
-  )
+  try {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      'streams' in data &&
+      Array.isArray((data as any).streams)
+    )
+  } catch {
+    return false
+  }
 }
 
 export default function StreamsPage() {
