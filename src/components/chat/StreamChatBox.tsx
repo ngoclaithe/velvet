@@ -86,7 +86,7 @@ export default function StreamChatBox({
 
       try {
         const response = await chatApi.getMessages(streamId)
-        if (response.success && response.data) {
+        if (response.success && response.data && Array.isArray(response.data)) {
           setChatMessages(response.data)
         } else {
           // Fallback to mock data if API fails
@@ -127,14 +127,17 @@ export default function StreamChatBox({
         }
         
         // Join stream chat room
+        console.log('Joining stream chat for streamId:', streamId)
         chatWebSocket.joinStreamChat(streamId)
         setIsWebSocketConnected(true)
         
-        // Listen for new chat messages
+        // Listen for new chat messages from backend 'stream_chat_message' event
         const handleNewMessage = (data: any) => {
+          console.log('Received stream_chat_message:', data)
+          // Backend sends: { messageId, streamId, userId, username, displayName, avatar, message, timestamp }
           const newMessage: ChatMessage = {
-            id: data.id || Date.now().toString(),
-            userId: data.userId,
+            id: data.messageId || data.id || Date.now().toString(),
+            userId: data.userId?.toString() || data.userId,
             username: data.username || data.displayName,
             displayName: data.displayName || data.username,
             message: data.message,
@@ -144,17 +147,20 @@ export default function StreamChatBox({
             amount: data.amount,
             avatar: data.avatar
           }
-          
-          setChatMessages(prev => {
-            // Avoid duplicate messages
-            const exists = prev.some(msg => msg.id === newMessage.id)
-            if (exists) return prev
-            return [...prev, newMessage]
-          })
 
-          // Play sound notification for new messages (except own messages)
-          if (isSoundEnabled && data.userId !== user?.id) {
-            // Could add sound notification here
+          // Only add message if it's for this stream
+          if (data.streamId === streamId) {
+            setChatMessages(prev => {
+              // Avoid duplicate messages
+              const exists = prev.some(msg => msg.id === newMessage.id)
+              if (exists) return prev
+              return [...prev, newMessage]
+            })
+
+            // Play sound notification for new messages (except own messages)
+            if (isSoundEnabled && data.userId?.toString() !== user?.id?.toString()) {
+              // Could add sound notification here
+            }
           }
         }
         
@@ -163,8 +169,10 @@ export default function StreamChatBox({
           setConnectedUsers(data.count || 0)
         }
         
-        chatWebSocket.onChatMessage(handleNewMessage)
+        chatWebSocket.onStreamChatMessage(handleNewMessage)
         webSocket.on('chat_user_count', handleUserCountUpdate)
+
+        console.log('WebSocket setup complete for stream:', streamId)
         
       } catch (error) {
         console.error('Error setting up WebSocket:', error)
@@ -179,7 +187,12 @@ export default function StreamChatBox({
     // Cleanup on unmount
     return () => {
       if (streamId) {
+        console.log('Leaving stream chat for streamId:', streamId)
         chatWebSocket.leaveStreamChat(streamId)
+        // Clean up event listeners to prevent memory leaks
+        const ws = getWebSocket()
+        ws.off('stream_chat_message')
+        ws.off('chat_user_count')
       }
     }
   }, [streamId, chatEnabled, isAuthenticated, user?.id, isSoundEnabled])
@@ -206,7 +219,15 @@ export default function StreamChatBox({
       if (response.success) {
         // If API succeeds, also send via WebSocket for real-time delivery
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, messageText)
+          chatWebSocket.sendChatMessage(streamId, {
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: messageText,
+            timestamp: new Date().toISOString(),
+            type: 'message',
+            avatar: user.avatar
+          })
         } else {
           // If WebSocket not connected, add to local state as fallback
           const newMsg: ChatMessage = {
@@ -223,7 +244,15 @@ export default function StreamChatBox({
       } else {
         // If API fails, try WebSocket only
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, messageText)
+          chatWebSocket.sendChatMessage(streamId, {
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: messageText,
+            timestamp: new Date().toISOString(),
+            type: 'message',
+            avatar: user.avatar
+          })
         } else {
           toast.error('Không thể gửi tin nhắn')
           setNewMessage(messageText) // Restore message for retry
@@ -232,7 +261,15 @@ export default function StreamChatBox({
     } catch (error) {
       // On error, try WebSocket as fallback
       if (isWebSocketConnected) {
-        chatWebSocket.sendChatMessage(streamId, messageText)
+        chatWebSocket.sendChatMessage(streamId, {
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
+          message: messageText,
+          timestamp: new Date().toISOString(),
+          type: 'message',
+          avatar: user.avatar
+        })
       } else {
         toast.error('Không thể gửi tin nhắn')
         setNewMessage(messageText) // Restore message for retry
@@ -272,7 +309,15 @@ export default function StreamChatBox({
         
         // Send gift message via WebSocket for real-time delivery
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, giftMsg.message)
+          chatWebSocket.sendChatMessage(streamId, {
+            userId: user.id,
+            username: user.username,
+            displayName: user.firstName || user.username,
+            message: giftMsg.message,
+            timestamp: giftMsg.timestamp,
+            type: 'gift',
+            avatar: user.avatar
+          })
         }
         
         setChatMessages(prev => [...prev, giftMsg])
