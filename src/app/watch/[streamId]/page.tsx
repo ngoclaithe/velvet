@@ -109,9 +109,6 @@ export default function WatchStreamPage() {
 
   const [streamData, setStreamData] = useState<StreamData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const [isWebSocketConnected, setIsWebSocketConnected] = useState(false)
-  const [newMessage, setNewMessage] = useState('')
   const [isMuted, setIsMuted] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
   const [showGiftDialog, setShowGiftDialog] = useState(false)
