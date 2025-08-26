@@ -372,7 +372,7 @@ export default function StreamsPage() {
                     {/* Creator */}
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-6 h-6">
-                        <AvatarImage src={stream.creator.avatar} />
+                        <AvatarImage src={stream.creator.avatar || ''} />
                         <AvatarFallback className="text-xs">
                           {stream.creator.stageName.charAt(0).toUpperCase()}
                         </AvatarFallback>
