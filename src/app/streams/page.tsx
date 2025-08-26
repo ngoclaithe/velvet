@@ -21,6 +21,7 @@ import {
   Heart
 } from 'lucide-react'
 import { streamApi } from '@/lib/api'
+import type { StreamResponse } from '@/types/streaming'
 
 interface StreamCard {
   id: string
