@@ -283,7 +283,7 @@ export default function WatchStreamPage() {
       hls.loadSource(streamData.hlsUrl)
       hls.attachMedia(video)
 
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      hls.on(Hls.default.Events.MANIFEST_PARSED, () => {
         console.log('HLS manifest parsed, playing video')
         video.play().catch(console.error)
       })
