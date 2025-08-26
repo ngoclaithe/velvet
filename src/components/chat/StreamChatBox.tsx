@@ -315,9 +315,10 @@ export default function StreamChatBox({
           amount: gift.price
         }
         
-        // Send gift message via WebSocket for real-time delivery
+        // Send gift message via Socket for real-time delivery
         if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, {
+          socketService.emit('chat_message', {
+            streamId,
             userId: user.id,
             username: user.username,
             displayName: user.firstName || user.username,
