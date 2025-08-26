@@ -138,12 +138,17 @@ export class SocketService {
       joinData.streamKey = config.streamKey
     }
 
+    // Use socketEndpoint for room identification if provided
+    const roomId = config.endpoint || config.streamId || config.streamKey || config.accessCode
+    console.log('🏠 Joining room with ID:', roomId, 'from endpoint:', config.endpoint)
+
     if (config.clientType === 'creator' || config.streamId) {
       this.socket.emit('join_room_stream', {
-        roomId: config.streamId || config.streamKey || config.accessCode,
+        roomId: roomId,
         userId: 'creator_user',
         username: 'Creator',
-        userType: config.clientType
+        userType: config.clientType,
+        endpoint: config.endpoint
       })
     } else {
       this.socket.emit('join_room', joinData)
