@@ -147,6 +147,11 @@ export default function StreamPage() {
         }
 
         console.log('📺 Setting currentStream:', newCurrentStream)
+        console.log('🔑 Stream Key check:', {
+          apiStreamKey: apiStreamData.streamKey,
+          finalStreamKey: newCurrentStream.streamKey,
+          streamId: streamId
+        })
         setCurrentStream(newCurrentStream)
 
         toast.success('Stream đã được bắt đầu thành công!')
@@ -159,7 +164,7 @@ export default function StreamPage() {
       toast.error('Có lỗi xảy ra khi bắt đầu stream')
     } finally {
       setIsStartingStream(false)
-      console.log('�� handleStartStream completed')
+      console.log('🏁 handleStartStream completed')
     }
   }
 
