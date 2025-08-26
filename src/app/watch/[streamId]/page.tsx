@@ -114,7 +114,6 @@ export default function WatchStreamPage() {
   const [selectedGift, setSelectedGift] = useState<GiftOption | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  const chatScrollRef = useRef<HTMLDivElement>(null)
   const hlsRef = useRef<any>(null)
 
   useEffect(() => {
