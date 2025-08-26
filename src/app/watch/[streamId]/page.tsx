@@ -110,7 +110,8 @@ export default function WatchStreamPage() {
         if (response.success && response.data) {
           setStreamData(response.data)
         } else {
-          setStreamData({
+          // Fallback sample data
+          const sampleData: StreamData = {
             id: streamId,
             title: 'Sample Live Stream',
             description: 'This is a sample stream description',
@@ -124,12 +125,13 @@ export default function WatchStreamPage() {
               id: '1',
               stageName: 'Sample Creator',
               displayName: 'Sample User',
-              avatar: null,
+              avatar: undefined,
               isVerified: true
             },
             chatEnabled: true,
             donationsEnabled: true
-          })
+          }
+          setStreamData(sampleData)
         }
       } catch (error) {
         console.error('Error fetching stream data:', error)
@@ -150,10 +152,34 @@ export default function WatchStreamPage() {
       if (!streamData?.chatEnabled) return
 
       try {
-        const response = await chatApi.getMessages(streamId)
-        if (response.success && response.data) {
-          setChatMessages(response.data)
-        }
+        // TODO: Uncomment when backend is ready
+        // const response = await chatApi.getMessages(streamId)
+        // if (response.success && response.data) {
+        //   setChatMessages(response.data)
+        // }
+
+        // Mock data for now
+        const mockMessages: ChatMessage[] = [
+          {
+            id: '1',
+            userId: 'user1',
+            username: 'viewer1',
+            displayName: 'Viewer One',
+            message: 'Chào mọi người!',
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          },
+          {
+            id: '2',
+            userId: 'user2',
+            username: 'viewer2',
+            displayName: 'Viewer Two',
+            message: 'Stream hay quá!',
+            timestamp: new Date().toISOString(),
+            type: 'message'
+          }
+        ]
+        setChatMessages(mockMessages)
       } catch (error) {
         console.error('Error fetching chat messages:', error)
       }
@@ -161,8 +187,9 @@ export default function WatchStreamPage() {
 
     if (streamId && streamData) {
       fetchChatMessages()
-      const interval = setInterval(fetchChatMessages, 2000)
-      return () => clearInterval(interval)
+      // TODO: Uncomment when backend is ready
+      // const interval = setInterval(fetchChatMessages, 2000)
+      // return () => clearInterval(interval)
     }
   }, [streamId, streamData])
 
@@ -173,53 +200,55 @@ export default function WatchStreamPage() {
   }, [chatMessages])
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !isAuthenticated) return
+    if (!newMessage.trim() || !isAuthenticated || !user) return
 
     try {
-      const response = await chatApi.sendMessage(streamId, {
-        message: newMessage.trim()
-      })
+      // TODO: Uncomment when backend is ready
+      // const response = await chatApi.sendMessage(streamId, {
+      //   message: newMessage.trim()
+      // })
 
-      if (response.success) {
+      // if (response.success) {
         setNewMessage('')
         const newMsg: ChatMessage = {
           id: Date.now().toString(),
-          userId: user?.id || '',
-          username: user?.username || '',
-          displayName: user?.firstName || user?.username || '',
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
           message: newMessage.trim(),
           timestamp: new Date().toISOString(),
           type: 'message'
         }
         setChatMessages(prev => [...prev, newMsg])
-      }
+      // }
     } catch (error) {
       toast.error('Không thể gửi tin nhắn')
     }
   }
 
   const handleSendGift = async (gift: GiftOption) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       toast.error('Vui lòng đăng nhập để gửi quà')
       return
     }
 
     try {
-      const response = await paymentApi.sendGift({
-        streamId,
-        giftId: gift.id,
-        amount: gift.price
-      })
+      // TODO: Uncomment when backend is ready
+      // const response = await paymentApi.sendGift({
+      //   streamId,
+      //   giftId: gift.id,
+      //   amount: gift.price
+      // })
 
-      if (response.success) {
+      // if (response.success) {
         toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
         setShowGiftDialog(false)
-        
+
         const giftMsg: ChatMessage = {
           id: Date.now().toString(),
-          userId: user?.id || '',
-          username: user?.username || '',
-          displayName: user?.firstName || user?.username || '',
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
           message: `Đã gửi ${gift.name} ${gift.icon}`,
           timestamp: new Date().toISOString(),
           type: 'gift',
@@ -227,7 +256,7 @@ export default function WatchStreamPage() {
           amount: gift.price
         }
         setChatMessages(prev => [...prev, giftMsg])
-      }
+      // }
     } catch (error) {
       toast.error('Không thể gửi quà')
     }
