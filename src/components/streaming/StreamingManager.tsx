@@ -89,12 +89,18 @@ export function StreamingManager({
       await socketService.connect(socketConfig)
 
       const connected = socketService.getIsConnected()
+      console.log('🔗 Socket connected:', connected)
       setIsConnected(connected)
 
+      console.log('🚀 Starting streaming with ID:', String(streamData.id), 'Key:', streamData.streamKey)
       socketService.startStreaming(String(streamData.id), streamData.streamKey)
+
+      console.log('📹 Setting up media capture...')
       await setupOptimizedMediaCapture()
+      console.log('✅ StreamingManager initialization complete')
 
     } catch (error) {
+      console.error('💥 StreamingManager initialization failed:', error)
       toast.error('Không thể khởi tạo streaming')
       setIsConnected(false)
       scheduleReconnect()
