@@ -160,27 +160,33 @@ export default function StreamsPage() {
           sort: sortBy
         })
 
-        if (response.success && response.data?.streams) {
+        if (response.success && response.data && 'streams' in response.data && Array.isArray(response.data.streams)) {
           // Transform API response to match our interface
-          const transformedStreams = response.data.streams.map((stream: any) => ({
-            id: stream.id.toString(),
-            title: stream.title,
-            description: stream.description || '',
-            category: stream.category || 'General',
-            tags: stream.tags || [],
-            creator: {
-              id: stream.creator?.id?.toString() || stream.creatorId?.toString(),
-              username: stream.creator?.displayName || 'unknown',
-              stageName: stream.creator?.stageName || stream.creator?.displayName || 'Unknown Creator',
-              avatar: stream.creator?.avatar,
-              isVerified: stream.creator?.isVerified || false
-            },
-            thumbnail: stream.thumbnail,
-            isLive: stream.isLive,
-            viewerCount: stream.viewerCount || 0,
-            totalViews: stream.maxViewers || 0,
-            startedAt: stream.startTime || new Date().toISOString()
-          }))
+          const transformedStreams = response.data.streams.map((stream: any) => {
+            const creatorId = stream.creator?.id?.toString() || stream.creatorId?.toString() || 'unknown'
+            const creatorUsername = stream.creator?.displayName || stream.creator?.username || 'unknown'
+            const creatorStageName = stream.creator?.stageName || stream.creator?.displayName || 'Unknown Creator'
+
+            return {
+              id: stream.id?.toString() || 'unknown',
+              title: stream.title || 'Untitled Stream',
+              description: stream.description || '',
+              category: stream.category || 'General',
+              tags: Array.isArray(stream.tags) ? stream.tags : [],
+              creator: {
+                id: creatorId,
+                username: creatorUsername,
+                stageName: creatorStageName,
+                avatar: stream.creator?.avatar || undefined,
+                isVerified: Boolean(stream.creator?.isVerified)
+              },
+              thumbnail: stream.thumbnail || undefined,
+              isLive: Boolean(stream.isLive),
+              viewerCount: Number(stream.viewerCount) || 0,
+              totalViews: Number(stream.maxViewers) || 0,
+              startedAt: stream.startTime || new Date().toISOString()
+            }
+          })
           setStreams(transformedStreams)
         } else {
           // Fallback to mock data if API fails
