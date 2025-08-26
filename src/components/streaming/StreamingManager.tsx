@@ -394,7 +394,7 @@ export function StreamingManager({
       try {
         if (socketService.getIsConnected()) {
           const success = await socketService.sendStreamChunk(
-            streamData.id,
+            String(streamData.id),
             buffer,
             chunkNumber,
             getBestSupportedMimeType()
