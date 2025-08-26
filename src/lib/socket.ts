@@ -126,11 +126,23 @@ export class SocketService {
       joinData.streamKey = config.streamKey
     }
 
+    // Determine roomId based on user requirements:
+    // - Creators: use streamKey for socket connections (streaming ingest)
+    // - Viewers: can use streamId or streamKey depending on what's available
+    let roomId: string
+    if (config.clientType === 'creator') {
+      // For creators, prioritize streamKey for socket connections
+      roomId = config.streamKey || config.streamId || config.accessCode || 'unknown'
+    } else {
+      // For viewers, can use either streamId or streamKey
+      roomId = config.streamId || config.streamKey || config.accessCode || 'unknown'
+    }
+
     if (config.clientType === 'creator' || config.streamId) {
       this.socket.emit('join_room_stream', {
-        roomId: config.streamId || config.streamKey || config.accessCode,
-        userId: 'creator_user',
-        username: 'Creator',
+        roomId: roomId,
+        userId: config.clientType === 'creator' ? 'creator_user' : 'viewer_user',
+        username: config.clientType === 'creator' ? 'Creator' : 'Viewer',
         userType: config.clientType
       })
     } else {
@@ -216,12 +228,14 @@ export class SocketService {
     })
   }
 
-  stopStreaming(streamId: string) {
+  stopStreaming(streamKey: string, streamId?: string) {
+    // Use streamKey for leaving room (consistent with joining by streamKey for creators)
     this.emit('leave_room_stream', {
-      roomId: streamId
+      roomId: streamKey
     })
 
     return this.emit('stop_streaming', {
+      streamKey,
       streamId,
       timestamp: Date.now()
     })
