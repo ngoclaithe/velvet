@@ -5,6 +5,7 @@ export interface SocketConnectionConfig {
   clientType?: 'creator' | 'viewer' | 'client'
   streamId?: string
   streamKey?: string
+  socketEndpoint?: string  // Use this endpoint path instead of constructing from streamKey
 }
 
 export interface JoinRoomData {
@@ -125,17 +126,17 @@ export class SocketService {
     if (config.streamKey) {
       joinData.streamKey = config.streamKey
     }
-
-    // Determine roomId based on user requirements:
-    // - Creators: use streamKey for socket connections (streaming ingest)
-    // - Viewers: can use streamId or streamKey depending on what's available
     let roomId: string
-    if (config.clientType === 'creator') {
-      // For creators, prioritize streamKey for socket connections
-      roomId = config.streamKey || config.streamId || config.accessCode || 'unknown'
+    if (config.socketEndpoint) {
+      roomId = config.streamKey || 'unknown'
+      console.log('🔌 Đây là streamKey as roomId:', roomId)
+    } else if (config.clientType === 'creator') {
+      roomId = config.streamKey || 'unknown'
+      console.log('Đây là streamKey as roomId::', roomId)
     } else {
-      // For viewers, can use either streamId or streamKey
-      roomId = config.streamId || config.streamKey || config.accessCode || 'unknown'
+      // roomId = config.streamId || config.streamKey || config.accessCode || 'unknown'
+      roomId = config.streamKey || 'unknow'
+      console.log('Đây là streamKey as roomId:', roomId)
     }
 
     if (config.clientType === 'creator' || config.streamId) {
@@ -278,7 +279,7 @@ export class SocketService {
     }
   }
 
-  async sendStreamChunk(streamId: string, chunkData: ArrayBuffer, chunkNumber: number, mimeType: string): Promise<boolean> {
+  async sendStreamChunk(streamId: number, streamKey: string, chunkData: ArrayBuffer, chunkNumber: number, mimeType: string): Promise<boolean> {
     if (!this.socket || !this.isConnected) {
       return false
     }
@@ -286,6 +287,7 @@ export class SocketService {
     try {
       const chunkPayload = {
         streamId: streamId,
+        streamKey: streamKey,
         chunkData: chunkData,
         chunkNumber: chunkNumber,
         mimeType: mimeType,

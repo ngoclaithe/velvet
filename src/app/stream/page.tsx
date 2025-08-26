@@ -49,7 +49,7 @@ interface StreamData {
 interface StartStreamResponse {
   streamId: number  // API returns streamId, use this for chat payload
   streamKey: string // For socket connection
-  socketEndpoint: string
+  socketEndpoint: string // Use this for WebSocket connection instead of /stream/streamId
   title?: string
   isLive?: boolean
 }
@@ -432,6 +432,7 @@ export default function StreamPage() {
                     avatar: user?.avatar
                   }
                 } as StreamResponse}
+                socketEndpoint={currentStream.socketEndpoint}
                 cameraEnabled={cameraEnabled}
                 micEnabled={micEnabled}
                 onStatusChange={handleStreamingStatusChange}

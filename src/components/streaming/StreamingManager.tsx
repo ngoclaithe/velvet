@@ -8,6 +8,7 @@ import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamingManagerProps {
   streamData: StreamResponse
+  socketEndpoint?: string  
   cameraEnabled: boolean
   micEnabled: boolean
   onStatusChange: (connected: boolean) => void
@@ -16,6 +17,7 @@ interface StreamingManagerProps {
 
 export function StreamingManager({
   streamData,
+  socketEndpoint,
   cameraEnabled,
   micEnabled,
   onStatusChange,
@@ -52,12 +54,12 @@ export function StreamingManager({
   useEffect(() => {
     if (isRecording && socketService.getIsConnected()) {
       const statsInterval = setInterval(() => {
-        socketService.requestStreamStats(String(streamData.id))
+        socketService.requestStreamStats(String(streamData.streamKey))
       }, 10000)
 
       return () => clearInterval(statsInterval)
     }
-  }, [isRecording, streamData.id])
+  }, [isRecording, streamData.streamKey])
 
   useEffect(() => {
     onStatusChange(isConnected && isRecording)
@@ -69,8 +71,15 @@ export function StreamingManager({
         accessCode: streamData.streamKey,
         clientType: 'creator',
         streamId: String(streamData.id),
-        streamKey: streamData.streamKey
+        streamKey: streamData.streamKey,
+        socketEndpoint: socketEndpoint  // Pass the socketEndpoint from API response
       }
+
+      console.log('🔌 Initializing streaming with config:', {
+        streamId: socketConfig.streamId,
+        streamKey: socketConfig.streamKey,
+        socketEndpoint: socketConfig.socketEndpoint
+      })
 
       setupSocketEventListeners()
       await socketService.connect(socketConfig)
@@ -82,6 +91,7 @@ export function StreamingManager({
       await setupOptimizedMediaCapture()
 
     } catch (error) {
+      console.error('💥 Streaming initialization error:', error)
       toast.error('Không thể khởi tạo streaming')
       setIsConnected(false)
       scheduleReconnect()
@@ -316,7 +326,7 @@ export function StreamingManager({
   const sendMp4InitSegment = async (initBuffer: ArrayBuffer) => {
     try {
       if (socketService.getIsConnected()) {
-        await socketService.sendMp4InitSegment(String(streamData.id), initBuffer)
+        await socketService.sendMp4InitSegment(String(streamData.streamKey), initBuffer)
       }
     } catch (error) {
       setBufferHealth(prev => ({ ...prev, failed: prev.failed + 1 }))
@@ -395,7 +405,8 @@ export function StreamingManager({
       try {
         if (socketService.getIsConnected()) {
           const success = await socketService.sendStreamChunk(
-            String(streamData.id),
+            streamData.id,   
+            streamData.streamKey,
             buffer,
             chunkNumber,
             getBestSupportedMimeType()
