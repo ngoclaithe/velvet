@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
-import { chatWebSocket, getWebSocket } from '@/lib/websocket'
+import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamData {
   streamId: number
