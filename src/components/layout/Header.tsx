@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
   Search,
   Bell,
   LogIn,
@@ -24,7 +24,8 @@ import {
   Zap,
   DollarSign,
   Heart,
-  MessageCircle
+  MessageCircle,
+  Shield
 } from 'lucide-react'
 
 export default function Header() {
