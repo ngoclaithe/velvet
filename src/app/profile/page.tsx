@@ -137,8 +137,8 @@ export default function ProfilePage() {
     )
   }
 
-  if (!isAuthenticated) {
-    return null // Component sẽ redirect trước khi render
+  if (!isAuthenticated || !user) {
+    return null // Component sẽ redirect trước khi render hoặc user chưa load
   }
 
   return (
