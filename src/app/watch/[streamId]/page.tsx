@@ -323,13 +323,6 @@ export default function WatchStreamPage() {
     }
   }
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString('vi-VN', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
-  }
 
   if (isLoading) {
     return (
