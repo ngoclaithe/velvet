@@ -31,6 +31,49 @@ interface AdminStats {
   reportedContent: number
 }
 
+interface User {
+  id: string
+  username: string
+  email: string
+  role: 'user' | 'creator' | 'admin'
+  status: 'active' | 'suspended' | 'banned'
+  createdAt: string
+  lastLogin: string
+  isVerified: boolean
+}
+
+interface Stream {
+  id: string
+  title: string
+  creator: string
+  viewers: number
+  status: 'live' | 'ended' | 'scheduled'
+  category: string
+  startTime: string
+}
+
+interface PaymentInfo {
+  id: string
+  bankName: string
+  accountNumber: string
+  accountHolderName: string
+  qrCodeUrl: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface AdminReport {
+  id: string
+  type: string
+  reportedBy: string
+  targetId: string
+  targetName: string
+  reason: string
+  status: 'pending' | 'resolved' | 'dismissed'
+  createdAt: string
+}
+
 
 export default function AdminDashboard() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
@@ -545,7 +588,7 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span>Tỷ l�� Creator hoạt động</span>
+                  <span>Tỷ lệ Creator hoạt động</span>
                   <span>78%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
