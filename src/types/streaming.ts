@@ -111,3 +111,18 @@ export interface StreamSettings {
   chatVisible: boolean
   autoQuality: boolean
 }
+
+export type ViewerRole = 'viewer' | 'subscriber' | 'moderator' | 'vip' | 'admin'
+
+export interface StreamViewer {
+  id: string
+  userId: string
+  username: string
+  displayName: string
+  avatar?: string
+  role: ViewerRole
+  isVerified: boolean
+  joinedAt: Date
+  lastActivity?: Date
+  isActive: boolean
+}
