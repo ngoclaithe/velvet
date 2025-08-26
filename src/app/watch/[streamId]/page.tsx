@@ -32,24 +32,40 @@ import { streamApi, chatApi, paymentApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
 interface StreamData {
-  id: string
+  streamId: number
   title: string
   description: string
   category: string
   tags: string[]
+  quality: string
   isLive: boolean
+  isPrivate: boolean
   viewerCount: number
+  maxViewers: number
   startTime: string
+  endTime?: string
+  duration?: number
   hlsUrl: string
+  streamKey: string
+  thumbnail?: string
   creator: {
-    id: string
+    id: number
+    userId: number
     stageName: string
     displayName: string
     avatar?: string
     isVerified: boolean
+    bio: string
+    rating: string
+    totalRatings: number
+    hourlyRate: string
+    bookingPrice: string
+    subscriptionPrice: string
   }
   chatEnabled: boolean
   donationsEnabled: boolean
+  pricePerMinute?: string
+  totalDonations: string
 }
 
 interface ChatMessage {
@@ -112,24 +128,36 @@ export default function WatchStreamPage() {
         } else {
           // Fallback sample data
           const sampleData: StreamData = {
-            id: streamId,
+            streamId: parseInt(streamId) || 0,
             title: 'Sample Live Stream',
             description: 'This is a sample stream description',
             category: 'Gaming',
             tags: ['gaming', 'fun'],
+            quality: 'HD',
             isLive: true,
+            isPrivate: false,
             viewerCount: 1247,
+            maxViewers: 1247,
             startTime: new Date().toISOString(),
             hlsUrl: 'sample.m3u8',
+            streamKey: 'sample-key',
             creator: {
-              id: '1',
+              id: 1,
+              userId: 1,
               stageName: 'Sample Creator',
               displayName: 'Sample User',
               avatar: undefined,
-              isVerified: true
+              isVerified: true,
+              bio: 'Sample bio',
+              rating: '5.00',
+              totalRatings: 10,
+              hourlyRate: '10.00',
+              bookingPrice: '15.00',
+              subscriptionPrice: '20.00'
             },
             chatEnabled: true,
-            donationsEnabled: true
+            donationsEnabled: true,
+            totalDonations: '0.00'
           }
           setStreamData(sampleData)
         }
