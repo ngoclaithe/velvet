@@ -47,7 +47,7 @@ interface StreamData {
 
 // Interface cho response từ startStream API - actual API response format
 interface StartStreamResponse {
-  streamId: number  // For chat payload
+  streamId: number  // API returns streamId, use this for chat payload
   streamKey: string // For socket connection
   socketEndpoint: string
   title?: string
@@ -95,7 +95,7 @@ export default function StreamPage() {
   // Kiểm tra quyền truy cập
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'creator')) {
-      toast.error('Bạn cần đăng nhập với tài khoản creator để truy cập trang này')
+      toast.error('Bạn cần đăng nhập với tài kho��n creator để truy cập trang này')
       router.push('/login')
     }
   }, [user, authLoading, router])
@@ -118,7 +118,7 @@ export default function StreamPage() {
       return
     }
 
-    console.log('📝 Stream data to send:', streamData)
+    console.log('�� Stream data to send:', streamData)
 
     setIsStartingStream(true)
     try {
@@ -138,7 +138,7 @@ export default function StreamPage() {
         console.log('✅ Stream API data:', apiStreamData)
 
         // Extract both streamId (for chat) and streamKey (for socket) từ response
-        const streamId = String(apiStreamData.streamId) // For chat payload
+        const streamId = String(apiStreamData.streamId) // Convert number to string for chat payload
         const streamKey = apiStreamData.streamKey        // For socket connection
         console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
@@ -184,12 +184,13 @@ export default function StreamPage() {
 
     setIsStoppingStream(true)
     try {
-      const response = await streamApi.stopStream(currentStream.id)
+      // Use streamKey for stopping stream as per user requirement
+      const response = await streamApi.stopStream(currentStream.streamKey || currentStream.id)
 
       if (response.success) {
         setCurrentStream(null)
         setIsConnected(false)
-        toast.success('Stream đã được kết thúc')
+        toast.success('Stream ��ã được kết thúc')
       } else {
         toast.error(response.error || 'Không thể kết thúc stream')
       }
