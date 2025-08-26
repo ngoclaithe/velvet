@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from 'react-hot-toast'
 import { getSocketService, type SocketConnectionConfig } from '@/lib/socket'
 import type { StreamResponse } from '@/types/streaming'
+import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamingManagerProps {
   streamData: StreamResponse
