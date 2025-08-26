@@ -142,7 +142,7 @@ export function StreamingManager({
       setIsConnected(connected)
       
       if (streamData) {
-        socketService.startStreaming(streamData.id, streamData.streamKey)
+        socketService.startStreaming(String(streamData.id), streamData.streamKey)
         if (mediaStream && !isRecording) {
           chunkCountRef.current = 0
           initSegmentSentRef.current = false
