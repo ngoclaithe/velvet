@@ -209,17 +209,34 @@ export default function WalletPage() {
 
     setIsWithdrawing(true)
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      toast({
-        title: "Yêu cầu rút tiền thành công!",
-        description: `Yêu cầu rút $${withdrawAmount} đang được xử lý`,
-        variant: "default"
+      const response = await paymentApi.withdraw({
+        amount: amount,
+        paymentMethodId: selectedPaymentMethod
       })
-      
-      setWithdrawAmount('')
-      setSelectedPaymentMethod('')
+
+      if (response.success) {
+        toast({
+          title: "Yêu cầu rút tiền thành công!",
+          description: `Yêu cầu rút $${withdrawAmount} đang được xử lý`,
+          variant: "default"
+        })
+
+        // Refresh wallet data
+        const walletResponse = await paymentApi.getWallet()
+        if (walletResponse.success && walletResponse.data) {
+          setBalance(walletResponse.data.balance || 0)
+          setLockedBalance(walletResponse.data.lockedBalance || 0)
+        }
+
+        setWithdrawAmount('')
+        setSelectedPaymentMethod('')
+      } else {
+        toast({
+          title: "Lỗi rút tiền",
+          description: response.error || "Không thể tạo yêu cầu rút tiền",
+          variant: "destructive"
+        })
+      }
     } catch (error) {
       toast({
         title: "Lỗi rút tiền",
