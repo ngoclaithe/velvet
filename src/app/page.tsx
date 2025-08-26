@@ -40,9 +40,12 @@ function LiveStreamsTab() {
 
         if (response.success && response.data?.streams) {
           setLiveStreams(response.data.streams.slice(0, 6))
+        } else {
+          setLiveStreams([])
         }
       } catch (error) {
         console.error('Error fetching live streams:', error)
+        setLiveStreams([])
       } finally {
         setIsLoading(false)
       }
@@ -433,7 +436,7 @@ export default function HomePage() {
 
                   <div className="text-center">
                     <Button variant="outline" size="lg" className="border-gray-600 text-gray-300 hover:bg-gray-800">
-                      Xem thêm b��i viết
+                      Xem thêm bài viết
                     </Button>
                   </div>
                 </TabsContent>
