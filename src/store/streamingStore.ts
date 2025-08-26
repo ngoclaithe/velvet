@@ -1,16 +1,62 @@
 import { create } from 'zustand'
-import type { 
-  Stream, 
-  StreamSettings, 
-  PrivateShow, 
-  StreamCategory, 
-  StreamTag,
-  StreamStore,
-  CreateStreamData,
-  BookPrivateShowData 
+import type {
+  StreamResponse,
+  StreamSettings,
+  ViewerRole
 } from '@/types/streaming'
 
-interface StreamingState extends StreamStore {}
+// Define types that are missing from streaming types
+interface PrivateShow {
+  id: string
+  streamId: string
+  viewerId: string
+  creatorId: string
+  rate: number
+  duration: number
+  status: 'pending' | 'active' | 'completed' | 'cancelled'
+  scheduledFor: Date
+  totalCost: number
+  createdAt: Date
+}
+
+interface CreateStreamData {
+  title: string
+  description: string
+  category: string
+  tags: string[]
+  isPrivate: boolean
+  settings: {
+    quality?: string
+    chatEnabled?: boolean
+    donationsEnabled?: boolean
+  }
+}
+
+interface BookPrivateShowData {
+  streamId: string
+  creatorId: string
+  duration: number
+  scheduledFor: Date
+}
+
+interface StreamingState {
+  currentStream: StreamResponse | null
+  streams: StreamResponse[]
+  categories: string[]
+  tags: string[]
+  isLoading: boolean
+  error: string | null
+  createStream: (data: CreateStreamData) => Promise<StreamResponse>
+  updateStream: (id: string, data: Partial<StreamResponse>) => Promise<void>
+  deleteStream: (id: string) => Promise<void>
+  startStream: (id: string) => Promise<void>
+  endStream: (id: string) => Promise<void>
+  joinStream: (id: string) => Promise<void>
+  leaveStream: (id: string) => Promise<void>
+  bookPrivateShow: (data: BookPrivateShowData) => Promise<PrivateShow>
+  updateStreamSettings: (id: string, settings: StreamSettings) => Promise<void>
+  getStreamAnalytics: (id: string, period: string) => Promise<any[]>
+}
 
 export const useStreamingStore = create<StreamingState>((set, get) => ({
   currentStream: null,
@@ -27,22 +73,39 @@ export const useStreamingStore = create<StreamingState>((set, get) => ({
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      const newStream: Stream = {
+      const newStream: StreamResponse = {
         id: `stream_${Date.now()}`,
-        creatorId: 'current_user_id',
-        creator: {} as any, // Would be populated from API
+        creatorId: 1,
+        creator: {
+          id: 1,
+          userId: 1,
+          stageName: 'Creator',
+          displayName: 'Creator',
+          bio: '',
+          isVerified: false,
+          rating: '5.0',
+          totalRatings: 0,
+          hourlyRate: '0.00',
+          bookingPrice: '0.00',
+          subscriptionPrice: '0.00'
+        } as any,
         title: data.title,
         description: data.description,
+        streamKey: `key_${Date.now()}`,
+        hlsUrl: '',
         category: data.category,
         tags: data.tags,
         isLive: false,
         isPrivate: data.isPrivate,
         viewerCount: 0,
-        totalViewers: 0,
-        duration: 0,
-        quality: data.settings.quality ? [data.settings.quality] : [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        maxViewers: 0,
+        quality: data.settings.quality || 'HD',
+        startTime: new Date().toISOString(),
+        chatEnabled: data.settings.chatEnabled ?? true,
+        donationsEnabled: data.settings.donationsEnabled ?? true,
+        totalDonations: '0.00',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
 
       set((state) => ({
@@ -61,7 +124,7 @@ export const useStreamingStore = create<StreamingState>((set, get) => ({
     }
   },
 
-  updateStream: async (id: string, data: Partial<Stream>) => {
+  updateStream: async (id: string, data: Partial<StreamResponse>) => {
     set({ isLoading: true, error: null })
 
     try {
@@ -71,11 +134,11 @@ export const useStreamingStore = create<StreamingState>((set, get) => ({
       set((state) => ({
         streams: state.streams.map(stream =>
           stream.id === id
-            ? { ...stream, ...data, updatedAt: new Date() }
+            ? { ...stream, ...data, updatedAt: new Date().toISOString() }
             : stream
         ),
         currentStream: state.currentStream?.id === id
-          ? { ...state.currentStream, ...data, updatedAt: new Date() }
+          ? { ...state.currentStream, ...data, updatedAt: new Date().toISOString() }
           : state.currentStream,
         isLoading: false,
       }))
@@ -114,16 +177,16 @@ export const useStreamingStore = create<StreamingState>((set, get) => ({
       // Simulate stream start
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      const startedAt = new Date()
+      const startedAt = new Date().toISOString()
 
       set((state) => ({
         streams: state.streams.map(stream =>
           stream.id === id
-            ? { ...stream, isLive: true, startedAt }
+            ? { ...stream, isLive: true, startTime: startedAt }
             : stream
         ),
         currentStream: state.currentStream?.id === id
-          ? { ...state.currentStream, isLive: true, startedAt }
+          ? { ...state.currentStream, isLive: true, startTime: startedAt }
           : state.currentStream,
         isLoading: false,
       }))
@@ -142,16 +205,16 @@ export const useStreamingStore = create<StreamingState>((set, get) => ({
       // Simulate stream end
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      const endedAt = new Date()
+      const endedAt = new Date().toISOString()
 
       set((state) => ({
         streams: state.streams.map(stream =>
           stream.id === id
-            ? { ...stream, isLive: false, endedAt }
+            ? { ...stream, isLive: false, endTime: endedAt }
             : stream
         ),
         currentStream: state.currentStream?.id === id
-          ? { ...state.currentStream, isLive: false, endedAt }
+          ? { ...state.currentStream, isLive: false, endTime: endedAt }
           : state.currentStream,
         isLoading: false,
       }))
