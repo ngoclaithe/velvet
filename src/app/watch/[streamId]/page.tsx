@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Hls from 'hls.js'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -116,6 +117,7 @@ export default function WatchStreamPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const chatScrollRef = useRef<HTMLDivElement>(null)
+  const hlsRef = useRef<Hls | null>(null)
 
   useEffect(() => {
     const fetchStreamData = async () => {
@@ -226,6 +228,72 @@ export default function WatchStreamPage() {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
     }
   }, [chatMessages])
+
+  // Initialize HLS player
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !streamData?.hlsUrl) return
+
+    if (Hls.isSupported()) {
+      // Clean up existing HLS instance
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+      }
+
+      const hls = new Hls({
+        enableWorker: false,
+        lowLatencyMode: true,
+        backBufferLength: 90
+      })
+
+      hlsRef.current = hls
+      hls.loadSource(streamData.hlsUrl)
+      hls.attachMedia(video)
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        console.log('HLS manifest parsed, playing video')
+        video.play().catch(console.error)
+      })
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.error('HLS error:', data)
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.log('Fatal network error encountered, trying to recover')
+              hls.startLoad()
+              break
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log('Fatal media error encountered, trying to recover')
+              hls.recoverMediaError()
+              break
+            default:
+              console.log('Fatal error, destroying HLS instance')
+              hls.destroy()
+              break
+          }
+        }
+      })
+    }
+    // For Safari which has native HLS support
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = streamData.hlsUrl
+      video.addEventListener('loadedmetadata', () => {
+        video.play().catch(console.error)
+      })
+    }
+    else {
+      console.error('This browser does not support HLS')
+      toast.error('Trình duyệt không hỗ trợ phát stream')
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy()
+        hlsRef.current = null
+      }
+    }
+  }, [streamData?.hlsUrl])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !isAuthenticated || !user) return
@@ -347,9 +415,9 @@ export default function WatchStreamPage() {
                   className="w-full h-full"
                   controls
                   muted={isMuted}
-                  poster="/api/placeholder/800/450"
+                  playsInline
+                  autoPlay={false}
                 >
-                  <source src={streamData.hlsUrl} type="application/x-mpegURL" />
                   Your browser does not support the video tag.
                 </video>
                 
