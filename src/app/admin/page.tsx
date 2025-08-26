@@ -11,24 +11,9 @@ import {
   Users,
   Video,
   DollarSign,
-  Settings,
-  Shield,
   BarChart3,
-  UserCheck,
-  UserX,
-  Eye,
-  Edit,
-  Trash,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Ban,
-  MessageSquare,
   TrendingUp,
-  Activity,
-  Plus,
-  CreditCard,
-  EyeOff
+  Activity
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
