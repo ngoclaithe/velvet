@@ -60,7 +60,6 @@ export default function LoginPage() {
       })
 
       // Redirect dựa trên role của user
-      // Delay nhỏ để đảm bảo user context được cập nhật
       setTimeout(() => {
         if (user?.role === 'admin') {
           router.push('/admin')
