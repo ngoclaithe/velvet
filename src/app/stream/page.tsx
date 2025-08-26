@@ -45,11 +45,10 @@ interface StreamData {
   donationsEnabled: boolean
 }
 
-// Interface cho response từ startStream API - actual API response format
 interface StartStreamResponse {
-  streamId: number  // API returns streamId, use this for chat payload
-  streamKey: string // For socket connection
-  socketEndpoint: string // Use this for WebSocket connection instead of /stream/streamId
+  streamId: number
+  streamKey: string
+  socketEndpoint: string
   title?: string
   isLive?: boolean
 }
