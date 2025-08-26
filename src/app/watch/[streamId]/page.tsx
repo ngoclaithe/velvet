@@ -300,64 +300,6 @@ export default function WatchStreamPage() {
     }
   }, [streamData?.hlsUrl])
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !isAuthenticated || !user) return
-
-    const messageText = newMessage.trim()
-    setNewMessage('') // Clear input immediately for better UX
-
-    try {
-      // Try to send message via API first
-      const response = await chatApi.sendMessage(streamId, {
-        message: messageText
-      })
-
-      if (response.success) {
-        // If API succeeds, also send via WebSocket for real-time delivery
-        if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, messageText)
-        } else {
-          // If WebSocket not connected, add to local state as fallback
-          const newMsg: ChatMessage = {
-            id: Date.now().toString(),
-            userId: user.id,
-            username: user.username,
-            displayName: user.firstName || user.username,
-            message: messageText,
-            timestamp: new Date().toISOString(),
-            type: 'message'
-          }
-          setChatMessages(prev => [...prev, newMsg])
-        }
-      } else {
-        // If API fails, try WebSocket only
-        if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, messageText)
-        } else {
-          // Both failed, add to local state and show error
-          const newMsg: ChatMessage = {
-            id: Date.now().toString(),
-            userId: user.id,
-            username: user.username,
-            displayName: user.firstName || user.username,
-            message: messageText,
-            timestamp: new Date().toISOString(),
-            type: 'message'
-          }
-          setChatMessages(prev => [...prev, newMsg])
-          toast.error('Tin nhắn được gửi cục bộ, có thể không đồng bộ với người khác')
-        }
-      }
-    } catch (error) {
-      // On error, try WebSocket as fallback
-      if (isWebSocketConnected) {
-        chatWebSocket.sendChatMessage(streamId, messageText)
-      } else {
-        toast.error('Không thể gửi tin nhắn')
-        setNewMessage(messageText) // Restore message for retry
-      }
-    }
-  }
 
   const handleSendGift = async (gift: GiftOption) => {
     if (!isAuthenticated || !user) {
