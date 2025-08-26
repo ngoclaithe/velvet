@@ -8,7 +8,7 @@ import StreamChatBox from '@/components/chat/StreamChatBox'
 
 interface StreamingManagerProps {
   streamData: StreamResponse
-  socketEndpoint?: string  
+  socketEndpoint?: string
   cameraEnabled: boolean
   micEnabled: boolean
   onStatusChange: (connected: boolean) => void
@@ -27,7 +27,7 @@ export function StreamingManager({
   const [isConnected, setIsConnected] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [bufferHealth, setBufferHealth] = useState({ queued: 0, sent: 0, failed: 0 })
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const videoPreviewRef = useRef<HTMLVideoElement>(null)
   const chunkCountRef = useRef(0)
@@ -35,7 +35,7 @@ export function StreamingManager({
   const processingRef = useRef(false)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const initSegmentSentRef = useRef(false)
-  
+
   const socketService = getSocketService()
 
   const CHUNK_DURATION = 5000
@@ -102,7 +102,7 @@ export function StreamingManager({
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
     }
-    
+
     reconnectTimeoutRef.current = setTimeout(() => {
       initializeStreaming()
     }, RECONNECT_DELAY)
@@ -126,7 +126,7 @@ export function StreamingManager({
     socketService.onRoomJoined((data: any) => {
       const connected = socketService.getIsConnected()
       setIsConnected(connected)
-      
+
       if (isRecording && chunkQueueRef.current.length > 0 && !processingRef.current) {
         startChunkProcessor()
       }
@@ -136,7 +136,7 @@ export function StreamingManager({
       setIsConnected(false)
       setIsRecording(false)
       processingRef.current = false
-      
+
       if (data.reason !== 'io client disconnect') {
         scheduleReconnect()
       }
@@ -151,7 +151,7 @@ export function StreamingManager({
     socketService.on('reconnect', () => {
       const connected = socketService.getIsConnected()
       setIsConnected(connected)
-      
+
       if (streamData) {
         socketService.startStreaming(String(streamData.id), streamData.streamKey)
         if (mediaStream && !isRecording) {
@@ -213,7 +213,7 @@ export function StreamingManager({
           height: { ideal: 1080, min: 720 },
           frameRate: { ideal: 30, min: 24 },
           facingMode: 'user',
-          aspectRatio: { ideal: 16/9 }
+          aspectRatio: { ideal: 16 / 9 }
         } : false,
         audio: micEnabled ? {
           echoCancellation: true,
@@ -270,7 +270,7 @@ export function StreamingManager({
       mediaRecorder.onerror = (event) => {
         toast.error('Recording error occurred')
         setIsRecording(false)
-        
+
         setTimeout(() => {
           if (stream.active) {
             chunkCountRef.current = 0
@@ -335,7 +335,7 @@ export function StreamingManager({
 
   const addChunkToQueue = (buffer: ArrayBuffer, chunkNumber: number, mimeType: string) => {
     const chunkQueue = chunkQueueRef.current
-    
+
     chunkQueue.push({
       buffer,
       number: chunkNumber,
@@ -346,10 +346,10 @@ export function StreamingManager({
 
     if (chunkQueue.length > MAX_QUEUE_SIZE) {
       const removed = chunkQueue.shift()
-      setBufferHealth(prev => ({ 
-        ...prev, 
+      setBufferHealth(prev => ({
+        ...prev,
         queued: chunkQueue.length,
-        failed: prev.failed + 1 
+        failed: prev.failed + 1
       }))
     }
 
@@ -399,13 +399,15 @@ export function StreamingManager({
       await sleep(CHUNK_SEND_INTERVAL)
     }
   }
-
+  function toNumberId(id: number | string): number {
+    return typeof id === "string" ? Number(id) : id;
+  }
   const sendChunkWithRetry = async (buffer: ArrayBuffer, chunkNumber: number, retries = 3): Promise<void> => {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         if (socketService.getIsConnected()) {
           const success = await socketService.sendStreamChunk(
-            String(streamData.id),
+            toNumberId(streamData.id),
             streamData.streamKey,
             buffer,
             chunkNumber,
@@ -535,13 +537,12 @@ export function StreamingManager({
             )}
 
             <div className="absolute top-4 left-4 flex gap-3">
-              <div className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                isRecording
+              <div className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${isRecording
                   ? 'bg-red-500 text-white animate-pulse shadow-xl'
                   : isConnected
-                  ? 'bg-green-500 text-white shadow-lg'
-                  : 'bg-gray-500 text-white'
-              }`}>
+                    ? 'bg-green-500 text-white shadow-lg'
+                    : 'bg-gray-500 text-white'
+                }`}>
                 {isRecording ? '🔴 ĐANG LIVE' : isConnected ? '✅ SẴN SÀNG' : '⚫ OFFLINE'}
               </div>
 
