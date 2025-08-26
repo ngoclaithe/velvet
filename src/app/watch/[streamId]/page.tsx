@@ -267,13 +267,13 @@ export default function WatchStreamPage() {
     const video = videoRef.current
     if (!video || !streamData?.hlsUrl) return
 
-    if (Hls.isSupported()) {
+    if (Hls.default && Hls.default.isSupported()) {
       // Clean up existing HLS instance
       if (hlsRef.current) {
         hlsRef.current.destroy()
       }
 
-      const hls = new Hls({
+      const hls = new Hls.default({
         enableWorker: false,
         lowLatencyMode: true,
         backBufferLength: 90
