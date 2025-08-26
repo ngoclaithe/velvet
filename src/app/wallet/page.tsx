@@ -149,17 +149,33 @@ export default function WalletPage() {
 
     setIsDepositing(true)
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      toast({
-        title: "Nạp tiền thành công!",
-        description: `Đã nạp $${depositAmount} vào ví của bạn`,
-        variant: "default"
+      const response = await paymentApi.deposit({
+        amount: parseFloat(depositAmount),
+        paymentMethodId: selectedPaymentMethod
       })
-      
-      setDepositAmount('')
-      setSelectedPaymentMethod('')
+
+      if (response.success) {
+        toast({
+          title: "Nạp tiền thành công!",
+          description: `Đã nạp $${depositAmount} vào ví của bạn`,
+          variant: "default"
+        })
+
+        // Refresh wallet data
+        const walletResponse = await paymentApi.getWallet()
+        if (walletResponse.success && walletResponse.data) {
+          setBalance(walletResponse.data.balance || 0)
+        }
+
+        setDepositAmount('')
+        setSelectedPaymentMethod('')
+      } else {
+        toast({
+          title: "Lỗi nạp tiền",
+          description: response.error || "Không thể nạp tiền",
+          variant: "destructive"
+        })
+      }
     } catch (error) {
       toast({
         title: "Lỗi nạp tiền",
@@ -231,7 +247,7 @@ export default function WalletPage() {
     switch (status) {
       case 'completed': return <Badge variant="default" className="bg-green-100 text-green-800">Hoàn thành</Badge>
       case 'pending': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Đang xử lý</Badge>
-      case 'failed': return <Badge variant="destructive">Thất bại</Badge>
+      case 'failed': return <Badge variant="destructive">Th��t bại</Badge>
       default: return null
     }
   }
