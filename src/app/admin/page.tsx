@@ -275,14 +275,137 @@ export default function AdminDashboard() {
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 500))
-      
-      setReports(prev => prev.map(r => 
-        r.id === reportId 
+
+      setReports(prev => prev.map(r =>
+        r.id === reportId
           ? { ...r, status: action === 'resolve' ? 'resolved' : 'dismissed' }
           : r
       ))
 
       toast.success(`Đã ${action} báo cáo thành công`)
+    } catch (error) {
+      toast.error('Có lỗi xảy ra')
+    }
+  }
+
+  const handleCreatePaymentInfo = async () => {
+    try {
+      // Validation
+      if (!paymentForm.bankName || !paymentForm.accountNumber || !paymentForm.accountHolderName) {
+        toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
+        return
+      }
+
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      const newPaymentInfo: PaymentInfo = {
+        id: Date.now().toString(),
+        bankName: paymentForm.bankName,
+        accountNumber: paymentForm.accountNumber,
+        accountHolderName: paymentForm.accountHolderName,
+        qrCodeUrl: paymentForm.qrCodeUrl || '',
+        isActive: paymentForm.isActive,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      setPaymentInfos(prev => [newPaymentInfo, ...prev])
+      setPaymentForm({
+        bankName: '',
+        accountNumber: '',
+        accountHolderName: '',
+        qrCodeUrl: '',
+        isActive: true
+      })
+      setIsEditingPayment(false)
+
+      toast.success('Đã tạo thông tin thanh toán thành công')
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi tạo thông tin thanh toán')
+    }
+  }
+
+  const handleUpdatePaymentInfo = async () => {
+    try {
+      if (!editingPaymentId) return
+
+      // Validation
+      if (!paymentForm.bankName || !paymentForm.accountNumber || !paymentForm.accountHolderName) {
+        toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
+        return
+      }
+
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      setPaymentInfos(prev => prev.map(info =>
+        info.id === editingPaymentId
+          ? {
+              ...info,
+              bankName: paymentForm.bankName,
+              accountNumber: paymentForm.accountNumber,
+              accountHolderName: paymentForm.accountHolderName,
+              qrCodeUrl: paymentForm.qrCodeUrl || '',
+              isActive: paymentForm.isActive,
+              updatedAt: new Date().toISOString()
+            }
+          : info
+      ))
+
+      setPaymentForm({
+        bankName: '',
+        accountNumber: '',
+        accountHolderName: '',
+        qrCodeUrl: '',
+        isActive: true
+      })
+      setIsEditingPayment(false)
+      setEditingPaymentId(null)
+
+      toast.success('Đã cập nhật thông tin thanh toán thành công')
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi cập nhật thông tin thanh toán')
+    }
+  }
+
+  const handleEditPaymentInfo = (paymentInfo: PaymentInfo) => {
+    setPaymentForm({
+      bankName: paymentInfo.bankName,
+      accountNumber: paymentInfo.accountNumber,
+      accountHolderName: paymentInfo.accountHolderName,
+      qrCodeUrl: paymentInfo.qrCodeUrl || '',
+      isActive: paymentInfo.isActive
+    })
+    setEditingPaymentId(paymentInfo.id)
+    setIsEditingPayment(true)
+  }
+
+  const handleDeletePaymentInfo = async (paymentId: string) => {
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      setPaymentInfos(prev => prev.filter(info => info.id !== paymentId))
+
+      toast.success('Đã xóa thông tin thanh toán thành công')
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi xóa thông tin thanh toán')
+    }
+  }
+
+  const handleTogglePaymentStatus = async (paymentId: string) => {
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      setPaymentInfos(prev => prev.map(info =>
+        info.id === paymentId
+          ? { ...info, isActive: !info.isActive, updatedAt: new Date().toISOString() }
+          : info
+      ))
+
+      toast.success('Đã cập nhật trạng thái thành công')
     } catch (error) {
       toast.error('Có lỗi xảy ra')
     }
@@ -551,7 +674,7 @@ export default function AdminDashboard() {
                           className="bg-blue-600 hover:bg-blue-700"
                         >
                           <UserCheck className="w-4 h-4 mr-1" />
-                          X��c thực
+                          Xác thực
                         </Button>
                       )}
                       {user.status === 'active' && (
