@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const { login, error } = useAuth()
+  const { login, error, user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
 
