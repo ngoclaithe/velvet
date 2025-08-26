@@ -197,7 +197,8 @@ export default function StreamsPage() {
           })
           setStreams(transformedStreams)
         } else {
-          // Fallback to mock data if API fails
+          // Fallback to mock data if API response is invalid
+          console.warn('API response does not contain streams array:', response)
           setStreams(mockStreams.filter(stream => {
             const matchesCategory = selectedCategory === 'all' || stream.category === selectedCategory
             const matchesSearch = !searchQuery ||
