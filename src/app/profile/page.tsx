@@ -34,6 +34,7 @@ import {
   UserPlus
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import type { User } from '@/types/auth'
 
 type Gender = 'male' | 'female' | 'other';
 
