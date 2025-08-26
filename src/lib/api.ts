@@ -261,7 +261,7 @@ export const streamApi = {
   },
 
   // Lấy thông tin stream cụ thể
-  getStreamInfo: (streamId: string) => api.get(`/streams/${streamId}/info`),
+  getStreamInfo: (streamId: string) => api.get<any>(`/streams/${streamId}/info`),
 
   // Tạo và bắt đầu stream session mới (cho creator)
   startStream: (data: {
