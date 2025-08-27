@@ -300,7 +300,7 @@ export default function WalletPage() {
       if (response.success) {
         toast({
           title: "Yêu cầu rút tiền thành công!",
-          description: `Yêu cầu rút $${withdrawAmount} đang được xử lý`,
+          description: `Yêu cầu rút ${Number(withdrawAmount).toLocaleString('vi-VN')} VND đang được xử lý`,
           variant: "default"
         })
 
@@ -363,9 +363,9 @@ export default function WalletPage() {
 
   const formatAmount = (amount: number, showSign = true) => {
     const numAmount = Number(amount) || 0
-    const formatted = Math.abs(numAmount).toFixed(2)
-    if (!showSign) return `$${formatted}`
-    return numAmount >= 0 ? `+$${formatted}` : `-$${formatted}`
+    const formatted = Math.abs(numAmount).toLocaleString('vi-VN')
+    if (!showSign) return `${formatted} VND`
+    return numAmount >= 0 ? `+${formatted} VND` : `-${formatted} VND`
   }
 
   useEffect(() => {
@@ -418,7 +418,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `$${Number(balance || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} VND` : '••••••'}
               </div>
               <p className="text-xs text-muted-foreground">
                 Khả dụng cho rút tiền
@@ -433,7 +433,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `$${Number(totalEarnings || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `${Number(totalEarnings || 0).toLocaleString('vi-VN')} VND` : '••••••'}
               </div>
               <p className="text-xs text-green-600">
                 Tổng thu nhập từ streaming
@@ -448,7 +448,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `$${Number(monthlyIncome || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `${Number(monthlyIncome || 0).toLocaleString('vi-VN')} VND` : '••••••'}
               </div>
               <p className="text-xs text-blue-600">
                 Thu nhập trong tháng
@@ -472,7 +472,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {showBalance ? `$${Number(balance || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} VND` : '••••••'}
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Số dư khả dụng để sử dụng trong ứng dụng
@@ -555,15 +555,15 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="depositAmount">Số tiền ($)</Label>
+                  <Label htmlFor="depositAmount">Số tiền (VND)</Label>
                   <Input
                     id="depositAmount"
                     type="number"
-                    placeholder="0.00"
+                    placeholder="0"
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
-                    min="0.01"
-                    step="0.01"
+                    min="1000"
+                    step="1000"
                   />
                 </div>
 
@@ -595,32 +595,11 @@ export default function WalletPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="transactionCode">Mã giao dịch (tùy chọn)</Label>
-                  <Input
-                    id="transactionCode"
-                    type="text"
-                    placeholder="Nhập mã giao dịch từ ngân hàng"
-                    value={transactionCode}
-                    onChange={(e) => setTransactionCode(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="depositNote">Ghi chú (tùy chọn)</Label>
-                  <Input
-                    id="depositNote"
-                    type="text"
-                    placeholder="Thêm ghi chú cho giao dịch"
-                    value={depositNote}
-                    onChange={(e) => setDepositNote(e.target.value)}
-                  />
-                </div>
 
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• Số tiền nạp tối thiểu: $0.01</li>
+                    <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
                     <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
                     <li>• Liên hệ hỗ trợ nếu không nhận được tiền sau 30 phút</li>
@@ -654,14 +633,14 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {[10, 25, 50, 100, 250, 500].map((amount) => (
+                  {[10000, 50000, 100000, 200000, 500000, 1000000].map((amount) => (
                     <Button
                       key={amount}
                       variant="outline"
                       onClick={() => setDepositAmount(amount.toString())}
                       className="h-16 flex flex-col"
                     >
-                      <span className="text-lg font-bold">${amount}</span>
+                      <span className="text-lg font-bold">{amount.toLocaleString('vi-VN')} VND</span>
                       <span className="text-xs text-muted-foreground">
                         Nạp nhanh
                       </span>
@@ -731,7 +710,7 @@ export default function WalletPage() {
                     
                     <div className="bg-green-50 p-3 rounded">
                       <p className="text-sm font-medium text-green-900">Số tiền</p>
-                      <p className="text-xl font-bold text-green-900">${depositAmount}</p>
+                      <p className="text-xl font-bold text-green-900">{Number(depositAmount || 0).toLocaleString('vi-VN')} VND</p>
                     </div>
                   </div>
                 )}
@@ -762,7 +741,7 @@ export default function WalletPage() {
                     <div className="flex items-center space-x-4">
                       <ArrowDownLeft className="h-4 w-4 text-green-600" />
                       <div className="flex-1">
-                        <p className="font-medium">Yêu cầu nạp tiền ${Number(request.amount || 0).toFixed(2)}</p>
+                        <p className="font-medium">Yêu cầu nạp tiền {Number(request.amount || 0).toLocaleString('vi-VN')} VND</p>
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                           <span>{request.createdAt.toLocaleDateString('vi-VN')}</span>
                           <span>•</span>
@@ -776,7 +755,7 @@ export default function WalletPage() {
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <p className="font-bold text-green-600">
-                          +${Number(request.amount || 0).toFixed(2)}
+                          +{Number(request.amount || 0).toLocaleString('vi-VN')} VND
                         </p>
                         {getRequestDepositStatusBadge(request.status)}
                       </div>
@@ -807,19 +786,19 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="withdrawAmount">Số tiền ($)</Label>
+                  <Label htmlFor="withdrawAmount">Số tiền (VND)</Label>
                   <Input
                     id="withdrawAmount"
                     type="number"
-                    placeholder="0.00"
+                    placeholder="0"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
-                    min="10"
+                    min="10000"
                     max={balance}
-                    step="0.01"
+                    step="1000"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Số dư khả dụng: ${(Number(balance || 0) - Number(lockedBalance || 0)).toFixed(2)}
+                    Số dư khả dụng: {(Number(balance || 0) - Number(lockedBalance || 0)).toLocaleString('vi-VN')} VND
                   </p>
                 </div>
 
@@ -845,8 +824,8 @@ export default function WalletPage() {
                 <div className="bg-yellow-50 p-4 rounded-lg">
                   <h4 className="font-medium text-yellow-900 mb-2">Lưu ý rút tiền:</h4>
                   <ul className="text-sm text-yellow-800 space-y-1">
-                    <li>• Số tiền rút tối thiểu: $10.00</li>
-                    <li>• Phí rút tiền: $2.00 cho giao dịch dưới $100</li>
+                    <li>• Số tiền rút tối thiểu: 10,000 VND</li>
+                    <li>• Phí rút tiền: 2,000 VND cho giao dịch dưới 100,000 VND</li>
                     <li>• Thời gian xử lý: 1-3 ngày làm việc</li>
                     <li>• Có thể bị khóa tạm thời để xác minh</li>
                   </ul>
