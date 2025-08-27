@@ -173,15 +173,23 @@ export default function PaymentsPage() {
     setIsEditingPayment(true)
   }
 
-  const handleDeletePaymentInfo = async (paymentId: string) => {
+  const handleDeletePaymentInfo = async (paymentId: number) => {
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const response = await infoPaymentApi.deleteInfoPayment(paymentId.toString())
 
-      setPaymentInfos(prev => prev.filter(info => info.id !== paymentId))
+      if (response.success) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
 
-      toast.success('Đã xóa thông tin thanh toán thành công')
+        toast.success('Đã xóa thông tin thanh toán thành công')
+      } else {
+        throw new Error(response.error || 'Failed to delete payment info')
+      }
     } catch (error) {
+      console.error('Delete payment error:', error)
       toast.error('Có lỗi xảy ra khi xóa thông tin thanh toán')
     }
   }
