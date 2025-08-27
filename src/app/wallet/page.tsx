@@ -169,7 +169,7 @@ export default function WalletPage() {
 
         // Fetch request deposits
         const requestDepositsResponse = await requestDeposit.getRequestDeposit()
-        if (requestDepositsResponse.success && requestDepositsResponse.data) {
+        if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
             createdAt: new Date(rd.createdAt)
