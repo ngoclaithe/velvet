@@ -81,7 +81,24 @@ export default function CreatorList() {
       const response = await creatorAPI.getAllCreators()
       console.log("Giá trị reponse", response)
       if (response.success && response.data) {
-        setCreators(response.data)
+        // Transform API response to match Creator interface
+        const transformedCreators = response.data.map((item: any) => ({
+          id: item.id,
+          userId: item.userId,
+          username: item.user?.username || '',
+          displayName: `${item.user?.firstName || ''} ${item.user?.lastName || ''}`.trim() || item.user?.username || '',
+          stageName: item.stageName,
+          avatar: item.user?.avatar,
+          bio: item.bio,
+          followerCount: 0, // Not provided in API, set default
+          followingCount: 0, // Not provided in API, set default
+          isVerified: item.isVerified || false,
+          isOnline: item.isLive || false,
+          category: '', // Not provided in API, set default
+          location: '', // Not provided in API, set default
+          isFollowing: false // This should be fetched separately or included in API
+        }))
+        setCreators(transformedCreators)
       } else {
         setCreators(getMockCreators())
       }
