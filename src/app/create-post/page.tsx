@@ -43,6 +43,7 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { postsApi } from '@/lib/api/posts'
+import type { ApiResponse, UploadResponse } from '@/types/api'
 
 interface MediaFile {
   id: string
@@ -198,7 +199,7 @@ export default function CreatePostPage() {
 
     try {
       // Prepare post data for API
-      const postPayload = {
+      const postPayload: any = {
         title: postData.title,
         content: postData.content,
         category: postData.category,
@@ -226,7 +227,7 @@ export default function CreatePostPage() {
       if (mediaFiles.length > 0) {
         for (const mediaFile of mediaFiles) {
           try {
-            const uploadResponse = await postsApi.uploadMedia(mediaFile.file)
+            const uploadResponse = await postsApi.uploadMedia(mediaFile.file) as ApiResponse<UploadResponse>
             if (uploadResponse.success && uploadResponse.data) {
               uploadedMediaUrls.push(uploadResponse.data.url)
             }
@@ -243,7 +244,9 @@ export default function CreatePostPage() {
       }
 
       // Create the post
-      const response = await postsApi.createPost(postPayload)
+      const response = await postsApi.createPost(postPayload) as ApiResponse<{ id: string; url?: string }>
+
+      console.log('Post creation response:', response)
 
       if (response.success) {
         toast({
@@ -413,7 +416,7 @@ export default function CreatePostPage() {
                 <Label htmlFor="title">Tiêu đề *</Label>
                 <Input
                   id="title"
-                  placeholder="Nhập tiêu đề hấp dẫn..."
+                  placeholder="Nhập tiêu ��ề hấp dẫn..."
                   value={postData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   maxLength={100}
