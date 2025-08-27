@@ -120,40 +120,42 @@ export default function PaymentsPage() {
       if (!editingPaymentId) return
 
       // Validation
-      if (!paymentForm.bankName || !paymentForm.accountNumber || !paymentForm.accountHolderName) {
+      if (!paymentForm.bankName || !paymentForm.bankNumber || !paymentForm.accountName) {
         toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
         return
       }
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      setPaymentInfos(prev => prev.map(info =>
-        info.id === editingPaymentId
-          ? {
-              ...info,
-              bankName: paymentForm.bankName,
-              accountNumber: paymentForm.accountNumber,
-              accountHolderName: paymentForm.accountHolderName,
-              qrCodeUrl: paymentForm.qrCodeUrl || '',
-              isActive: paymentForm.isActive,
-              updatedAt: new Date().toISOString()
-            }
-          : info
-      ))
-
-      setPaymentForm({
-        bankName: '',
-        accountNumber: '',
-        accountHolderName: '',
-        qrCodeUrl: '',
-        isActive: true
+      const response = await infoPaymentApi.updateInfoPayment(editingPaymentId.toString(), {
+        bankName: paymentForm.bankName,
+        accountNumber: paymentForm.bankNumber,
+        accountHolderName: paymentForm.accountName,
+        isActive: paymentForm.active
       })
-      setIsEditingPayment(false)
-      setEditingPaymentId(null)
 
-      toast.success('Đã cập nhật thông tin thanh toán thành công')
+      if (response.success) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
+
+        setPaymentForm({
+          bankName: '',
+          bankNumber: '',
+          accountName: '',
+          email: '',
+          phone: '',
+          active: true
+        })
+        setIsEditingPayment(false)
+        setEditingPaymentId(null)
+
+        toast.success('Đã cập nhật thông tin thanh toán thành công')
+      } else {
+        throw new Error(response.error || 'Failed to update payment info')
+      }
     } catch (error) {
+      console.error('Update payment error:', error)
       toast.error('Có lỗi xảy ra khi cập nhật thông tin thanh toán')
     }
   }
