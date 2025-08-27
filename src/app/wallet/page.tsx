@@ -191,7 +191,7 @@ export default function WalletPage() {
     if (!depositAmount || !selectedInfoPaymentId) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng nhập số tiền và chọn ph��ơng thức thanh toán",
+        description: "Vui lòng nhập số tiền và chọn phương thức thanh toán",
         variant: "destructive"
       })
       return
@@ -214,6 +214,11 @@ export default function WalletPage() {
       amount: amount,
       infoPaymentId: parseInt(selectedInfoPaymentId),
       codePay: codePay,
+      metadata: {
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        depositType: 'manual_request'
+      }
     }
 
     setIsDepositing(true)
@@ -479,7 +484,7 @@ export default function WalletPage() {
 
       <Tabs defaultValue="transactions" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="transactions">Giao d��ch</TabsTrigger>
+          <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
           <TabsTrigger value="deposit">Nạp tiền</TabsTrigger>
           <TabsTrigger value="requests">Yêu cầu nạp</TabsTrigger>
           <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>
