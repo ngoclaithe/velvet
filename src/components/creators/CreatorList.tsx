@@ -72,6 +72,9 @@ export default function CreatorList() {
   const [myPosts, setMyPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null)
+  const [creatorDetailLoading, setCreatorDetailLoading] = useState(false)
+  const [showCreatorDetail, setShowCreatorDetail] = useState(false)
   const { toast } = useToast()
   const { user, isAuthenticated } = useAuth()
 
