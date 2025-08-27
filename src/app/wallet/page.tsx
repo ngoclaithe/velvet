@@ -85,8 +85,6 @@ export default function WalletPage() {
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<InfoPayment[]>([])
   const [selectedInfoPaymentId, setSelectedInfoPaymentId] = useState<string>('')
   const [depositAmount, setDepositAmount] = useState('')
-  const [transactionCode, setTransactionCode] = useState('')
-  const [depositNote, setDepositNote] = useState('')
   
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
@@ -200,33 +198,28 @@ export default function WalletPage() {
       return
     }
 
-    const codePay = generateCodePay()
-    
-    // Validate input using Zod schema
-    const depositData: CreateRequestDepositInput = {
-      amount: parseFloat(depositAmount),
-      infoPaymentId: parseInt(selectedInfoPaymentId),
-      transactionCode: transactionCode || undefined,
-      note: depositNote || undefined,
-    }
-
-    try {
-      createRequestDepositSchema.parse(depositData)
-    } catch (error: any) {
+    const amount = parseFloat(depositAmount)
+    if (amount < 1000) {
       toast({
-        title: "Lỗi xác thực",
-        description: error.errors?.[0]?.message || "Dữ liệu không hợp lệ",
+        title: "Lỗi",
+        description: "Số tiền nạp tối thiểu là 1,000 VND",
         variant: "destructive"
       })
       return
     }
 
+    const codePay = generateCodePay()
+
+    // Prepare data according to backend validator
+    const depositData = {
+      amount: amount,
+      infoPaymentId: parseInt(selectedInfoPaymentId),
+      codePay: codePay,
+    }
+
     setIsDepositing(true)
     try {
-      const response = await requestDeposit.createRequestDeposit({
-        ...depositData,
-        codePay: codePay
-      })
+      const response = await requestDeposit.createRequestDeposit(depositData)
 
       if (response.success) {
         setGeneratedCodePay(codePay)
@@ -241,8 +234,6 @@ export default function WalletPage() {
         // Reset form
         setDepositAmount('')
         setSelectedInfoPaymentId('')
-        setTransactionCode('')
-        setDepositNote('')
 
         // Refresh request deposits
         const requestDepositsResponse = await requestDeposit.getRequestDeposit()
