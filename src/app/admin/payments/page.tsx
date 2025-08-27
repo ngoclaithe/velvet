@@ -19,14 +19,17 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import { infoPaymentApi } from '@/lib/api'
 
 interface PaymentInfo {
-  id: string
+  id: number
+  bankNumber: string
+  accountName: string
   bankName: string
-  accountNumber: string
-  accountHolderName: string
-  qrCodeUrl?: string
-  isActive: boolean
+  email: string
+  phone: string
+  metadata: any
+  active: boolean
   createdAt: string
   updatedAt: string
 }
@@ -36,13 +39,14 @@ export default function PaymentsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [paymentInfos, setPaymentInfos] = useState<PaymentInfo[]>([])
   const [isEditingPayment, setIsEditingPayment] = useState(false)
-  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null)
+  const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null)
   const [paymentForm, setPaymentForm] = useState({
     bankName: '',
-    accountNumber: '',
-    accountHolderName: '',
-    qrCodeUrl: '',
-    isActive: true
+    bankNumber: '',
+    accountName: '',
+    email: '',
+    phone: '',
+    active: true
   })
 
   // Load payment data
@@ -50,34 +54,17 @@ export default function PaymentsPage() {
     const loadPaymentData = async () => {
       setIsLoading(true)
       try {
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        setPaymentInfos([
-          {
-            id: '1',
-            bankName: 'Vietcombank',
-            accountNumber: '1234567890',
-            accountHolderName: 'NGUYEN VAN A',
-            qrCodeUrl: 'https://example.com/qr1.jpg',
-            isActive: true,
-            createdAt: '2024-01-15T10:00:00Z',
-            updatedAt: '2024-01-15T10:00:00Z'
-          },
-          {
-            id: '2',
-            bankName: 'Techcombank',
-            accountNumber: '0987654321',
-            accountHolderName: 'TRAN THI B',
-            qrCodeUrl: '',
-            isActive: false,
-            createdAt: '2024-01-10T15:30:00Z',
-            updatedAt: '2024-01-18T09:20:00Z'
-          }
-        ])
+        const response = await infoPaymentApi.getInfoPayments()
+
+        if (response.success && response.data) {
+          setPaymentInfos(response.data)
+        } else {
+          throw new Error(response.error || 'Failed to load payment data')
+        }
       } catch (error) {
         console.error('Failed to load payment data:', error)
         toast.error('Không thể tải dữ liệu thanh toán')
+        setPaymentInfos([])
       } finally {
         setIsLoading(false)
       }
@@ -89,37 +76,41 @@ export default function PaymentsPage() {
   const handleCreatePaymentInfo = async () => {
     try {
       // Validation
-      if (!paymentForm.bankName || !paymentForm.accountNumber || !paymentForm.accountHolderName) {
+      if (!paymentForm.bankName || !paymentForm.bankNumber || !paymentForm.accountName) {
         toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
         return
       }
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      const newPaymentInfo: PaymentInfo = {
-        id: Date.now().toString(),
+      const response = await infoPaymentApi.createInfoPayment({
         bankName: paymentForm.bankName,
-        accountNumber: paymentForm.accountNumber,
-        accountHolderName: paymentForm.accountHolderName,
-        qrCodeUrl: paymentForm.qrCodeUrl || '',
-        isActive: paymentForm.isActive,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-
-      setPaymentInfos(prev => [newPaymentInfo, ...prev])
-      setPaymentForm({
-        bankName: '',
-        accountNumber: '',
-        accountHolderName: '',
-        qrCodeUrl: '',
-        isActive: true
+        accountNumber: paymentForm.bankNumber,
+        accountHolderName: paymentForm.accountName,
+        isActive: paymentForm.active
       })
-      setIsEditingPayment(false)
 
-      toast.success('Đã tạo thông tin thanh toán thành công')
+      if (response.success && response.data) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
+
+        setPaymentForm({
+          bankName: '',
+          bankNumber: '',
+          accountName: '',
+          email: '',
+          phone: '',
+          active: true
+        })
+        setIsEditingPayment(false)
+
+        toast.success('Đã tạo thông tin thanh toán thành công')
+      } else {
+        throw new Error(response.error || 'Failed to create payment info')
+      }
     } catch (error) {
+      console.error('Create payment error:', error)
       toast.error('Có lỗi xảy ra khi tạo thông tin thanh toán')
     }
   }
@@ -129,40 +120,42 @@ export default function PaymentsPage() {
       if (!editingPaymentId) return
 
       // Validation
-      if (!paymentForm.bankName || !paymentForm.accountNumber || !paymentForm.accountHolderName) {
+      if (!paymentForm.bankName || !paymentForm.bankNumber || !paymentForm.accountName) {
         toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
         return
       }
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      setPaymentInfos(prev => prev.map(info =>
-        info.id === editingPaymentId
-          ? {
-              ...info,
-              bankName: paymentForm.bankName,
-              accountNumber: paymentForm.accountNumber,
-              accountHolderName: paymentForm.accountHolderName,
-              qrCodeUrl: paymentForm.qrCodeUrl || '',
-              isActive: paymentForm.isActive,
-              updatedAt: new Date().toISOString()
-            }
-          : info
-      ))
-
-      setPaymentForm({
-        bankName: '',
-        accountNumber: '',
-        accountHolderName: '',
-        qrCodeUrl: '',
-        isActive: true
+      const response = await infoPaymentApi.updateInfoPayment(editingPaymentId.toString(), {
+        bankName: paymentForm.bankName,
+        accountNumber: paymentForm.bankNumber,
+        accountHolderName: paymentForm.accountName,
+        isActive: paymentForm.active
       })
-      setIsEditingPayment(false)
-      setEditingPaymentId(null)
 
-      toast.success('Đã cập nhật thông tin thanh toán thành công')
+      if (response.success) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
+
+        setPaymentForm({
+          bankName: '',
+          bankNumber: '',
+          accountName: '',
+          email: '',
+          phone: '',
+          active: true
+        })
+        setIsEditingPayment(false)
+        setEditingPaymentId(null)
+
+        toast.success('Đã cập nhật thông tin thanh toán thành công')
+      } else {
+        throw new Error(response.error || 'Failed to update payment info')
+      }
     } catch (error) {
+      console.error('Update payment error:', error)
       toast.error('Có lỗi xảy ra khi cập nhật thông tin thanh toán')
     }
   }
@@ -170,41 +163,59 @@ export default function PaymentsPage() {
   const handleEditPaymentInfo = (paymentInfo: PaymentInfo) => {
     setPaymentForm({
       bankName: paymentInfo.bankName,
-      accountNumber: paymentInfo.accountNumber,
-      accountHolderName: paymentInfo.accountHolderName,
-      qrCodeUrl: paymentInfo.qrCodeUrl || '',
-      isActive: paymentInfo.isActive
+      bankNumber: paymentInfo.bankNumber,
+      accountName: paymentInfo.accountName,
+      email: paymentInfo.email,
+      phone: paymentInfo.phone,
+      active: paymentInfo.active
     })
     setEditingPaymentId(paymentInfo.id)
     setIsEditingPayment(true)
   }
 
-  const handleDeletePaymentInfo = async (paymentId: string) => {
+  const handleDeletePaymentInfo = async (paymentId: number) => {
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const response = await infoPaymentApi.deleteInfoPayment(paymentId.toString())
 
-      setPaymentInfos(prev => prev.filter(info => info.id !== paymentId))
+      if (response.success) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
 
-      toast.success('Đã xóa thông tin thanh toán thành công')
+        toast.success('Đã xóa thông tin thanh toán thành công')
+      } else {
+        throw new Error(response.error || 'Failed to delete payment info')
+      }
     } catch (error) {
+      console.error('Delete payment error:', error)
       toast.error('Có lỗi xảy ra khi xóa thông tin thanh toán')
     }
   }
 
-  const handleTogglePaymentStatus = async (paymentId: string) => {
+  const handleTogglePaymentStatus = async (paymentId: number) => {
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const paymentInfo = paymentInfos.find(info => info.id === paymentId)
+      if (!paymentInfo) return
 
-      setPaymentInfos(prev => prev.map(info =>
-        info.id === paymentId
-          ? { ...info, isActive: !info.isActive, updatedAt: new Date().toISOString() }
-          : info
-      ))
+      const response = await infoPaymentApi.updateInfoPayment(paymentId.toString(), {
+        isActive: !paymentInfo.active
+      })
 
-      toast.success('Đã cập nhật trạng thái thành công')
+      if (response.success) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
+
+        toast.success('Đã cập nhật trạng thái thành công')
+      } else {
+        throw new Error(response.error || 'Failed to update payment status')
+      }
     } catch (error) {
+      console.error('Toggle payment status error:', error)
       toast.error('Có lỗi xảy ra')
     }
   }
@@ -258,42 +269,54 @@ export default function PaymentsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="accountNumber">Số tài khoản *</Label>
+                    <Label htmlFor="bankNumber">Số tài khoản *</Label>
                     <Input
-                      id="accountNumber"
-                      value={paymentForm.accountNumber}
-                      onChange={(e) => setPaymentForm(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      id="bankNumber"
+                      value={paymentForm.bankNumber}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, bankNumber: e.target.value }))}
                       placeholder="VD: 1234567890"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="accountHolderName">Tên chủ tài khoản *</Label>
+                  <Label htmlFor="accountName">Tên chủ tài khoản *</Label>
                   <Input
-                    id="accountHolderName"
-                    value={paymentForm.accountHolderName}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, accountHolderName: e.target.value }))}
+                    id="accountName"
+                    value={paymentForm.accountName}
+                    onChange={(e) => setPaymentForm(prev => ({ ...prev, accountName: e.target.value }))}
                     placeholder="VD: NGUYEN VAN A"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="qrCodeUrl">URL QR Code</Label>
-                  <Input
-                    id="qrCodeUrl"
-                    value={paymentForm.qrCodeUrl}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, qrCodeUrl: e.target.value }))}
-                    placeholder="https://example.com/qr-code.jpg"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={paymentForm.email}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="VD: example@gmail.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Số điện thoại</Label>
+                    <Input
+                      id="phone"
+                      value={paymentForm.phone}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="VD: 0123456789"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Label htmlFor="isActive" className="text-sm font-medium">
+                  <Label htmlFor="active" className="text-sm font-medium">
                     Trạng thái hoạt động
                   </Label>
                   <input
                     type="checkbox"
-                    id="isActive"
-                    checked={paymentForm.isActive}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                    id="active"
+                    checked={paymentForm.active}
+                    onChange={(e) => setPaymentForm(prev => ({ ...prev, active: e.target.checked }))}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </div>
@@ -312,10 +335,11 @@ export default function PaymentsPage() {
                       setEditingPaymentId(null)
                       setPaymentForm({
                         bankName: '',
-                        accountNumber: '',
-                        accountHolderName: '',
-                        qrCodeUrl: '',
-                        isActive: true
+                        bankNumber: '',
+                        accountName: '',
+                        email: '',
+                        phone: '',
+                        active: true
                       })
                     }}
                   >
@@ -341,17 +365,24 @@ export default function PaymentsPage() {
                     <div>
                       <p className="font-medium">{paymentInfo.bankName}</p>
                       <p className="text-sm text-muted-foreground">
-                        Số TK: {paymentInfo.accountNumber}
+                        Số TK: {paymentInfo.bankNumber}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Chủ TK: {paymentInfo.accountHolderName}
+                        Chủ TK: {paymentInfo.accountName}
                       </p>
-                      {paymentInfo.qrCodeUrl && (
-                        <p className="text-sm text-blue-600">Có QR Code</p>
+                      {paymentInfo.email && (
+                        <p className="text-sm text-muted-foreground">
+                          Email: {paymentInfo.email}
+                        </p>
+                      )}
+                      {paymentInfo.phone && (
+                        <p className="text-sm text-muted-foreground">
+                          SĐT: {paymentInfo.phone}
+                        </p>
                       )}
                       <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant={paymentInfo.isActive ? 'default' : 'secondary'}>
-                          {paymentInfo.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
+                        <Badge variant={paymentInfo.active ? 'default' : 'secondary'}>
+                          {paymentInfo.active ? 'Đang hoạt động' : 'Tạm dừng'}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           Cập nhật: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
@@ -373,7 +404,7 @@ export default function PaymentsPage() {
                       variant="outline"
                       onClick={() => handleTogglePaymentStatus(paymentInfo.id)}
                     >
-                      {paymentInfo.isActive ? (
+                      {paymentInfo.active ? (
                         <>
                           <EyeOff className="w-4 h-4 mr-1" />
                           Tắt
