@@ -243,6 +243,34 @@ export default function CreatePostPage() {
         }
       }
 
+      // Log the complete post payload for debugging
+      console.log('=== POST DATA BEING SENT ===')
+      console.log('Post Payload:', JSON.stringify(postPayload, null, 2))
+      console.log('Original Form Data:', {
+        title: postData.title,
+        content: postData.content,
+        category: postData.category,
+        tags: postData.tags,
+        visibility: postData.visibility,
+        allowComments: postData.allowComments,
+        allowLikes: postData.allowLikes,
+        allowSharing: postData.allowSharing,
+        isPremium: postData.isPremium,
+        price: postData.price,
+        scheduledAt: postData.scheduledAt,
+      })
+      console.log('Media Files:', mediaFiles.map(file => ({
+        id: file.id,
+        type: file.type,
+        fileName: file.file.name,
+        fileSize: file.file.size,
+        url: file.url
+      })))
+      console.log('Post Type:', postType)
+      console.log('Is Draft:', saveAsDraft)
+      console.log('Uploaded Media URLs:', uploadedMediaUrls)
+      console.log('=== END POST DATA ===')
+
       // Create the post
       const response = await postsApi.createPost(postPayload) as ApiResponse<{ id: string; url?: string }>
 
@@ -416,7 +444,7 @@ export default function CreatePostPage() {
                 <Label htmlFor="title">Tiêu đề *</Label>
                 <Input
                   id="title"
-                  placeholder="Nhập tiêu ��ề hấp dẫn..."
+                  placeholder="Nhập tiêu đề hấp dẫn..."
                   value={postData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   maxLength={100}
