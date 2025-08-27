@@ -87,7 +87,9 @@ export default function WalletPage() {
   const [depositAmount, setDepositAmount] = useState('')
   
   const [withdrawAmount, setWithdrawAmount] = useState('')
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
+  const [bankName, setBankName] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [accountHolderName, setAccountHolderName] = useState('')
   const [generatedCodePay, setGeneratedCodePay] = useState('')
   const [showDepositInstructions, setShowDepositInstructions] = useState(false)
 
@@ -268,10 +270,10 @@ export default function WalletPage() {
   }
 
   const handleWithdraw = async () => {
-    if (!withdrawAmount || !selectedPaymentMethod) {
+    if (!withdrawAmount || !bankName || !accountNumber || !accountHolderName) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng nhập số tiền và chọn phương thức rút tiền",
+        description: "Vui lòng nhập đầy đủ thông tin rút tiền",
         variant: "destructive"
       })
       return
@@ -291,7 +293,9 @@ export default function WalletPage() {
     try {
       const response = await walletAPI.withdraw({
         amount: amount,
-        paymentMethodId: selectedPaymentMethod
+        bankName: bankName,
+        accountNumber: accountNumber,
+        accountHolderName: accountHolderName
       })
 
       if (response.success) {
@@ -309,7 +313,9 @@ export default function WalletPage() {
         }
 
         setWithdrawAmount('')
-        setSelectedPaymentMethod('')
+        setBankName('')
+        setAccountNumber('')
+        setAccountHolderName('')
       } else {
         toast({
           title: "Lỗi rút tiền",
@@ -485,10 +491,9 @@ export default function WalletPage() {
       )}
 
       <Tabs defaultValue="transactions" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
           <TabsTrigger value="deposit">Nạp tiền</TabsTrigger>
-          <TabsTrigger value="requests">Yêu cầu nạp</TabsTrigger>
           <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>
         </TabsList>
 
@@ -597,7 +602,7 @@ export default function WalletPage() {
                   <h4 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
-                    <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
+                    <li>• Thời gian x�� lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
                     <li>• Liên hệ hỗ trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>
@@ -668,7 +673,7 @@ export default function WalletPage() {
                         p => p.id.toString() === selectedInfoPaymentId
                       )
                       if (!selectedPayment) return null
-                      
+
                       return (
                         <>
                           <div className="bg-gray-50 p-3 rounded">
@@ -687,6 +692,30 @@ export default function WalletPage() {
                           <div className="bg-gray-50 p-3 rounded">
                             <p className="text-sm font-medium">Tên tài khoản</p>
                             <p className="text-lg">{selectedPayment.accountName}</p>
+                          </div>
+
+                          {/* QR Code Section */}
+                          <div className="bg-white p-4 rounded border text-center">
+                            <p className="text-sm font-medium mb-3">Mã QR thanh toán</p>
+                            <div className="flex justify-center">
+                              <img
+                                src={generateSepayQRUrl({
+                                  accountNumber: selectedPayment.bankNumber,
+                                  name: selectedPayment.accountName,
+                                  bank: selectedPayment.bankName,
+                                  amount: Number(depositAmount || 0),
+                                  code_pay: generatedCodePay
+                                })}
+                                alt="QR Code thanh toán"
+                                className="w-48 h-48 border rounded"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                }}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Quét mã QR để thanh toán nhanh
+                            </p>
                           </div>
                         </>
                       )
@@ -725,49 +754,6 @@ export default function WalletPage() {
           </Dialog>
         </TabsContent>
 
-        <TabsContent value="requests" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Yêu cầu nạp tiền</CardTitle>
-              <CardDescription>Danh sách các yêu cầu nạp tiền đã tạo</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {requestDeposits.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <ArrowDownLeft className="h-4 w-4 text-green-600" />
-                      <div className="flex-1">
-                        <p className="font-medium">Yêu cầu nạp tiền {Number(request.amount || 0).toLocaleString('vi-VN')} VND</p>
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                          <span>{request.createdAt.toLocaleDateString('vi-VN')}</span>
-                          <span>•</span>
-                          <span>Mã: {request.codePay}</span>
-                        </div>
-                        {request.note && (
-                          <p className="text-sm text-muted-foreground mt-1">{request.note}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">
-                          +{Number(request.amount || 0).toLocaleString('vi-VN')} VND
-                        </p>
-                        {getRequestDepositStatusBadge(request.status)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {requestDeposits.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Chưa có yêu cầu nạp tiền nào</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="withdraw" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -800,22 +786,36 @@ export default function WalletPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Phương thức rút tiền</Label>
-                  <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn phương thức rút tiền" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availablePaymentMethods.map((method) => (
-                        <SelectItem key={method.id} value={method.id.toString()}>
-                          <div className="flex items-center space-x-2">
-                            <CreditCard className="h-4 w-4" />
-                            <span>{method.bankName} - {method.bankNumber}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="bankName">Tên ngân hàng</Label>
+                  <Input
+                    id="bankName"
+                    type="text"
+                    placeholder="VD: Vietcombank, BIDV, Techcombank..."
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Số tài khoản</Label>
+                  <Input
+                    id="accountNumber"
+                    type="text"
+                    placeholder="Nhập số tài khoản ngân hàng"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accountHolderName">Tên chủ tài khoản</Label>
+                  <Input
+                    id="accountHolderName"
+                    type="text"
+                    placeholder="Nhập tên chủ tài khoản"
+                    value={accountHolderName}
+                    onChange={(e) => setAccountHolderName(e.target.value)}
+                  />
                 </div>
 
                 <div className="bg-yellow-50 p-4 rounded-lg">
@@ -830,7 +830,7 @@ export default function WalletPage() {
 
                 <Button
                   onClick={handleWithdraw}
-                  disabled={isWithdrawing || !withdrawAmount || !selectedPaymentMethod}
+                  disabled={isWithdrawing || !withdrawAmount || !bankName || !accountNumber || !accountHolderName}
                   className="w-full"
                   variant="outline"
                 >
@@ -851,30 +851,29 @@ export default function WalletPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Phương thức rút tiền</CardTitle>
-                <CardDescription>Các tài khoản ngân hàng khả dụng</CardDescription>
+                <CardTitle>Lưu ý quan trọng</CardTitle>
+                <CardDescription>Thông tin cần lưu ý khi rút tiền</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {availablePaymentMethods.map((method) => (
-                    <div key={method.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{method.bankName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {method.accountName} - {method.bankNumber}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="secondary">Khả dụng</Badge>
-                    </div>
-                  ))}
-                  {availablePaymentMethods.length === 0 && (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground">Chưa có phương thức rút tiền</p>
-                    </div>
-                  )}
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Kiểm tra kỹ thông tin ngân hàng trước khi gửi</li>
+                      <li>• Tên chủ tài khoản phải trùng với tên đăng ký</li>
+                      <li>• Số tài khoản phải chính xác và hoạt động</li>
+                      <li>• Yêu cầu rút tiền sẽ được xử lý trong 1-3 ngày làm việc</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-yellow-900 mb-2">Chú ý bảo mật:</h4>
+                    <ul className="text-sm text-yellow-800 space-y-1">
+                      <li>• Không chia sẻ thông tin tài khoản với người khác</li>
+                      <li>• Kiểm tra email xác nhận sau khi gửi yêu cầu</li>
+                      <li>• Liên hệ hỗ trợ nếu có vấn đề</li>
+                    </ul>
+                  </div>
                 </div>
               </CardContent>
             </Card>

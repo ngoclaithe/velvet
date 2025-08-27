@@ -42,6 +42,7 @@ import {
   VolumeX
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { postsApi } from '@/lib/api/posts'
 
 interface MediaFile {
   id: string
@@ -194,43 +195,97 @@ export default function CreatePostPage() {
 
     setIsPosting(true)
     setIsDraft(saveAsDraft)
-    
+
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      toast({
-        title: saveAsDraft ? "Lưu nháp thành công!" : "Đăng bài thành công!",
-        description: saveAsDraft ? "Bài viết đã được lưu vào nháp" : "Bài viết của bạn đã được đăng tải",
-        variant: "default"
-      })
+      // Prepare post data for API
+      const postPayload = {
+        title: postData.title,
+        content: postData.content,
+        category: postData.category,
+        tags: postData.tags,
+        visibility: postData.visibility,
+        allowComments: postData.allowComments,
+        allowLikes: postData.allowLikes,
+        allowSharing: postData.allowSharing,
+        isPremium: postData.isPremium,
+        price: postData.isPremium ? postData.price : undefined,
+        scheduledAt: postData.scheduledAt ? new Date(postData.scheduledAt).toISOString() : undefined,
+        status: saveAsDraft ? 'draft' : 'published',
+        type: postType,
+        mediaFiles: mediaFiles.length > 0 ? mediaFiles.map(file => ({
+          type: file.type,
+          fileName: file.file.name,
+          fileSize: file.file.size,
+          // Note: In real implementation, files should be uploaded first
+          // and their URLs should be included here
+        })) : undefined
+      }
 
-      // Reset form
-      setPostData({
-        title: '',
-        content: '',
-        category: '',
-        tags: [],
-        visibility: 'public',
-        allowComments: true,
-        allowLikes: true,
-        allowSharing: true,
-        isPremium: false,
-        price: 0,
-        scheduledAt: '',
-      })
-      setMediaFiles([])
-      setPostType('text')
+      // Upload media files first if any
+      const uploadedMediaUrls: string[] = []
+      if (mediaFiles.length > 0) {
+        for (const mediaFile of mediaFiles) {
+          try {
+            const uploadResponse = await postsApi.uploadMedia(mediaFile.file)
+            if (uploadResponse.success && uploadResponse.data) {
+              uploadedMediaUrls.push(uploadResponse.data.url)
+            }
+          } catch (uploadError) {
+            console.error('Failed to upload media:', uploadError)
+            // Continue with other files even if one fails
+          }
+        }
 
-      // Redirect to profile or posts
-      setTimeout(() => {
-        router.push('/')
-      }, 1500)
+        // Add uploaded media URLs to post payload
+        if (uploadedMediaUrls.length > 0) {
+          postPayload.mediaUrls = uploadedMediaUrls
+        }
+      }
+
+      // Create the post
+      const response = await postsApi.createPost(postPayload)
+
+      if (response.success) {
+        toast({
+          title: saveAsDraft ? "Lưu nháp thành công!" : "Đăng bài thành công!",
+          description: saveAsDraft ? "Bài viết đã được lưu vào nháp" : "Bài viết của bạn đã được đăng tải",
+          variant: "default"
+        })
+
+        // Reset form
+        setPostData({
+          title: '',
+          content: '',
+          category: '',
+          tags: [],
+          visibility: 'public',
+          allowComments: true,
+          allowLikes: true,
+          allowSharing: true,
+          isPremium: false,
+          price: 0,
+          scheduledAt: '',
+        })
+        setMediaFiles([])
+        setPostType('text')
+
+        // Redirect to the created post or home
+        setTimeout(() => {
+          if (response.data?.id && !saveAsDraft) {
+            router.push(`/posts/${response.data.id}`)
+          } else {
+            router.push('/')
+          }
+        }, 1500)
+      } else {
+        throw new Error(response.error || 'Failed to create post')
+      }
 
     } catch (error) {
+      console.error('Failed to create post:', error)
       toast({
         title: "Lỗi",
-        description: "Không thể đăng bài. Vui lòng thử lại.",
+        description: error instanceof Error ? error.message : "Không thể đăng bài. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
