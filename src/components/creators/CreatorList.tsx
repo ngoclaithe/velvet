@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { creatorAPI } from '@/lib/api/creator'
@@ -73,9 +72,7 @@ export default function CreatorList() {
   const [myPosts, setMyPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null)
-  const [creatorDetailLoading, setCreatorDetailLoading] = useState(false)
-  const [showCreatorDetail, setShowCreatorDetail] = useState(false)
+  // Removed creator detail modal state since we're navigating to a new page
   const { toast } = useToast()
   const { user, isAuthenticated } = useAuth()
 
@@ -87,22 +84,22 @@ export default function CreatorList() {
       console.log("Giá trị reponse", response)
       if (response.success && response.data && Array.isArray(response.data)) {
         // Transform API response to match Creator interface
-        const transformedCreators = response.data.map((item: any) => ({
-          id: Number(item.id),
-          userId: Number(item.userId),
-          username: item.user?.username || '',
-          firstName: item.user?.firstName || '',
-          lastName: item.user?.lastName || '',
-          stageName: item.stageName || '',
-          avatar: item.user?.avatar || '',
-          bio: item.bio || '',
-          followerCount: Number(item.followerCount) || 0,
-          followingCount: Number(item.followingCount) || 0,
-          isVerified: Boolean(item.isVerified),
-          isOnline: Boolean(item.isLive),
-          category: item.category || '',
-          location: item.location || '',
-          isFollowing: Boolean(item.isFollowing)
+        const transformedCreators: Creator[] = response.data.map((item: any) => ({
+          id: Number(item?.id || 0),
+          userId: Number(item?.userId || 0),
+          username: item?.user?.username || '',
+          firstName: item?.user?.firstName || '',
+          lastName: item?.user?.lastName || '',
+          stageName: item?.stageName || '',
+          avatar: item?.user?.avatar || '',
+          bio: item?.bio || '',
+          followerCount: Number(item?.followerCount || 0),
+          followingCount: Number(item?.followingCount || 0),
+          isVerified: Boolean(item?.isVerified),
+          isOnline: Boolean(item?.isLive),
+          category: item?.category || '',
+          location: item?.location || '',
+          isFollowing: Boolean(item?.isFollowing)
         }))
         setCreators(transformedCreators)
       } else {
@@ -176,45 +173,9 @@ export default function CreatorList() {
     }
   }, [isAuthenticated, user?.id])
 
-  // Handle creator click to show details
-  const handleCreatorClick = async (creatorId: number) => {
-    try {
-      setCreatorDetailLoading(true)
-      setShowCreatorDetail(true)
-
-      const response = await creatorAPI.getCreatorById(creatorId)
-      if (response.success && response.data) {
-        // Transform API response to match Creator interface
-        const creatorDetail: Creator = {
-          id: Number(response.data.id),
-          userId: Number(response.data.userId),
-          username: response.data.user?.username || '',
-          firstName: response.data.user?.firstName || '',
-          lastName: response.data.user?.lastName || '',
-          stageName: response.data.stageName || '',
-          avatar: response.data.user?.avatar || '',
-          bio: response.data.bio || '',
-          followerCount: Number(response.data.followerCount) || 0,
-          followingCount: Number(response.data.followingCount) || 0,
-          isVerified: Boolean(response.data.isVerified),
-          isOnline: Boolean(response.data.isLive),
-          category: response.data.category || '',
-          location: response.data.location || '',
-          isFollowing: Boolean(response.data.isFollowing)
-        }
-        setSelectedCreator(creatorDetail)
-      }
-    } catch (error) {
-      console.error('Error fetching creator details:', error)
-      toast({
-        title: "Lỗi",
-        description: "Không thể tải thông tin creator",
-        variant: "destructive"
-      })
-      setShowCreatorDetail(false)
-    } finally {
-      setCreatorDetailLoading(false)
-    }
+  // Handle creator click to navigate to creator page
+  const handleCreatorClick = (creatorId: number) => {
+    window.location.href = `/creator/${creatorId}`
   }
 
   // Handle follow/unfollow
@@ -283,7 +244,7 @@ export default function CreatorList() {
       setActionLoading(followerId)
       await creatorAPI.deleteUserFollow(parseInt(followerId))
       
-      setFollowers(prev => prev.filter(follower => follower.id !== followerId))
+      setFollowers(prev => prev.filter(follower => follower.id.toString() !== followerId))
       
       toast({
         title: "Đã xóa follower",
@@ -632,129 +593,6 @@ export default function CreatorList() {
         </TabsContent>
       </Tabs>
 
-      {/* Creator Detail Modal */}
-      <Dialog open={showCreatorDetail} onOpenChange={setShowCreatorDetail}>
-        <DialogContent className="bg-gray-800 border-gray-700 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-white">Thông tin Creator</DialogTitle>
-          </DialogHeader>
-
-          {creatorDetailLoading ? (
-            <div className="flex flex-col items-center space-y-4 py-8">
-              <div className="w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-400">Đang tải thông tin...</p>
-            </div>
-          ) : selectedCreator ? (
-            <div className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src={selectedCreator.avatar} alt={getDisplayName(selectedCreator)} />
-                    <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xl">
-                      {getDisplayName(selectedCreator).charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {selectedCreator.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-gray-800 rounded-full"></div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-white text-xl">
-                      {getDisplayName(selectedCreator)}
-                    </h3>
-                    {selectedCreator.isVerified && (
-                      <Verified className="w-6 h-6 text-blue-500" />
-                    )}
-                  </div>
-                  <p className="text-gray-400">@{selectedCreator.username}</p>
-                  {selectedCreator.location && (
-                    <div className="flex items-center gap-1 text-gray-400 text-sm mt-1">
-                      <MapPin className="w-4 h-4" />
-                      {selectedCreator.location}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {selectedCreator.bio && (
-                <div>
-                  <h4 className="text-white font-semibold mb-2">Giới thiệu</h4>
-                  <p className="text-gray-300 text-sm leading-relaxed">
-                    {selectedCreator.bio}
-                  </p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <p className="text-white font-bold text-2xl">{formatCount(selectedCreator.followerCount)}</p>
-                  <p className="text-gray-400 text-sm">Followers</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-white font-bold text-2xl">{formatCount(selectedCreator.followingCount)}</p>
-                  <p className="text-gray-400 text-sm">Following</p>
-                </div>
-              </div>
-
-              {selectedCreator.category && (
-                <div className="flex justify-center">
-                  <Badge variant="outline" className="border-gray-600 text-gray-300 px-4 py-2">
-                    {selectedCreator.category}
-                  </Badge>
-                </div>
-              )}
-
-              {isAuthenticated && selectedCreator.userId !== user?.id && (
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => handleFollow(selectedCreator.userId, selectedCreator.isFollowing || false)}
-                    disabled={actionLoading === selectedCreator.userId.toString()}
-                    className={`flex-1 ${
-                      selectedCreator.isFollowing
-                        ? 'bg-gray-600 hover:bg-gray-700 text-white'
-                        : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'
-                    }`}
-                  >
-                    {actionLoading === selectedCreator.userId.toString() ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : selectedCreator.isFollowing ? (
-                      <>
-                        <UserMinus className="w-4 h-4 mr-2" />
-                        Bỏ theo dõi
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Theo dõi
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Nhắn tin
-                  </Button>
-                </div>
-              )}
-
-              {!isAuthenticated && (
-                <div className="text-center py-4">
-                  <p className="text-gray-400 mb-3">Đăng nhập để theo dõi creator</p>
-                  <Button
-                    onClick={() => window.location.href = '/login'}
-                    className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-                  >
-                    Đăng nhập
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
