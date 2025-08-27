@@ -60,22 +60,22 @@ export interface DeleteInfoPaymentResponse {
 
 export const infoPaymentApi = {
   getInfoPayments: (params?: Record<string, string>) =>
-    api.get<InfoPaymentListResponse>('/info-payments', params),
+    api.get<InfoPayment[]>('/info-payments', params),
 
   getPublicInfoPayments: () =>
-    api.get<InfoPaymentPublicResponse>('/info-payments/public'),
+    api.get<InfoPayment[]>('/info-payments/public'),
 
   createInfoPayment: (data: CreateInfoPaymentData) =>
-    api.post<InfoPaymentResponse>('/info-payments', data),
+    api.post<InfoPayment>('/info-payments', data),
 
   getInfoPayment: (id: string | number) =>
-    api.get<InfoPaymentResponse>(`/info-payments/${id}`),
+    api.get<InfoPayment>(`/info-payments/${id}`),
 
   updateInfoPayment: (id: string | number, data: UpdateInfoPaymentData) =>
-    api.put<InfoPaymentResponse>(`/info-payments/${id}`, data),
+    api.put<InfoPayment>(`/info-payments/${id}`, data),
 
   deleteInfoPayment: (id: string | number) =>
-    api.delete<DeleteInfoPaymentResponse>(`/info-payments/${id}`),
+    api.delete<{ message: string }>(`/info-payments/${id}`),
 }
 
 export const infoPaymentUtils = {
