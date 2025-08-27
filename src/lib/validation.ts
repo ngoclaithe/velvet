@@ -308,3 +308,5 @@ export type SettingsInput = z.infer<typeof settingsSchema>
 export type ImageUploadInput = z.infer<typeof imageUploadSchema>
 export type VideoUploadInput = z.infer<typeof videoUploadSchema>
 export type SearchInput = z.infer<typeof searchSchema>
+export type CreateRequestDepositInput = z.infer<typeof createRequestDepositSchema>
+export type UpdateRequestDepositInput = z.infer<typeof updateRequestDepositSchema>
