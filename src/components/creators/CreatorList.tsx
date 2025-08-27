@@ -174,6 +174,45 @@ export default function CreatorList() {
     }
   }, [isAuthenticated, user?.id])
 
+  // Handle creator click to show details
+  const handleCreatorClick = async (creatorId: number) => {
+    try {
+      setCreatorDetailLoading(true)
+      setShowCreatorDetail(true)
+
+      const response = await creatorAPI.getCreatorById(creatorId)
+      if (response.success && response.data) {
+        // Transform API response to match Creator interface
+        const creatorDetail = {
+          id: response.data.id,
+          userId: response.data.userId,
+          username: response.data.user?.username || '',
+          displayName: `${response.data.user?.firstName || ''} ${response.data.user?.lastName || ''}`.trim() || response.data.user?.username || '',
+          stageName: response.data.stageName,
+          avatar: response.data.user?.avatar,
+          bio: response.data.bio,
+          followerCount: response.data.followerCount || 0,
+          followingCount: response.data.followingCount || 0,
+          isVerified: response.data.isVerified || false,
+          isOnline: response.data.isLive || false,
+          category: response.data.category || '',
+          location: response.data.location || '',
+          isFollowing: response.data.isFollowing || false
+        }
+        setSelectedCreator(creatorDetail)
+      }
+    } catch (error) {
+      console.error('Error fetching creator details:', error)
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải thông tin creator",
+        variant: "destructive"
+      })
+      setShowCreatorDetail(false)
+    } finally {
+      setCreatorDetailLoading(false)
+    }
+  }
 
   // Handle follow/unfollow
   const handleFollow = async (userId: number, isCurrentlyFollowing: boolean) => {
