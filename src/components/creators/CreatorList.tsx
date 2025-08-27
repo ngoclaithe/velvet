@@ -174,54 +174,6 @@ export default function CreatorList() {
     }
   }, [isAuthenticated, user?.id])
 
-  // Mock data for fallback
-  const getMockCreators = (): Creator[] => [
-    {
-      id: '1',
-      username: 'luna_goddess',
-      displayName: 'Luna Goddess',
-      stageName: 'Luna',
-      avatar: '/api/placeholder/80/80',
-      bio: 'Fashion & Beauty Creator | 📸 Daily lifestyle content',
-      followerCount: 125000,
-      followingCount: 890,
-      isVerified: true,
-      isOnline: true,
-      category: 'Fashion & Beauty',
-      location: 'Ho Chi Minh City',
-      isFollowing: false
-    },
-    {
-      id: '2',
-      username: 'angel_beauty',
-      displayName: 'Angel Beauty',
-      stageName: 'Angel',
-      avatar: '/api/placeholder/80/80',
-      bio: 'Lifestyle & Wellness | Sharing daily moments ✨',
-      followerCount: 89000,
-      followingCount: 650,
-      isVerified: true,
-      isOnline: false,
-      category: 'Lifestyle',
-      location: 'Hanoi',
-      isFollowing: false
-    },
-    {
-      id: '3',
-      username: 'ruby_star',
-      displayName: 'Ruby Star',
-      stageName: 'Ruby',
-      avatar: '/api/placeholder/80/80',
-      bio: 'Professional photographer | Art & Aesthetic 📷',
-      followerCount: 156000,
-      followingCount: 420,
-      isVerified: true,
-      isOnline: true,
-      category: 'Photography',
-      location: 'Da Nang',
-      isFollowing: true
-    }
-  ]
 
   // Handle follow/unfollow
   const handleFollow = async (userId: number, isCurrentlyFollowing: boolean) => {
@@ -273,7 +225,7 @@ export default function CreatorList() {
       console.error('Error following/unfollowing creator:', error)
       toast({
         title: "Lỗi",
-        description: "Không thể thực hiện hành động này",
+        description: "Không thể th��c hiện hành động này",
         variant: "destructive"
       })
     } finally {
