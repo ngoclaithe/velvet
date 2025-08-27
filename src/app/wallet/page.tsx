@@ -39,7 +39,6 @@ import { useToast } from '@/hooks/use-toast'
 import { walletAPI } from '@/lib/api/wallet'
 import { requestDeposit } from '@/lib/api/requestDeposit'
 import { infoPaymentApi, type InfoPayment } from '@/lib/api/infoPayment'
-import { createRequestDepositSchema, type CreateRequestDepositInput } from '@/lib/validation'
 
 interface Transaction {
   id: string
@@ -593,7 +592,7 @@ export default function WalletPage() {
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
                     <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
-                    <li>• Liên hệ hỗ trợ nếu không nhận được tiền sau 30 phút</li>
+                    <li>• Liên hệ hỗ trợ n���u không nhận được tiền sau 30 phút</li>
                   </ul>
                 </div>
 
