@@ -37,11 +37,13 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  X
+  X,
+  Send
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import type { User } from '@/types/auth'
 import { kycApi, type KycSubmission, type KycDocument, getKycStatusDescription, getVerificationLevelDescription, getDocumentTypeDescription } from '@/lib/api/kyc'
+import type { ApiResponse } from '@/types/api'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 type Gender = 'male' | 'female' | 'other';
@@ -170,13 +172,13 @@ export default function ProfilePage() {
       const [statusResponse, submissionResponse] = await Promise.all([
         kycApi.getKycStatus(),
         kycApi.getCurrentSubmission()
-      ])
+      ]) as [ApiResponse<{ status: string }>, ApiResponse<KycSubmission>]
 
-      if (statusResponse.success) {
+      if (statusResponse.success && statusResponse.data) {
         setKycStatus(statusResponse.data.status)
       }
 
-      if (submissionResponse.success) {
+      if (submissionResponse.success && submissionResponse.data) {
         setKycSubmission(submissionResponse.data)
         if (submissionResponse.data.personalInfo) {
           setKycPersonalInfo(submissionResponse.data.personalInfo)
@@ -227,7 +229,7 @@ export default function ProfilePage() {
       if (response.success) {
         toast({
           title: "Cập nhật thành công!",
-          description: "Thông tin cá nhân đã được cập nhật",
+          description: "Th��ng tin cá nhân đã được cập nhật",
           variant: "default"
         })
         fetchKycData()
@@ -579,7 +581,7 @@ export default function ProfilePage() {
                     <span>Xác thực tài khoản (KYC)</span>
                   </CardTitle>
                   <CardDescription>
-                    Xác thực danh tính để tăng độ tin cậy và mở khóa các tính năng cao cấp
+                    Xác thực danh tính để tăng độ tin cậy và m��� khóa các tính năng cao cấp
                   </CardDescription>
                 </div>
                 {getKycStatusBadge(kycStatus)}
