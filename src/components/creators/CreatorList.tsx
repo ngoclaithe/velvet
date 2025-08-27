@@ -415,17 +415,17 @@ export default function CreatorList() {
         </div>
 
         <div className="flex gap-2">
-          {showFollowButton && creator.id !== user?.id && (
+          {showFollowButton && creator.userId !== user?.id && (
             <Button
-              onClick={() => handleFollow(creator.id, creator.isFollowing || false)}
-              disabled={actionLoading === creator.id}
+              onClick={() => handleFollow(creator.userId, creator.isFollowing || false)}
+              disabled={actionLoading === creator.userId.toString()}
               className={`flex-1 ${
                 creator.isFollowing
                   ? 'bg-gray-600 hover:bg-gray-700 text-white'
                   : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'
               }`}
             >
-              {actionLoading === creator.id ? (
+              {actionLoading === creator.userId.toString() ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : creator.isFollowing ? (
                 <>
@@ -443,12 +443,12 @@ export default function CreatorList() {
 
           {showRemoveButton && (
             <Button
-              onClick={() => handleRemoveFollower(creator.id)}
-              disabled={actionLoading === creator.id}
+              onClick={() => handleRemoveFollower(creator.id.toString())}
+              disabled={actionLoading === creator.id.toString()}
               variant="destructive"
               className="flex-1"
             >
-              {actionLoading === creator.id ? (
+              {actionLoading === creator.id.toString() ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
