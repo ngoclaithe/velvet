@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 
 interface Creator {
-  id: string
+  id: number | string
   userId: number
   username: string
   displayName: string
@@ -595,7 +595,7 @@ export default function CreatorList() {
             <Card className="p-6 text-center bg-gray-800 border-gray-700">
               <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Chưa theo dõi ai</h3>
-              <p className="text-gray-400 mb-4">Hãy theo dõi một số creator để xem họ ở đây</p>
+              <p className="text-gray-400 mb-4">H��y theo dõi một số creator để xem họ ở đây</p>
               <Button onClick={() => setActiveTab('all')}>
                 Khám phá creators
               </Button>
@@ -649,7 +649,7 @@ export default function CreatorList() {
             <Card className="p-6 text-center bg-gray-800 border-gray-700">
               <Grid3X3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Chưa có bài viết</h3>
-              <p className="text-gray-400 mb-4">Bắt đầu chia sẻ nội dung của bạn</p>
+              <p className="text-gray-400 mb-4">Bắt đầu chia sẻ nội dung c���a bạn</p>
               <Button onClick={() => window.location.href = '/create-post'}>
                 Tạo bài viết đầu tiên
               </Button>
