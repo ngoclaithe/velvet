@@ -251,7 +251,7 @@ export default function WalletPage() {
         }
       } else {
         toast({
-          title: "Lỗi tạo yêu cầu",
+          title: "Lỗi t��o yêu cầu",
           description: response.error || "Không thể tạo yêu cầu nạp tiền",
           variant: "destructive"
         })
@@ -485,10 +485,9 @@ export default function WalletPage() {
       )}
 
       <Tabs defaultValue="transactions" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
           <TabsTrigger value="deposit">Nạp tiền</TabsTrigger>
-          <TabsTrigger value="requests">Yêu cầu nạp</TabsTrigger>
           <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>
         </TabsList>
 
@@ -668,7 +667,7 @@ export default function WalletPage() {
                         p => p.id.toString() === selectedInfoPaymentId
                       )
                       if (!selectedPayment) return null
-                      
+
                       return (
                         <>
                           <div className="bg-gray-50 p-3 rounded">
@@ -687,6 +686,30 @@ export default function WalletPage() {
                           <div className="bg-gray-50 p-3 rounded">
                             <p className="text-sm font-medium">Tên tài khoản</p>
                             <p className="text-lg">{selectedPayment.accountName}</p>
+                          </div>
+
+                          {/* QR Code Section */}
+                          <div className="bg-white p-4 rounded border text-center">
+                            <p className="text-sm font-medium mb-3">Mã QR thanh toán</p>
+                            <div className="flex justify-center">
+                              <img
+                                src={generateSepayQRUrl({
+                                  accountNumber: selectedPayment.bankNumber,
+                                  name: selectedPayment.accountName,
+                                  bank: selectedPayment.bankName,
+                                  amount: Number(depositAmount || 0),
+                                  code_pay: generatedCodePay
+                                })}
+                                alt="QR Code thanh toán"
+                                className="w-48 h-48 border rounded"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                }}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Quét mã QR để thanh toán nhanh
+                            </p>
                           </div>
                         </>
                       )
@@ -725,49 +748,6 @@ export default function WalletPage() {
           </Dialog>
         </TabsContent>
 
-        <TabsContent value="requests" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Yêu cầu nạp tiền</CardTitle>
-              <CardDescription>Danh sách các yêu cầu nạp tiền đã tạo</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {requestDeposits.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <ArrowDownLeft className="h-4 w-4 text-green-600" />
-                      <div className="flex-1">
-                        <p className="font-medium">Yêu cầu nạp tiền {Number(request.amount || 0).toLocaleString('vi-VN')} VND</p>
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                          <span>{request.createdAt.toLocaleDateString('vi-VN')}</span>
-                          <span>•</span>
-                          <span>Mã: {request.codePay}</span>
-                        </div>
-                        {request.note && (
-                          <p className="text-sm text-muted-foreground mt-1">{request.note}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">
-                          +{Number(request.amount || 0).toLocaleString('vi-VN')} VND
-                        </p>
-                        {getRequestDepositStatusBadge(request.status)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {requestDeposits.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Chưa có yêu cầu nạp tiền nào</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="withdraw" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
