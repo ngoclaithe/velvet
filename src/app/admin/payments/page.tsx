@@ -19,14 +19,17 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import { infoPaymentApi } from '@/lib/api'
 
 interface PaymentInfo {
-  id: string
+  id: number
+  bankNumber: string
+  accountName: string
   bankName: string
-  accountNumber: string
-  accountHolderName: string
-  qrCodeUrl?: string
-  isActive: boolean
+  email: string
+  phone: string
+  metadata: any
+  active: boolean
   createdAt: string
   updatedAt: string
 }
