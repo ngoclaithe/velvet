@@ -43,6 +43,7 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { postsApi } from '@/lib/api/posts'
+import type { ApiResponse, UploadResponse } from '@/types/api'
 
 interface MediaFile {
   id: string
@@ -198,7 +199,7 @@ export default function CreatePostPage() {
 
     try {
       // Prepare post data for API
-      const postPayload = {
+      const postPayload: any = {
         title: postData.title,
         content: postData.content,
         category: postData.category,
@@ -226,7 +227,7 @@ export default function CreatePostPage() {
       if (mediaFiles.length > 0) {
         for (const mediaFile of mediaFiles) {
           try {
-            const uploadResponse = await postsApi.uploadMedia(mediaFile.file)
+            const uploadResponse = await postsApi.uploadMedia(mediaFile.file) as ApiResponse<UploadResponse>
             if (uploadResponse.success && uploadResponse.data) {
               uploadedMediaUrls.push(uploadResponse.data.url)
             }
@@ -242,8 +243,38 @@ export default function CreatePostPage() {
         }
       }
 
+      // Log the complete post payload for debugging
+      console.log('=== POST DATA BEING SENT ===')
+      console.log('Post Payload:', JSON.stringify(postPayload, null, 2))
+      console.log('Original Form Data:', {
+        title: postData.title,
+        content: postData.content,
+        category: postData.category,
+        tags: postData.tags,
+        visibility: postData.visibility,
+        allowComments: postData.allowComments,
+        allowLikes: postData.allowLikes,
+        allowSharing: postData.allowSharing,
+        isPremium: postData.isPremium,
+        price: postData.price,
+        scheduledAt: postData.scheduledAt,
+      })
+      console.log('Media Files:', mediaFiles.map(file => ({
+        id: file.id,
+        type: file.type,
+        fileName: file.file.name,
+        fileSize: file.file.size,
+        url: file.url
+      })))
+      console.log('Post Type:', postType)
+      console.log('Is Draft:', saveAsDraft)
+      console.log('Uploaded Media URLs:', uploadedMediaUrls)
+      console.log('=== END POST DATA ===')
+
       // Create the post
-      const response = await postsApi.createPost(postPayload)
+      const response = await postsApi.createPost(postPayload) as ApiResponse<{ id: string; url?: string }>
+
+      console.log('Post creation response:', response)
 
       if (response.success) {
         toast({
