@@ -34,7 +34,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { paymentApi } from '@/lib/api'
+import { walletAPI, requestDeposit } from '@/lib/api'
 
 interface Transaction {
   id: string
@@ -106,7 +106,7 @@ export default function WalletPage() {
       setIsLoadingWallet(true)
       try {
         // Fetch wallet balance
-        const walletResponse = await paymentApi.getWallet()
+        const walletResponse = await walletAPI.getWallet()
         if (walletResponse.success && walletResponse.data) {
           setBalance(walletResponse.data.balance || 0)
           setLockedBalance(walletResponse.data.lockedBalance || 0)
@@ -115,7 +115,7 @@ export default function WalletPage() {
         }
 
         // Fetch transactions
-        const transactionsResponse = await paymentApi.getTransactions()
+        const transactionsResponse = await walletAPI.getTransactions()
         if (transactionsResponse.success && transactionsResponse.data) {
           setTransactions(transactionsResponse.data.map((t: any) => ({
             ...t,
@@ -149,7 +149,7 @@ export default function WalletPage() {
 
     setIsDepositing(true)
     try {
-      const response = await paymentApi.deposit({
+      const response = await walletAPI.deposit({
         amount: parseFloat(depositAmount),
         paymentMethodId: selectedPaymentMethod
       })
@@ -162,7 +162,7 @@ export default function WalletPage() {
         })
 
         // Refresh wallet data
-        const walletResponse = await paymentApi.getWallet()
+        const walletResponse = await walletAPI.getWallet()
         if (walletResponse.success && walletResponse.data) {
           setBalance(walletResponse.data.balance || 0)
         }
@@ -209,7 +209,7 @@ export default function WalletPage() {
 
     setIsWithdrawing(true)
     try {
-      const response = await paymentApi.withdraw({
+      const response = await walletAPI.withdraw({
         amount: amount,
         paymentMethodId: selectedPaymentMethod
       })
@@ -222,7 +222,7 @@ export default function WalletPage() {
         })
 
         // Refresh wallet data
-        const walletResponse = await paymentApi.getWallet()
+        const walletResponse = await walletAPI.getWallet()
         if (walletResponse.success && walletResponse.data) {
           setBalance(walletResponse.data.balance || 0)
           setLockedBalance(walletResponse.data.lockedBalance || 0)

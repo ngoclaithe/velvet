@@ -3,8 +3,9 @@ export { authApi } from './auth'
 export { userApi } from './user'
 export { streamApi } from './stream'
 export { chatApi } from './chat'
-export { paymentApi } from './payment'
+export { walletAPI } from './wallet'
 export { postsApi } from './posts'
+export { requestDeposit } from './requestDeposit'
 export { 
   infoPaymentApi, 
   infoPaymentUtils,
@@ -14,5 +15,6 @@ export {
   type InfoPaymentListResponse,
   type InfoPaymentResponse,
   type InfoPaymentPublicResponse,
-  type DeleteInfoPaymentResponse
+  type DeleteInfoPaymentResponse,
+  
 } from './infoPayment'
