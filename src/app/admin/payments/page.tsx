@@ -194,19 +194,28 @@ export default function PaymentsPage() {
     }
   }
 
-  const handleTogglePaymentStatus = async (paymentId: string) => {
+  const handleTogglePaymentStatus = async (paymentId: number) => {
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const paymentInfo = paymentInfos.find(info => info.id === paymentId)
+      if (!paymentInfo) return
 
-      setPaymentInfos(prev => prev.map(info =>
-        info.id === paymentId
-          ? { ...info, isActive: !info.isActive, updatedAt: new Date().toISOString() }
-          : info
-      ))
+      const response = await infoPaymentApi.updateInfoPayment(paymentId.toString(), {
+        isActive: !paymentInfo.active
+      })
 
-      toast.success('Đã cập nhật trạng thái thành công')
+      if (response.success) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
+
+        toast.success('Đã cập nhật trạng thái thành công')
+      } else {
+        throw new Error(response.error || 'Failed to update payment status')
+      }
     } catch (error) {
+      console.error('Toggle payment status error:', error)
       toast.error('Có lỗi xảy ra')
     }
   }
