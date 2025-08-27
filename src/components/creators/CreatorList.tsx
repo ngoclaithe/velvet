@@ -30,6 +30,7 @@ import {
 
 interface Creator {
   id: string
+  userId: number
   username: string
   displayName: string
   stageName?: string
@@ -59,8 +60,11 @@ interface Post {
   isPremium?: boolean
 }
 
+// Define the tab type explicitly
+type TabType = 'all' | 'following' | 'followers' | 'my-posts'
+
 export default function CreatorList() {
-  const [activeTab, setActiveTab] = useState<'all' | 'following' | 'followers' | 'my-posts'>('all')
+  const [activeTab, setActiveTab] = useState<TabType>('all')
   const [creators, setCreators] = useState<Creator[]>([])
   const [followingCreators, setFollowingCreators] = useState<Creator[]>([])
   const [followers, setFollowers] = useState<Creator[]>([])
@@ -75,10 +79,10 @@ export default function CreatorList() {
     try {
       setLoading(true)
       const response = await creatorAPI.getAllCreators()
+      console.log("Giá trị reponse", response)
       if (response.success && response.data) {
         setCreators(response.data)
       } else {
-        // Fallback to mock data if API fails
         setCreators(getMockCreators())
       }
     } catch (error) {
@@ -229,7 +233,7 @@ export default function CreatorList() {
 
       // Update local state
       setCreators(prev => prev.map(creator =>
-        creator.id === creatorId
+        creator.userId == creatorId
           ? {
               ...creator,
               isFollowing: !isCurrentlyFollowing,
@@ -323,6 +327,11 @@ export default function CreatorList() {
     return 'Vừa xong'
   }
 
+  // Safe function to get display name with fallback
+  const getDisplayName = (creator: Creator) => {
+    return creator.stageName || creator.displayName || creator.username || 'Unknown'
+  }
+
   // Render creator card
   const renderCreatorCard = (creator: Creator, showFollowButton = true, showRemoveButton = false) => (
     <Card key={creator.id} className="bg-gray-800 border-gray-700 hover:border-pink-500/50 transition-colors">
@@ -331,9 +340,9 @@ export default function CreatorList() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Avatar className="w-16 h-16">
-                <AvatarImage src={creator.avatar} alt={creator.displayName} />
+                <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
                 <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-lg">
-                  {creator.displayName.charAt(0).toUpperCase()}
+                  {getDisplayName(creator).charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {creator.isOnline && (
@@ -343,13 +352,13 @@ export default function CreatorList() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-white text-lg">
-                  {creator.stageName || creator.displayName}
+                  {getDisplayName(creator)}
                 </h3>
                 {creator.isVerified && (
                   <Verified className="w-5 h-5 text-blue-500" />
                 )}
               </div>
-              <p className="text-gray-400 text-sm">@{creator.username}</p>
+              <p className="text-gray-400 text-sm">@{creator.username || 'unknown'}</p>
               {creator.location && (
                 <div className="flex items-center gap-1 text-gray-400 text-sm mt-1">
                   <MapPin className="w-3 h-3" />
@@ -518,6 +527,11 @@ export default function CreatorList() {
     </div>
   )
 
+  // Handle tab change with proper typing
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TabType)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -527,7 +541,7 @@ export default function CreatorList() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
           <TabsTrigger value="all" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
