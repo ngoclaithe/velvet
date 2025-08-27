@@ -152,10 +152,10 @@ export default function WalletPage() {
         // Fetch wallet balance
         const walletResponse = await walletAPI.getWallet()
         if (walletResponse.success && walletResponse.data) {
-          setBalance(walletResponse.data.balance || 0)
-          setLockedBalance(walletResponse.data.lockedBalance || 0)
-          setTotalEarnings(walletResponse.data.totalEarnings || 0)
-          setMonthlyIncome(walletResponse.data.monthlyIncome || 0)
+          setBalance(Number(walletResponse.data.balance) || 0)
+        setLockedBalance(Number(walletResponse.data.lockedBalance) || 0)
+        setTotalEarnings(Number(walletResponse.data.totalEarnings) || 0)
+        setMonthlyIncome(Number(walletResponse.data.monthlyIncome) || 0)
         }
 
         // Fetch transactions
@@ -307,8 +307,8 @@ export default function WalletPage() {
         // Refresh wallet data
         const walletResponse = await walletAPI.getWallet()
         if (walletResponse.success && walletResponse.data) {
-          setBalance(walletResponse.data.balance || 0)
-          setLockedBalance(walletResponse.data.lockedBalance || 0)
+          setBalance(Number(walletResponse.data.balance) || 0)
+          setLockedBalance(Number(walletResponse.data.lockedBalance) || 0)
         }
 
         setWithdrawAmount('')
@@ -362,9 +362,10 @@ export default function WalletPage() {
   }
 
   const formatAmount = (amount: number, showSign = true) => {
-    const formatted = Math.abs(amount).toFixed(2)
+    const numAmount = Number(amount) || 0
+    const formatted = Math.abs(numAmount).toFixed(2)
     if (!showSign) return `$${formatted}`
-    return amount >= 0 ? `+$${formatted}` : `-$${formatted}`
+    return numAmount >= 0 ? `+$${formatted}` : `-$${formatted}`
   }
 
   useEffect(() => {
@@ -417,7 +418,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `$${(balance || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `$${Number(balance || 0).toFixed(2)}` : '••••••'}
               </div>
               <p className="text-xs text-muted-foreground">
                 Khả dụng cho rút tiền
@@ -432,7 +433,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `$${(totalEarnings || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `$${Number(totalEarnings || 0).toFixed(2)}` : '••••••'}
               </div>
               <p className="text-xs text-green-600">
                 Tổng thu nhập từ streaming
@@ -447,7 +448,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `$${(monthlyIncome || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `$${Number(monthlyIncome || 0).toFixed(2)}` : '••••••'}
               </div>
               <p className="text-xs text-blue-600">
                 Thu nhập trong tháng
@@ -471,7 +472,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {showBalance ? `$${(balance || 0).toFixed(2)}` : '••••••'}
+                {showBalance ? `$${Number(balance || 0).toFixed(2)}` : '••••••'}
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Số dư khả dụng để sử dụng trong ứng dụng
@@ -761,7 +762,7 @@ export default function WalletPage() {
                     <div className="flex items-center space-x-4">
                       <ArrowDownLeft className="h-4 w-4 text-green-600" />
                       <div className="flex-1">
-                        <p className="font-medium">Yêu cầu nạp tiền ${(request.amount || 0).toFixed(2)}</p>
+                        <p className="font-medium">Yêu cầu nạp tiền ${Number(request.amount || 0).toFixed(2)}</p>
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                           <span>{request.createdAt.toLocaleDateString('vi-VN')}</span>
                           <span>•</span>
@@ -775,7 +776,7 @@ export default function WalletPage() {
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <p className="font-bold text-green-600">
-                          +${(request.amount || 0).toFixed(2)}
+                          +${Number(request.amount || 0).toFixed(2)}
                         </p>
                         {getRequestDepositStatusBadge(request.status)}
                       </div>
@@ -818,7 +819,7 @@ export default function WalletPage() {
                     step="0.01"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Số dư khả dụng: ${((balance || 0) - (lockedBalance || 0)).toFixed(2)}
+                    Số dư khả dụng: ${(Number(balance || 0) - Number(lockedBalance || 0)).toFixed(2)}
                   </p>
                 </div>
 
