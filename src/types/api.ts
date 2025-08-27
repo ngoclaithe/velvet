@@ -39,6 +39,12 @@ export interface WalletApiResponse {
   monthlyIncome: number
 }
 
+export interface RequestDepositApiResponse {
+  success: boolean
+  data: any[]
+  pagination?: PaginationInfo
+}
+
 export interface SearchParams {
   query: string
   filters?: Record<string, any>

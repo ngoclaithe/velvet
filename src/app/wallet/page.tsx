@@ -124,8 +124,8 @@ export default function WalletPage() {
       setIsLoadingPaymentMethods(true)
       try {
         const response = await infoPaymentApi.getPublicInfoPayments()
-        if (response.success && response.data) {
-          setAvailablePaymentMethods(response.data.filter(payment => payment.active))
+        if (response.success && response.data && Array.isArray(response.data)) {
+          setAvailablePaymentMethods(response.data.filter((payment: InfoPayment) => payment.active))
         }
       } catch (error) {
         console.error('Failed to load payment methods:', error)
@@ -160,8 +160,8 @@ export default function WalletPage() {
 
         // Fetch transactions
         const transactionsResponse = await walletAPI.getTransactions()
-        if (transactionsResponse.success && transactionsResponse.data) {
-          setTransactions(transactionsResponse.data.map((t: any) => ({
+        if (transactionsResponse.success && transactionsResponse.data && transactionsResponse.data.data) {
+          setTransactions(transactionsResponse.data.data.map((t: any) => ({
             ...t,
             date: new Date(t.date || t.createdAt)
           })))
@@ -169,7 +169,7 @@ export default function WalletPage() {
 
         // Fetch request deposits
         const requestDepositsResponse = await requestDeposit.getRequestDeposit()
-        if (requestDepositsResponse.success && requestDepositsResponse.data) {
+        if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
             createdAt: new Date(rd.createdAt)
@@ -246,7 +246,7 @@ export default function WalletPage() {
 
         // Refresh request deposits
         const requestDepositsResponse = await requestDeposit.getRequestDeposit()
-        if (requestDepositsResponse.success && requestDepositsResponse.data) {
+        if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
             createdAt: new Date(rd.createdAt)
@@ -405,7 +405,7 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
+              <CardTitle className="text-sm font-medium">Số dư hiện t��i</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
@@ -752,7 +752,7 @@ export default function WalletPage() {
           <Card>
             <CardHeader>
               <CardTitle>Yêu cầu nạp tiền</CardTitle>
-              <CardDescription>Danh sách các yêu cầu nạp tiền đã tạo</CardDescription>
+              <CardDescription>Danh sách các yêu cầu nạp tiền đã t���o</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
