@@ -541,7 +541,7 @@ export default function CreatorList() {
             renderSkeleton()
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {creators.map(creator => renderCreatorCard(creator, true, false))}
+              {creators.map(creator => renderCreatorCard(creator, false))}
             </div>
           )}
         </TabsContent>
@@ -567,7 +567,7 @@ export default function CreatorList() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {followingCreators.map(creator => renderCreatorCard(creator, true, false))}
+              {followingCreators.map(creator => renderCreatorCard(creator, false))}
             </div>
           )}
         </TabsContent>
@@ -584,7 +584,7 @@ export default function CreatorList() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {followers.map(follower => renderCreatorCard(follower, false, true))}
+                {followers.map(follower => renderCreatorCard(follower, true))}
               </div>
             )}
           </TabsContent>
