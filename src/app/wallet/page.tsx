@@ -31,10 +31,15 @@ import {
   Download,
   Upload,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Copy,
+  CheckCircle
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { walletAPI, requestDeposit } from '@/lib/api'
+import { walletAPI } from '@/lib/api/wallet'
+import { requestDeposit } from '@/lib/api/requestDeposit'
+import { infoPaymentApi, type InfoPayment } from '@/lib/api/infoPayment'
+import { createRequestDepositSchema, type CreateRequestDepositInput } from '@/lib/validation'
 
 interface Transaction {
   id: string
@@ -46,12 +51,16 @@ interface Transaction {
   transactionId?: string
 }
 
-interface PaymentMethod {
+interface RequestDeposit {
   id: string
-  type: 'bank' | 'card' | 'e_wallet'
-  name: string
-  details: string
-  isDefault: boolean
+  amount: number
+  infoPaymentId: number
+  transactionCode?: string
+  note?: string
+  status: 'pending' | 'approved' | 'rejected'
+  codePay: string
+  createdAt: Date
+  infoPayment?: InfoPayment
 }
 
 export default function WalletPage() {
@@ -62,6 +71,7 @@ export default function WalletPage() {
   const [isDepositing, setIsDepositing] = useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [isLoadingWallet, setIsLoadingWallet] = useState(true)
+  const [isLoadingPaymentMethods, setIsLoadingPaymentMethods] = useState(false)
 
   // Real API data
   const [balance, setBalance] = useState(0)
@@ -69,34 +79,68 @@ export default function WalletPage() {
   const [totalEarnings, setTotalEarnings] = useState(0)
   const [monthlyIncome, setMonthlyIncome] = useState(0)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [requestDeposits, setRequestDeposits] = useState<RequestDeposit[]>([])
   
+  // New deposit flow state
+  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<InfoPayment[]>([])
+  const [selectedInfoPaymentId, setSelectedInfoPaymentId] = useState<string>('')
   const [depositAmount, setDepositAmount] = useState('')
+  const [transactionCode, setTransactionCode] = useState('')
+  const [depositNote, setDepositNote] = useState('')
+  
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
+  const [generatedCodePay, setGeneratedCodePay] = useState('')
+  const [showDepositInstructions, setShowDepositInstructions] = useState(false)
 
-  const paymentMethods: PaymentMethod[] = [
-    {
-      id: '1',
-      type: 'bank',
-      name: 'Vietcombank',
-      details: '**** **** **** 1234',
-      isDefault: true
-    },
-    {
-      id: '2',
-      type: 'e_wallet',
-      name: 'MoMo',
-      details: '0987654321',
-      isDefault: false
-    },
-    {
-      id: '3',
-      type: 'card',
-      name: 'Visa Card',
-      details: '**** **** **** 5678',
-      isDefault: false
+  // Generate unique codepay
+  const generateCodePay = () => {
+    const timestamp = Date.now().toString()
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase()
+    return `PAY${timestamp.slice(-6)}${random}`
+  }
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast({
+        title: "Đã sao chép!",
+        description: "Đã sao chép vào clipboard",
+        variant: "default"
+      })
+    } catch (error) {
+      toast({
+        title: "Lỗi sao chép",
+        description: "Không thể sao chép vào clipboard",
+        variant: "destructive"
+      })
     }
-  ]
+  }
+
+  // Load available payment methods
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      setIsLoadingPaymentMethods(true)
+      try {
+        const response = await infoPaymentApi.getPublicInfoPayments()
+        if (response.success && response.data) {
+          setAvailablePaymentMethods(response.data.filter(payment => payment.active))
+        }
+      } catch (error) {
+        console.error('Failed to load payment methods:', error)
+        toast({
+          title: "Không thể tải phương thức thanh toán",
+          description: "Vui lòng thử lại sau",
+          variant: "destructive"
+        })
+      } finally {
+        setIsLoadingPaymentMethods(false)
+      }
+    }
+
+    fetchPaymentMethods()
+  }, [toast])
 
   // Load wallet data and transactions from API
   useEffect(() => {
@@ -122,6 +166,15 @@ export default function WalletPage() {
             date: new Date(t.date || t.createdAt)
           })))
         }
+
+        // Fetch request deposits
+        const requestDepositsResponse = await requestDeposit.getRequestDeposit()
+        if (requestDepositsResponse.success && requestDepositsResponse.data) {
+          setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
+            ...rd,
+            createdAt: new Date(rd.createdAt)
+          })))
+        }
       } catch (error) {
         console.error('Failed to load wallet data:', error)
         toast({
@@ -137,8 +190,8 @@ export default function WalletPage() {
     fetchWalletData()
   }, [user, toast])
 
-  const handleDeposit = async () => {
-    if (!depositAmount || !selectedPaymentMethod) {
+  const handleCreateDepositRequest = async () => {
+    if (!depositAmount || !selectedInfoPaymentId) {
       toast({
         title: "Lỗi",
         description: "Vui lòng nhập số tiền và chọn phương thức thanh toán",
@@ -147,39 +200,69 @@ export default function WalletPage() {
       return
     }
 
+    const codePay = generateCodePay()
+    
+    // Validate input using Zod schema
+    const depositData: CreateRequestDepositInput = {
+      amount: parseFloat(depositAmount),
+      infoPaymentId: parseInt(selectedInfoPaymentId),
+      transactionCode: transactionCode || undefined,
+      note: depositNote || undefined,
+    }
+
+    try {
+      createRequestDepositSchema.parse(depositData)
+    } catch (error: any) {
+      toast({
+        title: "Lỗi xác thực",
+        description: error.errors?.[0]?.message || "Dữ liệu không hợp lệ",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsDepositing(true)
     try {
-      const response = await walletAPI.deposit({
-        amount: parseFloat(depositAmount),
-        paymentMethodId: selectedPaymentMethod
+      const response = await requestDeposit.createRequestDeposit({
+        ...depositData,
+        codePay: codePay
       })
 
       if (response.success) {
+        setGeneratedCodePay(codePay)
+        setShowDepositInstructions(true)
+        
         toast({
-          title: "Nạp tiền thành công!",
-          description: `Đã nạp $${depositAmount} vào ví của bạn`,
+          title: "Tạo yêu cầu nạp tiền thành công!",
+          description: `Mã giao dịch: ${codePay}`,
           variant: "default"
         })
 
-        // Refresh wallet data
-        const walletResponse = await walletAPI.getWallet()
-        if (walletResponse.success && walletResponse.data) {
-          setBalance(walletResponse.data.balance || 0)
-        }
-
+        // Reset form
         setDepositAmount('')
-        setSelectedPaymentMethod('')
+        setSelectedInfoPaymentId('')
+        setTransactionCode('')
+        setDepositNote('')
+
+        // Refresh request deposits
+        const requestDepositsResponse = await requestDeposit.getRequestDeposit()
+        if (requestDepositsResponse.success && requestDepositsResponse.data) {
+          setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
+            ...rd,
+            createdAt: new Date(rd.createdAt)
+          })))
+        }
       } else {
         toast({
-          title: "Lỗi nạp tiền",
-          description: response.error || "Không thể nạp tiền",
+          title: "Lỗi tạo yêu cầu",
+          description: response.error || "Không thể tạo yêu cầu nạp tiền",
           variant: "destructive"
         })
       }
     } catch (error) {
       toast({
-        title: "Lỗi nạp tiền",
-        description: "Không thể nạp tiền. Vui lòng thử lại.",
+        title: "Lỗi tạo yêu cầu",
+        description: "Không thể tạo yêu cầu nạp tiền. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -265,6 +348,15 @@ export default function WalletPage() {
       case 'completed': return <Badge variant="default" className="bg-green-100 text-green-800">Hoàn thành</Badge>
       case 'pending': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Đang xử lý</Badge>
       case 'failed': return <Badge variant="destructive">Thất bại</Badge>
+      default: return null
+    }
+  }
+
+  const getRequestDepositStatusBadge = (status: RequestDeposit['status']) => {
+    switch (status) {
+      case 'approved': return <Badge variant="default" className="bg-green-100 text-green-800">Đã duyệt</Badge>
+      case 'pending': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Chờ duyệt</Badge>
+      case 'rejected': return <Badge variant="destructive">Từ chối</Badge>
       default: return null
     }
   }
@@ -395,9 +487,10 @@ export default function WalletPage() {
       )}
 
       <Tabs defaultValue="transactions" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
           <TabsTrigger value="deposit">Nạp tiền</TabsTrigger>
+          <TabsTrigger value="requests">Yêu cầu nạp</TabsTrigger>
           <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>
         </TabsList>
 
@@ -456,7 +549,7 @@ export default function WalletPage() {
                   <span>Nạp tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Thêm tiền vào ví của bạn
+                  Tạo yêu cầu nạp tiền vào ví
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -468,55 +561,85 @@ export default function WalletPage() {
                     placeholder="0.00"
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
-                    min="1"
+                    min="0.01"
                     step="0.01"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label>Phương thức thanh toán</Label>
-                  <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn phương thức thanh toán" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {paymentMethods.map((method) => (
-                        <SelectItem key={method.id} value={method.id}>
-                          <div className="flex items-center space-x-2">
-                            <CreditCard className="h-4 w-4" />
-                            <span>{method.name} - {method.details}</span>
-                            {method.isDefault && <Badge variant="secondary" className="ml-2">Mặc định</Badge>}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isLoadingPaymentMethods ? (
+                    <div className="flex items-center space-x-2">
+                      <Icons.spinner className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Đang tải...</span>
+                    </div>
+                  ) : (
+                    <Select value={selectedInfoPaymentId} onValueChange={setSelectedInfoPaymentId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn tài khoản ngân hàng" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availablePaymentMethods.map((method) => (
+                          <SelectItem key={method.id} value={method.id.toString()}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{method.bankName}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {method.accountName} - {method.bankNumber}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="transactionCode">Mã giao dịch (tùy chọn)</Label>
+                  <Input
+                    id="transactionCode"
+                    type="text"
+                    placeholder="Nhập mã giao dịch từ ngân hàng"
+                    value={transactionCode}
+                    onChange={(e) => setTransactionCode(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="depositNote">Ghi chú (tùy chọn)</Label>
+                  <Input
+                    id="depositNote"
+                    type="text"
+                    placeholder="Thêm ghi chú cho giao dịch"
+                    value={depositNote}
+                    onChange={(e) => setDepositNote(e.target.value)}
+                  />
                 </div>
 
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• Số tiền nạp tối thiểu: $1.00</li>
-                    <li>• Số tiền nạp tối đa: $10,000.00 mỗi giao dịch</li>
-                    <li>• Phí giao dịch: 2.5% (tối thiểu $0.50)</li>
-                    <li>• Thời gian xử lý: 1-3 phút</li>
+                    <li>• Số tiền nạp tối thiểu: $0.01</li>
+                    <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
+                    <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
+                    <li>• Liên hệ hỗ trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>
                 </div>
 
                 <Button
-                  onClick={handleDeposit}
-                  disabled={isDepositing || !depositAmount || !selectedPaymentMethod}
+                  onClick={handleCreateDepositRequest}
+                  disabled={isDepositing || !depositAmount || !selectedInfoPaymentId}
                   className="w-full"
                 >
                   {isDepositing ? (
                     <>
                       <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                      Đang xử lý...
+                      Đang tạo yêu cầu...
                     </>
                   ) : (
                     <>
                       <Plus className="mr-2 h-4 w-4" />
-                      Nạp tiền
+                      Tạo yêu cầu nạp tiền
                     </>
                   )}
                 </Button>
@@ -539,7 +662,7 @@ export default function WalletPage() {
                     >
                       <span className="text-lg font-bold">${amount}</span>
                       <span className="text-xs text-muted-foreground">
-                        Phí: ${(amount * 0.025).toFixed(2)}
+                        Nạp nhanh
                       </span>
                     </Button>
                   ))}
@@ -547,6 +670,126 @@ export default function WalletPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Deposit Instructions Dialog */}
+          <Dialog open={showDepositInstructions} onOpenChange={setShowDepositInstructions}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span>Yêu cầu đã được tạo</span>
+                </DialogTitle>
+                <DialogDescription>
+                  Vui lòng thực hiện chuyển khoản theo thông tin bên dưới
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                {selectedInfoPaymentId && (
+                  <div className="space-y-3">
+                    {(() => {
+                      const selectedPayment = availablePaymentMethods.find(
+                        p => p.id.toString() === selectedInfoPaymentId
+                      )
+                      if (!selectedPayment) return null
+                      
+                      return (
+                        <>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <p className="text-sm font-medium">Ngân hàng</p>
+                            <p className="text-lg">{selectedPayment.bankName}</p>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <p className="text-sm font-medium">Số tài khoản</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-lg font-mono">{selectedPayment.bankNumber}</span>
+                              <Button size="sm" variant="ghost" onClick={() => copyToClipboard(selectedPayment.bankNumber)}>
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <p className="text-sm font-medium">Tên tài khoản</p>
+                            <p className="text-lg">{selectedPayment.accountName}</p>
+                          </div>
+                        </>
+                      )
+                    })()}
+                    
+                    <div className="bg-blue-50 p-3 rounded">
+                      <p className="text-sm font-medium text-blue-900">Mã giao dịch</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-mono text-blue-900">{generatedCodePay}</span>
+                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(generatedCodePay)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-blue-800 mt-1">
+                        Vui lòng ghi mã này vào nội dung chuyển khoản
+                      </p>
+                    </div>
+                    
+                    <div className="bg-green-50 p-3 rounded">
+                      <p className="text-sm font-medium text-green-900">Số tiền</p>
+                      <p className="text-xl font-bold text-green-900">${depositAmount}</p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="bg-yellow-50 p-3 rounded">
+                  <p className="text-sm font-medium text-yellow-900">Lưu ý quan trọng:</p>
+                  <ul className="text-xs text-yellow-800 mt-1 space-y-1">
+                    <li>• Bắt buộc ghi mã giao dịch vào nội dung chuyển khoản</li>
+                    <li>• Chuyển đúng số tiền như hiển thị</li>
+                    <li>• Tiền sẽ được cộng vào ví trong 5-15 phút</li>
+                  </ul>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
+        <TabsContent value="requests" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Yêu cầu nạp tiền</CardTitle>
+              <CardDescription>Danh sách các yêu cầu nạp tiền đã tạo</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {requestDeposits.map((request) => (
+                  <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                      <div className="flex-1">
+                        <p className="font-medium">Yêu cầu nạp tiền ${request.amount.toFixed(2)}</p>
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <span>{request.createdAt.toLocaleDateString('vi-VN')}</span>
+                          <span>•</span>
+                          <span>Mã: {request.codePay}</span>
+                        </div>
+                        {request.note && (
+                          <p className="text-sm text-muted-foreground mt-1">{request.note}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-right">
+                        <p className="font-bold text-green-600">
+                          +${request.amount.toFixed(2)}
+                        </p>
+                        {getRequestDepositStatusBadge(request.status)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {requestDeposits.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Chưa có yêu cầu nạp tiền nào</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="withdraw" className="space-y-6">
@@ -586,12 +829,11 @@ export default function WalletPage() {
                       <SelectValue placeholder="Chọn phương thức rút tiền" />
                     </SelectTrigger>
                     <SelectContent>
-                      {paymentMethods.map((method) => (
-                        <SelectItem key={method.id} value={method.id}>
+                      {availablePaymentMethods.map((method) => (
+                        <SelectItem key={method.id} value={method.id.toString()}>
                           <div className="flex items-center space-x-2">
                             <CreditCard className="h-4 w-4" />
-                            <span>{method.name} - {method.details}</span>
-                            {method.isDefault && <Badge variant="secondary" className="ml-2">Mặc định</Badge>}
+                            <span>{method.bankName} - {method.bankNumber}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -632,34 +874,30 @@ export default function WalletPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Phương thức thanh toán</CardTitle>
-                <CardDescription>Quản lý các phương thức thanh toán</CardDescription>
+                <CardTitle>Phương thức rút tiền</CardTitle>
+                <CardDescription>Các tài khoản ngân hàng khả dụng</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {paymentMethods.map((method) => (
+                  {availablePaymentMethods.map((method) => (
                     <div key={method.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <CreditCard className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <p className="font-medium">{method.name}</p>
-                          <p className="text-sm text-muted-foreground">{method.details}</p>
+                          <p className="font-medium">{method.bankName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {method.accountName} - {method.bankNumber}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {method.isDefault && (
-                          <Badge variant="secondary">Mặc định</Badge>
-                        )}
-                        <Button variant="ghost" size="sm">
-                          Chỉnh sửa
-                        </Button>
-                      </div>
+                      <Badge variant="secondary">Khả dụng</Badge>
                     </div>
                   ))}
-                  <Button variant="outline" className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Thêm phương thức thanh toán
-                  </Button>
+                  {availablePaymentMethods.length === 0 && (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground">Chưa có phương thức rút tiền</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
