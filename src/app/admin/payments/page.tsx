@@ -42,10 +42,11 @@ export default function PaymentsPage() {
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null)
   const [paymentForm, setPaymentForm] = useState({
     bankName: '',
-    accountNumber: '',
-    accountHolderName: '',
-    qrCodeUrl: '',
-    isActive: true
+    bankNumber: '',
+    accountName: '',
+    email: '',
+    phone: '',
+    active: true
   })
 
   // Load payment data
@@ -357,7 +358,7 @@ export default function PaymentsPage() {
                           {paymentInfo.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          Cập nhật: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
+                          Cập nh��t: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
                         </span>
                       </div>
                     </div>
