@@ -30,10 +30,11 @@ import {
 } from 'lucide-react'
 
 interface Creator {
-  id: number | string
+  id: number
   userId: number
   username: string
-  displayName: string
+  firstName: string
+  lastName: string
   stageName?: string
   avatar?: string
   bio?: string
