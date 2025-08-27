@@ -30,10 +30,11 @@ import {
 } from 'lucide-react'
 
 interface Creator {
-  id: number | string
+  id: number
   userId: number
   username: string
-  displayName: string
+  firstName: string
+  lastName: string
   stageName?: string
   avatar?: string
   bio?: string
@@ -84,23 +85,24 @@ export default function CreatorList() {
       setLoading(true)
       const response = await creatorAPI.getAllCreators()
       console.log("Giá trị reponse", response)
-      if (response.success && response.data) {
+      if (response.success && response.data && Array.isArray(response.data)) {
         // Transform API response to match Creator interface
         const transformedCreators = response.data.map((item: any) => ({
-          id: item.id,
-          userId: item.userId,
+          id: Number(item.id),
+          userId: Number(item.userId),
           username: item.user?.username || '',
-          displayName: `${item.user?.firstName || ''} ${item.user?.lastName || ''}`.trim() || item.user?.username || '',
-          stageName: item.stageName,
-          avatar: item.user?.avatar,
-          bio: item.bio,
-          followerCount: 0, // Not provided in API, set default
-          followingCount: 0, // Not provided in API, set default
-          isVerified: item.isVerified || false,
-          isOnline: item.isLive || false,
-          category: '', // Not provided in API, set default
-          location: '', // Not provided in API, set default
-          isFollowing: false // This should be fetched separately or included in API
+          firstName: item.user?.firstName || '',
+          lastName: item.user?.lastName || '',
+          stageName: item.stageName || '',
+          avatar: item.user?.avatar || '',
+          bio: item.bio || '',
+          followerCount: Number(item.followerCount) || 0,
+          followingCount: Number(item.followingCount) || 0,
+          isVerified: Boolean(item.isVerified),
+          isOnline: Boolean(item.isLive),
+          category: item.category || '',
+          location: item.location || '',
+          isFollowing: Boolean(item.isFollowing)
         }))
         setCreators(transformedCreators)
       } else {
@@ -121,7 +123,7 @@ export default function CreatorList() {
     try {
       setLoading(true)
       const response = await userApi.getFollowing(user.id)
-      if (response.success && response.data) {
+      if (response.success && response.data && Array.isArray(response.data)) {
         setFollowingCreators(response.data)
       } else {
         setFollowingCreators([])
@@ -141,7 +143,7 @@ export default function CreatorList() {
     try {
       setLoading(true)
       const response = await creatorAPI.getUsersFollowMe()
-      if (response.success && response.data) {
+      if (response.success && response.data && Array.isArray(response.data)) {
         setFollowers(response.data)
       } else {
         setFollowers([])
@@ -161,7 +163,7 @@ export default function CreatorList() {
     try {
       setLoading(true)
       const response = await postsApi.getUserPosts(user.id)
-      if (response.success && response.data) {
+      if (response.success && response.data && Array.isArray(response.data)) {
         setMyPosts(response.data)
       } else {
         setMyPosts([])
@@ -183,21 +185,22 @@ export default function CreatorList() {
       const response = await creatorAPI.getCreatorById(creatorId)
       if (response.success && response.data) {
         // Transform API response to match Creator interface
-        const creatorDetail = {
-          id: response.data.id,
-          userId: response.data.userId,
+        const creatorDetail: Creator = {
+          id: Number(response.data.id),
+          userId: Number(response.data.userId),
           username: response.data.user?.username || '',
-          displayName: `${response.data.user?.firstName || ''} ${response.data.user?.lastName || ''}`.trim() || response.data.user?.username || '',
-          stageName: response.data.stageName,
-          avatar: response.data.user?.avatar,
-          bio: response.data.bio,
-          followerCount: response.data.followerCount || 0,
-          followingCount: response.data.followingCount || 0,
-          isVerified: response.data.isVerified || false,
-          isOnline: response.data.isLive || false,
+          firstName: response.data.user?.firstName || '',
+          lastName: response.data.user?.lastName || '',
+          stageName: response.data.stageName || '',
+          avatar: response.data.user?.avatar || '',
+          bio: response.data.bio || '',
+          followerCount: Number(response.data.followerCount) || 0,
+          followingCount: Number(response.data.followingCount) || 0,
+          isVerified: Boolean(response.data.isVerified),
+          isOnline: Boolean(response.data.isLive),
           category: response.data.category || '',
           location: response.data.location || '',
-          isFollowing: response.data.isFollowing || false
+          isFollowing: Boolean(response.data.isFollowing)
         }
         setSelectedCreator(creatorDetail)
       }
@@ -226,7 +229,7 @@ export default function CreatorList() {
     }
 
     try {
-      setActionLoading(userId.toString())
+      setActionLoading(String(userId))
 
       if (isCurrentlyFollowing) {
         await userApi.unfollowCreator(userId.toString())
@@ -340,7 +343,9 @@ export default function CreatorList() {
 
   // Safe function to get display name with fallback
   const getDisplayName = (creator: Creator) => {
-    return creator.stageName || creator.displayName || creator.username || 'Unknown'
+    if (creator.stageName) return creator.stageName
+    const fullName = `${creator.firstName} ${creator.lastName}`.trim()
+    return fullName || creator.username || 'Unknown'
   }
 
   // Render creator card
