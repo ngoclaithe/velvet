@@ -260,6 +260,33 @@ export const searchSchema = z.object({
   limit: z.number().min(1).max(100).default(20),
 })
 
+// Request Deposit validation schemas
+export const createRequestDepositSchema = z.object({
+  amount: z
+    .number()
+    .positive('Amount must be a positive number.')
+    .min(0.01, 'Amount is required.'),
+  infoPaymentId: z
+    .number()
+    .positive('infoPaymentId must be a positive integer.')
+    .int('infoPaymentId must be a positive integer.'),
+  transactionCode: z
+    .string()
+    .trim()
+    .optional(),
+  note: z
+    .string()
+    .trim()
+    .optional(),
+})
+
+export const updateRequestDepositSchema = z.object({
+  status: z
+    .enum(['approved', 'rejected'], {
+      errorMap: () => ({ message: 'Status must be either "approved" or "rejected".' })
+    })
+})
+
 // Type inference helpers
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
@@ -281,3 +308,5 @@ export type SettingsInput = z.infer<typeof settingsSchema>
 export type ImageUploadInput = z.infer<typeof imageUploadSchema>
 export type VideoUploadInput = z.infer<typeof videoUploadSchema>
 export type SearchInput = z.infer<typeof searchSchema>
+export type CreateRequestDepositInput = z.infer<typeof createRequestDepositSchema>
+export type UpdateRequestDepositInput = z.infer<typeof updateRequestDepositSchema>
