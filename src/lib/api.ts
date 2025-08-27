@@ -441,10 +441,12 @@ export const infoPaymentApi = {
   // Tạo thông tin thanh toán mới - POST /info-payments/
   createInfoPayment: (data: {
     bankName: string;
-    accountNumber: string;
-    accountHolderName: string;
-    qrCodeUrl?: string;
-    isActive?: boolean;
+    bankNumber: string;
+    accountName: string;
+    email: string;
+    phone: string;
+    metadata: json;
+    active?: boolean;
   }) => api.post('/info-payments/', data),
 
   // Lấy thông tin thanh toán theo ID - GET /info-payments/:id
