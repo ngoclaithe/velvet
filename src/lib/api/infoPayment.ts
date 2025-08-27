@@ -7,7 +7,7 @@ export interface InfoPayment {
   bankName: string
   email?: string
   phone?: string
-  metadata?: Record<string, any> | null
+  metadata: Record<string, any> | null
   active: boolean
   createdAt: string
   updatedAt: string
@@ -98,6 +98,9 @@ export const infoPaymentUtils = {
 
   parseMetadata: (infoPayment: InfoPayment): Record<string, any> | null => {
     try {
+      if (infoPayment.metadata === null || infoPayment.metadata === undefined) {
+        return null
+      }
       if (typeof infoPayment.metadata === 'string') {
         return JSON.parse(infoPayment.metadata)
       }

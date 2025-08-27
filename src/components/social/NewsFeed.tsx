@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-// import { postsApi } from '@/lib/api' // Đã loại bỏ để tránh API calls
 import { useAuth } from '@/hooks/useAuth'
 import type { Post, FeedParams } from '@/types/posts'
 import {
