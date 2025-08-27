@@ -124,8 +124,8 @@ export default function WalletPage() {
       setIsLoadingPaymentMethods(true)
       try {
         const response = await infoPaymentApi.getPublicInfoPayments()
-        if (response.success && response.data) {
-          setAvailablePaymentMethods(response.data.filter(payment => payment.active))
+        if (response.success && response.data && Array.isArray(response.data)) {
+          setAvailablePaymentMethods(response.data.filter((payment: InfoPayment) => payment.active))
         }
       } catch (error) {
         console.error('Failed to load payment methods:', error)
