@@ -45,10 +45,10 @@ export default function PaymentsPage() {
         const response = await infoPaymentApi.getInfoPayments()
 
         if (response.success && response.data) {
-          // Fix: Lấy data từ response.data thay vì gán trực tiếp response.data
-          setPaymentInfos(response.data.data)
+          // Fix: response.data là array InfoPayment[]
+          setPaymentInfos(response.data)
         } else {
-          throw new Error(response.error || 'Failed to load payment data')
+          throw new Error('Failed to load payment data')
         }
       } catch (error) {
         console.error('Failed to load payment data:', error)
@@ -84,7 +84,7 @@ export default function PaymentsPage() {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data.data)
+          setPaymentInfos(reloadResponse.data)
         }
 
         setPaymentForm({
@@ -131,7 +131,7 @@ export default function PaymentsPage() {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data.data)
+          setPaymentInfos(reloadResponse.data)
         }
 
         setPaymentForm({
@@ -176,7 +176,7 @@ export default function PaymentsPage() {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data.data)
+          setPaymentInfos(reloadResponse.data)
         }
 
         toast.success('Đã xóa thông tin thanh toán thành công')
@@ -202,7 +202,7 @@ export default function PaymentsPage() {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data.data)
+          setPaymentInfos(reloadResponse.data)
         }
 
         toast.success('Đã cập nhật trạng thái thành công')
@@ -346,7 +346,7 @@ export default function PaymentsPage() {
           )}
 
           <div className="space-y-4">
-            {paymentInfos.length === 0 ? (
+            {!paymentInfos || paymentInfos.length === 0 ? (
               <div className="text-center py-8">
                 <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có thông tin thanh toán</h3>
