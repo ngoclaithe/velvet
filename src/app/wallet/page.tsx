@@ -246,7 +246,7 @@ export default function WalletPage() {
 
         // Refresh request deposits
         const requestDepositsResponse = await requestDeposit.getRequestDeposit()
-        if (requestDepositsResponse.success && requestDepositsResponse.data) {
+        if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
             createdAt: new Date(rd.createdAt)
@@ -405,7 +405,7 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
+              <CardTitle className="text-sm font-medium">Số dư hiện t��i</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
