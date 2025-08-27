@@ -7,11 +7,11 @@ export const userApi = {
   
   uploadAvatar: (file: File) => api.upload('/users/me/avatar', file),
   
-  follow: (userId: string) => api.post(`/users/${userId}/follow`),
+  followCreator: (userId: string) => api.post(`/user-follows/${userId}`),
   
-  unfollow: (userId: string) => api.delete(`/users/${userId}/follow`),
+  unfollowCreator: (userId: string) => api.delete(`/user-follows/${userId}`),
   
-  getFollowers: (userId: string) => api.get(`/users/${userId}/followers`),
+  // getFollowers: (userId: string) => api.get(`/users/${userId}/followers`),
   
-  getFollowing: (userId: string) => api.get(`/users/${userId}/following`),
+  getFollowing: (userId: string) => api.get(`/user-follows/${userId}/following`),
 }
