@@ -229,7 +229,7 @@ export default function CreatorList() {
     }
 
     try {
-      setActionLoading(userId.toString())
+      setActionLoading(String(userId))
 
       if (isCurrentlyFollowing) {
         await userApi.unfollowCreator(userId.toString())
