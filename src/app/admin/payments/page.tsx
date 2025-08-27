@@ -54,34 +54,17 @@ export default function PaymentsPage() {
     const loadPaymentData = async () => {
       setIsLoading(true)
       try {
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        setPaymentInfos([
-          {
-            id: '1',
-            bankName: 'Vietcombank',
-            accountNumber: '1234567890',
-            accountHolderName: 'NGUYEN VAN A',
-            qrCodeUrl: 'https://example.com/qr1.jpg',
-            isActive: true,
-            createdAt: '2024-01-15T10:00:00Z',
-            updatedAt: '2024-01-15T10:00:00Z'
-          },
-          {
-            id: '2',
-            bankName: 'Techcombank',
-            accountNumber: '0987654321',
-            accountHolderName: 'TRAN THI B',
-            qrCodeUrl: '',
-            isActive: false,
-            createdAt: '2024-01-10T15:30:00Z',
-            updatedAt: '2024-01-18T09:20:00Z'
-          }
-        ])
+        const response = await infoPaymentApi.getInfoPayments()
+
+        if (response.success && response.data) {
+          setPaymentInfos(response.data)
+        } else {
+          throw new Error(response.error || 'Failed to load payment data')
+        }
       } catch (error) {
         console.error('Failed to load payment data:', error)
         toast.error('Không thể tải dữ liệu thanh toán')
+        setPaymentInfos([])
       } finally {
         setIsLoading(false)
       }
@@ -358,7 +341,7 @@ export default function PaymentsPage() {
                           {paymentInfo.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          Cập nh��t: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
+                          Cập nhật: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
                         </span>
                       </div>
                     </div>
