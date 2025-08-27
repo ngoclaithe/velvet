@@ -23,7 +23,7 @@ export const STREAM_CATEGORIES = [
   { id: 'art', name: 'Art & Creative', icon: '🎨' },
   { id: 'talk', name: 'Just Chatting', icon: '💬' },
   { id: 'fitness', name: 'Fitness & Health', icon: '💪' },
-  { id: 'cooking', name: 'Food & Cooking', icon: '��' },
+  { id: 'cooking', name: 'Food & Cooking', icon: '🍳' },
   { id: 'education', name: 'Education', icon: '📚' },
   { id: 'technology', name: 'Technology', icon: '💻' },
   { id: 'travel', name: 'Travel & Outdoors', icon: '🌍' },

@@ -352,7 +352,7 @@ export default function AdminDashboard() {
 
       toast.success('Đã cập nhật thông tin thanh toán thành công')
     } catch (error) {
-      toast.error('Có lỗi x��y ra khi cập nhật thông tin thanh toán')
+      toast.error('Có lỗi xảy ra khi cập nhật thông tin thanh toán')
     }
   }
 
@@ -431,7 +431,7 @@ export default function AdminDashboard() {
       case 'resolved':
         return <Badge className="bg-green-500">Đã giải quyết</Badge>
       case 'dismissed':
-        return <Badge variant="secondary">��ã bỏ qua</Badge>
+        return <Badge variant="secondary">Đã bỏ qua</Badge>
       default:
         return <Badge variant="secondary">Không xác định</Badge>
     }

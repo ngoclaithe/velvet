@@ -96,7 +96,7 @@ const giftOptions: GiftOption[] = [
   { id: '3', name: 'Kem', icon: '🍦', price: 5 },
   { id: '4', name: 'Pizza', icon: '🍕', price: 10 },
   { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
-  { id: '6', name: 'Nhà', icon: '�����', price: 100 },
+  { id: '6', name: 'Nhà', icon: '🏠', price: 100 },
   { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
   { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
 ]

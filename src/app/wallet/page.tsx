@@ -402,7 +402,7 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Số dư hiện t��i</CardTitle>
+              <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
@@ -598,7 +598,7 @@ export default function WalletPage() {
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
                     <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
-                    <li>• Liên hệ hỗ trợ n���u không nhận được tiền sau 30 phút</li>
+                    <li>• Liên hệ hỗ trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>
                 </div>
 
@@ -728,7 +728,7 @@ export default function WalletPage() {
           <Card>
             <CardHeader>
               <CardTitle>Yêu cầu nạp tiền</CardTitle>
-              <CardDescription>Danh sách các yêu cầu nạp tiền đã t���o</CardDescription>
+              <CardDescription>Danh sách các yêu cầu nạp tiền đã tạo</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

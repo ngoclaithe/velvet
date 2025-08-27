@@ -119,7 +119,6 @@ export default function PaymentsPage() {
 
       const response = await infoPaymentApi.updateInfoPayment(editingPaymentId.toString(), {
         bankName: paymentForm.bankName,
-        // Fix: S��� dụng bankNumber thay vì accountNumber
         bankNumber: paymentForm.bankNumber,
         accountName: paymentForm.accountName,
         email: paymentForm.email || undefined,
