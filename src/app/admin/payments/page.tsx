@@ -404,7 +404,7 @@ export default function PaymentsPage() {
                       variant="outline"
                       onClick={() => handleTogglePaymentStatus(paymentInfo.id)}
                     >
-                      {paymentInfo.isActive ? (
+                      {paymentInfo.active ? (
                         <>
                           <EyeOff className="w-4 h-4 mr-1" />
                           Tắt
