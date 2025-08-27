@@ -8,7 +8,7 @@ export interface InfoPayment {
   email?: string
   phone?: string
   metadata: Record<string, any> | null
-  active: boolean
+  isActive: boolean
   createdAt: string
   updatedAt: string
 }
@@ -20,7 +20,7 @@ export interface CreateInfoPaymentData {
   email?: string
   phone?: string
   metadata?: Record<string, any> | null
-  active?: boolean
+  isActive?: boolean
 }
 
 export interface UpdateInfoPaymentData {
@@ -30,7 +30,7 @@ export interface UpdateInfoPaymentData {
   email?: string
   phone?: string
   metadata?: Record<string, any> | null
-  active?: boolean
+  isActive?: boolean
 }
 
 export interface InfoPaymentListResponse {
@@ -79,7 +79,7 @@ export const infoPaymentApi = {
 }
 
 export const infoPaymentUtils = {
-  isActive: (infoPayment: InfoPayment): boolean => infoPayment.active,
+  isActive: (infoPayment: InfoPayment): boolean => infoPayment.isActive,
 
   formatForDisplay: (infoPayment: InfoPayment): string => {
     return `${infoPayment.bankName} - ${infoPayment.accountName} (${infoPayment.bankNumber})`

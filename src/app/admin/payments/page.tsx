@@ -34,7 +34,7 @@ export default function PaymentsPage() {
     accountName: '',
     email: '',
     phone: '',
-    active: true
+    isActive: true
   })
 
   // Load payment data
@@ -77,7 +77,7 @@ export default function PaymentsPage() {
         accountName: paymentForm.accountName,
         email: paymentForm.email || undefined,
         phone: paymentForm.phone || undefined,
-        active: paymentForm.active
+        isActive: paymentForm.isActive
       })
 
       if (response.success && response.data) {
@@ -93,7 +93,7 @@ export default function PaymentsPage() {
           accountName: '',
           email: '',
           phone: '',
-          active: true
+          isActive: true
         })
         setIsEditingPayment(false)
 
@@ -124,7 +124,7 @@ export default function PaymentsPage() {
         accountName: paymentForm.accountName,
         email: paymentForm.email || undefined,
         phone: paymentForm.phone || undefined,
-        active: paymentForm.active
+        isActive: paymentForm.isActive
       })
 
       if (response.success) {
@@ -140,7 +140,7 @@ export default function PaymentsPage() {
           accountName: '',
           email: '',
           phone: '',
-          active: true
+          isActive: true
         })
         setIsEditingPayment(false)
         setEditingPaymentId(null)
@@ -162,7 +162,7 @@ export default function PaymentsPage() {
       accountName: paymentInfo.accountName,
       email: paymentInfo.email || '',
       phone: paymentInfo.phone || '',
-      active: paymentInfo.active
+      isActive: paymentInfo.isActive
     })
     setEditingPaymentId(paymentInfo.id)
     setIsEditingPayment(true)
@@ -195,7 +195,7 @@ export default function PaymentsPage() {
       if (!paymentInfo) return
 
       const response = await infoPaymentApi.updateInfoPayment(paymentId.toString(), {
-        active: !paymentInfo.active
+        isActive: !paymentInfo.isActive
       })
 
       if (response.success) {
@@ -310,7 +310,7 @@ export default function PaymentsPage() {
                   <input
                     type="checkbox"
                     id="active"
-                    checked={paymentForm.active}
+                    checked={paymentForm.isActive}
                     onChange={(e) => setPaymentForm(prev => ({ ...prev, active: e.target.checked }))}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
@@ -334,7 +334,7 @@ export default function PaymentsPage() {
                         accountName: '',
                         email: '',
                         phone: '',
-                        active: true
+                        isActive: true
                       })
                     }}
                   >
@@ -376,8 +376,8 @@ export default function PaymentsPage() {
                         </p>
                       )}
                       <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant={paymentInfo.active ? 'default' : 'secondary'}>
-                          {paymentInfo.active ? 'Đang hoạt động' : 'Tạm dừng'}
+                        <Badge variant={paymentInfo.isActive ? 'default' : 'secondary'}>
+                          {paymentInfo.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           Cập nhật: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
@@ -399,7 +399,7 @@ export default function PaymentsPage() {
                       variant="outline"
                       onClick={() => handleTogglePaymentStatus(paymentInfo.id)}
                     >
-                      {paymentInfo.active ? (
+                      {paymentInfo.isActive ? (
                         <>
                           <EyeOff className="w-4 h-4 mr-1" />
                           Tắt
