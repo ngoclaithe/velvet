@@ -131,3 +131,24 @@ export function downloadFile(url: string, filename: string): void {
   a.click()
   document.body.removeChild(a)
 }
+export interface PaymentData {
+  accountNumber: string;
+  name: string;
+  bank: string;
+  amount: number;
+  code_pay: string;
+}
+
+export const generateSepayQRUrl = (paymentData: PaymentData): string => {
+  const baseUrl = 'https://qr.sepay.vn/img';
+  const params = new URLSearchParams({
+    acc: paymentData.accountNumber,
+    name: paymentData.name,
+    bank: paymentData.bank,
+    amount: paymentData.amount.toString(),
+    des: paymentData.code_pay,
+    template: 'compact'
+  });
+
+  return `${baseUrl}?${params.toString()}`;
+};

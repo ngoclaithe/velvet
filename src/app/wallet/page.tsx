@@ -39,6 +39,7 @@ import { useToast } from '@/hooks/use-toast'
 import { walletAPI } from '@/lib/api/wallet'
 import { requestDeposit } from '@/lib/api/requestDeposit'
 import { infoPaymentApi, type InfoPayment } from '@/lib/api/infoPayment'
+import { generateSepayQRUrl } from '@/lib/utils' 
 
 interface Transaction {
   id: string
