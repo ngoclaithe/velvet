@@ -326,7 +326,7 @@ export default function PaymentsPage() {
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    {editingPaymentId ? 'C���p nhật' : 'Tạo mới'}
+                    {editingPaymentId ? 'Cập nhật' : 'Tạo mới'}
                   </Button>
                   <Button
                     variant="outline"
@@ -365,17 +365,24 @@ export default function PaymentsPage() {
                     <div>
                       <p className="font-medium">{paymentInfo.bankName}</p>
                       <p className="text-sm text-muted-foreground">
-                        Số TK: {paymentInfo.accountNumber}
+                        Số TK: {paymentInfo.bankNumber}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Chủ TK: {paymentInfo.accountHolderName}
+                        Chủ TK: {paymentInfo.accountName}
                       </p>
-                      {paymentInfo.qrCodeUrl && (
-                        <p className="text-sm text-blue-600">Có QR Code</p>
+                      {paymentInfo.email && (
+                        <p className="text-sm text-muted-foreground">
+                          Email: {paymentInfo.email}
+                        </p>
+                      )}
+                      {paymentInfo.phone && (
+                        <p className="text-sm text-muted-foreground">
+                          SĐT: {paymentInfo.phone}
+                        </p>
                       )}
                       <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant={paymentInfo.isActive ? 'default' : 'secondary'}>
-                          {paymentInfo.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
+                        <Badge variant={paymentInfo.active ? 'default' : 'secondary'}>
+                          {paymentInfo.active ? 'Đang hoạt động' : 'Tạm dừng'}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           Cập nhật: {new Date(paymentInfo.updatedAt).toLocaleDateString('vi-VN')}
