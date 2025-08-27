@@ -160,8 +160,8 @@ export default function WalletPage() {
 
         // Fetch transactions
         const transactionsResponse = await walletAPI.getTransactions()
-        if (transactionsResponse.success && transactionsResponse.data) {
-          setTransactions(transactionsResponse.data.map((t: any) => ({
+        if (transactionsResponse.success && transactionsResponse.data && transactionsResponse.data.data) {
+          setTransactions(transactionsResponse.data.data.map((t: any) => ({
             ...t,
             date: new Date(t.date || t.createdAt)
           })))
@@ -752,7 +752,7 @@ export default function WalletPage() {
           <Card>
             <CardHeader>
               <CardTitle>Yêu cầu nạp tiền</CardTitle>
-              <CardDescription>Danh sách các yêu cầu nạp tiền đã tạo</CardDescription>
+              <CardDescription>Danh sách các yêu cầu nạp tiền đã t���o</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
