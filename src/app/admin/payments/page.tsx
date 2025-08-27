@@ -269,42 +269,54 @@ export default function PaymentsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="accountNumber">Số tài khoản *</Label>
+                    <Label htmlFor="bankNumber">Số tài khoản *</Label>
                     <Input
-                      id="accountNumber"
-                      value={paymentForm.accountNumber}
-                      onChange={(e) => setPaymentForm(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      id="bankNumber"
+                      value={paymentForm.bankNumber}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, bankNumber: e.target.value }))}
                       placeholder="VD: 1234567890"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="accountHolderName">Tên chủ tài khoản *</Label>
+                  <Label htmlFor="accountName">Tên chủ tài khoản *</Label>
                   <Input
-                    id="accountHolderName"
-                    value={paymentForm.accountHolderName}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, accountHolderName: e.target.value }))}
+                    id="accountName"
+                    value={paymentForm.accountName}
+                    onChange={(e) => setPaymentForm(prev => ({ ...prev, accountName: e.target.value }))}
                     placeholder="VD: NGUYEN VAN A"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="qrCodeUrl">URL QR Code</Label>
-                  <Input
-                    id="qrCodeUrl"
-                    value={paymentForm.qrCodeUrl}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, qrCodeUrl: e.target.value }))}
-                    placeholder="https://example.com/qr-code.jpg"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={paymentForm.email}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="VD: example@gmail.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Số điện thoại</Label>
+                    <Input
+                      id="phone"
+                      value={paymentForm.phone}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="VD: 0123456789"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Label htmlFor="isActive" className="text-sm font-medium">
+                  <Label htmlFor="active" className="text-sm font-medium">
                     Trạng thái hoạt động
                   </Label>
                   <input
                     type="checkbox"
-                    id="isActive"
-                    checked={paymentForm.isActive}
-                    onChange={(e) => setPaymentForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                    id="active"
+                    checked={paymentForm.active}
+                    onChange={(e) => setPaymentForm(prev => ({ ...prev, active: e.target.checked }))}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </div>
