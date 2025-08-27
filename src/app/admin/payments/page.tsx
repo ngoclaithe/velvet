@@ -76,37 +76,41 @@ export default function PaymentsPage() {
   const handleCreatePaymentInfo = async () => {
     try {
       // Validation
-      if (!paymentForm.bankName || !paymentForm.accountNumber || !paymentForm.accountHolderName) {
+      if (!paymentForm.bankName || !paymentForm.bankNumber || !paymentForm.accountName) {
         toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
         return
       }
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      const newPaymentInfo: PaymentInfo = {
-        id: Date.now().toString(),
+      const response = await infoPaymentApi.createInfoPayment({
         bankName: paymentForm.bankName,
-        accountNumber: paymentForm.accountNumber,
-        accountHolderName: paymentForm.accountHolderName,
-        qrCodeUrl: paymentForm.qrCodeUrl || '',
-        isActive: paymentForm.isActive,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-
-      setPaymentInfos(prev => [newPaymentInfo, ...prev])
-      setPaymentForm({
-        bankName: '',
-        accountNumber: '',
-        accountHolderName: '',
-        qrCodeUrl: '',
-        isActive: true
+        accountNumber: paymentForm.bankNumber,
+        accountHolderName: paymentForm.accountName,
+        isActive: paymentForm.active
       })
-      setIsEditingPayment(false)
 
-      toast.success('Đã tạo thông tin thanh toán thành công')
+      if (response.success && response.data) {
+        // Reload data to get updated list
+        const reloadResponse = await infoPaymentApi.getInfoPayments()
+        if (reloadResponse.success && reloadResponse.data) {
+          setPaymentInfos(reloadResponse.data)
+        }
+
+        setPaymentForm({
+          bankName: '',
+          bankNumber: '',
+          accountName: '',
+          email: '',
+          phone: '',
+          active: true
+        })
+        setIsEditingPayment(false)
+
+        toast.success('Đã tạo thông tin thanh toán thành công')
+      } else {
+        throw new Error(response.error || 'Failed to create payment info')
+      }
     } catch (error) {
+      console.error('Create payment error:', error)
       toast.error('Có lỗi xảy ra khi tạo thông tin thanh toán')
     }
   }
