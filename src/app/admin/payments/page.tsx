@@ -19,25 +19,13 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { infoPaymentApi } from '@/lib/api'
+import { infoPaymentApi, InfoPayment } from '@/lib/api'
 
-interface PaymentInfo {
-  id: number
-  bankNumber: string
-  accountName: string
-  bankName: string
-  email: string
-  phone: string
-  metadata: any
-  active: boolean
-  createdAt: string
-  updatedAt: string
-}
-
+// Sử dụng InfoPayment từ API thay vì define lại
 export default function PaymentsPage() {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
-  const [paymentInfos, setPaymentInfos] = useState<PaymentInfo[]>([])
+  const [paymentInfos, setPaymentInfos] = useState<InfoPayment[]>([])
   const [isEditingPayment, setIsEditingPayment] = useState(false)
   const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null)
   const [paymentForm, setPaymentForm] = useState({
@@ -57,7 +45,8 @@ export default function PaymentsPage() {
         const response = await infoPaymentApi.getInfoPayments()
 
         if (response.success && response.data) {
-          setPaymentInfos(response.data)
+          // Fix: Lấy data từ response.data thay vì gán trực tiếp response.data
+          setPaymentInfos(response.data.data)
         } else {
           throw new Error(response.error || 'Failed to load payment data')
         }
@@ -83,16 +72,19 @@ export default function PaymentsPage() {
 
       const response = await infoPaymentApi.createInfoPayment({
         bankName: paymentForm.bankName,
-        accountNumber: paymentForm.bankNumber,
-        accountHolderName: paymentForm.accountName,
-        isActive: paymentForm.active
+        // Fix: Sử dụng bankNumber thay vì accountNumber
+        bankNumber: paymentForm.bankNumber,
+        accountName: paymentForm.accountName,
+        email: paymentForm.email || undefined,
+        phone: paymentForm.phone || undefined,
+        active: paymentForm.active
       })
 
       if (response.success && response.data) {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data)
+          setPaymentInfos(reloadResponse.data.data)
         }
 
         setPaymentForm({
@@ -127,16 +119,19 @@ export default function PaymentsPage() {
 
       const response = await infoPaymentApi.updateInfoPayment(editingPaymentId.toString(), {
         bankName: paymentForm.bankName,
-        accountNumber: paymentForm.bankNumber,
-        accountHolderName: paymentForm.accountName,
-        isActive: paymentForm.active
+        // Fix: Sử dụng bankNumber thay vì accountNumber
+        bankNumber: paymentForm.bankNumber,
+        accountName: paymentForm.accountName,
+        email: paymentForm.email || undefined,
+        phone: paymentForm.phone || undefined,
+        active: paymentForm.active
       })
 
       if (response.success) {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data)
+          setPaymentInfos(reloadResponse.data.data)
         }
 
         setPaymentForm({
@@ -160,13 +155,13 @@ export default function PaymentsPage() {
     }
   }
 
-  const handleEditPaymentInfo = (paymentInfo: PaymentInfo) => {
+  const handleEditPaymentInfo = (paymentInfo: InfoPayment) => {
     setPaymentForm({
       bankName: paymentInfo.bankName,
       bankNumber: paymentInfo.bankNumber,
       accountName: paymentInfo.accountName,
-      email: paymentInfo.email,
-      phone: paymentInfo.phone,
+      email: paymentInfo.email || '',
+      phone: paymentInfo.phone || '',
       active: paymentInfo.active
     })
     setEditingPaymentId(paymentInfo.id)
@@ -181,7 +176,7 @@ export default function PaymentsPage() {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data)
+          setPaymentInfos(reloadResponse.data.data)
         }
 
         toast.success('Đã xóa thông tin thanh toán thành công')
@@ -200,14 +195,14 @@ export default function PaymentsPage() {
       if (!paymentInfo) return
 
       const response = await infoPaymentApi.updateInfoPayment(paymentId.toString(), {
-        isActive: !paymentInfo.active
+        active: !paymentInfo.active
       })
 
       if (response.success) {
         // Reload data to get updated list
         const reloadResponse = await infoPaymentApi.getInfoPayments()
         if (reloadResponse.success && reloadResponse.data) {
-          setPaymentInfos(reloadResponse.data)
+          setPaymentInfos(reloadResponse.data.data)
         }
 
         toast.success('Đã cập nhật trạng thái thành công')
