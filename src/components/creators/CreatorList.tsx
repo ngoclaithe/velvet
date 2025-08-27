@@ -344,8 +344,12 @@ export default function CreatorList() {
   }
 
   // Render creator card
-  const renderCreatorCard = (creator: Creator, showFollowButton = true, showRemoveButton = false) => (
-    <Card key={creator.id} className="bg-gray-800 border-gray-700 hover:border-pink-500/50 transition-colors">
+  const renderCreatorCard = (creator: Creator, showRemoveButton = false) => (
+    <Card
+      key={creator.id}
+      className="bg-gray-800 border-gray-700 hover:border-pink-500/50 transition-colors cursor-pointer"
+      onClick={() => handleCreatorClick(creator.id as number)}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-4">
@@ -370,77 +374,27 @@ export default function CreatorList() {
                 )}
               </div>
               <p className="text-gray-400 text-sm">@{creator.username || 'unknown'}</p>
-              {creator.location && (
-                <div className="flex items-center gap-1 text-gray-400 text-sm mt-1">
-                  <MapPin className="w-3 h-3" />
-                  {creator.location}
-                </div>
-              )}
             </div>
           </div>
-          <Button variant="ghost" size="sm">
-            <MoreHorizontal className="w-4 h-4" />
-          </Button>
+          <Eye className="w-5 h-5 text-gray-400" />
         </div>
 
         {creator.bio && (
-          <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+          <p className="text-gray-300 text-sm mb-4 leading-relaxed line-clamp-2">
             {creator.bio}
           </p>
         )}
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="text-center">
-              <p className="text-white font-semibold">{formatCount(creator.followerCount)}</p>
-              <p className="text-gray-400 text-xs">Followers</p>
-            </div>
-            <div className="text-center">
-              <p className="text-white font-semibold">{formatCount(creator.followingCount)}</p>
-              <p className="text-gray-400 text-xs">Following</p>
-            </div>
-          </div>
-          
-          {creator.category && (
-            <Badge variant="outline" className="border-gray-600 text-gray-300">
-              {creator.category}
-            </Badge>
-          )}
-        </div>
-
-        <div className="flex gap-2">
-          {showFollowButton && creator.userId !== user?.id && (
+        {showRemoveButton && (
+          <div className="flex justify-end">
             <Button
-              onClick={() => handleFollow(creator.userId, creator.isFollowing || false)}
-              disabled={actionLoading === creator.userId.toString()}
-              className={`flex-1 ${
-                creator.isFollowing
-                  ? 'bg-gray-600 hover:bg-gray-700 text-white'
-                  : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'
-              }`}
-            >
-              {actionLoading === creator.userId.toString() ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : creator.isFollowing ? (
-                <>
-                  <UserMinus className="w-4 h-4 mr-2" />
-                  Bỏ theo dõi
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Theo dõi
-                </>
-              )}
-            </Button>
-          )}
-
-          {showRemoveButton && (
-            <Button
-              onClick={() => handleRemoveFollower(creator.id.toString())}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleRemoveFollower(creator.id.toString())
+              }}
               disabled={actionLoading === creator.id.toString()}
               variant="destructive"
-              className="flex-1"
+              size="sm"
             >
               {actionLoading === creator.id.toString() ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -451,8 +405,8 @@ export default function CreatorList() {
                 </>
               )}
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
