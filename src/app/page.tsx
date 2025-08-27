@@ -367,7 +367,7 @@ export default function HomePage() {
                       </div>
                       <h3 className="text-lg font-semibold mb-2 text-white">Tham gia cộng đồng!</h3>
                       <p className="text-gray-300 text-sm mb-4">
-                        Đăng ký để đăng bài, tương tác và khám phá nội dung độc quyền
+                        Đăng ký đ��� đăng bài, tương tác và khám phá nội dung độc quyền
                       </p>
                       <Link href="/register">
                         <Button className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
@@ -390,7 +390,7 @@ export default function HomePage() {
                       </p>
                       <Link href="/become-creator">
                         <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                          Bắt đầu ngay
+                          Bắt ��ầu ngay
                         </Button>
                       </Link>
                     </CardContent>
@@ -414,8 +414,8 @@ export default function HomePage() {
                     Blog & Bài viết
                   </TabsTrigger>
                   <TabsTrigger value="creators" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
-                    <MapPin className="w-4 h-4" />
-                    Creator theo địa điểm
+                    <Users className="w-4 h-4" />
+                    Creator
                   </TabsTrigger>
                   <TabsTrigger value="chat" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                     <MessageCircle className="w-4 h-4" />
