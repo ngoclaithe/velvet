@@ -39,7 +39,7 @@ export default function PaymentsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [paymentInfos, setPaymentInfos] = useState<PaymentInfo[]>([])
   const [isEditingPayment, setIsEditingPayment] = useState(false)
-  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null)
+  const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null)
   const [paymentForm, setPaymentForm] = useState({
     bankName: '',
     bankNumber: '',
