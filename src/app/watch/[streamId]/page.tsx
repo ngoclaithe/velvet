@@ -29,7 +29,7 @@ import {
   Eye,
   MessageCircle
 } from 'lucide-react'
-import { streamApi, chatApi, paymentApi } from '@/lib/api'
+import { streamApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import StreamChatBox from '@/components/chat/StreamChatBox'
 
