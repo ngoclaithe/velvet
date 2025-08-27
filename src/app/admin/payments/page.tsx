@@ -19,7 +19,7 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { infoPaymentApi, InfoPayment } from '@/lib/api'
+import { infoPaymentApi, type InfoPayment } from '@/lib/api/infoPayment'
 
 // Sử dụng InfoPayment từ API thay vì define lại
 export default function PaymentsPage() {
@@ -119,7 +119,7 @@ export default function PaymentsPage() {
 
       const response = await infoPaymentApi.updateInfoPayment(editingPaymentId.toString(), {
         bankName: paymentForm.bankName,
-        // Fix: Sử dụng bankNumber thay vì accountNumber
+        // Fix: S��� dụng bankNumber thay vì accountNumber
         bankNumber: paymentForm.bankNumber,
         accountName: paymentForm.accountName,
         email: paymentForm.email || undefined,
