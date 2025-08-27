@@ -326,7 +326,7 @@ export default function PaymentsPage() {
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    {editingPaymentId ? 'Cập nhật' : 'Tạo mới'}
+                    {editingPaymentId ? 'C���p nhật' : 'Tạo mới'}
                   </Button>
                   <Button
                     variant="outline"
@@ -335,10 +335,11 @@ export default function PaymentsPage() {
                       setEditingPaymentId(null)
                       setPaymentForm({
                         bankName: '',
-                        accountNumber: '',
-                        accountHolderName: '',
-                        qrCodeUrl: '',
-                        isActive: true
+                        bankNumber: '',
+                        accountName: '',
+                        email: '',
+                        phone: '',
+                        active: true
                       })
                     }}
                   >
