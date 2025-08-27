@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BlogPost from '@/components/social/BlogPost'
 import NewsFeed from '@/components/social/NewsFeed'
+import CreatorList from '@/components/creators/CreatorList'
 import {
   Users,
   Heart,
@@ -413,8 +414,8 @@ export default function HomePage() {
                     Blog & Bài viết
                   </TabsTrigger>
                   <TabsTrigger value="creators" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
-                    <MapPin className="w-4 h-4" />
-                    Creator theo địa điểm
+                    <Users className="w-4 h-4" />
+                    Creator
                   </TabsTrigger>
                   <TabsTrigger value="chat" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                     <MessageCircle className="w-4 h-4" />
@@ -448,32 +449,8 @@ export default function HomePage() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="creators" className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {trendingCreators.map((creator, index) => (
-                      <Card key={index} className="bg-gray-800 border-gray-700 hover:border-pink-500/50 transition-colors">
-                        <CardContent className="p-6 text-center">
-                          <div className="relative w-20 h-20 mx-auto mb-4">
-                            <img
-                              src={creator.avatar}
-                              alt={creator.name}
-                              className="w-full h-full rounded-full object-cover"
-                            />
-                            {creator.isOnline && (
-                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-800 rounded-full"></div>
-                            )}
-                          </div>
-                          <h3 className="font-semibold text-white mb-1">{creator.name}</h3>
-                          <p className="text-gray-400 text-sm mb-2">@{creator.username}</p>
-                          <p className="text-gray-300 text-sm mb-3">{creator.specialty}</p>
-                          <p className="text-pink-400 text-sm font-medium">{creator.followers} followers</p>
-                          <Button size="sm" className="mt-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
-                            Theo dõi
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                <TabsContent value="creators">
+                  <CreatorList />
                 </TabsContent>
 
                 <TabsContent value="chat" className="space-y-6">

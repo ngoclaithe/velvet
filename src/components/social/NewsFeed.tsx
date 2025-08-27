@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import type { Post, FeedParams } from '@/types/posts'
+import { postsApi } from '@/lib/api/posts'
 import {
   Heart,
   MessageCircle,
@@ -175,11 +176,61 @@ export default function NewsFeed() {
       }
     }))
 
-    // Sử dụng mock data thay vì gọi API
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
+      let response;
 
+      // Use appropriate API based on tab
+      if (tab === 'for-you') {
+        // Use getFeed for "Dành cho bạn" tab
+        response = await postsApi.getFeed({
+          page: page.toString(),
+          limit: POSTS_PER_PAGE.toString()
+        })
+      } else if (tab === 'following') {
+        // For following tab, we could use a different API endpoint if available
+        // For now, we'll use getFeed with a following filter or fallback to mock
+        if (isAuthenticated) {
+          response = await postsApi.getFeed({
+            page: page.toString(),
+            limit: POSTS_PER_PAGE.toString(),
+            type: 'following'
+          })
+        } else {
+          throw new Error('Authentication required')
+        }
+      } else if (tab === 'live') {
+        // Use getTrendingPosts or a specific live posts endpoint
+        response = await postsApi.getTrendingPosts({
+          page: page.toString(),
+          limit: POSTS_PER_PAGE.toString(),
+          type: 'live'
+        })
+      }
+
+      if (response && response.success && response.data) {
+        const posts = Array.isArray(response.data) ? response.data : response.data.posts || []
+        const total = response.data.total || posts.length
+        const hasMore = posts.length === POSTS_PER_PAGE && (page * POSTS_PER_PAGE) < total
+
+        setFeeds(prev => ({
+          ...prev,
+          [feedKey]: {
+            ...prev[feedKey],
+            posts: refresh ? posts : [...prev[feedKey].posts, ...posts],
+            loading: false,
+            hasMore: hasMore,
+            page: page,
+            total: total
+          }
+        }))
+      } else {
+        throw new Error('Invalid response format')
+      }
+
+    } catch (error) {
+      console.error('Error loading posts:', error)
+
+      // Fallback to mock data if API fails
       const mockPosts = getMockPosts(tab, page)
 
       setFeeds(prev => ({
@@ -188,23 +239,14 @@ export default function NewsFeed() {
           ...prev[feedKey],
           posts: refresh ? mockPosts : [...prev[feedKey].posts, ...mockPosts],
           loading: false,
-          hasMore: false, // Không có thêm trang
+          hasMore: false, // No more pages for mock data
           page: page,
-          total: mockPosts.length
-        }
-      }))
-
-    } catch (error) {
-      setFeeds(prev => ({
-        ...prev,
-        [feedKey]: {
-          ...prev[feedKey],
-          loading: false,
-          error: 'Không thể tải bài viết'
+          total: mockPosts.length,
+          error: 'Sử dụng dữ liệu demo (API chưa sẵn sàng)'
         }
       }))
     }
-  }, [getMockPosts])
+  }, [getMockPosts, isAuthenticated])
 
   // Load more posts (infinite scroll)
   const loadMore = useCallback(() => {
@@ -583,7 +625,7 @@ export default function NewsFeed() {
                  activeTab === 'live' ? '📹' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? 'Chưa theo dõi ai' :
+                {activeTab === 'following' ? 'Chưa theo d��i ai' :
                  activeTab === 'live' ? 'Không có live stream' :
                  'Chưa có bài viết'}
               </h3>
