@@ -163,10 +163,11 @@ export default function PaymentsPage() {
   const handleEditPaymentInfo = (paymentInfo: PaymentInfo) => {
     setPaymentForm({
       bankName: paymentInfo.bankName,
-      accountNumber: paymentInfo.accountNumber,
-      accountHolderName: paymentInfo.accountHolderName,
-      qrCodeUrl: paymentInfo.qrCodeUrl || '',
-      isActive: paymentInfo.isActive
+      bankNumber: paymentInfo.bankNumber,
+      accountName: paymentInfo.accountName,
+      email: paymentInfo.email,
+      phone: paymentInfo.phone,
+      active: paymentInfo.active
     })
     setEditingPaymentId(paymentInfo.id)
     setIsEditingPayment(true)
