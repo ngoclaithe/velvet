@@ -56,6 +56,42 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   const currentFeed = feeds[activeTab]
 
+  // Transform API response to Post format
+  const transformApiPostToPost = useCallback((apiPost: any): Post => {
+    return {
+      id: apiPost.id.toString(),
+      type: apiPost.mediaType === 'text' ? 'text' : apiPost.mediaType === 'video' ? 'video' : 'text',
+      content: apiPost.content,
+      author: {
+        id: apiPost.user?.id?.toString() || apiPost.userId?.toString() || 'unknown',
+        username: apiPost.user?.username || 'unknown',
+        displayName: apiPost.user ?
+          `${apiPost.user.firstName || ''} ${apiPost.user.lastName || ''}`.trim() || apiPost.user.username :
+          'Unknown User',
+        avatar: apiPost.user?.avatar || '/api/placeholder/40/40',
+        isVerified: apiPost.user?.isVerified || false,
+        isOnline: false
+      },
+      createdAt: new Date(apiPost.createdAt),
+      updatedAt: new Date(apiPost.updatedAt),
+      likes: apiPost.likeCount || 0,
+      comments: apiPost.commentCount || 0,
+      shares: apiPost.shareCount || 0,
+      views: apiPost.viewCount || 0,
+      isAdult: !apiPost.isPublic || false,
+      isPremium: apiPost.isPremium || false,
+      isLiked: false,
+      isBookmarked: false,
+      visibility: apiPost.isPublic ? 'public' : 'private',
+      media: apiPost.mediaUrls && apiPost.mediaUrls.length > 0 ?
+        apiPost.mediaUrls.map((url: string) => ({
+          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+          url: url,
+          thumbnail: apiPost.thumbnailUrl
+        })) : undefined
+    }
+  }, [])
+
   // Mock data cho demo khi chưa có backend
   const getMockPosts = useCallback((tab: string, page: number): Post[] => {
     // Nếu chưa có bài viết thì trả về mảng rỗng
@@ -749,7 +785,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                   : activeTab === 'live'
                   ? 'Hiện tại không có ai đang live stream'
                   : activeTab === 'my-posts'
-                  ? 'Bắt đầu t��o bài viết đầu tiên của bạn!'
+                  ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                   : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                 }
               </p>
