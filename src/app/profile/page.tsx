@@ -113,7 +113,7 @@ export default function ProfilePage() {
   const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
   const [selectedKycDocType, setSelectedKycDocType] = useState('')
 
-  // State để lưu 3 ảnh KYC cục bộ
+  // State để lưu 3 ���nh KYC cục bộ
   const [kycDocuments, setKycDocuments] = useState({
     documentFrontUrl: '',
     documentBackUrl: '',
@@ -191,7 +191,7 @@ export default function ProfilePage() {
 
         setAvatarUploadDialogOpen(false)
         toast({
-          title: "Cập nhật avatar thành c��ng!",
+          title: "Cập nhật avatar thành công!",
           description: "Ảnh đại diện của bạn đã được cập nhật.",
           variant: "default"
         })
@@ -336,23 +336,73 @@ export default function ProfilePage() {
     }
   }
 
+  // Kiểm tra xem đã có đủ thông tin KYC chưa
+  const isKycDataComplete = () => {
+    const hasAllDocuments = kycDocuments.documentFrontUrl &&
+                           kycDocuments.documentBackUrl &&
+                           kycDocuments.selfieUrl
+    const hasPersonalInfo = kycPersonalInfo.fullName &&
+                           kycPersonalInfo.dateOfBirth &&
+                           kycPersonalInfo.documentNumber &&
+                           kycPersonalInfo.documentType
+    return hasAllDocuments && hasPersonalInfo
+  }
+
+  // Submit toàn bộ KYC data
   const handleSubmitKyc = async () => {
+    if (!isKycDataComplete()) {
+      toast({
+        title: "Thông tin chưa đầy đủ",
+        description: "Vui lòng điền đầy đủ thông tin cá nhân và tải lên 3 ảnh (mặt trước, mặt sau, selfie)",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsUploadingDoc(true)
     try {
-      const response = await kycApi.submitForReview()
+      // Tạo KYC submission với đầy đủ thông tin
+      const kycData = {
+        // Thông tin cá nhân
+        fullName: kycPersonalInfo.fullName,
+        dateOfBirth: kycPersonalInfo.dateOfBirth,
+        nationality: kycPersonalInfo.nationality,
+        address: kycPersonalInfo.address,
+        documentType: kycPersonalInfo.documentType,
+        documentNumber: kycPersonalInfo.documentNumber,
+
+        // URLs của 3 ảnh
+        documentFrontUrl: kycDocuments.documentFrontUrl,
+        documentBackUrl: kycDocuments.documentBackUrl,
+        selfieUrl: kycDocuments.selfieUrl
+      }
+
+      const response = await kycApi.createSubmission(kycData)
       if (response.success) {
         toast({
           title: "Gửi xác thực thành công!",
-          description: "Hồ sơ của bạn đang được xem xét",
+          description: "Hồ sơ KYC của bạn đã được gửi và đang được xem xét",
           variant: "default"
         })
+
+        // Reset form sau khi gửi thành công
+        setKycDocuments({
+          documentFrontUrl: '',
+          documentBackUrl: '',
+          selfieUrl: ''
+        })
+
         fetchKycData()
       }
     } catch (error) {
+      console.error('Submit KYC failed:', error)
       toast({
         title: "Lỗi gửi hồ sơ",
-        description: "Không thể gửi hồ sơ xác thực",
+        description: "Không thể gửi hồ sơ xác thực. Vui lòng kiểm tra lại thông tin.",
         variant: "destructive"
       })
+    } finally {
+      setIsUploadingDoc(false)
     }
   }
 
