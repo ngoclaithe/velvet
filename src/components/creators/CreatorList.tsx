@@ -20,7 +20,6 @@ import {
   MessageCircle,
   MapPin,
   Star,
-  Grid3X3,
   UserX,
   Crown,
   Verified,
