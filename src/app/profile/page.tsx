@@ -236,19 +236,30 @@ export default function ProfilePage() {
 
       if (submissionResponse.success && submissionResponse.data) {
         setKycSubmission(submissionResponse.data)
-        if (submissionResponse.data.personalInfo) {
-          setKycPersonalInfo({
-            fullName: submissionResponse.data.personalInfo.fullName || '',
-            dateOfBirth: submissionResponse.data.personalInfo.dateOfBirth || '',
-            nationality: submissionResponse.data.personalInfo.nationality || 'Vietnam',
-            address: submissionResponse.data.personalInfo.address || '',
-            documentNumber: submissionResponse.data.documentNumber || '',
-            documentType: submissionResponse.data.documentType || 'id_card'
+
+        // Nếu có submission, load dữ liệu từ submission
+        setKycPersonalInfo({
+          fullName: submissionResponse.data.fullName || '',
+          dateOfBirth: submissionResponse.data.dateOfBirth || '',
+          nationality: submissionResponse.data.nationality || 'Vietnam',
+          address: submissionResponse.data.address || '',
+          documentNumber: submissionResponse.data.documentNumber || '',
+          documentType: submissionResponse.data.documentType || 'id_card'
+        })
+
+        // Clear local preview URLs nếu đã có submission
+        if (submissionResponse.data.status !== 'draft') {
+          setKycPreviewUrls({
+            documentFrontUrl: '',
+            documentBackUrl: '',
+            selfieUrl: ''
+          })
+          setKycDocuments({
+            documentFrontFile: null,
+            documentBackFile: null,
+            selfieFile: null
           })
         }
-
-        // Không load URLs vào state nữa vì chúng ta dùng files local
-        // URLs chỉ hiển thị ở kycSubmission để xem kết quả đã submit
       }
     } catch (error) {
       console.error('Failed to fetch KYC data:', error)
@@ -397,6 +408,8 @@ export default function ProfilePage() {
         return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Đã xác thực</Badge>
       case 'under_review':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Đang xem xét</Badge>
+      case 'pending':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Đang chờ xử lý</Badge>
       case 'submitted':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Đã gửi</Badge>
       case 'rejected':
@@ -775,95 +788,146 @@ export default function ProfilePage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Thông tin cá nhân KYC</CardTitle>
-                      <CardDescription>Thông tin này sẽ được sử dụng để xác thực danh tính</CardDescription>
+                      <CardDescription>
+                        {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review')
+                          ? 'Thông tin đã gửi - đang chờ xét duyệt'
+                          : 'Thông tin này sẽ được sử dụng để xác thực danh tính'
+                        }
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Họ và tên đầy đủ</Label>
-                          <Input
-                            value={kycPersonalInfo.fullName}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, fullName: e.target.value }))}
-                            placeholder="Nhập họ và tên đầy đủ"
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
+                      {/* Hiển thị thông tin đã submit nếu có submission pending/submitted/under_review */}
+                      {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
+                        <div className="space-y-4">
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <Clock className="h-5 w-5 text-blue-600" />
+                              <h4 className="font-medium text-blue-900">Thông tin đã gửi</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-gray-600">Họ và tên:</p>
+                                <p className="font-medium">{kycSubmission.fullName}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Ngày sinh:</p>
+                                <p className="font-medium">
+                                  {kycSubmission.dateOfBirth ? new Date(kycSubmission.dateOfBirth).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Quốc tịch:</p>
+                                <p className="font-medium">{kycSubmission.nationality}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Loại giấy tờ:</p>
+                                <p className="font-medium">
+                                  {kycSubmission.documentType === 'id_card' ? 'CCCD/CMND' :
+                                   kycSubmission.documentType === 'passport' ? 'Hộ chiếu' :
+                                   kycSubmission.documentType === 'driving_license' ? 'Bằng lái xe' : kycSubmission.documentType}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Số giấy tờ:</p>
+                                <p className="font-medium">{kycSubmission.documentNumber}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Ngày gửi:</p>
+                                <p className="font-medium">
+                                  {new Date(kycSubmission.createdAt).toLocaleDateString('vi-VN')}
+                                </p>
+                              </div>
+                              {kycSubmission.address && (
+                                <div className="md:col-span-2">
+                                  <p className="text-gray-600">Địa chỉ:</p>
+                                  <p className="font-medium">{kycSubmission.address}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Ngày sinh</Label>
-                          <Input
-                            type="date"
-                            value={kycPersonalInfo.dateOfBirth}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
+                      ) : (
+                        // Hiển thị form chỉ khi draft hoặc rejected
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Họ và tên đầy đủ</Label>
+                            <Input
+                              value={kycPersonalInfo.fullName}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, fullName: e.target.value }))}
+                              placeholder="Nhập họ và tên đầy đủ"
+                              disabled={kycStatus === 'approved'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Ngày sinh</Label>
+                            <Input
+                              type="date"
+                              value={kycPersonalInfo.dateOfBirth}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                              disabled={kycStatus === 'approved'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Quốc tịch</Label>
+                            <Select
+                              value={kycPersonalInfo.nationality}
+                              onValueChange={(value) => setKycPersonalInfo(prev => ({ ...prev, nationality: value }))}
+                              disabled={kycStatus === 'approved'}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Vietnam">Việt Nam</SelectItem>
+                                <SelectItem value="Other">Khác</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Loại giấy tờ *</Label>
+                            <Select
+                              value={kycPersonalInfo.documentType}
+                              onValueChange={(value: DocumentType) => setKycPersonalInfo(prev => ({ ...prev, documentType: value }))}
+                              disabled={kycStatus === 'approved'}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="id_card">CCCD/CMND</SelectItem>
+                                <SelectItem value="passport">Hộ chiếu</SelectItem>
+                                <SelectItem value="driving_license">Bằng lái xe</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label>Địa chỉ thường trú</Label>
+                            <Textarea
+                              value={kycPersonalInfo.address}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, address: e.target.value }))}
+                              placeholder="Địa chỉ chi tiết (tối đa 500 ký tự)"
+                              maxLength={500}
+                              disabled={kycStatus === 'approved'}
+                            />
+                            <p className="text-xs text-muted-foreground text-right">
+                              {kycPersonalInfo.address.length}/500
+                            </p>
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label>Số giấy tờ *</Label>
+                            <Input
+                              value={kycPersonalInfo.documentNumber}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, documentNumber: e.target.value }))}
+                              placeholder="Số CCCD/CMND/Hộ chiếu (3-50 ký tự)"
+                              maxLength={50}
+                              disabled={kycStatus === 'approved'}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
+                            </p>
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Quốc tịch</Label>
-                          <Select
-                            value={kycPersonalInfo.nationality}
-                            onValueChange={(value) => setKycPersonalInfo(prev => ({ ...prev, nationality: value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Vietnam">Việt Nam</SelectItem>
-                              <SelectItem value="Other">Khác</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Loại giấy tờ *</Label>
-                          <Select
-                            value={kycPersonalInfo.documentType}
-                            onValueChange={(value: DocumentType) => setKycPersonalInfo(prev => ({ ...prev, documentType: value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="id_card">CCCD/CMND</SelectItem>
-                              <SelectItem value="passport">Hộ chiếu</SelectItem>
-                              <SelectItem value="driving_license">Bằng lái xe</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Địa chỉ thường trú</Label>
-                        <Textarea
-                          value={kycPersonalInfo.address}
-                          onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, address: e.target.value }))}
-                          placeholder="Địa chỉ chi tiết (tối đa 500 ký tự)"
-                          maxLength={500}
-                          disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                        />
-                        <p className="text-xs text-muted-foreground text-right">
-                          {kycPersonalInfo.address.length}/500
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Số giấy tờ *</Label>
-                        <Input
-                          value={kycPersonalInfo.documentNumber}
-                          onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, documentNumber: e.target.value }))}
-                          placeholder="Số CCCD/CMND/Hộ chiếu (3-50 ký tự)"
-                          maxLength={50}
-                          disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
-                        </p>
-                      </div>
-
-                      {/* Đã loại bỏ nút "Lưu thông tin" vì không cần thiết */}
+                      )}
                     </CardContent>
                   </Card>
 
@@ -871,120 +935,170 @@ export default function ProfilePage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Tài liệu xác thực</CardTitle>
-                      <CardDescription>Cần tải lên đủ 3 ảnh: mặt trước giấy tờ, mặt sau giấy tờ và ảnh selfie</CardDescription>
+                      <CardDescription>
+                        {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review')
+                          ? 'Tài liệu đã gửi - đang chờ xét duyệt'
+                          : 'Cần tải lên đủ 3 ảnh: mặt trước giấy tờ, mặt sau giấy tờ và ảnh selfie'
+                        }
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-6">
-                        {/* Hiển thị 3 loại ảnh cần upload */}
-                        {[
-                          { key: 'documentFrontUrl', fileKey: 'documentFrontFile', label: 'Mặt trước giấy tờ', icon: '🆔' },
-                          { key: 'documentBackUrl', fileKey: 'documentBackFile', label: 'Mặt sau giấy tờ', icon: '🔄' },
-                          { key: 'selfieUrl', fileKey: 'selfieFile', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
-                        ].map((docType) => (
-                          <div key={docType.key} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-2xl">{docType.icon}</span>
-                                <div>
-                                  <h4 className="font-medium">{docType.label}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Đã chọn ảnh' : 'Chưa chọn ảnh'}
-                                  </p>
+                        {/* Hiển thị tài liệu đã submit nếu có submission pending/submitted/under_review */}
+                        {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                              <div className="flex items-center space-x-2 mb-4">
+                                <CheckCircle className="h-5 w-5 text-blue-600" />
+                                <h4 className="font-medium text-blue-900">Tài liệu đã gửi</h4>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {[
+                                  { url: kycSubmission.documentFrontUrl, label: 'Mặt trước giấy tờ', icon: '🆔' },
+                                  { url: kycSubmission.documentBackUrl, label: 'Mặt sau giấy tờ', icon: '🔄' },
+                                  { url: kycSubmission.selfieUrl, label: 'Ảnh selfie', icon: '🤳' }
+                                ].map((doc, index) => (
+                                  <div key={index} className="text-center">
+                                    <div className="mb-2">
+                                      <span className="text-2xl">{doc.icon}</span>
+                                      <p className="text-sm font-medium">{doc.label}</p>
+                                    </div>
+                                    {doc.url ? (
+                                      <div className="space-y-2">
+                                        <img
+                                          src={doc.url}
+                                          alt={doc.label}
+                                          className="w-full h-24 object-cover rounded border"
+                                        />
+                                        <div className="flex items-center justify-center space-x-1">
+                                          <CheckCircle className="h-3 w-3 text-green-600" />
+                                          <span className="text-xs text-green-600">Đã gửi</span>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="h-24 bg-gray-100 rounded border flex items-center justify-center">
+                                        <span className="text-xs text-gray-500">Không có ảnh</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          // Hiển thị form upload chỉ khi draft hoặc rejected
+                          <>
+                            {[
+                              { key: 'documentFrontUrl', fileKey: 'documentFrontFile', label: 'Mặt trước giấy tờ', icon: '🆔' },
+                              { key: 'documentBackUrl', fileKey: 'documentBackFile', label: 'Mặt sau giấy tờ', icon: '🔄' },
+                              { key: 'selfieUrl', fileKey: 'selfieFile', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
+                            ].map((docType) => (
+                              <div key={docType.key} className="border rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-2xl">{docType.icon}</span>
+                                    <div>
+                                      <h4 className="font-medium">{docType.label}</h4>
+                                      <p className="text-sm text-muted-foreground">
+                                        {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Đã chọn ảnh' : 'Chưa chọn ảnh'}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {(kycStatus === 'draft' || kycStatus === 'rejected') && (
+                                    <Dialog
+                                      open={kycUploadDialogOpen && selectedKycDocType === docType.key}
+                                      onOpenChange={(open) => {
+                                        setKycUploadDialogOpen(open)
+                                        if (open) setSelectedKycDocType(docType.key)
+                                        else setSelectedKycDocType('')
+                                      }}
+                                    >
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm">
+                                          <Upload className="w-4 h-4 mr-2" />
+                                          {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? 'Thay đổi' : 'Tải lên'}
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>Tải lên {docType.label}</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
+                                          <ImageUploader
+                                            onUploadComplete={handleKycImageUpload(docType.key)}
+                                            onUploadError={handleKycImageUploadError}
+                                            maxFiles={1}
+                                            compact={true}
+                                            hideResults={true}
+                                            acceptedTypes="image/jpeg,image/png,image/webp"
+                                          />
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
+                                  )}
+                                </div>
+
+                                {/* Preview ảnh đã upload */}
+                                {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] && (
+                                  <div className="mt-3">
+                                    <img
+                                      src={kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls]}
+                                      alt={docType.label}
+                                      className="w-full max-w-xs h-32 object-cover rounded border"
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Status indicator */}
+                                <div className="mt-3 flex items-center space-x-2">
+                                  {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? (
+                                    <>
+                                      <CheckCircle className="h-4 w-4 text-green-600" />
+                                      <span className="text-sm text-green-600">Đã tải lên</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                                      <span className="text-sm text-yellow-600">Cần tải lên</span>
+                                    </>
+                                  )}
                                 </div>
                               </div>
+                            ))}
 
-                              {(kycStatus === 'draft' || kycStatus === 'rejected') && (
-                                <Dialog
-                                  open={kycUploadDialogOpen && selectedKycDocType === docType.key}
-                                  onOpenChange={(open) => {
-                                    setKycUploadDialogOpen(open)
-                                    if (open) setSelectedKycDocType(docType.key)
-                                    else setSelectedKycDocType('')
-                                  }}
-                                >
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                      <Upload className="w-4 h-4 mr-2" />
-                                      {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? 'Thay đổi' : 'Tải lên'}
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Tải lên {docType.label}</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4">
-                                      <ImageUploader
-                                        onUploadComplete={handleKycImageUpload(docType.key)}
-                                        onUploadError={handleKycImageUploadError}
-                                        maxFiles={1}
-                                        compact={true}
-                                        hideResults={true}
-                                        acceptedTypes="image/jpeg,image/png,image/webp"
-                                      />
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
-                              )}
-                            </div>
-
-                            {/* Preview ảnh đã upload */}
-                            {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] && (
-                              <div className="mt-3">
-                                <img
-                                  src={kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls]}
-                                  alt={docType.label}
-                                  className="w-full max-w-xs h-32 object-cover rounded border"
-                                />
+                            {/* Trạng thái tổng quan */}
+                            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-medium">Tiến độ tải ảnh</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {Object.values(kycPreviewUrls).filter(url => url).length}/3 ảnh đã tải lên
+                                  </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {isKycDataComplete() ? (
+                                    <>
+                                      <CheckCircle className="h-5 w-5 text-green-600" />
+                                      <span className="text-sm text-green-600 font-medium">Sẵn sàng gửi</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Clock className="h-5 w-5 text-yellow-600" />
+                                      <span className="text-sm text-yellow-600">Chưa đầy đủ</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            )}
-
-                            {/* Status indicator */}
-                            <div className="mt-3 flex items-center space-x-2">
-                              {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                  <span className="text-sm text-green-600">Đã tải lên</span>
-                                </>
-                              ) : (
-                                <>
-                                  <AlertCircle className="h-4 w-4 text-yellow-600" />
-                                  <span className="text-sm text-yellow-600">Cần tải lên</span>
-                                </>
-                              )}
                             </div>
-                          </div>
-                        ))}
-
-                        {/* Trạng thái tổng quan */}
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium">Tiến độ tải ảnh</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {Object.values(kycPreviewUrls).filter(url => url).length}/3 ảnh đã tải lên
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {isKycDataComplete() ? (
-                                <>
-                                  <CheckCircle className="h-5 w-5 text-green-600" />
-                                  <span className="text-sm text-green-600 font-medium">Sẵn sàng gửi</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Clock className="h-5 w-5 text-yellow-600" />
-                                  <span className="text-sm text-yellow-600">Chưa đầy đủ</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                          </>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
 
-                  {/* Submit Section */}
-                  {kycStatus === 'draft' && (
+                  {/* Submit Section - chỉ hiển thị khi draft hoặc rejected */}
+                  {(kycStatus === 'draft' || kycStatus === 'rejected') && (
                     <Card>
                       <CardContent className="pt-6">
                         <div className="text-center space-y-4">
@@ -1014,7 +1128,7 @@ export default function ProfilePage() {
                             </div>
                           )}
 
-                          {/* Upload Progress - đơn giản hơn vì chỉ submit API */}
+                          {/* Upload Progress */}
                           {isUploadingDoc && (
                             <div className="space-y-3">
                               <div className="text-center">
@@ -1038,7 +1152,7 @@ export default function ProfilePage() {
                             ) : (
                               <>
                                 <Send className="w-4 h-4 mr-2" />
-                                Gửi hồ sơ xác thực
+                                {kycStatus === 'rejected' ? 'Gửi lại hồ sơ' : 'Gửi hồ sơ xác thực'}
                               </>
                             )}
                           </Button>
@@ -1047,6 +1161,32 @@ export default function ProfilePage() {
                     </Card>
                   )}
 
+                  {/* Pending/Under Review Status */}
+                  {(kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') && (
+                    <Card className="border-blue-200 bg-blue-50">
+                      <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                          <div className="flex items-center justify-center space-x-2">
+                            <Clock className="h-8 w-8 text-blue-600" />
+                            <div>
+                              <h4 className="font-medium text-blue-900">Đang chờ xét duyệt</h4>
+                              <p className="text-sm text-blue-800">
+                                Hồ sơ của bạn đã được gửi thành công và hiện đang được xem xét bởi đội ngũ của chúng tôi
+                              </p>
+                            </div>
+                          </div>
+                          {kycSubmission && (
+                            <div className="text-xs text-blue-700 space-y-1">
+                              <p>Ngày gửi: {new Date(kycSubmission.createdAt).toLocaleDateString('vi-VN')}</p>
+                              <p>Thường mất 1-3 ngày làm việc để hoàn thành xét duyệt</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Rejection Notice */}
                   {kycStatus === 'rejected' && kycSubmission?.rejectionReason && (
                     <Card className="border-red-200 bg-red-50">
                       <CardContent className="pt-6">
@@ -1057,6 +1197,30 @@ export default function ProfilePage() {
                             <p className="text-sm text-red-800 mt-1">{kycSubmission.rejectionReason}</p>
                             <p className="text-xs text-red-700 mt-2">Vui lòng chỉnh sửa thông tin và gửi lại hồ sơ.</p>
                           </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Approved Status */}
+                  {kycStatus === 'approved' && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                          <div className="flex items-center justify-center space-x-2">
+                            <CheckCircle className="h-8 w-8 text-green-600" />
+                            <div>
+                              <h4 className="font-medium text-green-900">Xác thực thành công!</h4>
+                              <p className="text-sm text-green-800">
+                                Tài khoản của bạn đã được xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
+                              </p>
+                            </div>
+                          </div>
+                          {kycSubmission?.verifiedAt && (
+                            <p className="text-xs text-green-700">
+                              Xác thực vào: {new Date(kycSubmission.verifiedAt).toLocaleDateString('vi-VN')}
+                            </p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
