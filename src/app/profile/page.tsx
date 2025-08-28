@@ -799,48 +799,48 @@ export default function ProfilePage() {
                       {/* Hiển thị thông tin đã submit nếu có submission pending/submitted/under_review */}
                       {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
                         <div className="space-y-4">
-                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
                             <div className="flex items-center space-x-2 mb-3">
                               <Clock className="h-5 w-5 text-blue-600" />
                               <h4 className="font-medium text-blue-900">Thông tin đã gửi</h4>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                               <div>
-                                <p className="text-gray-600">Họ và tên:</p>
-                                <p className="font-medium">{kycSubmission.fullName}</p>
+                                <p className="text-gray-700 font-medium">Họ và tên:</p>
+                                <p className="text-gray-900 break-words">{kycSubmission.fullName}</p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Ngày sinh:</p>
-                                <p className="font-medium">
+                                <p className="text-gray-700 font-medium">Ngày sinh:</p>
+                                <p className="text-gray-900">
                                   {kycSubmission.dateOfBirth ? new Date(kycSubmission.dateOfBirth).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Quốc tịch:</p>
-                                <p className="font-medium">{kycSubmission.nationality}</p>
+                                <p className="text-gray-700 font-medium">Quốc tịch:</p>
+                                <p className="text-gray-900">{kycSubmission.nationality}</p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Loại giấy tờ:</p>
-                                <p className="font-medium">
+                                <p className="text-gray-700 font-medium">Loại giấy tờ:</p>
+                                <p className="text-gray-900">
                                   {kycSubmission.documentType === 'id_card' ? 'CCCD/CMND' :
                                    kycSubmission.documentType === 'passport' ? 'Hộ chiếu' :
                                    kycSubmission.documentType === 'driving_license' ? 'Bằng lái xe' : kycSubmission.documentType}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Số giấy tờ:</p>
-                                <p className="font-medium">{kycSubmission.documentNumber}</p>
+                                <p className="text-gray-700 font-medium">Số giấy tờ:</p>
+                                <p className="text-gray-900 break-all">{kycSubmission.documentNumber}</p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Ngày gửi:</p>
-                                <p className="font-medium">
+                                <p className="text-gray-700 font-medium">Ngày gửi:</p>
+                                <p className="text-gray-900">
                                   {new Date(kycSubmission.createdAt).toLocaleDateString('vi-VN')}
                                 </p>
                               </div>
                               {kycSubmission.address && (
-                                <div className="md:col-span-2">
-                                  <p className="text-gray-600">Địa chỉ:</p>
-                                  <p className="font-medium">{kycSubmission.address}</p>
+                                <div className="sm:col-span-2">
+                                  <p className="text-gray-700 font-medium">Địa chỉ:</p>
+                                  <p className="text-gray-900 break-words">{kycSubmission.address}</p>
                                 </div>
                               )}
                             </div>
