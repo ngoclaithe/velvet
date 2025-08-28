@@ -191,7 +191,7 @@ export default function ProfilePage() {
 
         setAvatarUploadDialogOpen(false)
         toast({
-          title: "Cập nhật avatar thành công!",
+          title: "Cập nhật avatar thành c��ng!",
           description: "Ảnh đại diện của bạn đã được cập nhật.",
           variant: "default"
         })
@@ -247,23 +247,24 @@ export default function ProfilePage() {
     }
   }
 
-  // KYC document upload handlers
+  // KYC document upload handlers - chỉ lưu vào state local
   const handleKycUploadComplete = async (results: CloudinaryUploadResponse[]) => {
     if (results.length > 0 && selectedKycDocType) {
-      setIsUploadingDoc(true)
       try {
-        // Call API to update KYC document with Cloudinary URL
-        const response = await kycApi.updateDocumentUrl(selectedKycDocType, results[0].secure_url)
-        if (response.success) {
-          toast({
-            title: "Tải lên thành công!",
-            description: "Tài liệu đã được tải lên",
-            variant: "default"
-          })
-          setKycUploadDialogOpen(false)
-          setSelectedKycDocType('')
-          fetchKycData()
-        }
+        // Lưu URL vào state local thay vì gọi API ngay
+        setKycDocuments(prev => ({
+          ...prev,
+          [selectedKycDocType]: results[0].secure_url
+        }))
+
+        toast({
+          title: "Tải lên thành công!",
+          description: `${getDocumentTypeDescription(selectedKycDocType)} đã được tải lên`,
+          variant: "default"
+        })
+
+        setKycUploadDialogOpen(false)
+        setSelectedKycDocType('')
       } catch (error) {
         console.error('KYC document upload failed:', error)
         toast({
@@ -271,8 +272,6 @@ export default function ProfilePage() {
           description: "Không thể tải lên tài liệu",
           variant: "destructive"
         })
-      } finally {
-        setIsUploadingDoc(false)
       }
     }
   }
