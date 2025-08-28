@@ -41,9 +41,12 @@ import {
   Send
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
+import ImageUploader from '@/components/ImageUploader'
 import type { User } from '@/types/auth'
 import { kycApi, type KycSubmission, type KycDocument, getKycStatusDescription, getVerificationLevelDescription, getDocumentTypeDescription } from '@/lib/api/kyc'
 import type { ApiResponse } from '@/types/api'
+import type { CloudinaryUploadResponse } from '@/types/cloudinary'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 type Gender = 'male' | 'female' | 'other';
