@@ -1,3 +1,10 @@
+import type {
+  CloudinarySignatureResponse,
+  CloudinaryUploadResponse,
+  OptimizedImageResponse,
+  UploadOptions
+} from '@/types/cloudinary';
+
 class CloudinaryService {
   private backendUrl: string;
 
