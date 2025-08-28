@@ -371,7 +371,7 @@ export default function ProfilePage() {
       if (response.success) {
         toast({
           title: "Gửi xác thực thành công!",
-          description: "Hồ sơ KYC của bạn đã được gửi và đang được xem xét",
+          description: "H��� sơ KYC của bạn đã được gửi và đang được xem xét",
           variant: "default"
         })
 
@@ -848,7 +848,7 @@ export default function ProfilePage() {
                         </div>
                       ) : (
                         // Hiển thị form chỉ khi draft hoặc rejected
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           <div className="space-y-2">
                             <Label>Họ và tên đầy đủ</Label>
                             <Input
@@ -900,7 +900,7 @@ export default function ProfilePage() {
                               </SelectContent>
                             </Select>
                           </div>
-                          <div className="md:col-span-2 space-y-2">
+                          <div className="sm:col-span-2 space-y-2">
                             <Label>Địa chỉ thường trú</Label>
                             <Textarea
                               value={kycPersonalInfo.address}
@@ -913,7 +913,7 @@ export default function ProfilePage() {
                               {kycPersonalInfo.address.length}/500
                             </p>
                           </div>
-                          <div className="md:col-span-2 space-y-2">
+                          <div className="sm:col-span-2 space-y-2">
                             <Label>Số giấy tờ *</Label>
                             <Input
                               value={kycPersonalInfo.documentNumber}
@@ -1152,7 +1152,7 @@ export default function ProfilePage() {
                             ) : (
                               <>
                                 <Send className="w-4 h-4 mr-2" />
-                                {kycStatus === 'rejected' ? 'Gửi lại hồ sơ' : 'Gửi hồ sơ xác thực'}
+                                {kycStatus === 'rejected' ? 'Gửi lại hồ s��' : 'Gửi hồ sơ xác thực'}
                               </>
                             )}
                           </Button>
