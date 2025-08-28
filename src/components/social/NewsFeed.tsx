@@ -619,34 +619,36 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="for-you" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Dành cho bạn
-            </TabsTrigger>
-            <TabsTrigger value="following" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Đang theo dõi
-            </TabsTrigger>
-            <TabsTrigger value="live" className="flex items-center gap-2">
-              <Video className="w-4 h-4" />
-              Live
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+      {!propActiveTab && (
+        <div className="flex items-center justify-between mb-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="for-you" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Dành cho bạn
+              </TabsTrigger>
+              <TabsTrigger value="following" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Đang theo dõi
+              </TabsTrigger>
+              <TabsTrigger value="live" className="flex items-center gap-2">
+                <Video className="w-4 h-4" />
+                Live
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={refreshFeed}
-          disabled={refreshing}
-          className="ml-4"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={refreshFeed}
+            disabled={refreshing}
+            className="ml-4"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      )}
 
       <div className="space-y-6">
         {currentFeed.posts.map(renderPost)}
