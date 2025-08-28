@@ -394,7 +394,7 @@ export default function ProfilePage() {
       console.error('❌ Submit KYC failed:', error)
       toast({
         title: "Lỗi gửi hồ sơ",
-        description: error instanceof Error ? error.message : "Kh��ng thể gửi hồ sơ xác thực. Vui lòng thử lại.",
+        description: error instanceof Error ? error.message : "Không thể gửi hồ sơ xác thực. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -411,7 +411,7 @@ export default function ProfilePage() {
       case 'submitted':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Đã gửi</Badge>
       case 'rejected':
-        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" />Bị từ chối</Badge>
+        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" />B�� từ chối</Badge>
       default:
         return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Chưa xác thực</Badge>
     }
@@ -786,95 +786,146 @@ export default function ProfilePage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Thông tin cá nhân KYC</CardTitle>
-                      <CardDescription>Thông tin này sẽ được sử dụng để xác thực danh tính</CardDescription>
+                      <CardDescription>
+                        {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review')
+                          ? 'Thông tin đã gửi - đang chờ xét duyệt'
+                          : 'Thông tin này sẽ được sử dụng để xác thực danh tính'
+                        }
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Họ và tên đầy đủ</Label>
-                          <Input
-                            value={kycPersonalInfo.fullName}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, fullName: e.target.value }))}
-                            placeholder="Nhập họ và tên đầy đủ"
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
+                      {/* Hiển thị thông tin đã submit nếu có submission pending/submitted/under_review */}
+                      {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
+                        <div className="space-y-4">
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <Clock className="h-5 w-5 text-blue-600" />
+                              <h4 className="font-medium text-blue-900">Thông tin đã gửi</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-gray-600">Họ và tên:</p>
+                                <p className="font-medium">{kycSubmission.fullName}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Ngày sinh:</p>
+                                <p className="font-medium">
+                                  {kycSubmission.dateOfBirth ? new Date(kycSubmission.dateOfBirth).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Quốc tịch:</p>
+                                <p className="font-medium">{kycSubmission.nationality}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Loại giấy tờ:</p>
+                                <p className="font-medium">
+                                  {kycSubmission.documentType === 'id_card' ? 'CCCD/CMND' :
+                                   kycSubmission.documentType === 'passport' ? 'Hộ chiếu' :
+                                   kycSubmission.documentType === 'driving_license' ? 'Bằng lái xe' : kycSubmission.documentType}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Số giấy tờ:</p>
+                                <p className="font-medium">{kycSubmission.documentNumber}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Ngày gửi:</p>
+                                <p className="font-medium">
+                                  {new Date(kycSubmission.createdAt).toLocaleDateString('vi-VN')}
+                                </p>
+                              </div>
+                              {kycSubmission.address && (
+                                <div className="md:col-span-2">
+                                  <p className="text-gray-600">Địa chỉ:</p>
+                                  <p className="font-medium">{kycSubmission.address}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Ngày sinh</Label>
-                          <Input
-                            type="date"
-                            value={kycPersonalInfo.dateOfBirth}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
+                      ) : (
+                        // Hiển thị form chỉ khi draft hoặc rejected
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Họ và tên đầy đủ</Label>
+                            <Input
+                              value={kycPersonalInfo.fullName}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, fullName: e.target.value }))}
+                              placeholder="Nhập họ và tên đầy đủ"
+                              disabled={kycStatus === 'approved'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Ngày sinh</Label>
+                            <Input
+                              type="date"
+                              value={kycPersonalInfo.dateOfBirth}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                              disabled={kycStatus === 'approved'}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Quốc tịch</Label>
+                            <Select
+                              value={kycPersonalInfo.nationality}
+                              onValueChange={(value) => setKycPersonalInfo(prev => ({ ...prev, nationality: value }))}
+                              disabled={kycStatus === 'approved'}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Vietnam">Việt Nam</SelectItem>
+                                <SelectItem value="Other">Khác</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Loại giấy tờ *</Label>
+                            <Select
+                              value={kycPersonalInfo.documentType}
+                              onValueChange={(value: DocumentType) => setKycPersonalInfo(prev => ({ ...prev, documentType: value }))}
+                              disabled={kycStatus === 'approved'}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="id_card">CCCD/CMND</SelectItem>
+                                <SelectItem value="passport">Hộ chiếu</SelectItem>
+                                <SelectItem value="driving_license">Bằng lái xe</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label>Địa chỉ thường trú</Label>
+                            <Textarea
+                              value={kycPersonalInfo.address}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, address: e.target.value }))}
+                              placeholder="Địa chỉ chi tiết (tối đa 500 ký tự)"
+                              maxLength={500}
+                              disabled={kycStatus === 'approved'}
+                            />
+                            <p className="text-xs text-muted-foreground text-right">
+                              {kycPersonalInfo.address.length}/500
+                            </p>
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label>Số giấy tờ *</Label>
+                            <Input
+                              value={kycPersonalInfo.documentNumber}
+                              onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, documentNumber: e.target.value }))}
+                              placeholder="Số CCCD/CMND/Hộ chiếu (3-50 ký tự)"
+                              maxLength={50}
+                              disabled={kycStatus === 'approved'}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
+                            </p>
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Quốc tịch</Label>
-                          <Select
-                            value={kycPersonalInfo.nationality}
-                            onValueChange={(value) => setKycPersonalInfo(prev => ({ ...prev, nationality: value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Vietnam">Việt Nam</SelectItem>
-                              <SelectItem value="Other">Khác</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Loại giấy tờ *</Label>
-                          <Select
-                            value={kycPersonalInfo.documentType}
-                            onValueChange={(value: DocumentType) => setKycPersonalInfo(prev => ({ ...prev, documentType: value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="id_card">CCCD/CMND</SelectItem>
-                              <SelectItem value="passport">Hộ chiếu</SelectItem>
-                              <SelectItem value="driving_license">Bằng lái xe</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Địa chỉ thường trú</Label>
-                        <Textarea
-                          value={kycPersonalInfo.address}
-                          onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, address: e.target.value }))}
-                          placeholder="Địa chỉ chi tiết (tối đa 500 ký tự)"
-                          maxLength={500}
-                          disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                        />
-                        <p className="text-xs text-muted-foreground text-right">
-                          {kycPersonalInfo.address.length}/500
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Số giấy tờ *</Label>
-                        <Input
-                          value={kycPersonalInfo.documentNumber}
-                          onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, documentNumber: e.target.value }))}
-                          placeholder="Số CCCD/CMND/Hộ chiếu (3-50 ký tự)"
-                          maxLength={50}
-                          disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
-                        </p>
-                      </div>
-
-                      {/* Đã loại bỏ nút "Lưu thông tin" vì không cần thiết */}
+                      )}
                     </CardContent>
                   </Card>
 
