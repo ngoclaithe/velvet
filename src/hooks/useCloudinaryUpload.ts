@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import CloudinaryService from '@/lib/api/cloudinary';
+import { cloudinaryApi } from '@/lib/api/cloudinary';
 import type { CloudinaryUploadResponse, UploadOptions } from '@/types/cloudinary';
 
 interface UseCloudinaryUploadReturn {
@@ -18,8 +18,6 @@ export const useCloudinaryUpload = (): UseCloudinaryUploadReturn => {
   const [progress, setProgress] = useState<Record<number, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<CloudinaryUploadResponse[]>([]);
-  
-  const service = new CloudinaryService();
 
   const uploadSingle = useCallback(async (
     file: File, 
@@ -30,7 +28,7 @@ export const useCloudinaryUpload = (): UseCloudinaryUploadReturn => {
     setProgress({ 0: 0 });
 
     try {
-      const result = await service.uploadFile(file, options, (progress) => {
+      const result = await cloudinaryApi.uploadFile(file, options, (progress) => {
         setProgress({ 0: progress });
       });
       
@@ -55,7 +53,7 @@ export const useCloudinaryUpload = (): UseCloudinaryUploadReturn => {
     setProgress({});
 
     try {
-      const results = await service.uploadMultipleFiles(files, options, (fileIndex, fileProgress) => {
+      const results = await cloudinaryApi.uploadMultipleFiles(files, options, (fileIndex, fileProgress) => {
         setProgress(prev => ({
           ...prev,
           [fileIndex]: fileProgress
