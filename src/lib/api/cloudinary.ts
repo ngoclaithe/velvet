@@ -56,10 +56,18 @@ export const cloudinaryApi = {
     formData.append('dpr', signatureData.dpr)
     formData.append('flags', signatureData.flags)
 
-    // Bỏ transformation parameter để tránh lỗi
-    // Các parameter khác như quality, fetch_format, dpr sẽ đảm nhiệm việc tối ưu
-    console.log('🔧 Skipping transformation parameter to avoid errors')
-    console.log('🔧 Using quality, fetch_format, and dpr for optimization instead')
+    // Thêm các parameter tối ưu khác thay vì transformation
+    if (file.type.startsWith('image/')) {
+      // Chỉ áp dụng cho hình ảnh
+      formData.append('format', 'auto')  // Tự động chọn format tốt nhất
+      formData.append('crop', 'limit')   // Không crop, chỉ giới hạn kích thước
+      formData.append('width', '1200')   // Giới hạn width tối đa
+      formData.append('height', '1200')  // Giới hạn height tối đa
+    }
+
+    console.log('🔧 Skipping complex transformation parameter to avoid errors')
+    console.log('🔧 Using individual optimization parameters instead')
+    console.log('🔧 File type:', file.type, 'Size:', file.size)
 
     // Determine resource type
     const resourceType = getResourceType(file, options?.resource_type)
