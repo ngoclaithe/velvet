@@ -5,4 +5,5 @@ export const creatorAPI = {
     getCreatorById: (id: number) => api.get(`/creators/${id}`),
     getUsersFollowMe: () => api.get('/follows/followers'),
     deleteUserFollow: (userId: number) => api.delete(`/follows/followers/${userId}`),
+    getFeaturedCreator: () => api.get('/creators/featured'),
 }
