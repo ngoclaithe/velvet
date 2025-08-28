@@ -21,7 +21,6 @@ import {
   Play,
   TrendingUp,
   Users,
-  Video,
   Loader2,
   RefreshCw
 } from 'lucide-react'
@@ -409,7 +408,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     const post = currentFeed.posts.find(p => p.id === postId)
     toast({
       title: post?.isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
-      description: "Thay đổi đã được lưu cục b��",
+      description: "Thay đổi đã được lưu cục bộ",
       variant: "default"
     })
   }, [isAuthenticated, activeTab, currentFeed.posts, toast])
