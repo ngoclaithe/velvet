@@ -97,7 +97,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   // Mock data cho demo khi chưa có backend
   const getMockPosts = useCallback((tab: string, page: number): Post[] => {
-    // Nếu chưa có bài viết thì tr�� về mảng rỗng
+    // Nếu chưa có bài viết thì trả về mảng rỗng
     if ((tab === 'following' || tab === 'my-posts') && !isAuthenticated) {
       return []
     }
@@ -256,18 +256,19 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
       if (response && response.success && response.data) {
         // Handle different response formats
-        let rawPosts = []
+        let rawPosts: any[] = []
         let total = 0
-        let pagination = null
+        let pagination: any = null
 
         if (Array.isArray(response.data)) {
           rawPosts = response.data
           total = rawPosts.length
         } else if (response.data && typeof response.data === 'object') {
-          if ('posts' in response.data) {
-            rawPosts = response.data.posts || []
-            total = response.data.total || rawPosts.length
-            pagination = response.data.pagination
+          const dataObj = response.data as any
+          if ('posts' in dataObj) {
+            rawPosts = dataObj.posts || []
+            total = dataObj.total || dataObj.pagination?.totalPosts || rawPosts.length
+            pagination = dataObj.pagination
           } else {
             // Single post wrapped in data
             rawPosts = [response.data]
@@ -386,7 +387,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
-        description: "Vui lòng đăng nhập đ�� thích bài viết",
+        description: "Vui lòng đăng nhập để thích bài viết",
         variant: "destructive"
       })
       return
