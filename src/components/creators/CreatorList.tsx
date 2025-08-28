@@ -62,7 +62,7 @@ interface Post {
 }
 
 // Define the tab type explicitly
-type TabType = 'all' | 'following' | 'followers' | 'my-posts'
+type TabType = 'all' | 'following' | 'followers'
 
 export default function CreatorList() {
   const [activeTab, setActiveTab] = useState<TabType>('all')
