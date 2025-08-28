@@ -236,19 +236,30 @@ export default function ProfilePage() {
 
       if (submissionResponse.success && submissionResponse.data) {
         setKycSubmission(submissionResponse.data)
-        if (submissionResponse.data.personalInfo) {
-          setKycPersonalInfo({
-            fullName: submissionResponse.data.personalInfo.fullName || '',
-            dateOfBirth: submissionResponse.data.personalInfo.dateOfBirth || '',
-            nationality: submissionResponse.data.personalInfo.nationality || 'Vietnam',
-            address: submissionResponse.data.personalInfo.address || '',
-            documentNumber: submissionResponse.data.documentNumber || '',
-            documentType: submissionResponse.data.documentType || 'id_card'
+
+        // Nếu có submission, load dữ liệu từ submission
+        setKycPersonalInfo({
+          fullName: submissionResponse.data.fullName || '',
+          dateOfBirth: submissionResponse.data.dateOfBirth || '',
+          nationality: submissionResponse.data.nationality || 'Vietnam',
+          address: submissionResponse.data.address || '',
+          documentNumber: submissionResponse.data.documentNumber || '',
+          documentType: submissionResponse.data.documentType || 'id_card'
+        })
+
+        // Clear local preview URLs nếu đã có submission
+        if (submissionResponse.data.status !== 'draft') {
+          setKycPreviewUrls({
+            documentFrontUrl: '',
+            documentBackUrl: '',
+            selfieUrl: ''
+          })
+          setKycDocuments({
+            documentFrontFile: null,
+            documentBackFile: null,
+            selfieFile: null
           })
         }
-
-        // Không load URLs vào state nữa vì chúng ta dùng files local
-        // URLs chỉ hiển thị ở kycSubmission để xem kết quả đã submit
       }
     } catch (error) {
       console.error('Failed to fetch KYC data:', error)
@@ -383,7 +394,7 @@ export default function ProfilePage() {
       console.error('❌ Submit KYC failed:', error)
       toast({
         title: "Lỗi gửi hồ sơ",
-        description: error instanceof Error ? error.message : "Không thể gửi hồ sơ xác thực. Vui lòng thử lại.",
+        description: error instanceof Error ? error.message : "Kh��ng thể gửi hồ sơ xác thực. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
