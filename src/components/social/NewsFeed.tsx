@@ -691,6 +691,8 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                   ? 'Hãy theo dõi một số người để xem bài viết của họ tại đây'
                   : activeTab === 'live'
                   ? 'Hiện tại không có ai đang live stream'
+                  : activeTab === 'my-posts'
+                  ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                   : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                 }
               </p>
