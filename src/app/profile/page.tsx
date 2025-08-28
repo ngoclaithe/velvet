@@ -270,45 +270,70 @@ export default function ProfilePage() {
     }
   }
 
-  // KYC document upload handlers - chỉ lưu vào state local
-  const handleKycUploadComplete = async (results: CloudinaryUploadResponse[]) => {
-    if (results.length > 0 && selectedKycDocType) {
-      try {
-        // Lưu URL vào state local thay vì gọi API ngay
-        setKycDocuments(prev => ({
-          ...prev,
-          [selectedKycDocType]: results[0].secure_url
-        }))
+  // Handler để chọn file ảnh KYC (chưa upload)
+  const handleKycFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !selectedKycDocType) return
 
-        toast({
-          title: "Tải lên thành công!",
-          description: `${getDocumentTypeDescription(selectedKycDocType)} đã được tải lên`,
-          variant: "default"
-        })
-
-        setKycUploadDialogOpen(false)
-        setSelectedKycDocType('')
-      } catch (error) {
-        console.error('KYC document upload failed:', error)
-        toast({
-          title: "Lỗi tải lên",
-          description: "Không thể tải lên tài liệu",
-          variant: "destructive"
-        })
-      }
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "File không hợp lệ",
+        description: "Vui lòng chọn file ảnh (JPG, PNG, WEBP)",
+        variant: "destructive"
+      })
+      return
     }
-  }
 
-  const handleKycUploadError = (error: string) => {
-    toast({
-      title: "Lỗi tải lên",
-      description: error,
-      variant: "destructive"
-    })
-  }
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File quá lớn",
+        description: "Kích thước file không được vượt quá 10MB",
+        variant: "destructive"
+      })
+      return
+    }
 
-  const handleKycUploadStart = () => {
-    setIsUploadingDoc(true)
+    try {
+      // Lưu file vào state và tạo preview URL
+      const fileKey = selectedKycDocType.replace('Url', 'File') as keyof typeof kycDocuments
+      const urlKey = selectedKycDocType as keyof typeof kycPreviewUrls
+
+      // Clear previous preview URL
+      if (kycPreviewUrls[urlKey]) {
+        URL.revokeObjectURL(kycPreviewUrls[urlKey])
+      }
+
+      // Create new preview URL
+      const previewUrl = URL.createObjectURL(file)
+
+      setKycDocuments(prev => ({
+        ...prev,
+        [fileKey]: file
+      }))
+
+      setKycPreviewUrls(prev => ({
+        ...prev,
+        [urlKey]: previewUrl
+      }))
+
+      toast({
+        title: "Chọn ảnh thành công!",
+        description: `${getDocumentTypeDescription(selectedKycDocType)} đã được chọn`,
+        variant: "default"
+      })
+
+      setKycUploadDialogOpen(false)
+      setSelectedKycDocType('')
+    } catch (error) {
+      console.error('File selection failed:', error)
+      toast({
+        title: "Lỗi chọn file",
+        description: "Không thể chọn file. Vui lòng thử lại.",
+        variant: "destructive"
+      })
+    }
   }
 
   // Legacy function - keeping for backward compatibility
@@ -507,7 +532,7 @@ export default function ProfilePage() {
                       <DialogHeader>
                         <DialogTitle>Cập nhật ảnh đại diện</DialogTitle>
                         <DialogDescription>
-                          Chọn ảnh mới để làm ảnh đại diện của bạn
+                          Chọn ��nh mới để làm ảnh đại diện của bạn
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
@@ -557,7 +582,7 @@ export default function ProfilePage() {
                   className="w-full sm:w-auto"
                 >
                   <Edit3 className="h-4 w-4 mr-2" />
-                  {isEditing ? 'Hủy chỉnh sửa' : 'Chỉnh sửa hồ sơ'}
+                  {isEditing ? 'Hủy chỉnh sửa' : 'Ch���nh sửa hồ sơ'}
                 </Button>
               </div>
             </CardContent>
@@ -1024,7 +1049,7 @@ export default function ProfilePage() {
                           ) : (
                             <div className="bg-yellow-50 p-4 rounded-lg">
                               <AlertCircle className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
-                              <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa ��ầy đủ</h4>
+                              <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa đầy đủ</h4>
                               <p className="text-sm text-yellow-800 mb-3">
                                 Vui lòng hoàn thành các mục sau trước khi gửi:
                               </p>
