@@ -46,20 +46,6 @@ interface Creator {
   isFollowing?: boolean
 }
 
-interface Post {
-  id: string
-  content: string
-  media?: Array<{
-    type: 'image' | 'video'
-    url: string
-    thumbnail?: string
-  }>
-  likes: number
-  comments: number
-  createdAt: Date
-  isAdult?: boolean
-  isPremium?: boolean
-}
 
 // Define the tab type explicitly
 type TabType = 'all' | 'following' | 'followers'
@@ -445,7 +431,7 @@ export default function CreatorList() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Creators</h2>
-          <p className="text-gray-400">Khám phá v�� theo dõi các creator yêu thích</p>
+          <p className="text-gray-400">Khám phá và theo dõi các creator yêu thích</p>
         </div>
       </div>
 
