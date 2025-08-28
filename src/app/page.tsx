@@ -409,10 +409,10 @@ export default function HomePage() {
                     <Edit3 className="w-4 h-4" />
                     Bài viết của tôi
                   </TabsTrigger>
-                  <TabsTrigger value="blog" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
+                  {/* <TabsTrigger value="blog" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                     <Edit3 className="w-4 h-4" />
                     Blog & Bài viết
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                   <TabsTrigger value="creators" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                     <Users className="w-4 h-4" />
                     Creator
