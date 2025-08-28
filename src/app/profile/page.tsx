@@ -41,9 +41,13 @@ import {
   Send
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
+import ImageUploader from '@/components/ImageUploader'
 import type { User } from '@/types/auth'
-import { kycApi, type KycSubmission, type KycDocument, getKycStatusDescription, getVerificationLevelDescription, getDocumentTypeDescription } from '@/lib/api/kyc'
+import { kycApi, getKycStatusDescription, getVerificationLevelDescription, getDocumentTypeDescription } from '@/lib/api/kyc'
+import type { KycSubmission, DocumentType, KycStatus } from '@/types/kyc'
 import type { ApiResponse } from '@/types/api'
+import type { CloudinaryUploadResponse } from '@/types/cloudinary'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 type Gender = 'male' | 'female' | 'other';
@@ -104,14 +108,17 @@ export default function ProfilePage() {
   const [isUploadingDoc, setIsUploadingDoc] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [selectedDocType, setSelectedDocType] = useState('')
+  const [avatarUploadDialogOpen, setAvatarUploadDialogOpen] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
+  const [selectedKycDocType, setSelectedKycDocType] = useState('')
   const [kycPersonalInfo, setKycPersonalInfo] = useState({
     fullName: '',
     dateOfBirth: '',
     nationality: 'Vietnam',
     address: '',
-    phoneNumber: '',
-    idNumber: '',
-    idType: 'citizen_id' as 'citizen_id' | 'passport' | 'driver_license'
+    documentNumber: '',
+    documentType: 'id_card' as DocumentType
   })
 
   const handleInputChange = (field: string, value: string) => {
@@ -165,6 +172,42 @@ export default function ProfilePage() {
     setIsEditing(false)
   }
 
+  // Avatar upload handlers
+  const handleAvatarUploadComplete = async (results: CloudinaryUploadResponse[]) => {
+    if (results.length > 0 && user) {
+      setIsUploadingAvatar(true)
+      try {
+        await updateProfile({
+          avatar: results[0].secure_url
+        } as Partial<User>)
+
+        setAvatarUploadDialogOpen(false)
+        toast({
+          title: "Cập nhật avatar thành công!",
+          description: "Ảnh đại diện của bạn đã được c��p nhật.",
+          variant: "default"
+        })
+      } catch (error) {
+        console.error('Update avatar failed:', error)
+        toast({
+          title: "Lỗi cập nhật avatar",
+          description: "Không thể cập nhật ảnh đại diện. Vui lòng thử lại.",
+          variant: "destructive"
+        })
+      } finally {
+        setIsUploadingAvatar(false)
+      }
+    }
+  }
+
+  const handleAvatarUploadError = (error: string) => {
+    toast({
+      title: "Lỗi tải lên",
+      description: error,
+      variant: "destructive"
+    })
+  }
+
   // KYC functions
   const fetchKycData = async () => {
     setIsLoadingKyc(true)
@@ -196,6 +239,49 @@ export default function ProfilePage() {
     }
   }
 
+  // KYC document upload handlers
+  const handleKycUploadComplete = async (results: CloudinaryUploadResponse[]) => {
+    if (results.length > 0 && selectedKycDocType) {
+      setIsUploadingDoc(true)
+      try {
+        // Call API to update KYC document with Cloudinary URL
+        const response = await kycApi.updateDocumentUrl(selectedKycDocType, results[0].secure_url)
+        if (response.success) {
+          toast({
+            title: "Tải lên thành công!",
+            description: "Tài liệu đã được tải lên",
+            variant: "default"
+          })
+          setKycUploadDialogOpen(false)
+          setSelectedKycDocType('')
+          fetchKycData()
+        }
+      } catch (error) {
+        console.error('KYC document upload failed:', error)
+        toast({
+          title: "Lỗi tải lên",
+          description: "Không thể tải lên tài liệu",
+          variant: "destructive"
+        })
+      } finally {
+        setIsUploadingDoc(false)
+      }
+    }
+  }
+
+  const handleKycUploadError = (error: string) => {
+    toast({
+      title: "Lỗi tải lên",
+      description: error,
+      variant: "destructive"
+    })
+  }
+
+  const handleKycUploadStart = () => {
+    setIsUploadingDoc(true)
+  }
+
+  // Legacy function - keeping for backward compatibility
   const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file || !selectedDocType) return
@@ -340,13 +426,41 @@ export default function ProfilePage() {
                       {user?.username?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                  <Dialog open={avatarUploadDialogOpen} onOpenChange={setAvatarUploadDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+                        disabled={isUploadingAvatar}
+                      >
+                        {isUploadingAvatar ? (
+                          <Icons.spinner className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Camera className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Cập nhật ảnh đại diện</DialogTitle>
+                        <DialogDescription>
+                          Chọn ảnh mới để làm ảnh đại diện của bạn
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <ImageUploader
+                          onUploadComplete={handleAvatarUploadComplete}
+                          onUploadError={handleAvatarUploadError}
+                          maxFiles={1}
+                          compact={true}
+                          hideResults={true}
+                          acceptedTypes="image/jpeg,image/png,image/webp"
+                          disabled={isUploadingAvatar}
+                        />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 
                 <div className="flex-1 text-center sm:text-left">
@@ -645,15 +759,6 @@ export default function ProfilePage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Số điện thoại</Label>
-                          <Input
-                            value={kycPersonalInfo.phoneNumber}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                            placeholder="Số điện thoại"
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
-                        </div>
-                        <div className="space-y-2">
                           <Label>Quốc tịch</Label>
                           <Select
                             value={kycPersonalInfo.nationality}
@@ -669,6 +774,23 @@ export default function ProfilePage() {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div className="space-y-2">
+                          <Label>Loại giấy tờ *</Label>
+                          <Select
+                            value={kycPersonalInfo.documentType}
+                            onValueChange={(value: DocumentType) => setKycPersonalInfo(prev => ({ ...prev, documentType: value }))}
+                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="id_card">CCCD/CMND</SelectItem>
+                              <SelectItem value="passport">Hộ chiếu</SelectItem>
+                              <SelectItem value="driving_license">Bằng lái xe</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="space-y-2">
@@ -676,38 +798,27 @@ export default function ProfilePage() {
                         <Textarea
                           value={kycPersonalInfo.address}
                           onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, address: e.target.value }))}
-                          placeholder="Địa chỉ chi tiết"
+                          placeholder="Địa chỉ chi tiết (tối đa 500 ký tự)"
+                          maxLength={500}
                           disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
                         />
+                        <p className="text-xs text-muted-foreground text-right">
+                          {kycPersonalInfo.address.length}/500
+                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Loại giấy tờ</Label>
-                          <Select
-                            value={kycPersonalInfo.idType}
-                            onValueChange={(value: any) => setKycPersonalInfo(prev => ({ ...prev, idType: value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="citizen_id">CCCD/CMND</SelectItem>
-                              <SelectItem value="passport">Hộ chiếu</SelectItem>
-                              <SelectItem value="driver_license">Bằng lái xe</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Số giấy tờ</Label>
-                          <Input
-                            value={kycPersonalInfo.idNumber}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, idNumber: e.target.value }))}
-                            placeholder="Số CCCD/CMND/Hộ chiếu"
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <Label>Số giấy tờ *</Label>
+                        <Input
+                          value={kycPersonalInfo.documentNumber}
+                          onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, documentNumber: e.target.value }))}
+                          placeholder="Số CCCD/CMND/Hộ chiếu (3-50 ký tự)"
+                          maxLength={50}
+                          disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
+                        </p>
                       </div>
 
                       {(kycStatus === 'draft' || kycStatus === 'rejected') && (
@@ -728,49 +839,54 @@ export default function ProfilePage() {
                           <CardDescription>Tải lên các tài liệu cần thiết để xác thực</CardDescription>
                         </div>
                         {(kycStatus === 'draft' || kycStatus === 'rejected') && (
-                          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+                          <Dialog open={kycUploadDialogOpen} onOpenChange={setKycUploadDialogOpen}>
                             <DialogTrigger asChild>
-                              <Button>
+                              <Button disabled={isUploadingDoc}>
                                 <Upload className="w-4 h-4 mr-2" />
-                                Tải lên
+                                {isUploadingDoc ? 'Đang tải lên...' : 'Tải lên'}
                               </Button>
                             </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>Tải lên tài liệu</DialogTitle>
+                                <DialogTitle>Tải lên tài liệu KYC</DialogTitle>
                                 <DialogDescription>
-                                  Chọn loại tài liệu và tải lên file
+                                  Chọn loại tài liệu và tải lên file ảnh
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <Label>Loại tài liệu</Label>
-                                  <Select value={selectedDocType} onValueChange={setSelectedDocType}>
+                                  <Label>Loại tài liệu *</Label>
+                                  <Select value={selectedKycDocType} onValueChange={setSelectedKycDocType}>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Chọn loại tài liệu" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="citizen_id_front">Mặt trước CCCD/CMND</SelectItem>
-                                      <SelectItem value="citizen_id_back">Mặt sau CCCD/CMND</SelectItem>
-                                      <SelectItem value="passport">Hộ chiếu</SelectItem>
-                                      <SelectItem value="selfie_with_id">Ảnh selfie cùng giấy tờ</SelectItem>
-                                      <SelectItem value="proof_of_address">Giấy tờ chứng minh địa chỉ</SelectItem>
+                                      <SelectItem value="documentFrontUrl">Mặt trước giấy tờ</SelectItem>
+                                      <SelectItem value="documentBackUrl">Mặt sau giấy tờ</SelectItem>
+                                      <SelectItem value="selfieUrl">Ảnh selfie</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
-                                <div className="space-y-2">
-                                  <Label>File</Label>
-                                  <Input
-                                    type="file"
-                                    accept="image/*,.pdf"
-                                    onChange={handleDocumentUpload}
-                                    disabled={isUploadingDoc || !selectedDocType}
-                                  />
-                                </div>
-                                {isUploadingDoc && (
-                                  <div className="flex items-center justify-center py-4">
-                                    <Icons.spinner className="h-6 w-6 animate-spin mr-2" />
-                                    <span>Đang tải lên...</span>
+
+                                {selectedKycDocType && (
+                                  <div className="space-y-2">
+                                    <Label>Tải lên ảnh</Label>
+                                    <ImageUploader
+                                      onUploadComplete={handleKycUploadComplete}
+                                      onUploadStart={handleKycUploadStart}
+                                      onUploadError={handleKycUploadError}
+                                      maxFiles={1}
+                                      compact={true}
+                                      hideResults={true}
+                                      acceptedTypes="image/jpeg,image/png,image/webp"
+                                      disabled={isUploadingDoc || !selectedKycDocType}
+                                    />
+                                  </div>
+                                )}
+
+                                {!selectedKycDocType && (
+                                  <div className="text-sm text-muted-foreground">
+                                    Vui lòng chọn loại tài liệu trước khi tải lên
                                   </div>
                                 )}
                               </div>

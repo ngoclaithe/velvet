@@ -1,98 +1,85 @@
 import { api } from './core'
+import type {
+  KycSubmission,
+  KycSubmissionData,
+  KycUpdateData,
+  KycDocumentUpdateData,
+  KycPersonalInfoUpdateData,
+  KycStatusResponse,
+  KycReviewData,
+  DocumentType,
+  VerificationLevel,
+  KycStatus
+} from '@/types/kyc'
 
-export interface KycDocumentType {
-  id: string
-  name: string
-  description: string
-  required: boolean
-}
-
-export interface KycDocument {
-  id: string
-  type: string
-  fileName: string
-  fileUrl: string
-  status: 'pending' | 'approved' | 'rejected'
-  uploadedAt: Date
-  reviewedAt?: Date
-  rejectionReason?: string
-}
-
-export interface KycSubmission {
-  id: string
-  userId: string
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected'
-  documents: KycDocument[]
-  personalInfo: {
-    fullName: string
-    dateOfBirth: string
-    nationality: string
-    address: string
-    phoneNumber: string
-    idNumber: string
-    idType: 'citizen_id' | 'passport' | 'driver_license'
-  }
-  submittedAt?: Date
-  reviewedAt?: Date
-  rejectionReason?: string
-  verificationLevel: 'basic' | 'intermediate' | 'advanced'
+// Re-export types for backward compatibility
+export type {
+  KycSubmission,
+  KycSubmissionData,
+  KycUpdateData,
+  KycDocumentUpdateData,
+  KycPersonalInfoUpdateData,
+  DocumentType,
+  VerificationLevel,
+  KycStatus
 }
 
 export const kycApi = {
   // Get KYC status and information
   getKycStatus: () =>
-    api.get('/kyc/status'),
+    api.get<KycStatusResponse>('/kyc/status'),
 
   // Get current KYC submission
   getCurrentSubmission: () =>
-    api.get('/kyc/submission'),
+    api.get<KycSubmission>('/kyc/submission'),
 
-  // Create or update KYC submission
-  createSubmission: (data: Partial<KycSubmission>) =>
-    api.post('/kyc/submission', data),
+  // Create KYC submission with validation
+  createSubmission: (data: KycSubmissionData) =>
+    api.post<{ id: string }>('/kyc/submission', data),
 
-  updateSubmission: (data: Partial<KycSubmission>) =>
-    api.patch('/kyc/submission', data),
+  // Update KYC submission
+  updateSubmission: (data: KycUpdateData) =>
+    api.patch<KycSubmission>('/kyc/submission', data),
 
   // Submit KYC for review
   submitForReview: () =>
-    api.post('/kyc/submit'),
+    api.post<{ message: string }>('/kyc/submit'),
 
-  // Document management
+  // Document URL management (for Cloudinary URLs)
+  updateDocumentUrl: (documentType: 'front' | 'back' | 'selfie', documentUrl: string) =>
+    api.patch(`/kyc/documents/${documentType}`, {
+      documentType,
+      documentUrl
+    } as KycDocumentUpdateData),
+
+  // Legacy document upload (for file upload)
   uploadDocument: (documentType: string, file: File) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('documentType', documentType)
-    
+
     return api.upload('/kyc/documents', formData)
   },
 
   deleteDocument: (documentId: string) =>
     api.delete(`/kyc/documents/${documentId}`),
 
-  // Get available document types
-  getDocumentTypes: () =>
-    api.get('/kyc/document-types'),
-
-  // Personal information update
-  updatePersonalInfo: (personalInfo: any) =>
-    api.patch('/kyc/personal-info', personalInfo),
+  // Personal information update with validation
+  updatePersonalInfo: (personalInfo: KycPersonalInfoUpdateData) =>
+    api.patch<KycSubmission>('/kyc/personal-info', personalInfo),
 
   // Get KYC requirements based on verification level
-  getRequirements: (level: 'basic' | 'intermediate' | 'advanced') =>
+  getRequirements: (level: VerificationLevel) =>
     api.get(`/kyc/requirements/${level}`),
 
-  // Admin endpoints (for future use)
+  // Admin endpoints
   admin: {
     // Get pending KYC submissions
     getPendingSubmissions: (params?: Record<string, string>) =>
-      api.get('/admin/kyc/pending', params),
+      api.get<KycSubmission[]>('/admin/kyc/pending', params),
 
     // Review KYC submission
-    reviewSubmission: (submissionId: string, data: { 
-      status: 'approved' | 'rejected'
-      rejectionReason?: string 
-    }) =>
+    reviewSubmission: (submissionId: string, data: KycReviewData) =>
       api.patch(`/admin/kyc/submissions/${submissionId}/review`, data),
 
     // Get KYC statistics
@@ -101,44 +88,39 @@ export const kycApi = {
 
     // Get user KYC details
     getUserKyc: (userId: string) =>
-      api.get(`/admin/kyc/users/${userId}`)
+      api.get<KycSubmission>(`/admin/kyc/users/${userId}`)
   }
 }
 
-// Helper function to get verification level description
+// Import helper functions and constants from types
+import {
+  VERIFICATION_LEVEL_DESCRIPTIONS,
+  KYC_STATUS_DESCRIPTIONS,
+  DOCUMENT_TYPE_LABELS,
+  isValidCloudinaryUrl,
+  validateKycSubmission
+} from '@/types/kyc'
+
+// Helper functions - re-export from types for backward compatibility
 export const getVerificationLevelDescription = (level: string) => {
-  switch (level) {
-    case 'basic':
-      return 'Xác thực cơ bản - Cho phép giao dịch tối đa 1,000,000 VND/tháng'
-    case 'intermediate':
-      return 'Xác thực trung gấp - Cho phép giao dịch tối đa 10,000,000 VND/tháng'
-    case 'advanced':
-      return 'Xác thực nâng cao - Không giới hạn giao dịch'
-    default:
-      return 'Chưa xác thực'
-  }
+  return VERIFICATION_LEVEL_DESCRIPTIONS[level as VerificationLevel] || 'Chưa xác thực'
 }
 
-// Helper function to get status description
 export const getKycStatusDescription = (status: string) => {
-  switch (status) {
-    case 'draft':
-      return 'Đang soạn thảo'
-    case 'submitted':
-      return 'Đã gửi'
-    case 'under_review':
-      return 'Đang xem xét'
-    case 'approved':
-      return 'Đã phê duyệt'
-    case 'rejected':
-      return 'Bị từ chối'
-    default:
-      return 'Không xác định'
-  }
+  return KYC_STATUS_DESCRIPTIONS[status as KycStatus] || 'Không xác định'
 }
 
 export const getDocumentTypeDescription = (type: string) => {
   switch (type) {
+    case 'documentFrontUrl':
+    case 'front':
+      return 'Mặt trước giấy tờ'
+    case 'documentBackUrl':
+    case 'back':
+      return 'Mặt sau giấy tờ'
+    case 'selfieUrl':
+    case 'selfie':
+      return 'Ảnh selfie'
     case 'citizen_id_front':
       return 'Mặt trước CCCD/CMND'
     case 'citizen_id_back':
@@ -157,3 +139,6 @@ export const getDocumentTypeDescription = (type: string) => {
       return type
   }
 }
+
+// Export validation functions
+export { isValidCloudinaryUrl, validateKycSubmission }
