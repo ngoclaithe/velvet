@@ -105,8 +105,6 @@ export default function ProfilePage() {
   const [kycStatus, setKycStatus] = useState<string>('draft')
   const [isLoadingKyc, setIsLoadingKyc] = useState(false)
   const [isUploadingDoc, setIsUploadingDoc] = useState(false)
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [selectedDocType, setSelectedDocType] = useState('')
   const [avatarUploadDialogOpen, setAvatarUploadDialogOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
@@ -753,7 +751,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Tiểu sử</Label>
+                <Label htmlFor="bio">Ti���u sử</Label>
                 <Textarea
                   id="bio"
                   value={formData.bio}
@@ -1229,7 +1227,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép tin nhắn</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác gửi tin nhắn cho bạn
+                    Cho phép người khác gửi tin nh��n cho bạn
                   </p>
                 </div>
                 <Switch
