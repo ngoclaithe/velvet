@@ -251,7 +251,7 @@ export default function ProfilePage() {
   const handleKycUploadComplete = async (results: CloudinaryUploadResponse[]) => {
     if (results.length > 0 && selectedKycDocType) {
       try {
-        // L��u URL vào state local thay vì gọi API ngay
+        // Lưu URL vào state local thay vì gọi API ngay
         setKycDocuments(prev => ({
           ...prev,
           [selectedKycDocType]: results[0].secure_url
@@ -362,11 +362,11 @@ export default function ProfilePage() {
     setIsUploadingDoc(true)
     try {
       // Tạo KYC submission với đầy đủ thông tin
-      const kycData = {
+      const kycData: KycSubmissionData = {
         // Thông tin cá nhân
         fullName: kycPersonalInfo.fullName,
         dateOfBirth: kycPersonalInfo.dateOfBirth,
-        nationality: kycPersonalInfo.nationality,
+        nationality: kycPersonalInfo.nationality || 'Vietnam',
         address: kycPersonalInfo.address,
         documentType: kycPersonalInfo.documentType,
         documentNumber: kycPersonalInfo.documentNumber,
@@ -1027,7 +1027,7 @@ export default function ProfilePage() {
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
                                 {!kycPersonalInfo.dateOfBirth && <li>• Chọn ngày sinh</li>}
                                 {!kycPersonalInfo.documentNumber && <li>• Nhập số giấy tờ</li>}
-                                {!kycDocuments.documentFrontUrl && <li>• Tải lên ảnh mặt trước giấy tờ</li>}
+                                {!kycDocuments.documentFrontUrl && <li>• Tải lên ���nh mặt trước giấy tờ</li>}
                                 {!kycDocuments.documentBackUrl && <li>• Tải lên ảnh mặt sau giấy tờ</li>}
                                 {!kycDocuments.selfieUrl && <li>• Tải lên ảnh selfie</li>}
                               </ul>
@@ -1247,7 +1247,7 @@ export default function ProfilePage() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Thông b��o like</Label>
+                  <Label>Thông báo like</Label>
                   <p className="text-sm text-muted-foreground">
                     Khi có người thích bài viết của bạn
                   </p>
