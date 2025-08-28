@@ -329,33 +329,7 @@ export default function ProfilePage() {
     }
   }
 
-  // Legacy function - keeping for backward compatibility
-  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file || !selectedDocType) return
-
-    setIsUploadingDoc(true)
-    try {
-      const response = await kycApi.uploadDocument(selectedDocType, file)
-      if (response.success) {
-        toast({
-          title: "Tải lên thành công!",
-          description: "Tài liệu đã được tải lên",
-          variant: "default"
-        })
-        setUploadDialogOpen(false)
-        fetchKycData()
-      }
-    } catch (error) {
-      toast({
-        title: "Lỗi tải lên",
-        description: "Không thể tải lên tài liệu",
-        variant: "destructive"
-      })
-    } finally {
-      setIsUploadingDoc(false)
-    }
-  }
+  // Đã loại bỏ handleDocumentUpload legacy
 
   // Đã loại bỏ handleKycPersonalInfoUpdate vì không cần thiết
 
@@ -726,7 +700,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Giới tính</Label>
+                  <Label htmlFor="gender">Gi���i tính</Label>
                   <Select 
                     value={formData.gender} 
                     onValueChange={(value) => handleInputChange('gender', value)}
