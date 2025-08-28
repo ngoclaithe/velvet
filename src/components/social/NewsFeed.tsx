@@ -330,21 +330,24 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
       if (response && response.success && response.data) {
         // Handle different response formats
-        let posts = []
+        let rawPosts = []
         let total = 0
         let pagination = null
 
         if (Array.isArray(response.data)) {
-          posts = response.data
-          total = posts.length
+          rawPosts = response.data
+          total = rawPosts.length
         } else if (response.data.posts) {
-          posts = response.data.posts
-          total = response.data.total || posts.length
+          rawPosts = response.data.posts
+          total = response.data.total || rawPosts.length
           pagination = response.data.pagination
         } else {
-          posts = []
+          rawPosts = []
           total = 0
         }
+
+        // Transform API posts to Post format
+        const posts = rawPosts.map(transformApiPostToPost)
 
         // Use pagination info if available
         const hasMore = pagination
