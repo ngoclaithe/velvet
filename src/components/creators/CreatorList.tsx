@@ -254,11 +254,8 @@ export default function CreatorList() {
       case 'followers':
         fetchFollowers()
         break
-      case 'my-posts':
-        fetchMyPosts()
-        break
     }
-  }, [activeTab, fetchAllCreators, fetchFollowingCreators, fetchFollowers, fetchMyPosts])
+  }, [activeTab, fetchAllCreators, fetchFollowingCreators, fetchFollowers])
 
   // Format follower count
   const formatCount = (count?: number) => {
