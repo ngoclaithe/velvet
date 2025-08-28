@@ -42,39 +42,44 @@ export const cloudinaryApi = {
 
     const signatureData = signatureResponse.data
     
-    // Tạo FormData với ch�� những parameters có trong signature
+    // ✅ Tạo FormData CHỈ với những params được ký
     const formData = new FormData()
+    
+    // File (bắt buộc)
     formData.append('file', file)
+    
+    // Signature và credentials (bắt buộc)
     formData.append('signature', signatureData.signature)
-    formData.append('timestamp', signatureData.timestamp.toString())
     formData.append('api_key', signatureData.api_key)
-    formData.append('upload_preset', signatureData.upload_preset)
+    
+    // ✅ CHỈ append những params ĐÃ ĐƯỢC KÝ trong signature
+    const signedParams = [
+      'timestamp',
+      'upload_preset', 
+      'folder',
+      'tags',
+      'transformation'
+    ]
+    
+    signedParams.forEach(param => {
+      if (signatureData[param as keyof typeof signatureData] !== undefined && 
+          signatureData[param as keyof typeof signatureData] !== null) {
+        const value = signatureData[param as keyof typeof signatureData]
+        formData.append(param, value.toString())
+      }
+    })
 
-    // Chỉ thêm các parameters có trong response từ backend
-    if (signatureData.folder) {
-      formData.append('folder', signatureData.folder)
-    }
-    if (signatureData.tags) {
-      formData.append('tags', signatureData.tags)
-    }
-    if (signatureData.quality) {
-      formData.append('quality', signatureData.quality)
-    }
-    if (signatureData.fetch_format) {
-      formData.append('fetch_format', signatureData.fetch_format)
-    }
-    if (signatureData.dpr) {
-      formData.append('dpr', signatureData.dpr)
-    }
-    if (signatureData.flags) {
-      formData.append('flags', signatureData.flags)
-    }
-    if (signatureData.transformation) {
-      formData.append('transformation', signatureData.transformation)
-    }
+    // ❌ KHÔNG GỬI các params không được ký để tránh signature mismatch
+    // Cloudinary sẽ tự động xử lý use_filename, unique_filename, overwrite
+    console.log('🚫 Skipping optional params to avoid signature mismatch')
+    console.log('ℹ️  Cloudinary will use default values for: use_filename, unique_filename, overwrite')
 
-    console.log('🔧 Using only backend-signed parameters to avoid signature errors')
-    console.log('🔧 Parameters included:', Object.keys(signatureData))
+    // ✅ Debug FormData params (compatible with older TS targets)
+    const formDataKeys: string[] = []
+    formData.forEach((value, key) => {
+      formDataKeys.push(key)
+    })
+    console.log('✅ FormData params:', formDataKeys)
     console.log('🔧 File type:', file.type, 'Size:', file.size)
 
     // Determine resource type
@@ -153,7 +158,7 @@ function getResourceType(file: File, override?: string): string {
   
   if (file.type.startsWith('image/')) return 'image'
   if (file.type.startsWith('video/')) return 'video'
-  if (file.type.startsWith('audio/')) return 'video' // Audio uploads use video endpoint
+  if (file.type.startsWith('audio/')) return 'video' 
   
   return 'auto'
 }
@@ -176,50 +181,81 @@ function performUpload(
       })
     }
 
-    // Success handler
     xhr.addEventListener('load', () => {
-      if (xhr.status === 200) {
-        try {
-          const response = JSON.parse(xhr.responseText)
-          resolve(response)
-        } catch (error) {
-          reject(new Error('Failed to parse response'))
-        }
-      } else {
-        try {
-          const errorResponse = JSON.parse(xhr.responseText)
-          const errorMessage = errorResponse.error?.message || `Upload failed with status: ${xhr.status}`
+      try {
+        const response = JSON.parse(xhr.responseText)
 
-          // Chuyển đổi một số lỗi thường gặp sang tiếng Việt
+        if (xhr.status === 200) {
+          console.log('✅ Upload successful:', {
+            public_id: response.public_id,
+            secure_url: response.secure_url,
+            format: response.format,
+            bytes: response.bytes
+          })
+          resolve(response)
+        } else {
+          const errorMessage = response?.error?.message || `Upload failed with status ${xhr.status}`
+
+          // Dịch một số lỗi thường gặp sang tiếng Việt
           let vietnameseError = errorMessage
-          if (errorMessage.includes('Invalid transformation')) {
-            vietnameseError = 'Lỗi xử lý hình ảnh. Vui lòng thử lại với file khác.'
-          } else if (errorMessage.includes('File size too large')) {
+          if (/Invalid signature/i.test(errorMessage)) {
+            vietnameseError = 'Chữ ký upload không hợp lệ. Kiểm tra lại cách ký từ backend.'
+          } else if (/Invalid upload preset/i.test(errorMessage)) {
+            vietnameseError = 'Upload preset không hợp lệ hoặc chưa bật chế độ signed/unsigned.'
+          } else if (/Missing required parameter/i.test(errorMessage)) {
+            vietnameseError = `Thiếu tham số bắt buộc từ FE: ${errorMessage}`
+          } else if (/File size too large/i.test(errorMessage)) {
             vietnameseError = 'File quá lớn. Vui lòng chọn file nhỏ hơn.'
-          } else if (errorMessage.includes('Invalid file type')) {
+          } else if (/Invalid file type/i.test(errorMessage)) {
             vietnameseError = 'Định dạng file không được hỗ trợ.'
-          } else if (errorMessage.includes('Upload failed')) {
-            vietnameseError = 'Tải file thất bại. Vui lòng thử lại.'
+          } else if (/Upload preset must be whitelisted/i.test(errorMessage)) {
+            vietnameseError = 'Upload preset chưa được whitelist trong Cloudinary settings.'
+          } else if (/Timestamp is too old/i.test(errorMessage)) {
+            vietnameseError = 'Chữ ký đã quá cũ. Vui lòng thử lại.'
           }
 
+          console.error('❌ Upload error detail:', {
+            status: xhr.status,
+            rawResponse: xhr.responseText,
+            parsedResponse: response,
+            vietnameseError
+          })
+
           reject(new Error(vietnameseError))
-        } catch {
-          reject(new Error('Tải file thất bại. Vui lòng thử lại.'))
         }
+      } catch (err) {
+        console.error('❌ Parse error:', {
+          status: xhr.status,
+          rawResponse: xhr.responseText,
+          parseError: err
+        })
+        reject(new Error(`Không đọc được phản hồi từ Cloudinary (status ${xhr.status})`))
       }
     })
 
-    // Error handler
-    xhr.addEventListener('error', () => {
+    xhr.addEventListener('error', (e) => {
+      console.error('❌ Network error:', e)
       reject(new Error('Network error during upload'))
     })
 
-    // Timeout handler
     xhr.addEventListener('timeout', () => {
+      console.error('❌ Upload timeout after 60 seconds')
       reject(new Error('Upload timeout'))
     })
 
-    xhr.timeout = 60000 // 60 seconds timeout
+    // Set timeout to 60 seconds
+    xhr.timeout = 60000
+    
+    // Debug: log all form data before sending (compatible with older TS)
+    console.log('📤 FormData contents:')
+    formData.forEach((value, key) => {
+      if (key === 'file') {
+        console.log(`  ${key}:`, `[File: ${(value as File).name}]`)
+      } else {
+        console.log(`  ${key}:`, value)
+      }
+    })
+    
     xhr.open('POST', url)
     xhr.send(formData)
   })
