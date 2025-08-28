@@ -526,7 +526,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 <h4 className="font-semibold">{post.author.displayName}</h4>
                 {post.author.isVerified && (
                   <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
+                    <span className="text-white text-xs">��</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
@@ -649,7 +649,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       {!propActiveTab && (
         <div className="flex items-center justify-between mb-6">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="for-you" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Dành cho bạn
@@ -657,10 +657,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               <TabsTrigger value="following" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 Đang theo dõi
-              </TabsTrigger>
-              <TabsTrigger value="live" className="flex items-center gap-2">
-                <Video className="w-4 h-4" />
-                Live
               </TabsTrigger>
             </TabsList>
           </Tabs>
