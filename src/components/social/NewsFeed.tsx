@@ -240,13 +240,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         } else {
           throw new Error('Authentication required')
         }
-      } else if (tab === 'live') {
-        // Use getTrendingPosts or a specific live posts endpoint
-        response = await postsApi.getTrendingPosts({
-          page: page.toString(),
-          limit: POSTS_PER_PAGE.toString(),
-          type: 'live'
-        })
       } else if (tab === 'my-posts') {
         // Use getUserPosts for current user's posts
         if (isAuthenticated && user?.id) {
