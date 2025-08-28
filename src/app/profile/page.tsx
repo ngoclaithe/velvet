@@ -42,7 +42,6 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
-import ImageUploader from '@/components/ImageUploader'
 import type { User } from '@/types/auth'
 import { kycApi, getKycStatusDescription, getVerificationLevelDescription, getDocumentTypeDescription } from '@/lib/api/kyc'
 import type { KycSubmission, KycSubmissionData, DocumentType, KycStatus } from '@/types/kyc'
