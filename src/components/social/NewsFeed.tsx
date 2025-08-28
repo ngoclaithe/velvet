@@ -351,22 +351,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     }
   }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts])
 
-  // Auto-load next page on scroll (Facebook-style pagination)
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop
-        >= document.documentElement.offsetHeight - 1000 &&
-        currentFeed.hasMore &&
-        !currentFeed.loading
-      ) {
-        loadMore()
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [loadMore, currentFeed.hasMore, currentFeed.loading])
+  // Removed infinite scroll - now using manual pagination only
 
   // Format time ago
   const formatTimeAgo = useCallback((date: Date) => {
