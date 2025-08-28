@@ -25,7 +25,6 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react'
-import LiveStreamPreview from '@/components/streaming/LiveStreamPreview'
 
 interface FeedState {
   posts: Post[]
@@ -410,7 +409,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     const post = currentFeed.posts.find(p => p.id === postId)
     toast({
       title: post?.isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
-      description: "Thay đổi đã được lưu cục bộ",
+      description: "Thay đổi đã được lưu cục b��",
       variant: "default"
     })
   }, [isAuthenticated, activeTab, currentFeed.posts, toast])
