@@ -47,7 +47,8 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   const [feeds, setFeeds] = useState<Record<string, FeedState>>({
     'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
     'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
-    'live': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
+    'live': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
+    'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
   })
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
