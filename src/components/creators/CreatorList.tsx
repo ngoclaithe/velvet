@@ -445,7 +445,7 @@ export default function CreatorList() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Creators</h2>
-          <p className="text-gray-400">Khám phá và theo dõi các creator yêu thích</p>
+          <p className="text-gray-400">Khám phá v�� theo dõi các creator yêu thích</p>
         </div>
       </div>
 
@@ -520,41 +520,6 @@ export default function CreatorList() {
           </TabsContent>
         )}
 
-        <TabsContent value="my-posts" className="space-y-6">
-          {!isAuthenticated ? (
-            <Card className="p-6 text-center bg-gray-800 border-gray-700">
-              <p className="text-gray-400 mb-4">Đăng nhập để xem bài viết của bạn</p>
-              <Button onClick={() => window.location.href = '/login'}>
-                Đăng nhập
-              </Button>
-            </Card>
-          ) : loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-4">
-                    <Skeleton className="h-4 w-full mb-3" />
-                    <Skeleton className="h-48 w-full mb-3" />
-                    <Skeleton className="h-4 w-32" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : myPosts.length === 0 ? (
-            <Card className="p-6 text-center bg-gray-800 border-gray-700">
-              <Grid3X3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Chưa có bài viết</h3>
-              <p className="text-gray-400 mb-4">Bắt đầu chia sẻ nội dung c���a bạn</p>
-              <Button onClick={() => window.location.href = '/create-post'}>
-                Tạo bài viết đầu tiên
-              </Button>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {myPosts.map(renderPostCard)}
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
 
     </div>
