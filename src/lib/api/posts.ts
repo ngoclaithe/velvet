@@ -5,7 +5,7 @@ export const postsApi = {
     api.get('/posts/feed', params),
 
   getUserPosts: (userId: string, params?: Record<string, string>) =>
-    api.get(`/users/${userId}/posts`, params),
+    api.get(`/posts/user/${userId}`, params),
 
   getTrendingPosts: (params?: Record<string, string>) =>
     api.get('/posts/trending', params),

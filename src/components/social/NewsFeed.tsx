@@ -38,23 +38,64 @@ interface FeedState {
 
 const POSTS_PER_PAGE = 10
 
-export default function NewsFeed() {
-  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'live'>('for-you')
+interface NewsFeedProps {
+  activeTab?: 'for-you' | 'following' | 'live' | 'my-posts'
+}
+
+export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {}) {
+  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'live' | 'my-posts'>(propActiveTab || 'for-you')
   const [feeds, setFeeds] = useState<Record<string, FeedState>>({
     'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
     'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
-    'live': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
+    'live': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
+    'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
   })
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
 
   const currentFeed = feeds[activeTab]
+
+  // Transform API response to Post format
+  const transformApiPostToPost = useCallback((apiPost: any): Post => {
+    return {
+      id: apiPost.id.toString(),
+      type: apiPost.mediaType === 'text' ? 'text' : apiPost.mediaType === 'video' ? 'video' : 'text',
+      content: apiPost.content,
+      author: {
+        id: apiPost.user?.id?.toString() || apiPost.userId?.toString() || 'unknown',
+        username: apiPost.user?.username || 'unknown',
+        displayName: apiPost.user ?
+          `${apiPost.user.firstName || ''} ${apiPost.user.lastName || ''}`.trim() || apiPost.user.username :
+          'Unknown User',
+        avatar: apiPost.user?.avatar || '/api/placeholder/40/40',
+        isVerified: apiPost.user?.isVerified || false,
+        isOnline: false
+      },
+      createdAt: new Date(apiPost.createdAt),
+      updatedAt: new Date(apiPost.updatedAt),
+      likes: apiPost.likeCount || 0,
+      comments: apiPost.commentCount || 0,
+      shares: apiPost.shareCount || 0,
+      views: apiPost.viewCount || 0,
+      isAdult: !apiPost.isPublic || false,
+      isPremium: apiPost.isPremium || false,
+      isLiked: false,
+      isBookmarked: false,
+      visibility: apiPost.isPublic ? 'public' : 'private',
+      media: apiPost.mediaUrls && apiPost.mediaUrls.length > 0 ?
+        apiPost.mediaUrls.map((url: string) => ({
+          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+          url: url,
+          thumbnail: apiPost.thumbnailUrl
+        })) : undefined
+    }
+  }, [])
 
   // Mock data cho demo khi chưa có backend
   const getMockPosts = useCallback((tab: string, page: number): Post[] => {
     // Nếu chưa có bài viết thì trả về mảng rỗng
-    if (tab === 'following' && !isAuthenticated) {
+    if ((tab === 'following' || tab === 'my-posts') && !isAuthenticated) {
       return []
     }
 
@@ -156,8 +197,78 @@ export default function NewsFeed() {
       return page === 1 ? mockLiveStreams : []
     }
 
+    if (tab === 'my-posts' && isAuthenticated) {
+      // Mock posts matching API response format
+      const mockApiPosts = [
+        {
+          id: 5,
+          userId: user?.id || 13,
+          creatorId: null,
+          content: 'Đây là bài viết đầu tiên của tôi trên nền tảng! 🎉',
+          mediaType: 'text',
+          mediaUrls: [],
+          thumbnailUrl: null,
+          isPublic: true,
+          isPremium: false,
+          price: null,
+          viewCount: 15,
+          likeCount: 5,
+          commentCount: 2,
+          shareCount: 1,
+          status: 'published',
+          scheduledAt: null,
+          tags: [],
+          location: null,
+          isPromoted: false,
+          createdAt: new Date(Date.now() - 1800000).toISOString(),
+          updatedAt: new Date(Date.now() - 1800000).toISOString(),
+          user: {
+            id: user?.id || 13,
+            username: user?.username || 'user1',
+            firstName: user?.firstName || 'User',
+            lastName: user?.lastName || 'Name',
+            avatar: user?.avatar || null
+          },
+          creator: null
+        }
+      ]
+
+      // Transform to Post format
+      const mockMyPosts: Post[] = mockApiPosts.map(apiPost => ({
+        id: apiPost.id.toString(),
+        type: 'text',
+        content: apiPost.content,
+        author: {
+          id: apiPost.user.id.toString(),
+          username: apiPost.user.username,
+          displayName: `${apiPost.user.firstName} ${apiPost.user.lastName}`.trim() || apiPost.user.username,
+          avatar: apiPost.user.avatar || '/api/placeholder/40/40',
+          isVerified: false,
+          isOnline: true
+        },
+        createdAt: new Date(apiPost.createdAt),
+        updatedAt: new Date(apiPost.updatedAt),
+        likes: apiPost.likeCount,
+        comments: apiPost.commentCount,
+        shares: apiPost.shareCount,
+        views: apiPost.viewCount,
+        isAdult: false,
+        isPremium: apiPost.isPremium,
+        isLiked: false,
+        isBookmarked: false,
+        visibility: 'public' as const,
+        media: apiPost.mediaUrls.length > 0 ? apiPost.mediaUrls.map(url => ({
+          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+          url: url,
+          thumbnail: apiPost.thumbnailUrl
+        })) : undefined
+      }))
+
+      return page === 1 ? mockMyPosts : []
+    }
+
     return page === 1 ? mockPosts : [] // Chỉ có 1 trang mock data
-  }, [isAuthenticated])
+  }, [isAuthenticated, user])
 
   // Load posts cho tab hiện tại
   const loadPosts = useCallback(async (
@@ -205,12 +316,43 @@ export default function NewsFeed() {
           limit: POSTS_PER_PAGE.toString(),
           type: 'live'
         })
+      } else if (tab === 'my-posts') {
+        // Use getUserPosts for current user's posts
+        if (isAuthenticated && user?.id) {
+          response = await postsApi.getUserPosts(user.id.toString(), {
+            page: page.toString(),
+            limit: POSTS_PER_PAGE.toString()
+          })
+        } else {
+          throw new Error('Authentication required')
+        }
       }
 
       if (response && response.success && response.data) {
-        const posts = Array.isArray(response.data) ? response.data : response.data.posts || []
-        const total = response.data.total || posts.length
-        const hasMore = posts.length === POSTS_PER_PAGE && (page * POSTS_PER_PAGE) < total
+        // Handle different response formats
+        let rawPosts = []
+        let total = 0
+        let pagination = null
+
+        if (Array.isArray(response.data)) {
+          rawPosts = response.data
+          total = rawPosts.length
+        } else if (response.data.posts) {
+          rawPosts = response.data.posts
+          total = response.data.total || rawPosts.length
+          pagination = response.data.pagination
+        } else {
+          rawPosts = []
+          total = 0
+        }
+
+        // Transform API posts to Post format
+        const posts = rawPosts.map(transformApiPostToPost)
+
+        // Use pagination info if available
+        const hasMore = pagination
+          ? pagination.hasNext
+          : posts.length === POSTS_PER_PAGE && (page * POSTS_PER_PAGE) < total
 
         setFeeds(prev => ({
           ...prev,
@@ -246,7 +388,7 @@ export default function NewsFeed() {
         }
       }))
     }
-  }, [getMockPosts, isAuthenticated])
+  }, [getMockPosts, isAuthenticated, user, transformApiPostToPost])
 
   // Load more posts (infinite scroll)
   const loadMore = useCallback(() => {
@@ -261,6 +403,13 @@ export default function NewsFeed() {
     await loadPosts(activeTab, 1, true)
     setRefreshing(false)
   }, [activeTab, loadPosts])
+
+  // Sync activeTab with prop
+  useEffect(() => {
+    if (propActiveTab && propActiveTab !== activeTab) {
+      setActiveTab(propActiveTab)
+    }
+  }, [propActiveTab, activeTab])
 
   // Load initial data khi tab thay đổi
   useEffect(() => {
@@ -566,34 +715,36 @@ export default function NewsFeed() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="for-you" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Dành cho bạn
-            </TabsTrigger>
-            <TabsTrigger value="following" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Đang theo dõi
-            </TabsTrigger>
-            <TabsTrigger value="live" className="flex items-center gap-2">
-              <Video className="w-4 h-4" />
-              Live
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+      {!propActiveTab && (
+        <div className="flex items-center justify-between mb-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="for-you" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Dành cho bạn
+              </TabsTrigger>
+              <TabsTrigger value="following" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Đang theo dõi
+              </TabsTrigger>
+              <TabsTrigger value="live" className="flex items-center gap-2">
+                <Video className="w-4 h-4" />
+                Live
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={refreshFeed}
-          disabled={refreshing}
-          className="ml-4"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={refreshFeed}
+            disabled={refreshing}
+            className="ml-4"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      )}
 
       <div className="space-y-6">
         {currentFeed.posts.map(renderPost)}
@@ -622,11 +773,13 @@ export default function NewsFeed() {
             <div className="space-y-4">
               <div className="text-6xl mb-4">
                 {activeTab === 'following' ? '👥' :
-                 activeTab === 'live' ? '📹' : '📝'}
+                 activeTab === 'live' ? '📹' :
+                 activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
                 {activeTab === 'following' ? 'Chưa theo d��i ai' :
                  activeTab === 'live' ? 'Không có live stream' :
+                 activeTab === 'my-posts' ? 'Chưa có bài viết' :
                  'Chưa có bài viết'}
               </h3>
               <p className="text-muted-foreground">
@@ -634,6 +787,8 @@ export default function NewsFeed() {
                   ? 'Hãy theo dõi một số người để xem bài viết của họ tại đây'
                   : activeTab === 'live'
                   ? 'Hiện tại không có ai đang live stream'
+                  : activeTab === 'my-posts'
+                  ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                   : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                 }
               </p>
@@ -648,6 +803,21 @@ export default function NewsFeed() {
                         Đăng nhập
                       </Button>
                       {' '}để theo dõi người khác
+                    </p>
+                  )}
+                </div>
+              )}
+              {activeTab === 'my-posts' && (
+                <div className="space-y-2">
+                  <Button onClick={() => window.location.href = '/create-post'}>
+                    Tạo bài viết đầu tiên
+                  </Button>
+                  {!isAuthenticated && (
+                    <p className="text-sm text-muted-foreground">
+                      <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
+                        Đăng nhập
+                      </Button>
+                      {' '}để tạo bài viết
                     </p>
                   )}
                 </div>

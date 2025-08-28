@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { creatorAPI } from '@/lib/api/creator'
 import { userApi } from '@/lib/api/user'
-import { postsApi } from '@/lib/api/posts'
 import {
   Users,
   UserPlus,
@@ -21,7 +20,6 @@ import {
   MessageCircle,
   MapPin,
   Star,
-  Grid3X3,
   UserX,
   Crown,
   Verified,
@@ -46,30 +44,15 @@ interface Creator {
   isFollowing?: boolean
 }
 
-interface Post {
-  id: string
-  content: string
-  media?: Array<{
-    type: 'image' | 'video'
-    url: string
-    thumbnail?: string
-  }>
-  likes: number
-  comments: number
-  createdAt: Date
-  isAdult?: boolean
-  isPremium?: boolean
-}
 
 // Define the tab type explicitly
-type TabType = 'all' | 'following' | 'followers' | 'my-posts'
+type TabType = 'all' | 'following' | 'followers'
 
 export default function CreatorList() {
   const [activeTab, setActiveTab] = useState<TabType>('all')
   const [creators, setCreators] = useState<Creator[]>([])
   const [followingCreators, setFollowingCreators] = useState<Creator[]>([])
   const [followers, setFollowers] = useState<Creator[]>([])
-  const [myPosts, setMyPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   // Removed creator detail modal state since we're navigating to a new page
@@ -153,25 +136,6 @@ export default function CreatorList() {
     }
   }, [isAuthenticated, user?.role])
 
-  // Fetch user's posts
-  const fetchMyPosts = useCallback(async () => {
-    if (!isAuthenticated || !user?.id) return
-
-    try {
-      setLoading(true)
-      const response = await postsApi.getUserPosts(user.id)
-      if (response.success && response.data && Array.isArray(response.data)) {
-        setMyPosts(response.data)
-      } else {
-        setMyPosts([])
-      }
-    } catch (error) {
-      console.error('Error fetching my posts:', error)
-      setMyPosts([])
-    } finally {
-      setLoading(false)
-    }
-  }, [isAuthenticated, user?.id])
 
   // Handle creator click to navigate to creator page
   const handleCreatorClick = (creatorId: number) => {
@@ -274,11 +238,8 @@ export default function CreatorList() {
       case 'followers':
         fetchFollowers()
         break
-      case 'my-posts':
-        fetchMyPosts()
-        break
     }
-  }, [activeTab, fetchAllCreators, fetchFollowingCreators, fetchFollowers, fetchMyPosts])
+  }, [activeTab, fetchAllCreators, fetchFollowingCreators, fetchFollowers])
 
   // Format follower count
   const formatCount = (count?: number) => {
@@ -377,64 +338,6 @@ export default function CreatorList() {
     </Card>
   )
 
-  // Render post card
-  const renderPostCard = (post: Post) => (
-    <Card key={post.id} className="bg-gray-800 border-gray-700">
-      <CardContent className="p-4">
-        <p className="text-white mb-3 leading-relaxed">{post.content}</p>
-        
-        {post.media && post.media.length > 0 && (
-          <div className="mb-3">
-            {post.media[0].type === 'image' ? (
-              <img
-                src={post.media[0].url}
-                alt="Post content"
-                className="w-full h-48 object-cover rounded-lg"
-              />
-            ) : (
-              <div className="relative">
-                <img
-                  src={post.media[0].thumbnail || post.media[0].url}
-                  alt="Video thumbnail"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-1" />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between text-gray-400 text-sm">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center gap-1">
-              <Heart className="w-4 h-4" />
-              {post.likes}
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageCircle className="w-4 h-4" />
-              {post.comments}
-            </div>
-          </div>
-          <span>{formatTimeAgo(post.createdAt)}</span>
-        </div>
-
-        {(post.isAdult || post.isPremium) && (
-          <div className="flex gap-2 mt-2">
-            {post.isAdult && (
-              <Badge variant="destructive" className="text-xs">18+</Badge>
-            )}
-            {post.isPremium && (
-              <Badge className="text-xs bg-yellow-600 hover:bg-yellow-700">Premium</Badge>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
 
   // Render loading skeleton
   const renderSkeleton = () => (
@@ -473,33 +376,20 @@ export default function CreatorList() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
+        <TabsList className={`grid w-full ${isAuthenticated && (user?.role === 'user' || user?.role === 'admin') ? 'grid-cols-2' : 'grid-cols-1'} bg-gray-800 border-gray-700`}>
           <TabsTrigger value="all" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
             Tất cả
           </TabsTrigger>
-          <TabsTrigger 
-            value="following" 
-            className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
-            disabled={!isAuthenticated}
-          >
-            <UserPlus className="w-4 h-4" />
-            Đang theo dõi
-          </TabsTrigger>
-          {user?.role === 'creator' && (
-            <TabsTrigger value="followers" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
-              <Crown className="w-4 h-4" />
-              Followers
+          {isAuthenticated && (user?.role === 'user' || user?.role === 'admin') && (
+            <TabsTrigger
+              value="following"
+              className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
+            >
+              <UserPlus className="w-4 h-4" />
+              Đang theo dõi
             </TabsTrigger>
           )}
-          <TabsTrigger 
-            value="my-posts" 
-            className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
-            disabled={!isAuthenticated}
-          >
-            <Grid3X3 className="w-4 h-4" />
-            Bài viết của tôi
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
@@ -556,41 +446,6 @@ export default function CreatorList() {
           </TabsContent>
         )}
 
-        <TabsContent value="my-posts" className="space-y-6">
-          {!isAuthenticated ? (
-            <Card className="p-6 text-center bg-gray-800 border-gray-700">
-              <p className="text-gray-400 mb-4">Đăng nhập để xem bài viết của bạn</p>
-              <Button onClick={() => window.location.href = '/login'}>
-                Đăng nhập
-              </Button>
-            </Card>
-          ) : loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-4">
-                    <Skeleton className="h-4 w-full mb-3" />
-                    <Skeleton className="h-48 w-full mb-3" />
-                    <Skeleton className="h-4 w-32" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : myPosts.length === 0 ? (
-            <Card className="p-6 text-center bg-gray-800 border-gray-700">
-              <Grid3X3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Chưa có bài viết</h3>
-              <p className="text-gray-400 mb-4">Bắt đầu chia sẻ nội dung c���a bạn</p>
-              <Button onClick={() => window.location.href = '/create-post'}>
-                Tạo bài viết đầu tiên
-              </Button>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {myPosts.map(renderPostCard)}
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
 
     </div>
