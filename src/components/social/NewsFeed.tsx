@@ -366,61 +366,40 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     }
   }, [isAuthenticated, activeTab, toast])
 
-  // Render media content
+  // Render media content with ImageGallery
   const renderMediaContent = useCallback((post: Post) => {
     if (!post.media || post.media.length === 0) return null
 
-    const media = post.media[0]
-    
-    if (media.type === 'image') {
-      return (
-        <div className="relative aspect-[4/5] bg-gray-100 rounded-lg overflow-hidden">
-          <img 
-            src={media.url} 
-            alt="Post content"
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          {post.isAdult && !isAuthenticated && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-              <div className="text-center text-white">
-                <div className="text-2xl mb-2">🔞</div>
-                <p className="text-sm">Nội dung 18+</p>
-                <Button size="sm" variant="secondary" className="mt-2">
-                  Đăng nhập để xem
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      )
-    }
+    // Transform post media to ImageGallery format
+    const galleryMedia = post.media.map(media => ({
+      id: media.id,
+      type: media.type,
+      url: media.url,
+      thumbnail: media.thumbnail
+    }))
 
-    if (media.type === 'video') {
-      return (
-        <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
-          <img 
-            src={media.thumbnail} 
-            alt="Video thumbnail"
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Button size="lg" className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur">
-              <Play className="w-8 h-8 text-white ml-1" />
-            </Button>
+    return (
+      <div className="relative">
+        <ImageGallery media={galleryMedia} className="mb-2" />
+        {post.isAdult && !isAuthenticated && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm rounded-lg">
+            <div className="text-center text-white">
+              <div className="text-2xl mb-2">🔞</div>
+              <p className="text-sm">Nội dung 18+</p>
+              <Button size="sm" variant="secondary" className="mt-2">
+                Đăng nhập để xem
+              </Button>
+            </div>
           </div>
-          {post.views && (
-            <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-              <Eye className="inline w-4 h-4 mr-1" />
-              {post.views.toLocaleString()}
-            </div>
-          )}
-        </div>
-      )
-    }
-
-    return null
+        )}
+        {post.views && post.media[0]?.type === 'video' && (
+          <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded text-sm">
+            <Eye className="inline w-4 h-4 mr-1" />
+            {post.views.toLocaleString()}
+          </div>
+        )}
+      </div>
+    )
   }, [isAuthenticated])
 
   // Render single post
