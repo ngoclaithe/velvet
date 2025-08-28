@@ -39,15 +39,14 @@ interface FeedState {
 const POSTS_PER_PAGE = 10
 
 interface NewsFeedProps {
-  activeTab?: 'for-you' | 'following' | 'live' | 'my-posts'
+  activeTab?: 'for-you' | 'following' | 'my-posts'
 }
 
 export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {}) {
-  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'live' | 'my-posts'>(propActiveTab || 'for-you')
+  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'my-posts'>(propActiveTab || 'for-you')
   const [feeds, setFeeds] = useState<Record<string, FeedState>>({
     'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
     'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
-    'live': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
     'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
   })
   const [refreshing, setRefreshing] = useState(false)
@@ -84,8 +83,9 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       isBookmarked: false,
       visibility: apiPost.isPublic ? 'public' : 'private',
       media: apiPost.mediaUrls && apiPost.mediaUrls.length > 0 ?
-        apiPost.mediaUrls.map((url: string) => ({
-          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+        apiPost.mediaUrls.map((url: string, index: number) => ({
+          id: `${apiPost.id}-media-${index}`,
+          type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
           thumbnail: apiPost.thumbnailUrl
         })) : undefined
