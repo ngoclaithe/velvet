@@ -113,8 +113,15 @@ export default function ProfilePage() {
   const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
   const [selectedKycDocType, setSelectedKycDocType] = useState('')
 
-  // State để lưu 3 ảnh KYC cục bộ
+  // State để lưu 3 file ảnh KYC cục bộ (chưa upload)
   const [kycDocuments, setKycDocuments] = useState({
+    documentFrontFile: null as File | null,
+    documentBackFile: null as File | null,
+    selfieFile: null as File | null
+  })
+
+  // State để lưu preview URLs cho hiển thị
+  const [kycPreviewUrls, setKycPreviewUrls] = useState({
     documentFrontUrl: '',
     documentBackUrl: '',
     selfieUrl: ''
@@ -210,7 +217,7 @@ export default function ProfilePage() {
 
   const handleAvatarUploadError = (error: string) => {
     toast({
-      title: "Lỗi t��i lên",
+      title: "Lỗi tải lên",
       description: error,
       variant: "destructive"
     })
@@ -888,7 +895,7 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-6">
-                        {/* Hiển th�� 3 loại ảnh cần upload */}
+                        {/* Hiển thị 3 loại ảnh cần upload */}
                         {[
                           { key: 'documentFrontUrl', label: 'Mặt trước giấy tờ', icon: '🆔' },
                           { key: 'documentBackUrl', label: 'Mặt sau giấy tờ', icon: '🔄' },
@@ -1017,7 +1024,7 @@ export default function ProfilePage() {
                           ) : (
                             <div className="bg-yellow-50 p-4 rounded-lg">
                               <AlertCircle className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
-                              <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa đầy đủ</h4>
+                              <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa ��ầy đủ</h4>
                               <p className="text-sm text-yellow-800 mb-3">
                                 Vui lòng hoàn thành các mục sau trước khi gửi:
                               </p>
@@ -1140,7 +1147,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép tin nhắn</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho ph��p người khác gửi tin nhắn cho bạn
+                    Cho phép người khác gửi tin nhắn cho bạn
                   </p>
                 </div>
                 <Switch
