@@ -68,7 +68,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       {
         id: '1',
         type: 'text',
-        content: 'Chào mừng bạn đến với nền tảng! 🎉 H��y bắt đầu khám phá các tính năng thú vị của chúng tôi.',
+        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt đầu khám phá các tính năng thú vị của chúng tôi.',
         author: {
           id: 'admin',
           username: 'admin',
@@ -162,33 +162,72 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     }
 
     if (tab === 'my-posts' && isAuthenticated) {
-      // Mock posts của user hiện tại
-      const mockMyPosts: Post[] = [
+      // Mock posts matching API response format
+      const mockApiPosts = [
         {
-          id: 'my-1',
-          type: 'text',
+          id: 5,
+          userId: user?.id || 13,
+          creatorId: null,
           content: 'Đây là bài viết đầu tiên của tôi trên nền tảng! 🎉',
-          author: {
-            id: user?.id || 'current-user',
-            username: user?.username || 'me',
-            displayName: user?.firstName ? `${user.firstName} ${user.lastName}` : user?.username || 'Tôi',
-            avatar: user?.avatar || '/api/placeholder/40/40',
-            isVerified: false,
-            isOnline: true
-          },
-          createdAt: new Date(Date.now() - 1800000),
-          updatedAt: new Date(Date.now() - 1800000),
-          likes: 5,
-          comments: 2,
-          shares: 1,
-          views: 15,
-          isAdult: false,
+          mediaType: 'text',
+          mediaUrls: [],
+          thumbnailUrl: null,
+          isPublic: true,
           isPremium: false,
-          isLiked: false,
-          isBookmarked: false,
-          visibility: 'public' as const
+          price: null,
+          viewCount: 15,
+          likeCount: 5,
+          commentCount: 2,
+          shareCount: 1,
+          status: 'published',
+          scheduledAt: null,
+          tags: [],
+          location: null,
+          isPromoted: false,
+          createdAt: new Date(Date.now() - 1800000).toISOString(),
+          updatedAt: new Date(Date.now() - 1800000).toISOString(),
+          user: {
+            id: user?.id || 13,
+            username: user?.username || 'user1',
+            firstName: user?.firstName || 'User',
+            lastName: user?.lastName || 'Name',
+            avatar: user?.avatar || null
+          },
+          creator: null
         }
       ]
+
+      // Transform to Post format
+      const mockMyPosts: Post[] = mockApiPosts.map(apiPost => ({
+        id: apiPost.id.toString(),
+        type: 'text',
+        content: apiPost.content,
+        author: {
+          id: apiPost.user.id.toString(),
+          username: apiPost.user.username,
+          displayName: `${apiPost.user.firstName} ${apiPost.user.lastName}`.trim() || apiPost.user.username,
+          avatar: apiPost.user.avatar || '/api/placeholder/40/40',
+          isVerified: false,
+          isOnline: true
+        },
+        createdAt: new Date(apiPost.createdAt),
+        updatedAt: new Date(apiPost.updatedAt),
+        likes: apiPost.likeCount,
+        comments: apiPost.commentCount,
+        shares: apiPost.shareCount,
+        views: apiPost.viewCount,
+        isAdult: false,
+        isPremium: apiPost.isPremium,
+        isLiked: false,
+        isBookmarked: false,
+        visibility: 'public' as const,
+        media: apiPost.mediaUrls.length > 0 ? apiPost.mediaUrls.map(url => ({
+          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+          url: url,
+          thumbnail: apiPost.thumbnailUrl
+        })) : undefined
+      }))
+
       return page === 1 ? mockMyPosts : []
     }
 
@@ -710,7 +749,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                   : activeTab === 'live'
                   ? 'Hiện tại không có ai đang live stream'
                   : activeTab === 'my-posts'
-                  ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
+                  ? 'Bắt đầu t��o bài viết đầu tiên của bạn!'
                   : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                 }
               </p>
