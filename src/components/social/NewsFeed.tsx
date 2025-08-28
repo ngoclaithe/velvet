@@ -188,8 +188,9 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         isLiked: false,
         isBookmarked: false,
         visibility: 'public' as const,
-        media: apiPost.mediaUrls.length > 0 ? apiPost.mediaUrls.map(url => ({
-          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+        media: apiPost.mediaUrls.length > 0 ? apiPost.mediaUrls.map((url, index) => ({
+          id: `${apiPost.id}-media-${index}`,
+          type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
           thumbnail: apiPost.thumbnailUrl
         })) : undefined
@@ -704,7 +705,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 {activeTab === 'following' ? 'Chưa theo d��i ai' :
                  activeTab === 'live' ? 'Không có live stream' :
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
-                 'Chưa có bài viết'}
+                 'Chưa có bài vi���t'}
               </h3>
               <p className="text-muted-foreground">
                 {activeTab === 'following'
