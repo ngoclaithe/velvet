@@ -59,7 +59,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   // Mock data cho demo khi chưa có backend
   const getMockPosts = useCallback((tab: string, page: number): Post[] => {
     // Nếu chưa có bài viết thì trả về mảng rỗng
-    if (tab === 'following' && !isAuthenticated) {
+    if ((tab === 'following' || tab === 'my-posts') && !isAuthenticated) {
       return []
     }
 
