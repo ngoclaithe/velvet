@@ -109,6 +109,8 @@ export default function ProfilePage() {
   const [selectedDocType, setSelectedDocType] = useState('')
   const [avatarUploadDialogOpen, setAvatarUploadDialogOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
+  const [selectedKycDocType, setSelectedKycDocType] = useState('')
   const [kycPersonalInfo, setKycPersonalInfo] = useState({
     fullName: '',
     dateOfBirth: '',
@@ -477,7 +479,7 @@ export default function ProfilePage() {
                     onClick={() => router.push('/become-creator')}
                   >
                     <Gift className="w-4 h-4 mr-2" />
-                    Bắt đầu ngay
+                    Bắt ��ầu ngay
                   </Button>
                 </div>
               </CardContent>
