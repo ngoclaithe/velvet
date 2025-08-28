@@ -45,7 +45,7 @@ import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import ImageUploader from '@/components/ImageUploader'
 import type { User } from '@/types/auth'
 import { kycApi, getKycStatusDescription, getVerificationLevelDescription, getDocumentTypeDescription } from '@/lib/api/kyc'
-import type { KycSubmission, DocumentType, KycStatus } from '@/types/kyc'
+import type { KycSubmission, KycSubmissionData, DocumentType, KycStatus } from '@/types/kyc'
 import type { ApiResponse } from '@/types/api'
 import type { CloudinaryUploadResponse } from '@/types/cloudinary'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -251,7 +251,7 @@ export default function ProfilePage() {
   const handleKycUploadComplete = async (results: CloudinaryUploadResponse[]) => {
     if (results.length > 0 && selectedKycDocType) {
       try {
-        // Lưu URL vào state local thay vì gọi API ngay
+        // L��u URL vào state local thay vì gọi API ngay
         setKycDocuments(prev => ({
           ...prev,
           [selectedKycDocType]: results[0].secure_url
@@ -1247,7 +1247,7 @@ export default function ProfilePage() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Thông báo like</Label>
+                  <Label>Thông b��o like</Label>
                   <p className="text-sm text-muted-foreground">
                     Khi có người thích bài viết của bạn
                   </p>
