@@ -90,7 +90,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: `${apiPost.id}-media-${index}`,
           type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
-          thumbnail: apiPost.thumbnailUrl
+          thumbnail: apiPost.thumbnailUrl || undefined
         })) : undefined
     }
   }, [])
@@ -195,7 +195,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: `${apiPost.id}-media-${index}`,
           type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
-          thumbnail: apiPost.thumbnailUrl
+          thumbnail: apiPost.thumbnailUrl || undefined
         })) : undefined
       }))
 
@@ -256,18 +256,19 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
       if (response && response.success && response.data) {
         // Handle different response formats
-        let rawPosts = []
+        let rawPosts: any[] = []
         let total = 0
-        let pagination = null
+        let pagination: any = null
 
         if (Array.isArray(response.data)) {
           rawPosts = response.data
           total = rawPosts.length
         } else if (response.data && typeof response.data === 'object') {
-          if ('posts' in response.data) {
-            rawPosts = response.data.posts || []
-            total = response.data.total || rawPosts.length
-            pagination = response.data.pagination
+          const dataObj = response.data as any
+          if ('posts' in dataObj) {
+            rawPosts = dataObj.posts || []
+            total = dataObj.total || dataObj.pagination?.totalPosts || rawPosts.length
+            pagination = dataObj.pagination
           } else {
             // Single post wrapped in data
             rawPosts = [response.data]
@@ -350,22 +351,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     }
   }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts])
 
-  // Auto-load next page on scroll (Facebook-style pagination)
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop
-        >= document.documentElement.offsetHeight - 1000 &&
-        currentFeed.hasMore &&
-        !currentFeed.loading
-      ) {
-        loadMore()
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [loadMore, currentFeed.hasMore, currentFeed.loading])
+  // Removed infinite scroll - now using manual pagination only
 
   // Format time ago
   const formatTimeAgo = useCallback((date: Date) => {
