@@ -405,9 +405,9 @@ export default function HomePage() {
                     <TrendingUp className="w-4 h-4" />
                     Bảng tin
                   </TabsTrigger>
-                  <TabsTrigger value="live" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-1" />
-                    Live Streams
+                  <TabsTrigger value="my-posts" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
+                    <Edit3 className="w-4 h-4" />
+                    Bài viết của tôi
                   </TabsTrigger>
                   <TabsTrigger value="blog" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700">
                     <Edit3 className="w-4 h-4" />
@@ -431,8 +431,8 @@ export default function HomePage() {
                   <NewsFeed />
                 </TabsContent>
 
-                <TabsContent value="live" className="space-y-6">
-                  <LiveStreamsTab />
+                <TabsContent value="my-posts" className="space-y-6">
+                  <NewsFeed activeTab="my-posts" />
                 </TabsContent>
 
                 <TabsContent value="blog" className="space-y-6">
