@@ -370,7 +370,7 @@ export default function ProfilePage() {
 
       if (response.success) {
         toast({
-          title: "Gửi xác thực thành công!",
+          title: "Gửi xác th���c thành công!",
           description: "H��� sơ KYC của bạn đã được gửi và đang được xem xét",
           variant: "default"
         })
@@ -764,19 +764,19 @@ export default function ProfilePage() {
               ) : (
                 <>
                   {/* Verification Levels */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {['basic', 'intermediate', 'advanced'].map((level) => (
-                      <Card key={level} className={`p-4 ${kycSubmission?.verificationLevel === level ? 'border-blue-500 bg-blue-50' : ''}`}>
+                      <Card key={level} className={`p-3 sm:p-4 ${kycSubmission?.verificationLevel === level ? 'border-blue-500 bg-blue-50' : ''}`}>
                         <div className="text-center">
-                          <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
                             level === 'basic' ? 'bg-green-100 text-green-600' :
                             level === 'intermediate' ? 'bg-yellow-100 text-yellow-600' :
                             'bg-purple-100 text-purple-600'
                           }`}>
-                            <Shield className="w-6 h-6" />
+                            <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
                           </div>
-                          <h3 className="font-medium capitalize">{level === 'basic' ? 'Cơ bản' : level === 'intermediate' ? 'Trung cấp' : 'Nâng cao'}</h3>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <h3 className="font-medium text-sm sm:text-base">{level === 'basic' ? 'Cơ bản' : level === 'intermediate' ? 'Trung cấp' : 'Nâng cao'}</h3>
+                          <p className="text-xs text-muted-foreground mt-1 leading-tight">
                             {getVerificationLevelDescription(level)}
                           </p>
                         </div>
@@ -1107,7 +1107,7 @@ export default function ProfilePage() {
                               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
                               <h4 className="font-medium text-green-900 mb-2">Sẵn sàng gửi xác thực!</h4>
                               <p className="text-sm text-green-800">
-                                Tất cả thông tin và tài liệu đã được điền đầy đủ. Bạn có thể gửi hồ sơ để xem xét.
+                                Tất cả thông tin và tài liệu đã được ��iền đầy đủ. Bạn có thể gửi hồ sơ để xem xét.
                               </p>
                             </div>
                           ) : (
