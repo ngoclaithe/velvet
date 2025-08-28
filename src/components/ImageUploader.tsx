@@ -2,7 +2,6 @@
 
 import React, { useState, useRef } from 'react';
 import { useCloudinaryUpload } from '../hooks/useCloudinaryUpload';
-import { OptimizedImage } from './OptimizedImage';
 import type { UploadOptions, CloudinaryUploadResponse } from '@/types/cloudinary';
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload';
 
