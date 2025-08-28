@@ -378,20 +378,47 @@ export default function ProfilePage() {
     return hasAllDocuments && hasPersonalInfo
   }
 
+  // Cloudinary upload hook
+  const {
+    uploadMultiple,
+    uploading: cloudinaryUploading,
+    progress: uploadProgress,
+    error: uploadError,
+    clearError: clearUploadError
+  } = useCloudinaryUpload()
+
   // Submit toàn bộ KYC data
   const handleSubmitKyc = async () => {
     if (!isKycDataComplete()) {
       toast({
         title: "Thông tin chưa đầy đủ",
-        description: "Vui lòng điền đầy đủ thông tin cá nhân và tải lên 3 ảnh (mặt trước, mặt sau, selfie)",
+        description: "Vui lòng điền đầy đủ thông tin cá nhân và chọn 3 ảnh (mặt trước, mặt sau, selfie)",
         variant: "destructive"
       })
       return
     }
 
     setIsUploadingDoc(true)
+    clearUploadError()
+
     try {
-      // Tạo KYC submission với đầy đủ thông tin
+      // Bước 1: Upload 3 ảnh lên Cloudinary
+      const filesToUpload = [
+        kycDocuments.documentFrontFile!,
+        kycDocuments.documentBackFile!,
+        kycDocuments.selfieFile!
+      ]
+
+      console.log('🚀 Bắt đầu upload 3 ảnh KYC lên Cloudinary...')
+      const uploadResults = await uploadMultiple(filesToUpload)
+
+      if (uploadResults.length !== 3) {
+        throw new Error('Không thể tải lên đủ 3 ảnh. Vui lòng thử lại.')
+      }
+
+      console.log('✅ Upload Cloudinary thành công:', uploadResults.map(r => r.secure_url))
+
+      // Bước 2: Tạo KYC submission với URLs từ Cloudinary
       const kycData: KycSubmissionData = {
         // Thông tin cá nhân
         fullName: kycPersonalInfo.fullName,
@@ -401,22 +428,34 @@ export default function ProfilePage() {
         documentType: kycPersonalInfo.documentType,
         documentNumber: kycPersonalInfo.documentNumber,
 
-        // URLs của 3 ảnh
-        documentFrontUrl: kycDocuments.documentFrontUrl,
-        documentBackUrl: kycDocuments.documentBackUrl,
-        selfieUrl: kycDocuments.selfieUrl
+        // URLs từ Cloudinary (theo thứ tự: front, back, selfie)
+        documentFrontUrl: uploadResults[0].secure_url,
+        documentBackUrl: uploadResults[1].secure_url,
+        selfieUrl: uploadResults[2].secure_url
       }
 
+      console.log('🚀 Gọi API tạo KYC submission...')
       const response = await kycApi.createSubmission(kycData)
+
       if (response.success) {
         toast({
           title: "Gửi xác thực thành công!",
-          description: "Hồ sơ KYC của bạn ��ã được gửi và đang được xem xét",
+          description: "Hồ sơ KYC của bạn đã được gửi và đang được xem xét",
           variant: "default"
         })
 
         // Reset form sau khi gửi thành công
         setKycDocuments({
+          documentFrontFile: null,
+          documentBackFile: null,
+          selfieFile: null
+        })
+
+        // Clear preview URLs
+        Object.values(kycPreviewUrls).forEach(url => {
+          if (url) URL.revokeObjectURL(url)
+        })
+        setKycPreviewUrls({
           documentFrontUrl: '',
           documentBackUrl: '',
           selfieUrl: ''
@@ -424,11 +463,12 @@ export default function ProfilePage() {
 
         fetchKycData()
       }
+
     } catch (error) {
-      console.error('Submit KYC failed:', error)
+      console.error('❌ Submit KYC failed:', error)
       toast({
         title: "Lỗi gửi hồ sơ",
-        description: "Không thể gửi hồ sơ xác thực. Vui lòng kiểm tra lại thông tin.",
+        description: error instanceof Error ? error.message : "Không thể gửi hồ sơ xác thực. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -495,7 +535,7 @@ export default function ProfilePage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
+          <TabsTrigger value="profile">Hồ s��</TabsTrigger>
           <TabsTrigger value="kyc">Xác thực</TabsTrigger>
           <TabsTrigger value="privacy">Quyền riêng tư</TabsTrigger>
           <TabsTrigger value="notifications">Thông báo</TabsTrigger>
