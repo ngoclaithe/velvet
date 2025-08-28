@@ -269,7 +269,6 @@ export default function ProfilePage() {
         const fileKey = docType.replace('Url', 'File') as keyof typeof kycDocuments
         const urlKey = docType as keyof typeof kycPreviewUrls
 
-        // Tạo một file object giả để compatibility với existing logic
         const fakeFile = new File([''], results[0].original_filename || 'document.jpg', {
           type: 'image/jpeg'
         })
@@ -279,7 +278,6 @@ export default function ProfilePage() {
           [fileKey]: fakeFile
         }))
 
-        // Lưu URL từ Cloudinary
         setKycPreviewUrls(prev => ({
           ...prev,
           [urlKey]: results[0].secure_url
@@ -344,9 +342,7 @@ export default function ProfilePage() {
     setIsUploadingDoc(true)
 
     try {
-      // Tạo KYC submission với URLs đã có sẵn (đã upload qua ImageUploader)
       const kycData: KycSubmissionData = {
-        // Thông tin cá nhân
         fullName: kycPersonalInfo.fullName,
         dateOfBirth: kycPersonalInfo.dateOfBirth,
         nationality: kycPersonalInfo.nationality || 'Vietnam',
@@ -368,7 +364,6 @@ export default function ProfilePage() {
           variant: "default"
         })
 
-        // Reset form sau khi gửi thành công
         setKycDocuments({
           documentFrontFile: null,
           documentBackFile: null,
@@ -432,12 +427,10 @@ export default function ProfilePage() {
         dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
       })
 
-      // Fetch KYC data when user is loaded
       fetchKycData()
     }
   }, [user])
 
-  // Cleanup không cần thiết nữa vì URLs từ Cloudinary
 
   if (authLoading) {
     return (
@@ -918,9 +911,6 @@ export default function ProfilePage() {
                                   <DialogContent>
                                     <DialogHeader>
                                       <DialogTitle>Tải lên {docType.label}</DialogTitle>
-                                      <DialogDescription>
-                                        Tải lên ảnh {docType.label.toLowerCase()} - sẽ được tự động upload lên Cloudinary
-                                      </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <ImageUploader
@@ -945,10 +935,6 @@ export default function ProfilePage() {
                                   alt={docType.label}
                                   className="w-full max-w-xs h-32 object-cover rounded border"
                                 />
-                                <p className="text-xs text-green-600 mt-1 flex items-center">
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Đã tải lên Cloudinary
-                                </p>
                               </div>
                             )}
 
