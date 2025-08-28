@@ -90,7 +90,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: `${apiPost.id}-media-${index}`,
           type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
-          thumbnail: apiPost.thumbnailUrl
+          thumbnail: apiPost.thumbnailUrl || undefined
         })) : undefined
     }
   }, [])
@@ -138,7 +138,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: 5,
           userId: user?.id || 13,
           creatorId: null,
-          content: 'Đây là bài viết đầu tiên của tôi trên n���n tảng! 🎉',
+          content: '��ây là bài viết đầu tiên của tôi trên n���n tảng! 🎉',
           mediaType: 'text',
           mediaUrls: [],
           thumbnailUrl: null,
