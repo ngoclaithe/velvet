@@ -161,8 +161,39 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       return page === 1 ? mockLiveStreams : []
     }
 
+    if (tab === 'my-posts' && isAuthenticated) {
+      // Mock posts của user hiện tại
+      const mockMyPosts: Post[] = [
+        {
+          id: 'my-1',
+          type: 'text',
+          content: 'Đây là bài viết đầu tiên của tôi trên nền tảng! 🎉',
+          author: {
+            id: user?.id || 'current-user',
+            username: user?.username || 'me',
+            displayName: user?.firstName ? `${user.firstName} ${user.lastName}` : user?.username || 'Tôi',
+            avatar: user?.avatar || '/api/placeholder/40/40',
+            isVerified: false,
+            isOnline: true
+          },
+          createdAt: new Date(Date.now() - 1800000),
+          updatedAt: new Date(Date.now() - 1800000),
+          likes: 5,
+          comments: 2,
+          shares: 1,
+          views: 15,
+          isAdult: false,
+          isPremium: false,
+          isLiked: false,
+          isBookmarked: false,
+          visibility: 'public' as const
+        }
+      ]
+      return page === 1 ? mockMyPosts : []
+    }
+
     return page === 1 ? mockPosts : [] // Chỉ có 1 trang mock data
-  }, [isAuthenticated])
+  }, [isAuthenticated, user])
 
   // Load posts cho tab hiện tại
   const loadPosts = useCallback(async (
