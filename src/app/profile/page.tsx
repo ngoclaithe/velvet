@@ -112,6 +112,14 @@ export default function ProfilePage() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
   const [selectedKycDocType, setSelectedKycDocType] = useState('')
+
+  // State để lưu 3 ảnh KYC cục bộ
+  const [kycDocuments, setKycDocuments] = useState({
+    documentFrontUrl: '',
+    documentBackUrl: '',
+    selfieUrl: ''
+  })
+
   const [kycPersonalInfo, setKycPersonalInfo] = useState({
     fullName: '',
     dateOfBirth: '',
@@ -184,7 +192,7 @@ export default function ProfilePage() {
         setAvatarUploadDialogOpen(false)
         toast({
           title: "Cập nhật avatar thành công!",
-          description: "Ảnh đại diện của bạn đã được c��p nhật.",
+          description: "Ảnh đại diện của bạn đã được cập nhật.",
           variant: "default"
         })
       } catch (error) {
