@@ -419,10 +419,10 @@ export default function CreatePostPage() {
           <p className="text-muted-foreground">Chia sẻ nội dung với cộng đồng</p>
         </div>
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => handlePost(true)}
-            disabled={isPosting}
+            disabled={isPosting || cloudinaryUploading}
           >
             {isDraft ? (
               <>
@@ -436,14 +436,19 @@ export default function CreatePostPage() {
               </>
             )}
           </Button>
-          <Button 
+          <Button
             onClick={() => handlePost(false)}
-            disabled={isPosting}
+            disabled={isPosting || cloudinaryUploading}
           >
             {isPosting && !isDraft ? (
               <>
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                 Đang đăng...
+              </>
+            ) : cloudinaryUploading ? (
+              <>
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                Đang tải media...
               </>
             ) : (
               <>
@@ -512,6 +517,7 @@ export default function CreatePostPage() {
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     className="flex-1"
+                    disabled={cloudinaryUploading || isPosting}
                   >
                     <Upload className="mr-2 h-4 w-4" />
                     Tải lên file
@@ -525,6 +531,44 @@ export default function CreatePostPage() {
                     className="hidden"
                   />
                 </div>
+
+                {/* Upload Progress */}
+                {Object.keys(uploadProgress).length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Đang tải lên...</p>
+                    {Object.entries(uploadProgress).map(([fileIndex, progress]) => (
+                      <div key={fileIndex} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span>File {parseInt(fileIndex) + 1}</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload Error */}
+                {uploadError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                    <div className="flex justify-between items-center">
+                      <span>{uploadError}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearUploadError}
+                        className="h-auto p-1 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {mediaFiles.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
