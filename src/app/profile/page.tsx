@@ -107,6 +107,8 @@ export default function ProfilePage() {
   const [isUploadingDoc, setIsUploadingDoc] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [selectedDocType, setSelectedDocType] = useState('')
+  const [avatarUploadDialogOpen, setAvatarUploadDialogOpen] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [kycPersonalInfo, setKycPersonalInfo] = useState({
     fullName: '',
     dateOfBirth: '',
