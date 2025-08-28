@@ -251,10 +251,10 @@ export default function CreatePostPage() {
             files: files.map(f => ({ name: f.name, size: f.size, type: f.type }))
           })
 
-          const cloudinaryResults: CloudinaryUploadResponse[] = await uploadMultiple(files, {
-            folder: 'posts',
-            tags: 'post-media'
-          })
+          // Sử dụng folder và tags từ backend signature
+          console.log('📤 Using backend-provided folder and tags from signature')
+
+          const cloudinaryResults: CloudinaryUploadResponse[] = await uploadMultiple(files)
 
           // Extract URLs from Cloudinary results
           uploadedMediaUrls.push(...cloudinaryResults.map(result => result.secure_url))
