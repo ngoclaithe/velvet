@@ -152,25 +152,6 @@ export default function CreatorList() {
     }
   }, [isAuthenticated, user?.role])
 
-  // Fetch user's posts
-  const fetchMyPosts = useCallback(async () => {
-    if (!isAuthenticated || !user?.id) return
-
-    try {
-      setLoading(true)
-      const response = await postsApi.getUserPosts(user.id)
-      if (response.success && response.data && Array.isArray(response.data)) {
-        setMyPosts(response.data)
-      } else {
-        setMyPosts([])
-      }
-    } catch (error) {
-      console.error('Error fetching my posts:', error)
-      setMyPosts([])
-    } finally {
-      setLoading(false)
-    }
-  }, [isAuthenticated, user?.id])
 
   // Handle creator click to navigate to creator page
   const handleCreatorClick = (creatorId: number) => {
