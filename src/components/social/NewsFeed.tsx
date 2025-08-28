@@ -52,7 +52,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   })
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
 
   const currentFeed = feeds[activeTab]
 
