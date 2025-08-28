@@ -535,7 +535,7 @@ export default function ProfilePage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">Hồ s��</TabsTrigger>
+          <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
           <TabsTrigger value="kyc">Xác thực</TabsTrigger>
           <TabsTrigger value="privacy">Quyền riêng tư</TabsTrigger>
           <TabsTrigger value="notifications">Thông báo</TabsTrigger>
@@ -962,9 +962,9 @@ export default function ProfilePage() {
                       <div className="space-y-6">
                         {/* Hiển thị 3 loại ảnh cần upload */}
                         {[
-                          { key: 'documentFrontUrl', label: 'Mặt trước giấy tờ', icon: '🆔' },
-                          { key: 'documentBackUrl', label: 'Mặt sau giấy tờ', icon: '🔄' },
-                          { key: 'selfieUrl', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
+                          { key: 'documentFrontUrl', fileKey: 'documentFrontFile', label: 'Mặt trước giấy tờ', icon: '🆔' },
+                          { key: 'documentBackUrl', fileKey: 'documentBackFile', label: 'Mặt sau giấy tờ', icon: '🔄' },
+                          { key: 'selfieUrl', fileKey: 'selfieFile', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
                         ].map((docType) => (
                           <div key={docType.key} className="border rounded-lg p-4">
                             <div className="flex items-center justify-between mb-3">
@@ -973,7 +973,7 @@ export default function ProfilePage() {
                                 <div>
                                   <h4 className="font-medium">{docType.label}</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    {kycDocuments[docType.key] ? 'Đã tải lên' : 'Chưa tải lên'}
+                                    {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Đã chọn ảnh' : 'Chưa chọn ảnh'}
                                   </p>
                                 </div>
                               </div>
@@ -990,55 +990,61 @@ export default function ProfilePage() {
                                   <DialogTrigger asChild>
                                     <Button variant="outline" size="sm">
                                       <Upload className="w-4 h-4 mr-2" />
-                                      {kycDocuments[docType.key] ? 'Thay đổi' : 'Tải lên'}
+                                      {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Thay đổi' : 'Chọn ảnh'}
                                     </Button>
                                   </DialogTrigger>
                                   <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle>Tải lên {docType.label}</DialogTitle>
+                                      <DialogTitle>Chọn {docType.label}</DialogTitle>
                                       <DialogDescription>
-                                        Chọn ảnh {docType.label.toLowerCase()} của bạn
+                                        Chọn file ảnh {docType.label.toLowerCase()} từ thiết bị của bạn
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
-                                      <ImageUploader
-                                        onUploadComplete={handleKycUploadComplete}
-                                        onUploadStart={handleKycUploadStart}
-                                        onUploadError={handleKycUploadError}
-                                        maxFiles={1}
-                                        compact={true}
-                                        hideResults={true}
-                                        acceptedTypes="image/jpeg,image/png,image/webp"
-                                        disabled={isUploadingDoc}
-                                      />
+                                      <div className="space-y-2">
+                                        <Label htmlFor={`file-${docType.key}`}>Chọn file ảnh</Label>
+                                        <Input
+                                          id={`file-${docType.key}`}
+                                          type="file"
+                                          accept="image/jpeg,image/png,image/webp"
+                                          onChange={handleKycFileSelect}
+                                          className="cursor-pointer"
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                          Hỗ trợ: JPG, PNG, WEBP. Tối đa 10MB.
+                                        </p>
+                                      </div>
                                     </div>
                                   </DialogContent>
                                 </Dialog>
                               )}
                             </div>
 
-                            {/* Preview ảnh đã upload */}
-                            {kycDocuments[docType.key] && (
+                            {/* Preview ảnh đã chọn */}
+                            {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] && (
                               <div className="mt-3">
                                 <img
-                                  src={kycDocuments[docType.key]}
+                                  src={kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls]}
                                   alt={docType.label}
                                   className="w-full max-w-xs h-32 object-cover rounded border"
                                 />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {kycDocuments[docType.fileKey as keyof typeof kycDocuments]?.name}
+                                </p>
                               </div>
                             )}
 
                             {/* Status indicator */}
                             <div className="mt-3 flex items-center space-x-2">
-                              {kycDocuments[docType.key] ? (
+                              {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? (
                                 <>
                                   <CheckCircle className="h-4 w-4 text-green-600" />
-                                  <span className="text-sm text-green-600">Đã sẵn sàng</span>
+                                  <span className="text-sm text-green-600">Đã chọn</span>
                                 </>
                               ) : (
                                 <>
                                   <AlertCircle className="h-4 w-4 text-yellow-600" />
-                                  <span className="text-sm text-yellow-600">Cần tải lên</span>
+                                  <span className="text-sm text-yellow-600">Cần chọn</span>
                                 </>
                               )}
                             </div>
@@ -1049,9 +1055,9 @@ export default function ProfilePage() {
                         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h4 className="font-medium">Tiến độ tải tài liệu</h4>
+                              <h4 className="font-medium">Tiến độ chọn ảnh</h4>
                               <p className="text-sm text-muted-foreground">
-                                {Object.values(kycDocuments).filter(url => url).length}/3 tài liệu đã tải lên
+                                {Object.values(kycDocuments).filter(file => file).length}/3 ảnh đã chọn
                               </p>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -1135,7 +1141,7 @@ export default function ProfilePage() {
                           <div>
                             <h4 className="font-medium text-red-900">Hồ sơ bị từ chối</h4>
                             <p className="text-sm text-red-800 mt-1">{kycSubmission.rejectionReason}</p>
-                            <p className="text-xs text-red-700 mt-2">Vui lòng chỉnh sửa thông tin và gửi lại hồ sơ.</p>
+                            <p className="text-xs text-red-700 mt-2">Vui lòng chỉnh s��a thông tin và gửi lại hồ sơ.</p>
                           </div>
                         </div>
                       </CardContent>
