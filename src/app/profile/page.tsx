@@ -896,7 +896,7 @@ export default function ProfilePage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Vietnam">Việt Nam</SelectItem>
+                              <SelectItem value="Vietnam">Vi���t Nam</SelectItem>
                               <SelectItem value="Other">Khác</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1110,16 +1110,51 @@ export default function ProfilePage() {
                             </div>
                           )}
 
+                          {/* Upload Progress */}
+                          {(isUploadingDoc || cloudinaryUploading) && (
+                            <div className="space-y-3">
+                              <div className="text-center">
+                                <Icons.spinner className="w-6 h-6 mx-auto animate-spin mb-2" />
+                                <p className="text-sm font-medium">
+                                  {cloudinaryUploading ? 'Đang tải ảnh lên Cloudinary...' : 'Đang gửi hồ sơ...'}
+                                </p>
+                              </div>
+
+                              {/* Upload progress bars */}
+                              {Object.keys(uploadProgress).length > 0 && (
+                                <div className="space-y-2">
+                                  {Object.entries(uploadProgress).map(([fileIndex, progress]) => (
+                                    <div key={fileIndex} className="space-y-1">
+                                      <div className="flex justify-between text-xs">
+                                        <span>
+                                          {parseInt(fileIndex) === 0 ? 'Mặt trước' :
+                                           parseInt(fileIndex) === 1 ? 'Mặt sau' : 'Selfie'}
+                                        </span>
+                                        <span>{progress}%</span>
+                                      </div>
+                                      <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                          style={{ width: `${progress}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           <Button
                             onClick={handleSubmitKyc}
                             size="lg"
-                            disabled={!isKycDataComplete() || isUploadingDoc}
+                            disabled={!isKycDataComplete() || isUploadingDoc || cloudinaryUploading}
                             className={isKycDataComplete() ? 'bg-green-600 hover:bg-green-700' : ''}
                           >
-                            {isUploadingDoc ? (
+                            {(isUploadingDoc || cloudinaryUploading) ? (
                               <>
                                 <Icons.spinner className="w-4 h-4 mr-2 animate-spin" />
-                                Đang gửi...
+                                {cloudinaryUploading ? 'Đang tải ảnh...' : 'Đang gửi...'}
                               </>
                             ) : (
                               <>
@@ -1141,7 +1176,7 @@ export default function ProfilePage() {
                           <div>
                             <h4 className="font-medium text-red-900">Hồ sơ bị từ chối</h4>
                             <p className="text-sm text-red-800 mt-1">{kycSubmission.rejectionReason}</p>
-                            <p className="text-xs text-red-700 mt-2">Vui lòng chỉnh s��a thông tin và gửi lại hồ sơ.</p>
+                            <p className="text-xs text-red-700 mt-2">Vui lòng chỉnh sửa thông tin và gửi lại hồ sơ.</p>
                           </div>
                         </div>
                       </CardContent>
