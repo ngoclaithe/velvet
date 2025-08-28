@@ -5,9 +5,10 @@ export { streamApi } from './stream'
 export { chatApi } from './chat'
 export { walletAPI } from './wallet'
 export { postsApi } from './posts'
+export { cloudinaryApi } from './cloudinary'
 export { requestDeposit } from './requestDeposit'
-export { 
-  infoPaymentApi, 
+export {
+  infoPaymentApi,
   infoPaymentUtils,
   type InfoPayment,
   type CreateInfoPaymentData,
@@ -16,5 +17,5 @@ export {
   type InfoPaymentResponse,
   type InfoPaymentPublicResponse,
   type DeleteInfoPaymentResponse,
-  
+
 } from './infoPayment'
