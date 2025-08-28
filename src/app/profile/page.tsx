@@ -381,13 +381,41 @@ export default function ProfilePage() {
                       {user?.username?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                  <Dialog open={avatarUploadDialogOpen} onOpenChange={setAvatarUploadDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+                        disabled={isUploadingAvatar}
+                      >
+                        {isUploadingAvatar ? (
+                          <Icons.spinner className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Camera className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Cập nhật ảnh đại diện</DialogTitle>
+                        <DialogDescription>
+                          Chọn ảnh mới để làm ảnh đại diện của bạn
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <ImageUploader
+                          onUploadComplete={handleAvatarUploadComplete}
+                          onUploadError={handleAvatarUploadError}
+                          maxFiles={1}
+                          compact={true}
+                          hideResults={true}
+                          acceptedTypes="image/jpeg,image/png,image/webp"
+                          disabled={isUploadingAvatar}
+                        />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 
                 <div className="flex-1 text-center sm:text-left">
