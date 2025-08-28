@@ -896,7 +896,7 @@ export default function ProfilePage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Vietnam">Vi���t Nam</SelectItem>
+                              <SelectItem value="Vietnam">Việt Nam</SelectItem>
                               <SelectItem value="Other">Khác</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1103,9 +1103,9 @@ export default function ProfilePage() {
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
                                 {!kycPersonalInfo.dateOfBirth && <li>• Chọn ngày sinh</li>}
                                 {!kycPersonalInfo.documentNumber && <li>• Nhập số giấy tờ</li>}
-                                {!kycDocuments.documentFrontUrl && <li>• Tải lên ảnh mặt trước giấy tờ</li>}
-                                {!kycDocuments.documentBackUrl && <li>• Tải lên ảnh mặt sau giấy tờ</li>}
-                                {!kycDocuments.selfieUrl && <li>• Tải lên ảnh selfie</li>}
+                                {!kycDocuments.documentFrontFile && <li>• Chọn ảnh mặt trước giấy tờ</li>}
+                                {!kycDocuments.documentBackFile && <li>• Chọn ảnh mặt sau giấy tờ</li>}
+                                {!kycDocuments.selfieFile && <li>• Chọn ảnh selfie</li>}
                               </ul>
                             </div>
                           )}
@@ -1253,7 +1253,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép tin nhắn</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác gửi tin nhắn cho bạn
+                    Cho phép ngư��i khác gửi tin nhắn cho bạn
                   </p>
                 </div>
                 <Switch
