@@ -1,8 +1,28 @@
 import { api } from './core'
 
+// Individual API functions for easier usage
+export async function GetFeed(params?: { page?: number; limit?: number }) {
+  const queryParams = params ? {
+    page: params.page?.toString() || '1',
+    limit: params.limit?.toString() || '10'
+  } : undefined
+  return api.get('/posts/feed/followed', queryParams)
+}
+
+export async function GetAllPosts(params?: { page?: number; limit?: number }) {
+  const queryParams = params ? {
+    page: params.page?.toString() || '1',
+    limit: params.limit?.toString() || '10'
+  } : undefined
+  return api.get('/posts', queryParams)
+}
+
 export const postsApi = {
   getFeed: (params?: Record<string, string>) =>
-    api.get('/posts/feed', params),
+    api.get('/posts/feed/followed', params),
+
+  getAllPosts: (params?: Record<string, string>) =>
+    api.get('/posts', params),
 
   getUserPosts: (userId: string, params?: Record<string, string>) =>
     api.get(`/posts/user/${userId}`, params),
