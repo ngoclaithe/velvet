@@ -354,13 +354,11 @@ export default function ProfilePage() {
         documentType: kycPersonalInfo.documentType,
         documentNumber: kycPersonalInfo.documentNumber,
 
-        // URLs đã upload sẵn qua ImageUploader
         documentFrontUrl: kycPreviewUrls.documentFrontUrl,
         documentBackUrl: kycPreviewUrls.documentBackUrl,
         selfieUrl: kycPreviewUrls.selfieUrl
       }
 
-      console.log('🚀 Gọi API tạo KYC submission với URLs đã có sẵn...')
       const response = await kycApi.createSubmission(kycData)
 
       if (response.success) {
