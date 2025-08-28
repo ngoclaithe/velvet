@@ -882,97 +882,123 @@ export default function ProfilePage() {
                     </CardContent>
                   </Card>
 
-                  {/* Documents */}
+                  {/* Documents - Hiển thị 3 ảnh cần thiết */}
                   <Card>
                     <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>Tài liệu xác thực</CardTitle>
-                          <CardDescription>Tải lên các tài liệu cần thiết để xác thực</CardDescription>
-                        </div>
-                        {(kycStatus === 'draft' || kycStatus === 'rejected') && (
-                          <Dialog open={kycUploadDialogOpen} onOpenChange={setKycUploadDialogOpen}>
-                            <DialogTrigger asChild>
-                              <Button disabled={isUploadingDoc}>
-                                <Upload className="w-4 h-4 mr-2" />
-                                {isUploadingDoc ? 'Đang tải lên...' : 'Tải lên'}
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Tải lên tài liệu KYC</DialogTitle>
-                                <DialogDescription>
-                                  Chọn loại tài liệu và tải lên file ảnh
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label>Loại tài liệu *</Label>
-                                  <Select value={selectedKycDocType} onValueChange={setSelectedKycDocType}>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Chọn loại tài liệu" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="documentFrontUrl">Mặt trước giấy tờ</SelectItem>
-                                      <SelectItem value="documentBackUrl">Mặt sau giấy tờ</SelectItem>
-                                      <SelectItem value="selfieUrl">Ảnh selfie</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                {selectedKycDocType && (
-                                  <div className="space-y-2">
-                                    <Label>Tải lên ảnh</Label>
-                                    <ImageUploader
-                                      onUploadComplete={handleKycUploadComplete}
-                                      onUploadStart={handleKycUploadStart}
-                                      onUploadError={handleKycUploadError}
-                                      maxFiles={1}
-                                      compact={true}
-                                      hideResults={true}
-                                      acceptedTypes="image/jpeg,image/png,image/webp"
-                                      disabled={isUploadingDoc || !selectedKycDocType}
-                                    />
-                                  </div>
-                                )}
-
-                                {!selectedKycDocType && (
-                                  <div className="text-sm text-muted-foreground">
-                                    Vui lòng chọn loại tài liệu trước khi tải lên
-                                  </div>
-                                )}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        )}
-                      </div>
+                      <CardTitle>Tài liệu xác thực</CardTitle>
+                      <CardDescription>Cần tải lên đủ 3 ảnh: mặt trước giấy tờ, mặt sau giấy tờ và ảnh selfie</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        {kycSubmission?.documents?.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <FileText className="h-5 w-5 text-muted-foreground" />
-                              <div>
-                                <p className="font-medium">{getDocumentTypeDescription(doc.type)}</p>
-                                <p className="text-sm text-muted-foreground">{doc.fileName}</p>
+                      <div className="space-y-6">
+                        {/* Hiển thị 3 loại ảnh cần upload */}
+                        {[
+                          { key: 'documentFrontUrl', label: 'Mặt trước giấy tờ', icon: '🆔' },
+                          { key: 'documentBackUrl', label: 'Mặt sau giấy tờ', icon: '🔄' },
+                          { key: 'selfieUrl', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
+                        ].map((docType) => (
+                          <div key={docType.key} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-2xl">{docType.icon}</span>
+                                <div>
+                                  <h4 className="font-medium">{docType.label}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {kycDocuments[docType.key] ? 'Đã tải lên' : 'Chưa tải lên'}
+                                  </p>
+                                </div>
                               </div>
+
+                              {(kycStatus === 'draft' || kycStatus === 'rejected') && (
+                                <Dialog
+                                  open={kycUploadDialogOpen && selectedKycDocType === docType.key}
+                                  onOpenChange={(open) => {
+                                    setKycUploadDialogOpen(open)
+                                    if (open) setSelectedKycDocType(docType.key)
+                                    else setSelectedKycDocType('')
+                                  }}
+                                >
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                      <Upload className="w-4 h-4 mr-2" />
+                                      {kycDocuments[docType.key] ? 'Thay đổi' : 'Tải lên'}
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Tải lên {docType.label}</DialogTitle>
+                                      <DialogDescription>
+                                        Chọn ảnh {docType.label.toLowerCase()} của bạn
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <ImageUploader
+                                        onUploadComplete={handleKycUploadComplete}
+                                        onUploadStart={handleKycUploadStart}
+                                        onUploadError={handleKycUploadError}
+                                        maxFiles={1}
+                                        compact={true}
+                                        hideResults={true}
+                                        acceptedTypes="image/jpeg,image/png,image/webp"
+                                        disabled={isUploadingDoc}
+                                      />
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
+                            </div>
+
+                            {/* Preview ảnh đã upload */}
+                            {kycDocuments[docType.key] && (
+                              <div className="mt-3">
+                                <img
+                                  src={kycDocuments[docType.key]}
+                                  alt={docType.label}
+                                  className="w-full max-w-xs h-32 object-cover rounded border"
+                                />
+                              </div>
+                            )}
+
+                            {/* Status indicator */}
+                            <div className="mt-3 flex items-center space-x-2">
+                              {kycDocuments[docType.key] ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <span className="text-sm text-green-600">Đã sẵn sàng</span>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                                  <span className="text-sm text-yellow-600">Cần tải lên</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Trạng thái tổng quan */}
+                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">Tiến độ tải tài liệu</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {Object.values(kycDocuments).filter(url => url).length}/3 tài liệu đã tải lên
+                              </p>
                             </div>
                             <div className="flex items-center space-x-2">
-                              {doc.status === 'approved' && <CheckCircle className="h-4 w-4 text-green-600" />}
-                              {doc.status === 'rejected' && <X className="h-4 w-4 text-red-600" />}
-                              {doc.status === 'pending' && <Clock className="h-4 w-4 text-yellow-600" />}
-                              <Badge variant={doc.status === 'approved' ? 'default' : doc.status === 'rejected' ? 'destructive' : 'secondary'}>
-                                {doc.status === 'approved' ? 'Đã duyệt' : doc.status === 'rejected' ? 'Bị từ chối' : 'Chờ duyệt'}
-                              </Badge>
+                              {isKycDataComplete() ? (
+                                <>
+                                  <CheckCircle className="h-5 w-5 text-green-600" />
+                                  <span className="text-sm text-green-600 font-medium">Sẵn sàng gửi</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="h-5 w-5 text-yellow-600" />
+                                  <span className="text-sm text-yellow-600">Chưa đầy đủ</span>
+                                </>
+                              )}
                             </div>
                           </div>
-                        )) || (
-                          <div className="text-center py-8">
-                            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                            <p className="text-muted-foreground">Chưa có tài liệu nào được tải lên</p>
-                          </div>
-                        )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -1189,7 +1215,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Thông báo like</Label>
                   <p className="text-sm text-muted-foreground">
-                    Khi có người thích bài viết của bạn
+                    Khi có người thích bài viết của b���n
                   </p>
                 </div>
                 <Switch
