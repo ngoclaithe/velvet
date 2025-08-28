@@ -308,6 +308,13 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     setRefreshing(false)
   }, [activeTab, loadPosts])
 
+  // Sync activeTab with prop
+  useEffect(() => {
+    if (propActiveTab && propActiveTab !== activeTab) {
+      setActiveTab(propActiveTab)
+    }
+  }, [propActiveTab, activeTab])
+
   // Load initial data khi tab thay đổi
   useEffect(() => {
     if (currentFeed.posts.length === 0 && !currentFeed.loading) {
