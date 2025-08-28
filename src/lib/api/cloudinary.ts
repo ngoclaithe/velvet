@@ -56,30 +56,10 @@ export const cloudinaryApi = {
     formData.append('dpr', signatureData.dpr)
     formData.append('flags', signatureData.flags)
 
-    // Handle transformation parameter correctly
-    if (signatureData.transformation) {
-      try {
-        console.log('🔧 Original transformation:', signatureData.transformation)
-
-        // If transformation is a JSON string, parse it and convert to Cloudinary format
-        const transformations = JSON.parse(signatureData.transformation)
-        if (Array.isArray(transformations) && transformations.length > 0) {
-          // Convert transformation array to Cloudinary transformation string format
-          const transformationStr = transformations.map(t => {
-            return Object.entries(t).map(([key, value]) => `${key}_${value}`).join(',')
-          }).join('/')
-          console.log('🔧 Converted transformation:', transformationStr)
-          formData.append('transformation', transformationStr)
-        } else {
-          console.log('🔧 Using transformation as-is (not array)')
-          formData.append('transformation', signatureData.transformation)
-        }
-      } catch (error) {
-        console.log('🔧 Failed to parse transformation, skipping:', error)
-        // Skip transformation if it causes issues - other parameters should handle sizing
-        console.log('🔧 Skipping transformation parameter due to parsing error')
-      }
-    }
+    // Bỏ transformation parameter để tránh lỗi
+    // Các parameter khác như quality, fetch_format, dpr sẽ đảm nhiệm việc tối ưu
+    console.log('🔧 Skipping transformation parameter to avoid errors')
+    console.log('🔧 Using quality, fetch_format, and dpr for optimization instead')
 
     // Determine resource type
     const resourceType = getResourceType(file, options?.resource_type)
