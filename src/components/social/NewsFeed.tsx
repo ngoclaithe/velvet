@@ -135,7 +135,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: 5,
           userId: user?.id || 13,
           creatorId: null,
-          content: 'Đây là bài viết đầu tiên của tôi trên nền tảng! 🎉',
+          content: 'Đây là bài viết đầu tiên của tôi trên n���n tảng! 🎉',
           mediaType: 'text',
           mediaUrls: [],
           thumbnailUrl: null,
@@ -468,7 +468,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 <div className="text-2xl mb-2">🔞</div>
                 <p className="text-sm">Nội dung 18+</p>
                 <Button size="sm" variant="secondary" className="mt-2">
-                  Đăng nhập để xem
+                  ��ăng nhập để xem
                 </Button>
               </div>
             </div>
@@ -700,7 +700,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
             <div className="space-y-4">
               <div className="text-6xl mb-4">
                 {activeTab === 'following' ? '👥' :
-                 activeTab === 'live' ? '📹' :
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
@@ -712,8 +711,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               <p className="text-muted-foreground">
                 {activeTab === 'following'
                   ? 'Hãy theo dõi một số người để xem bài viết của họ tại đây'
-                  : activeTab === 'live'
-                  ? 'Hiện tại không có ai đang live stream'
                   : activeTab === 'my-posts'
                   ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                   : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
