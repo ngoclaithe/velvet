@@ -192,7 +192,7 @@ export default function CreatorList() {
       console.error('Error following/unfollowing creator:', error)
       toast({
         title: "Lỗi",
-        description: "Không thể th��c hiện hành động này",
+        description: "Không thể thực hiện hành động này",
         variant: "destructive"
       })
     } finally {
@@ -416,7 +416,7 @@ export default function CreatorList() {
             <Card className="p-6 text-center bg-gray-800 border-gray-700">
               <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Chưa theo dõi ai</h3>
-              <p className="text-gray-400 mb-4">H��y theo dõi một số creator để xem họ ��� đây</p>
+              <p className="text-gray-400 mb-4">Hãy theo dõi một số creator để xem họ ở đây</p>
               <Button onClick={() => setActiveTab('all')}>
                 Khám phá creators
               </Button>

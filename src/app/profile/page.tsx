@@ -139,7 +139,7 @@ export default function ProfilePage() {
       console.error('Update profile failed:', error)
       toast({
         title: "Lỗi cập nhật",
-        description: "Không thể cập nhật thông tin. Vui lòng th��� lại.",
+        description: "Không thể cập nhật thông tin. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -229,7 +229,7 @@ export default function ProfilePage() {
       if (response.success) {
         toast({
           title: "Cập nhật thành công!",
-          description: "Th��ng tin cá nhân đã được cập nhật",
+          description: "Thông tin cá nhân đã được cập nhật",
           variant: "default"
         })
         fetchKycData()
@@ -581,7 +581,7 @@ export default function ProfilePage() {
                     <span>Xác thực tài khoản (KYC)</span>
                   </CardTitle>
                   <CardDescription>
-                    Xác thực danh tính để tăng độ tin cậy và m��� khóa các tính năng cao cấp
+                    Xác thực danh tính để tăng độ tin cậy và mở khóa các tính năng cao cấp
                   </CardDescription>
                 </div>
                 {getKycStatusBadge(kycStatus)}

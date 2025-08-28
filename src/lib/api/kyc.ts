@@ -133,11 +133,10 @@ export const getKycStatusDescription = (status: string) => {
     case 'rejected':
       return 'Bị từ chối'
     default:
-      return 'Không xác đ��nh'
+      return 'Không xác định'
   }
 }
 
-// Helper function to get document type description
 export const getDocumentTypeDescription = (type: string) => {
   switch (type) {
     case 'citizen_id_front':

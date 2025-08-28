@@ -602,7 +602,7 @@ export default function WalletPage() {
                   <h4 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
-                    <li>• Thời gian x�� lý: 5-15 phút sau khi chuyển khoản</li>
+                    <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
                     <li>• Liên hệ hỗ trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>

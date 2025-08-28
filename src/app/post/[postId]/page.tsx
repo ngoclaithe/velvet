@@ -176,7 +176,7 @@ export default function PostDetailPage() {
       
       toast({
         title: isBookmarked ? "Đã bỏ lưu" : "Đã lưu bài viết",
-        description: "Thay đổi đ�� được lưu cục bộ",
+        description: "Thay đổi đãđược lưu cục bộ",
         variant: "default"
       })
     }
