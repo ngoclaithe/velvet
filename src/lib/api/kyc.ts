@@ -1,41 +1,27 @@
 import { api } from './core'
+import type {
+  KycSubmission,
+  KycSubmissionData,
+  KycUpdateData,
+  KycDocumentUpdateData,
+  KycPersonalInfoUpdateData,
+  KycStatusResponse,
+  KycReviewData,
+  DocumentType,
+  VerificationLevel,
+  KycStatus
+} from '@/types/kyc'
 
-export interface KycDocumentType {
-  id: string
-  name: string
-  description: string
-  required: boolean
-}
-
-export interface KycDocument {
-  id: string
-  type: string
-  fileName: string
-  fileUrl: string
-  status: 'pending' | 'approved' | 'rejected'
-  uploadedAt: Date
-  reviewedAt?: Date
-  rejectionReason?: string
-}
-
-export interface KycSubmission {
-  id: string
-  userId: string
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected'
-  documents: KycDocument[]
-  personalInfo: {
-    fullName: string
-    dateOfBirth: string
-    nationality: string
-    address: string
-    phoneNumber: string
-    idNumber: string
-    idType: 'citizen_id' | 'passport' | 'driver_license'
-  }
-  submittedAt?: Date
-  reviewedAt?: Date
-  rejectionReason?: string
-  verificationLevel: 'basic' | 'intermediate' | 'advanced'
+// Re-export types for backward compatibility
+export type {
+  KycSubmission,
+  KycSubmissionData,
+  KycUpdateData,
+  KycDocumentUpdateData,
+  KycPersonalInfoUpdateData,
+  DocumentType,
+  VerificationLevel,
+  KycStatus
 }
 
 export const kycApi = {
