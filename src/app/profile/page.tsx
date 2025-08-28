@@ -113,7 +113,7 @@ export default function ProfilePage() {
   const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
   const [selectedKycDocType, setSelectedKycDocType] = useState('')
 
-  // State để lưu 3 ���nh KYC cục bộ
+  // State để lưu 3 ảnh KYC cục bộ
   const [kycDocuments, setKycDocuments] = useState({
     documentFrontUrl: '',
     documentBackUrl: '',
@@ -878,12 +878,7 @@ export default function ProfilePage() {
                         </p>
                       </div>
 
-                      {(kycStatus === 'draft' || kycStatus === 'rejected') && (
-                        <Button onClick={handleKycPersonalInfoUpdate}>
-                          <Save className="w-4 h-4 mr-2" />
-                          Lưu thông tin
-                        </Button>
-                      )}
+                      {/* Đã loại bỏ nút "Lưu thông tin" vì không cần thiết */}
                     </CardContent>
                   </Card>
 
