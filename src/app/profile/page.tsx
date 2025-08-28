@@ -411,7 +411,7 @@ export default function ProfilePage() {
       case 'submitted':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Đã gửi</Badge>
       case 'rejected':
-        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" />B�� từ chối</Badge>
+        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" />Bị từ chối</Badge>
       default:
         return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Chưa xác thực</Badge>
     }
@@ -933,114 +933,164 @@ export default function ProfilePage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Tài liệu xác thực</CardTitle>
-                      <CardDescription>Cần tải lên đủ 3 ảnh: mặt trước giấy tờ, mặt sau giấy tờ và ảnh selfie</CardDescription>
+                      <CardDescription>
+                        {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review')
+                          ? 'Tài liệu đã gửi - đang chờ xét duyệt'
+                          : 'Cần tải lên đủ 3 ảnh: mặt trước giấy tờ, mặt sau giấy tờ và ảnh selfie'
+                        }
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-6">
-                        {/* Hiển thị 3 loại ảnh cần upload */}
-                        {[
-                          { key: 'documentFrontUrl', fileKey: 'documentFrontFile', label: 'Mặt trước giấy tờ', icon: '🆔' },
-                          { key: 'documentBackUrl', fileKey: 'documentBackFile', label: 'Mặt sau giấy tờ', icon: '🔄' },
-                          { key: 'selfieUrl', fileKey: 'selfieFile', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
-                        ].map((docType) => (
-                          <div key={docType.key} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-2xl">{docType.icon}</span>
-                                <div>
-                                  <h4 className="font-medium">{docType.label}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Đã chọn ảnh' : 'Chưa chọn ảnh'}
-                                  </p>
+                        {/* Hiển thị tài liệu đã submit nếu có submission pending/submitted/under_review */}
+                        {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                              <div className="flex items-center space-x-2 mb-4">
+                                <CheckCircle className="h-5 w-5 text-blue-600" />
+                                <h4 className="font-medium text-blue-900">Tài liệu đã gửi</h4>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {[
+                                  { url: kycSubmission.documentFrontUrl, label: 'Mặt trước giấy tờ', icon: '🆔' },
+                                  { url: kycSubmission.documentBackUrl, label: 'Mặt sau giấy tờ', icon: '🔄' },
+                                  { url: kycSubmission.selfieUrl, label: 'Ảnh selfie', icon: '🤳' }
+                                ].map((doc, index) => (
+                                  <div key={index} className="text-center">
+                                    <div className="mb-2">
+                                      <span className="text-2xl">{doc.icon}</span>
+                                      <p className="text-sm font-medium">{doc.label}</p>
+                                    </div>
+                                    {doc.url ? (
+                                      <div className="space-y-2">
+                                        <img
+                                          src={doc.url}
+                                          alt={doc.label}
+                                          className="w-full h-24 object-cover rounded border"
+                                        />
+                                        <div className="flex items-center justify-center space-x-1">
+                                          <CheckCircle className="h-3 w-3 text-green-600" />
+                                          <span className="text-xs text-green-600">Đã gửi</span>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="h-24 bg-gray-100 rounded border flex items-center justify-center">
+                                        <span className="text-xs text-gray-500">Không có ảnh</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          // Hiển thị form upload chỉ khi draft hoặc rejected
+                          <>
+                            {[
+                              { key: 'documentFrontUrl', fileKey: 'documentFrontFile', label: 'Mặt trước giấy tờ', icon: '🆔' },
+                              { key: 'documentBackUrl', fileKey: 'documentBackFile', label: 'Mặt sau giấy tờ', icon: '🔄' },
+                              { key: 'selfieUrl', fileKey: 'selfieFile', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
+                            ].map((docType) => (
+                              <div key={docType.key} className="border rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-2xl">{docType.icon}</span>
+                                    <div>
+                                      <h4 className="font-medium">{docType.label}</h4>
+                                      <p className="text-sm text-muted-foreground">
+                                        {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Đã chọn ảnh' : 'Chưa chọn ảnh'}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {(kycStatus === 'draft' || kycStatus === 'rejected') && (
+                                    <Dialog
+                                      open={kycUploadDialogOpen && selectedKycDocType === docType.key}
+                                      onOpenChange={(open) => {
+                                        setKycUploadDialogOpen(open)
+                                        if (open) setSelectedKycDocType(docType.key)
+                                        else setSelectedKycDocType('')
+                                      }}
+                                    >
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm">
+                                          <Upload className="w-4 h-4 mr-2" />
+                                          {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? 'Thay đổi' : 'Tải lên'}
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>Tải lên {docType.label}</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
+                                          <ImageUploader
+                                            onUploadComplete={handleKycImageUpload(docType.key)}
+                                            onUploadError={handleKycImageUploadError}
+                                            maxFiles={1}
+                                            compact={true}
+                                            hideResults={true}
+                                            acceptedTypes="image/jpeg,image/png,image/webp"
+                                          />
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
+                                  )}
+                                </div>
+
+                                {/* Preview ảnh đã upload */}
+                                {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] && (
+                                  <div className="mt-3">
+                                    <img
+                                      src={kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls]}
+                                      alt={docType.label}
+                                      className="w-full max-w-xs h-32 object-cover rounded border"
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Status indicator */}
+                                <div className="mt-3 flex items-center space-x-2">
+                                  {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? (
+                                    <>
+                                      <CheckCircle className="h-4 w-4 text-green-600" />
+                                      <span className="text-sm text-green-600">Đã tải lên</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                                      <span className="text-sm text-yellow-600">Cần tải lên</span>
+                                    </>
+                                  )}
                                 </div>
                               </div>
+                            ))}
 
-                              {(kycStatus === 'draft' || kycStatus === 'rejected') && (
-                                <Dialog
-                                  open={kycUploadDialogOpen && selectedKycDocType === docType.key}
-                                  onOpenChange={(open) => {
-                                    setKycUploadDialogOpen(open)
-                                    if (open) setSelectedKycDocType(docType.key)
-                                    else setSelectedKycDocType('')
-                                  }}
-                                >
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                      <Upload className="w-4 h-4 mr-2" />
-                                      {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? 'Thay đổi' : 'Tải lên'}
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Tải lên {docType.label}</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4">
-                                      <ImageUploader
-                                        onUploadComplete={handleKycImageUpload(docType.key)}
-                                        onUploadError={handleKycImageUploadError}
-                                        maxFiles={1}
-                                        compact={true}
-                                        hideResults={true}
-                                        acceptedTypes="image/jpeg,image/png,image/webp"
-                                      />
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
-                              )}
-                            </div>
-
-                            {/* Preview ảnh đã upload */}
-                            {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] && (
-                              <div className="mt-3">
-                                <img
-                                  src={kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls]}
-                                  alt={docType.label}
-                                  className="w-full max-w-xs h-32 object-cover rounded border"
-                                />
+                            {/* Trạng thái tổng quan */}
+                            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-medium">Tiến độ tải ảnh</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {Object.values(kycPreviewUrls).filter(url => url).length}/3 ảnh đã tải lên
+                                  </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {isKycDataComplete() ? (
+                                    <>
+                                      <CheckCircle className="h-5 w-5 text-green-600" />
+                                      <span className="text-sm text-green-600 font-medium">Sẵn sàng gửi</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Clock className="h-5 w-5 text-yellow-600" />
+                                      <span className="text-sm text-yellow-600">Chưa đầy đủ</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            )}
-
-                            {/* Status indicator */}
-                            <div className="mt-3 flex items-center space-x-2">
-                              {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                  <span className="text-sm text-green-600">Đã tải lên</span>
-                                </>
-                              ) : (
-                                <>
-                                  <AlertCircle className="h-4 w-4 text-yellow-600" />
-                                  <span className="text-sm text-yellow-600">Cần tải lên</span>
-                                </>
-                              )}
                             </div>
-                          </div>
-                        ))}
-
-                        {/* Trạng thái tổng quan */}
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium">Tiến độ tải ảnh</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {Object.values(kycPreviewUrls).filter(url => url).length}/3 ảnh đã tải lên
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {isKycDataComplete() ? (
-                                <>
-                                  <CheckCircle className="h-5 w-5 text-green-600" />
-                                  <span className="text-sm text-green-600 font-medium">Sẵn sàng gửi</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Clock className="h-5 w-5 text-yellow-600" />
-                                  <span className="text-sm text-yellow-600">Chưa đầy đủ</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                          </>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
