@@ -251,22 +251,10 @@ export default function CreatePostPage() {
             files: files.map(f => ({ name: f.name, size: f.size, type: f.type }))
           })
 
-          // Tạo folder và tags động dựa trên nội dung bài viết
-          const folderName = `posts/${postData.category ? postData.category.toLowerCase().replace(/\s+/g, '-') : 'general'}/${postType}`
-          const dynamicTags = [
-            'post-media',
-            postType,
-            ...(postData.category ? [postData.category.toLowerCase().replace(/\s+/g, '-')] : []),
-            ...(postData.tags.slice(0, 3)) // Lấy tối đa 3 tags đầu tiên
-          ].join(',')
+          // Sử dụng folder và tags từ backend signature
+          console.log('📤 Using backend-provided folder and tags from signature')
 
-          console.log('📁 Dynamic folder:', folderName)
-          console.log('🏷️ Dynamic tags:', dynamicTags)
-
-          const cloudinaryResults: CloudinaryUploadResponse[] = await uploadMultiple(files, {
-            folder: folderName,
-            tags: dynamicTags
-          })
+          const cloudinaryResults: CloudinaryUploadResponse[] = await uploadMultiple(files)
 
           // Extract URLs from Cloudinary results
           uploadedMediaUrls.push(...cloudinaryResults.map(result => result.secure_url))
