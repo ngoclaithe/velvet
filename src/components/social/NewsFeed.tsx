@@ -711,6 +711,21 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                   )}
                 </div>
               )}
+              {activeTab === 'my-posts' && (
+                <div className="space-y-2">
+                  <Button onClick={() => window.location.href = '/create-post'}>
+                    Tạo bài viết đầu tiên
+                  </Button>
+                  {!isAuthenticated && (
+                    <p className="text-sm text-muted-foreground">
+                      <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
+                        Đăng nhập
+                      </Button>
+                      {' '}để tạo bài viết
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </Card>
         )}
