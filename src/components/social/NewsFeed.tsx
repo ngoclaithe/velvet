@@ -290,7 +290,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           ...prev,
           [feedKey]: {
             ...prev[feedKey],
-            posts: refresh || page === 1 ? posts : posts, // For Facebook-style pagination, replace posts instead of appending
+            posts: posts, // For Facebook-style pagination, always replace posts with current page content
             loading: false,
             hasMore: hasMore,
             page: page,
@@ -311,7 +311,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         ...prev,
         [feedKey]: {
           ...prev[feedKey],
-          posts: refresh || page === 1 ? mockPosts : mockPosts, // For Facebook-style pagination, replace posts instead of appending
+          posts: mockPosts, // For Facebook-style pagination, always replace posts with current page content
           loading: false,
           hasMore: false, // No more pages for mock data
           page: page,
@@ -350,12 +350,14 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     }
   }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts])
 
-  // Infinite scroll
+  // Auto-load next page on scroll (Facebook-style pagination)
   useEffect(() => {
     const handleScroll = () => {
       if (
         window.innerHeight + document.documentElement.scrollTop
-        >= document.documentElement.offsetHeight - 1000
+        >= document.documentElement.offsetHeight - 1000 &&
+        currentFeed.hasMore &&
+        !currentFeed.loading
       ) {
         loadMore()
       }
@@ -363,7 +365,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [loadMore])
+  }, [loadMore, currentFeed.hasMore, currentFeed.loading])
 
   // Format time ago
   const formatTimeAgo = useCallback((date: Date) => {
@@ -667,10 +669,42 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           </Card>
         )}
         
+        {/* Page navigation for Facebook-style pagination */}
+        {currentFeed.posts.length > 0 && (
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadPosts(activeTab, Math.max(1, currentFeed.page - 1), true)}
+                  disabled={currentFeed.page <= 1 || currentFeed.loading}
+                >
+                  Trang trước
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Trang {currentFeed.page}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadPosts(activeTab, currentFeed.page + 1, true)}
+                  disabled={!currentFeed.hasMore || currentFeed.loading}
+                >
+                  Trang tiếp
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {currentFeed.posts.length} bài viết
+              </p>
+            </div>
+          </Card>
+        )}
+
         {!currentFeed.loading && !currentFeed.hasMore && currentFeed.posts.length > 0 && (
           <Card className="p-6 text-center">
             <p className="text-muted-foreground">
-              {currentFeed.page > 1 ? `Trang ${currentFeed.page} - Bạn đã xem hết tất cả bài viết!` : 'Bạn đã xem hết tất cả bài viết!'}
+              Đây là trang cuối cùng!
             </p>
           </Card>
         )}
