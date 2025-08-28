@@ -172,9 +172,23 @@ function performUpload(
       } else {
         try {
           const errorResponse = JSON.parse(xhr.responseText)
-          reject(new Error(errorResponse.error?.message || `Upload failed with status: ${xhr.status}`))
+          const errorMessage = errorResponse.error?.message || `Upload failed with status: ${xhr.status}`
+
+          // Chuyển đổi một số lỗi thường gặp sang tiếng Việt
+          let vietnameseError = errorMessage
+          if (errorMessage.includes('Invalid transformation')) {
+            vietnameseError = 'Lỗi xử lý hình ảnh. Vui lòng thử lại với file khác.'
+          } else if (errorMessage.includes('File size too large')) {
+            vietnameseError = 'File quá lớn. Vui lòng chọn file nhỏ hơn.'
+          } else if (errorMessage.includes('Invalid file type')) {
+            vietnameseError = 'Định dạng file không được hỗ trợ.'
+          } else if (errorMessage.includes('Upload failed')) {
+            vietnameseError = 'Tải file thất bại. Vui lòng thử lại.'
+          }
+
+          reject(new Error(vietnameseError))
         } catch {
-          reject(new Error(`Upload failed with status: ${xhr.status}`))
+          reject(new Error('Tải file thất bại. Vui lòng thử lại.'))
         }
       }
     })
