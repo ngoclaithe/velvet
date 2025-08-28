@@ -513,7 +513,7 @@ export default function ProfilePage() {
                     <div>
                       <h3 className="text-lg font-semibold">Trở thành Creator</h3>
                       <p className="text-sm text-muted-foreground">
-                        Chia s�� đam mê, kiếm tiền từ nội dung và xây dựng cộng đồng riêng
+                        Chia sẻ đam mê, kiếm tiền từ nội dung và xây dựng cộng đồng riêng
                       </p>
                     </div>
                   </div>
@@ -842,49 +842,54 @@ export default function ProfilePage() {
                           <CardDescription>Tải lên các tài liệu cần thiết để xác thực</CardDescription>
                         </div>
                         {(kycStatus === 'draft' || kycStatus === 'rejected') && (
-                          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+                          <Dialog open={kycUploadDialogOpen} onOpenChange={setKycUploadDialogOpen}>
                             <DialogTrigger asChild>
-                              <Button>
+                              <Button disabled={isUploadingDoc}>
                                 <Upload className="w-4 h-4 mr-2" />
-                                Tải lên
+                                {isUploadingDoc ? 'Đang tải lên...' : 'Tải lên'}
                               </Button>
                             </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>Tải lên tài liệu</DialogTitle>
+                                <DialogTitle>Tải lên tài liệu KYC</DialogTitle>
                                 <DialogDescription>
-                                  Chọn loại tài liệu và tải lên file
+                                  Chọn loại tài liệu và tải lên file ảnh
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <Label>Loại tài liệu</Label>
-                                  <Select value={selectedDocType} onValueChange={setSelectedDocType}>
+                                  <Label>Loại tài liệu *</Label>
+                                  <Select value={selectedKycDocType} onValueChange={setSelectedKycDocType}>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Chọn loại tài liệu" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="citizen_id_front">Mặt trước CCCD/CMND</SelectItem>
-                                      <SelectItem value="citizen_id_back">Mặt sau CCCD/CMND</SelectItem>
-                                      <SelectItem value="passport">Hộ chiếu</SelectItem>
-                                      <SelectItem value="selfie_with_id">Ảnh selfie cùng giấy tờ</SelectItem>
-                                      <SelectItem value="proof_of_address">Giấy tờ chứng minh địa chỉ</SelectItem>
+                                      <SelectItem value="documentFrontUrl">Mặt trước giấy tờ</SelectItem>
+                                      <SelectItem value="documentBackUrl">Mặt sau giấy tờ</SelectItem>
+                                      <SelectItem value="selfieUrl">Ảnh selfie</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
-                                <div className="space-y-2">
-                                  <Label>File</Label>
-                                  <Input
-                                    type="file"
-                                    accept="image/*,.pdf"
-                                    onChange={handleDocumentUpload}
-                                    disabled={isUploadingDoc || !selectedDocType}
-                                  />
-                                </div>
-                                {isUploadingDoc && (
-                                  <div className="flex items-center justify-center py-4">
-                                    <Icons.spinner className="h-6 w-6 animate-spin mr-2" />
-                                    <span>Đang tải lên...</span>
+
+                                {selectedKycDocType && (
+                                  <div className="space-y-2">
+                                    <Label>Tải lên ảnh</Label>
+                                    <ImageUploader
+                                      onUploadComplete={handleKycUploadComplete}
+                                      onUploadStart={handleKycUploadStart}
+                                      onUploadError={handleKycUploadError}
+                                      maxFiles={1}
+                                      compact={true}
+                                      hideResults={true}
+                                      acceptedTypes="image/jpeg,image/png,image/webp"
+                                      disabled={isUploadingDoc || !selectedKycDocType}
+                                    />
+                                  </div>
+                                )}
+
+                                {!selectedKycDocType && (
+                                  <div className="text-sm text-muted-foreground">
+                                    Vui lòng chọn loại tài liệu trước khi tải lên
                                   </div>
                                 )}
                               </div>
@@ -909,7 +914,7 @@ export default function ProfilePage() {
                               {doc.status === 'rejected' && <X className="h-4 w-4 text-red-600" />}
                               {doc.status === 'pending' && <Clock className="h-4 w-4 text-yellow-600" />}
                               <Badge variant={doc.status === 'approved' ? 'default' : doc.status === 'rejected' ? 'destructive' : 'secondary'}>
-                                {doc.status === 'approved' ? 'Đã duyệt' : doc.status === 'rejected' ? 'Bị từ chối' : 'Chờ duy���t'}
+                                {doc.status === 'approved' ? 'Đã duyệt' : doc.status === 'rejected' ? 'Bị từ chối' : 'Chờ duyệt'}
                               </Badge>
                             </div>
                           </div>
@@ -994,7 +999,7 @@ export default function ProfilePage() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Hiển th�� email</Label>
+                  <Label>Hiển thị email</Label>
                   <p className="text-sm text-muted-foreground">
                     Cho phép người khác xem địa chỉ email của bạn
                   </p>
