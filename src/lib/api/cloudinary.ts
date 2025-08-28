@@ -56,37 +56,33 @@ export const cloudinaryApi = {
     formData.append('dpr', signatureData.dpr)
     formData.append('flags', signatureData.flags)
 
-    // Handle transformation parameter correctly
-    if (signatureData.transformation) {
-      try {
-        console.log('🔧 Original transformation:', signatureData.transformation)
-
-        // If transformation is a JSON string, parse it and convert to Cloudinary format
-        const transformations = JSON.parse(signatureData.transformation)
-        if (Array.isArray(transformations) && transformations.length > 0) {
-          // Convert transformation array to Cloudinary transformation string format
-          const transformationStr = transformations.map(t => {
-            return Object.entries(t).map(([key, value]) => `${key}_${value}`).join(',')
-          }).join('/')
-          console.log('🔧 Converted transformation:', transformationStr)
-          formData.append('transformation', transformationStr)
-        } else {
-          console.log('🔧 Using transformation as-is (not array)')
-          formData.append('transformation', signatureData.transformation)
-        }
-      } catch (error) {
-        console.log('🔧 Failed to parse transformation, skipping:', error)
-        // Skip transformation if it causes issues - other parameters should handle sizing
-        console.log('🔧 Skipping transformation parameter due to parsing error')
-      }
+    // Thêm các parameter tối ưu khác thay vì transformation
+    if (file.type.startsWith('image/')) {
+      // Chỉ áp dụng cho hình ảnh
+      formData.append('format', 'auto')  // Tự động chọn format tốt nhất
+      formData.append('crop', 'limit')   // Không crop, chỉ giới hạn kích thước
+      formData.append('width', '1200')   // Giới hạn width tối đa
+      formData.append('height', '1200')  // Giới hạn height tối đa
     }
+
+    console.log('🔧 Skipping complex transformation parameter to avoid errors')
+    console.log('🔧 Using individual optimization parameters instead')
+    console.log('🔧 File type:', file.type, 'Size:', file.size)
 
     // Determine resource type
     const resourceType = getResourceType(file, options?.resource_type)
     
     // Upload URL
     const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/${resourceType}/upload`
-    
+
+    console.log('📤 Uploading to Cloudinary:', {
+      url: uploadUrl,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+      resourceType: resourceType
+    })
+
     // Perform upload with progress tracking
     return performUpload(uploadUrl, formData, onProgress)
   },
@@ -184,9 +180,23 @@ function performUpload(
       } else {
         try {
           const errorResponse = JSON.parse(xhr.responseText)
-          reject(new Error(errorResponse.error?.message || `Upload failed with status: ${xhr.status}`))
+          const errorMessage = errorResponse.error?.message || `Upload failed with status: ${xhr.status}`
+
+          // Chuyển đổi một số lỗi thường gặp sang tiếng Việt
+          let vietnameseError = errorMessage
+          if (errorMessage.includes('Invalid transformation')) {
+            vietnameseError = 'Lỗi xử lý hình ảnh. Vui lòng thử lại với file khác.'
+          } else if (errorMessage.includes('File size too large')) {
+            vietnameseError = 'File quá lớn. Vui lòng chọn file nhỏ hơn.'
+          } else if (errorMessage.includes('Invalid file type')) {
+            vietnameseError = 'Định dạng file không được hỗ trợ.'
+          } else if (errorMessage.includes('Upload failed')) {
+            vietnameseError = 'Tải file thất bại. Vui lòng thử lại.'
+          }
+
+          reject(new Error(vietnameseError))
         } catch {
-          reject(new Error(`Upload failed with status: ${xhr.status}`))
+          reject(new Error('Tải file thất bại. Vui lòng thử lại.'))
         }
       }
     })
