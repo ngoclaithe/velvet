@@ -388,7 +388,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         }
       }))
     }
-  }, [getMockPosts, isAuthenticated, user])
+  }, [getMockPosts, isAuthenticated, user, transformApiPostToPost])
 
   // Load more posts (infinite scroll)
   const loadMore = useCallback(() => {
