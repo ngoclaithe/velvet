@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import type { Post, FeedParams } from '@/types/posts'
-import { postsApi } from '@/lib/api/posts'
+import { postsApi, GetFeed, GetAllPosts } from '@/lib/api/posts'
 import {
   Heart,
   MessageCircle,
@@ -55,6 +55,13 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   // Transform API response to Post format
   const transformApiPostToPost = useCallback((apiPost: any): Post => {
+    // Determine display name: if creator exists, use stageName, otherwise use firstName + lastName
+    const displayName = apiPost.creator && apiPost.creator.stageName
+      ? apiPost.creator.stageName
+      : apiPost.user
+        ? `${apiPost.user.firstName || ''} ${apiPost.user.lastName || ''}`.trim() || apiPost.user.username
+        : 'Unknown User'
+
     return {
       id: apiPost.id.toString(),
       type: apiPost.mediaType === 'text' ? 'text' : apiPost.mediaType === 'video' ? 'video' : 'text',
@@ -62,9 +69,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       author: {
         id: apiPost.user?.id?.toString() || apiPost.userId?.toString() || 'unknown',
         username: apiPost.user?.username || 'unknown',
-        displayName: apiPost.user ?
-          `${apiPost.user.firstName || ''} ${apiPost.user.lastName || ''}`.trim() || apiPost.user.username :
-          'Unknown User',
+        displayName: displayName,
         avatar: apiPost.user?.avatar || '/api/placeholder/40/40',
         isVerified: apiPost.user?.isVerified || false,
         isOnline: false
@@ -222,19 +227,17 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
       // Use appropriate API based on tab
       if (tab === 'for-you') {
-        // Use getFeed for "Dành cho bạn" tab
-        response = await postsApi.getFeed({
-          page: page.toString(),
-          limit: POSTS_PER_PAGE.toString()
+        // Use GetAllPosts for "Dành cho bạn" tab
+        response = await GetAllPosts({
+          page: page,
+          limit: POSTS_PER_PAGE
         })
       } else if (tab === 'following') {
-        // For following tab, we could use a different API endpoint if available
-        // For now, we'll use getFeed with a following filter or fallback to mock
+        // Use GetFeed for following tab
         if (isAuthenticated) {
-          response = await postsApi.getFeed({
-            page: page.toString(),
-            limit: POSTS_PER_PAGE.toString(),
-            type: 'following'
+          response = await GetFeed({
+            page: page,
+            limit: POSTS_PER_PAGE
           })
         } else {
           throw new Error('Authentication required')
@@ -287,7 +290,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           ...prev,
           [feedKey]: {
             ...prev[feedKey],
-            posts: refresh ? posts : [...prev[feedKey].posts, ...posts],
+            posts: refresh || page === 1 ? posts : posts, // For Facebook-style pagination, replace posts instead of appending
             loading: false,
             hasMore: hasMore,
             page: page,
@@ -308,7 +311,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         ...prev,
         [feedKey]: {
           ...prev[feedKey],
-          posts: refresh ? mockPosts : [...prev[feedKey].posts, ...mockPosts],
+          posts: refresh || page === 1 ? mockPosts : mockPosts, // For Facebook-style pagination, replace posts instead of appending
           loading: false,
           hasMore: false, // No more pages for mock data
           page: page,
@@ -667,7 +670,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         {!currentFeed.loading && !currentFeed.hasMore && currentFeed.posts.length > 0 && (
           <Card className="p-6 text-center">
             <p className="text-muted-foreground">
-              Bạn đã xem hết tất cả bài viết!
+              {currentFeed.page > 1 ? `Trang ${currentFeed.page} - Bạn đã xem hết tất cả bài viết!` : 'Bạn đã xem hết tất cả bài viết!'}
             </p>
           </Card>
         )}
