@@ -241,6 +241,16 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           limit: POSTS_PER_PAGE.toString(),
           type: 'live'
         })
+      } else if (tab === 'my-posts') {
+        // Use getUserPosts for current user's posts
+        if (isAuthenticated && user?.id) {
+          response = await postsApi.getUserPosts(user.id.toString(), {
+            page: page.toString(),
+            limit: POSTS_PER_PAGE.toString()
+          })
+        } else {
+          throw new Error('Authentication required')
+        }
       }
 
       if (response && response.success && response.data) {
