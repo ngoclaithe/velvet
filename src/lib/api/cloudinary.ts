@@ -42,7 +42,7 @@ export const cloudinaryApi = {
 
     const signatureData = signatureResponse.data
     
-    // Tạo FormData với tất cả parameters cần thiết
+    // Tạo FormData với t��t cả parameters cần thiết
     const formData = new FormData()
     formData.append('file', file)
     formData.append('signature', signatureData.signature)
@@ -56,9 +56,11 @@ export const cloudinaryApi = {
     formData.append('dpr', signatureData.dpr)
     formData.append('flags', signatureData.flags)
 
-    // Parse and handle transformation parameter correctly
+    // Handle transformation parameter correctly
     if (signatureData.transformation) {
       try {
+        console.log('🔧 Original transformation:', signatureData.transformation)
+
         // If transformation is a JSON string, parse it and convert to Cloudinary format
         const transformations = JSON.parse(signatureData.transformation)
         if (Array.isArray(transformations) && transformations.length > 0) {
@@ -66,13 +68,16 @@ export const cloudinaryApi = {
           const transformationStr = transformations.map(t => {
             return Object.entries(t).map(([key, value]) => `${key}_${value}`).join(',')
           }).join('/')
+          console.log('🔧 Converted transformation:', transformationStr)
           formData.append('transformation', transformationStr)
         } else {
+          console.log('🔧 Using transformation as-is (not array)')
           formData.append('transformation', signatureData.transformation)
         }
       } catch (error) {
-        // If not JSON, use as-is
-        formData.append('transformation', signatureData.transformation)
+        console.log('🔧 Failed to parse transformation, skipping:', error)
+        // Skip transformation if it causes issues - other parameters should handle sizing
+        console.log('🔧 Skipping transformation parameter due to parsing error')
       }
     }
 
