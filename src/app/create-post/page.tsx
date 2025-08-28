@@ -43,7 +43,9 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { postsApi } from '@/lib/api/posts'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import type { ApiResponse, UploadResponse } from '@/types/api'
+import type { CloudinaryUploadResponse } from '@/types/cloudinary'
 
 interface MediaFile {
   id: string
@@ -58,6 +60,17 @@ export default function CreatePostPage() {
   const router = useRouter()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Cloudinary upload hook
+  const {
+    uploadMultiple,
+    uploading: cloudinaryUploading,
+    progress: uploadProgress,
+    error: uploadError,
+    clearError: clearUploadError,
+    results: uploadResults,
+    clearResults: clearUploadResults
+  } = useCloudinaryUpload()
   
   const [postData, setPostData] = useState({
     title: '',
@@ -78,6 +91,7 @@ export default function CreatePostPage() {
   const [isPosting, setIsPosting] = useState(false)
   const [isDraft, setIsDraft] = useState(false)
   const [postType, setPostType] = useState<'text' | 'image' | 'video' | 'audio'>('text')
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
 
   const categories = [
     'Giải trí',
@@ -197,6 +211,11 @@ export default function CreatePostPage() {
     setIsPosting(true)
     setIsDraft(saveAsDraft)
 
+    // Clear any previous upload errors
+    if (uploadError) {
+      clearUploadError()
+    }
+
     try {
       // Prepare post data for API
       const postPayload: any = {
@@ -222,19 +241,23 @@ export default function CreatePostPage() {
         })) : undefined
       }
 
-      // Upload media files first if any
+      // Upload media files to Cloudinary first if any
       const uploadedMediaUrls: string[] = []
       if (mediaFiles.length > 0) {
-        for (const mediaFile of mediaFiles) {
-          try {
-            const uploadResponse = await postsApi.uploadMedia(mediaFile.file) as ApiResponse<UploadResponse>
-            if (uploadResponse.success && uploadResponse.data) {
-              uploadedMediaUrls.push(uploadResponse.data.url)
-            }
-          } catch (uploadError) {
-            console.error('Failed to upload media:', uploadError)
-            // Continue with other files even if one fails
-          }
+        try {
+          const files = mediaFiles.map(mediaFile => mediaFile.file)
+          const cloudinaryResults: CloudinaryUploadResponse[] = await uploadMultiple(files, {
+            folder: 'posts',
+            tags: 'post-media'
+          })
+
+          // Extract URLs from Cloudinary results
+          uploadedMediaUrls.push(...cloudinaryResults.map(result => result.secure_url))
+
+          console.log('Uploaded to Cloudinary:', cloudinaryResults)
+        } catch (uploadError) {
+          console.error('Failed to upload media to Cloudinary:', uploadError)
+          throw new Error('Không thể tải lên media. Vui lòng thử lại.')
         }
 
         // Add uploaded media URLs to post payload
@@ -303,7 +326,7 @@ export default function CreatePostPage() {
         // Redirect to the created post or home
         setTimeout(() => {
           if (response.data?.id && !saveAsDraft) {
-            router.push(`/posts/${response.data.id}`)
+            router.push(`/post/${response.data.id}`)
           } else {
             router.push('/')
           }
@@ -396,10 +419,10 @@ export default function CreatePostPage() {
           <p className="text-muted-foreground">Chia sẻ nội dung với cộng đồng</p>
         </div>
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => handlePost(true)}
-            disabled={isPosting}
+            disabled={isPosting || cloudinaryUploading}
           >
             {isDraft ? (
               <>
@@ -413,14 +436,19 @@ export default function CreatePostPage() {
               </>
             )}
           </Button>
-          <Button 
+          <Button
             onClick={() => handlePost(false)}
-            disabled={isPosting}
+            disabled={isPosting || cloudinaryUploading}
           >
             {isPosting && !isDraft ? (
               <>
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                 Đang đăng...
+              </>
+            ) : cloudinaryUploading ? (
+              <>
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                Đang tải media...
               </>
             ) : (
               <>
@@ -489,6 +517,7 @@ export default function CreatePostPage() {
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     className="flex-1"
+                    disabled={cloudinaryUploading || isPosting}
                   >
                     <Upload className="mr-2 h-4 w-4" />
                     Tải lên file
@@ -502,6 +531,44 @@ export default function CreatePostPage() {
                     className="hidden"
                   />
                 </div>
+
+                {/* Upload Progress */}
+                {Object.keys(uploadProgress).length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Đang tải lên...</p>
+                    {Object.entries(uploadProgress).map(([fileIndex, progress]) => (
+                      <div key={fileIndex} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span>File {parseInt(fileIndex) + 1}</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload Error */}
+                {uploadError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                    <div className="flex justify-between items-center">
+                      <span>{uploadError}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearUploadError}
+                        className="h-auto p-1 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {mediaFiles.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

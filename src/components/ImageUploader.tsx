@@ -2,37 +2,66 @@
 
 import React, { useState, useRef } from 'react';
 import { useCloudinaryUpload } from '../hooks/useCloudinaryUpload';
-import { OptimizedImage } from './OptimizedImage';
-import type { UploadOptions } from '../lib/cloudinary';
+import type { UploadOptions, CloudinaryUploadResponse } from '@/types/cloudinary';
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload';
 
 interface ImageUploaderProps {
-  onUploadComplete?: (results: any[]) => void;
+  onUploadComplete?: (results: CloudinaryUploadResponse[]) => void;
+  onUploadStart?: () => void;
+  onUploadProgress?: (progress: Record<number, number>) => void;
+  onUploadError?: (error: string) => void;
   maxFiles?: number;
   uploadOptions?: UploadOptions;
+  compact?: boolean; // For embedded usage like in create-post
+  hideResults?: boolean; // Hide upload results display
+  className?: string;
+  acceptedTypes?: string;
+  disabled?: boolean;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ 
-  onUploadComplete, 
+const ImageUploader: React.FC<ImageUploaderProps> = ({
+  onUploadComplete,
+  onUploadStart,
+  onUploadProgress,
+  onUploadError,
   maxFiles = 5,
-  uploadOptions 
+  uploadOptions,
+  compact = false,
+  hideResults = false,
+  className = '',
+  acceptedTypes = 'image/jpeg,image/png,image/webp,image/gif',
+  disabled = false
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { 
-    uploadMultiple, 
-    uploading, 
-    progress, 
-    error, 
-    clearError, 
+  const {
+    uploadMultiple,
+    uploading,
+    progress,
+    error,
+    clearError,
     results,
-    clearResults 
+    clearResults
   } = useCloudinaryUpload();
+
+  // Call parent callbacks
+  React.useEffect(() => {
+    if (onUploadProgress && Object.keys(progress).length > 0) {
+      onUploadProgress(progress);
+    }
+  }, [progress, onUploadProgress]);
+
+  React.useEffect(() => {
+    if (onUploadError && error) {
+      onUploadError(error);
+    }
+  }, [error, onUploadError]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || disabled) return;
 
     const fileArray = Array.from(files).slice(0, maxFiles);
     setSelectedFiles(fileArray);
@@ -49,11 +78,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   };
 
   const handleUpload = async () => {
-    if (selectedFiles.length === 0) return;
+    if (selectedFiles.length === 0 || disabled) return;
 
     try {
+      if (onUploadStart) {
+        onUploadStart();
+      }
+
       const uploadResults = await uploadMultiple(selectedFiles, uploadOptions);
-      
+
       if (onUploadComplete) {
         onUploadComplete(uploadResults);
       }
@@ -83,8 +116,75 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     });
   };
 
+  if (compact) {
+    return (
+      <div className={`w-full ${className}`}>
+        {/* Compact File Input */}
+        <div className="space-y-4">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            multiple
+            accept={acceptedTypes}
+            className="hidden"
+          />
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || disabled}
+            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="flex flex-col items-center space-y-2">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <span className="text-sm text-gray-600">
+                {uploading ? 'Đang tải lên...' : `Chọn file (tối đa ${maxFiles})`}
+              </span>
+            </div>
+          </button>
+
+          {/* Selected Files Preview */}
+          {selectedFiles.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {selectedFiles.map((file, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={previewUrls[index]}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-20 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {selectedFiles.length > 0 && (
+            <button
+              type="button"
+              onClick={handleUpload}
+              disabled={uploading || selectedFiles.length === 0}
+              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-2 px-4 rounded transition-colors"
+            >
+              {uploading ? 'Đang tải lên...' : `Tải lên ${selectedFiles.length} file`}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
+    <div className={`w-full max-w-4xl mx-auto p-6 ${className}`}>
       <h2 className="text-2xl font-bold mb-6">Image Uploader</h2>
       
       {/* File Input */}
@@ -94,16 +194,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           ref={fileInputRef}
           onChange={handleFileSelect}
           multiple
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept={acceptedTypes}
           className="hidden"
         />
         
         <button
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
+          disabled={uploading || disabled}
           className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
         >
-          {uploading ? 'Uploading...' : `Select Images (max ${maxFiles})`}
+          {uploading ? 'Đang tải lên...' : `Chọn ảnh (tối đa ${maxFiles})`}
         </button>
       </div>
 
@@ -134,10 +234,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           
           <button
             onClick={handleUpload}
-            disabled={uploading || selectedFiles.length === 0}
+            disabled={uploading || selectedFiles.length === 0 || disabled}
             className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
           >
-            {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} Image${selectedFiles.length > 1 ? 's' : ''}`}
+            {uploading ? 'Đang tải lên...' : `Tải lên ${selectedFiles.length} ảnh`}
           </button>
         </div>
       )}
@@ -181,7 +281,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       )}
 
       {/* Upload Results */}
-      {results.length > 0 && (
+      {!hideResults && results.length > 0 && (
         <div>
           <h3 className="font-semibold mb-3">Uploaded Images ({results.length}):</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

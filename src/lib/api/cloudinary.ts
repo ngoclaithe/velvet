@@ -1,3 +1,10 @@
+import type {
+  CloudinarySignatureResponse,
+  CloudinaryUploadResponse,
+  OptimizedImageResponse,
+  UploadOptions
+} from '@/types/cloudinary';
+
 class CloudinaryService {
   private backendUrl: string;
 
@@ -28,9 +35,9 @@ class CloudinaryService {
     }
   }
 
-  // Upload single file lên Cloudinary
-  async uploadImage(
-    file: File, 
+  // Upload single file lên Cloudinary (image, video, audio)
+  async uploadFile(
+    file: File,
     options?: UploadOptions,
     onProgress?: (progress: number) => void
   ): Promise<CloudinaryUploadResponse> {
@@ -56,8 +63,11 @@ class CloudinaryService {
       formData.append('flags', signatureData.flags);
       formData.append('transformation', signatureData.transformation);
 
+      // Determine resource type
+      const resourceType = this.getResourceType(file, options?.resource_type);
+
       // Upload URL
-      const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/image/upload`;
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/${resourceType}/upload`;
       
       // Perform upload with progress tracking
       return this.performUpload(uploadUrl, formData, onProgress);
@@ -69,8 +79,8 @@ class CloudinaryService {
   }
 
   // Upload multiple files
-  async uploadMultipleImages(
-    files: File[], 
+  async uploadMultipleFiles(
+    files: File[],
     options?: UploadOptions,
     onProgress?: (fileIndex: number, progress: number) => void
   ): Promise<CloudinaryUploadResponse[]> {
@@ -80,7 +90,7 @@ class CloudinaryService {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        const result = await this.uploadImage(file, options, (progress) => {
+        const result = await this.uploadFile(file, options, (progress) => {
           if (onProgress) {
             onProgress(i, progress);
           }
@@ -119,16 +129,55 @@ class CloudinaryService {
 
   // Validate file trước khi upload
   private validateFile(file: File): void {
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const maxSize = 100 * 1024 * 1024; // 100MB for videos, smaller for images
+    const imageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const videoTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm'];
+    const audioTypes = ['audio/mp3', 'audio/wav', 'audio/aac', 'audio/ogg'];
+    const allowedTypes = [...imageTypes, ...videoTypes, ...audioTypes];
 
-    if (file.size > maxSize) {
-      throw new Error(`File too large. Maximum size is ${maxSize / 1024 / 1024}MB`);
+    // Different size limits for different types
+    let sizeLimit = maxSize;
+    if (imageTypes.includes(file.type)) {
+      sizeLimit = 10 * 1024 * 1024; // 10MB for images
+    } else if (audioTypes.includes(file.type)) {
+      sizeLimit = 20 * 1024 * 1024; // 20MB for audio
+    }
+
+    if (file.size > sizeLimit) {
+      throw new Error(`File quá lớn. Kích thước tối đa là ${sizeLimit / 1024 / 1024}MB`);
     }
 
     if (!allowedTypes.includes(file.type)) {
-      throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.');
+      throw new Error('Định dạng file không được hỗ trợ. Chỉ hỗ trợ ảnh (JPEG, PNG, WebP, GIF), video (MP4, AVI, MOV, WMV, WebM) và âm thanh (MP3, WAV, AAC, OGG).');
     }
+  }
+
+  // Determine resource type based on file
+  private getResourceType(file: File, override?: string): string {
+    if (override) return override;
+
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    if (file.type.startsWith('audio/')) return 'video'; // Audio uploads use video endpoint
+
+    return 'auto';
+  }
+
+  // Legacy methods for backward compatibility
+  async uploadImage(
+    file: File,
+    options?: UploadOptions,
+    onProgress?: (progress: number) => void
+  ): Promise<CloudinaryUploadResponse> {
+    return this.uploadFile(file, options, onProgress);
+  }
+
+  async uploadMultipleImages(
+    files: File[],
+    options?: UploadOptions,
+    onProgress?: (fileIndex: number, progress: number) => void
+  ): Promise<CloudinaryUploadResponse[]> {
+    return this.uploadMultipleFiles(files, options, onProgress);
   }
 
   // Perform actual upload với XMLHttpRequest để track progress

@@ -56,4 +56,8 @@ export interface UploadOptions {
   folder?: string;
   tags?: string;
   transformation?: string;
+  public_id?: string;
+  resource_type?: 'image' | 'video' | 'raw' | 'auto';
+  format?: string;
+  quality?: string | number;
 }
