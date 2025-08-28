@@ -69,7 +69,6 @@ export default function CreatorList() {
   const [creators, setCreators] = useState<Creator[]>([])
   const [followingCreators, setFollowingCreators] = useState<Creator[]>([])
   const [followers, setFollowers] = useState<Creator[]>([])
-  const [myPosts, setMyPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   // Removed creator detail modal state since we're navigating to a new page
