@@ -524,7 +524,7 @@ export default function ProfilePage() {
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{user?.followers || 0} người theo dõi</span>
+                      <span className="text-sm">{user?.followers || 0} ngư��i theo dõi</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Heart className="h-4 w-4 text-red-500" />
@@ -921,7 +921,7 @@ export default function ProfilePage() {
                               disabled={kycStatus === 'approved'}
                             />
                             <p className="text-xs text-muted-foreground">
-                              Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
+                              Ch��� được chứa chữ, số, dấu gạch ngang và khoảng trắng
                             </p>
                           </div>
                         </div>
@@ -1095,8 +1095,8 @@ export default function ProfilePage() {
                     </CardContent>
                   </Card>
 
-                  {/* Submit Section */}
-                  {kycStatus === 'draft' && (
+                  {/* Submit Section - chỉ hiển thị khi draft hoặc rejected */}
+                  {(kycStatus === 'draft' || kycStatus === 'rejected') && (
                     <Card>
                       <CardContent className="pt-6">
                         <div className="text-center space-y-4">
@@ -1126,7 +1126,7 @@ export default function ProfilePage() {
                             </div>
                           )}
 
-                          {/* Upload Progress - đơn giản hơn vì chỉ submit API */}
+                          {/* Upload Progress */}
                           {isUploadingDoc && (
                             <div className="space-y-3">
                               <div className="text-center">
@@ -1150,7 +1150,7 @@ export default function ProfilePage() {
                             ) : (
                               <>
                                 <Send className="w-4 h-4 mr-2" />
-                                Gửi hồ sơ xác thực
+                                {kycStatus === 'rejected' ? 'Gửi lại hồ sơ' : 'Gửi hồ sơ xác thực'}
                               </>
                             )}
                           </Button>
@@ -1159,6 +1159,32 @@ export default function ProfilePage() {
                     </Card>
                   )}
 
+                  {/* Pending/Under Review Status */}
+                  {(kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') && (
+                    <Card className="border-blue-200 bg-blue-50">
+                      <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                          <div className="flex items-center justify-center space-x-2">
+                            <Clock className="h-8 w-8 text-blue-600" />
+                            <div>
+                              <h4 className="font-medium text-blue-900">Đang chờ xét duyệt</h4>
+                              <p className="text-sm text-blue-800">
+                                Hồ sơ của bạn đã được gửi thành công và hiện đang được xem xét bởi đội ngũ của chúng tôi
+                              </p>
+                            </div>
+                          </div>
+                          {kycSubmission && (
+                            <div className="text-xs text-blue-700 space-y-1">
+                              <p>Ngày gửi: {new Date(kycSubmission.createdAt).toLocaleDateString('vi-VN')}</p>
+                              <p>Thường mất 1-3 ngày làm việc để hoàn thành xét duyệt</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Rejection Notice */}
                   {kycStatus === 'rejected' && kycSubmission?.rejectionReason && (
                     <Card className="border-red-200 bg-red-50">
                       <CardContent className="pt-6">
@@ -1169,6 +1195,30 @@ export default function ProfilePage() {
                             <p className="text-sm text-red-800 mt-1">{kycSubmission.rejectionReason}</p>
                             <p className="text-xs text-red-700 mt-2">Vui lòng chỉnh sửa thông tin và gửi lại hồ sơ.</p>
                           </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Approved Status */}
+                  {kycStatus === 'approved' && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                          <div className="flex items-center justify-center space-x-2">
+                            <CheckCircle className="h-8 w-8 text-green-600" />
+                            <div>
+                              <h4 className="font-medium text-green-900">Xác thực thành công!</h4>
+                              <p className="text-sm text-green-800">
+                                Tài khoản của bạn đã được xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
+                              </p>
+                            </div>
+                          </div>
+                          {kycSubmission?.verifiedAt && (
+                            <p className="text-xs text-green-700">
+                              Xác thực vào: {new Date(kycSubmission.verifiedAt).toLocaleDateString('vi-VN')}
+                            </p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -1227,7 +1277,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Hiển thị số điện thoại</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác xem số điện thoại của bạn
+                    Cho phép người khác xem s�� điện thoại của bạn
                   </p>
                 </div>
                 <Switch
