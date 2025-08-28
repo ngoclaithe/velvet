@@ -239,6 +239,49 @@ export default function ProfilePage() {
     }
   }
 
+  // KYC document upload handlers
+  const handleKycUploadComplete = async (results: CloudinaryUploadResponse[]) => {
+    if (results.length > 0 && selectedKycDocType) {
+      setIsUploadingDoc(true)
+      try {
+        // Call API to update KYC document with Cloudinary URL
+        const response = await kycApi.updateDocumentUrl(selectedKycDocType, results[0].secure_url)
+        if (response.success) {
+          toast({
+            title: "Tải lên thành công!",
+            description: "Tài liệu đã được tải lên",
+            variant: "default"
+          })
+          setKycUploadDialogOpen(false)
+          setSelectedKycDocType('')
+          fetchKycData()
+        }
+      } catch (error) {
+        console.error('KYC document upload failed:', error)
+        toast({
+          title: "Lỗi tải lên",
+          description: "Không thể tải lên tài liệu",
+          variant: "destructive"
+        })
+      } finally {
+        setIsUploadingDoc(false)
+      }
+    }
+  }
+
+  const handleKycUploadError = (error: string) => {
+    toast({
+      title: "Lỗi tải lên",
+      description: error,
+      variant: "destructive"
+    })
+  }
+
+  const handleKycUploadStart = () => {
+    setIsUploadingDoc(true)
+  }
+
+  // Legacy function - keeping for backward compatibility
   const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file || !selectedDocType) return
@@ -470,7 +513,7 @@ export default function ProfilePage() {
                     <div>
                       <h3 className="text-lg font-semibold">Trở thành Creator</h3>
                       <p className="text-sm text-muted-foreground">
-                        Chia sẻ đam mê, kiếm tiền từ nội dung và xây dựng cộng đồng riêng
+                        Chia s�� đam mê, kiếm tiền từ nội dung và xây dựng cộng đồng riêng
                       </p>
                     </div>
                   </div>
@@ -479,7 +522,7 @@ export default function ProfilePage() {
                     onClick={() => router.push('/become-creator')}
                   >
                     <Gift className="w-4 h-4 mr-2" />
-                    Bắt ��ầu ngay
+                    Bắt đầu ngay
                   </Button>
                 </div>
               </CardContent>
@@ -866,7 +909,7 @@ export default function ProfilePage() {
                               {doc.status === 'rejected' && <X className="h-4 w-4 text-red-600" />}
                               {doc.status === 'pending' && <Clock className="h-4 w-4 text-yellow-600" />}
                               <Badge variant={doc.status === 'approved' ? 'default' : doc.status === 'rejected' ? 'destructive' : 'secondary'}>
-                                {doc.status === 'approved' ? 'Đã duyệt' : doc.status === 'rejected' ? 'Bị từ chối' : 'Chờ duyệt'}
+                                {doc.status === 'approved' ? 'Đã duyệt' : doc.status === 'rejected' ? 'Bị từ chối' : 'Chờ duy���t'}
                               </Badge>
                             </div>
                           </div>
@@ -951,7 +994,7 @@ export default function ProfilePage() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Hiển thị email</Label>
+                  <Label>Hiển th�� email</Label>
                   <p className="text-sm text-muted-foreground">
                     Cho phép người khác xem địa chỉ email của bạn
                   </p>
