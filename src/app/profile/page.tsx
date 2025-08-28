@@ -249,14 +249,8 @@ export default function ProfilePage() {
           })
         }
 
-        // Load document URLs vào state local nếu có
-        if (submissionResponse.data.documentUrls) {
-          setKycDocuments({
-            documentFrontUrl: submissionResponse.data.documentUrls.documentFrontUrl || '',
-            documentBackUrl: submissionResponse.data.documentUrls.documentBackUrl || '',
-            selfieUrl: submissionResponse.data.documentUrls.selfieUrl || ''
-          })
-        }
+        // Không load URLs vào state nữa vì chúng ta dùng files local
+        // URLs chỉ hiển thị ở kycSubmission để xem kết quả đã submit
       }
     } catch (error) {
       console.error('Failed to fetch KYC data:', error)
@@ -1253,7 +1247,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép tin nhắn</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép ngư��i khác gửi tin nhắn cho bạn
+                    Cho phép người khác gửi tin nhắn cho bạn
                   </p>
                 </div>
                 <Switch
