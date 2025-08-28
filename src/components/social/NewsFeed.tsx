@@ -704,7 +704,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               </div>
               <h3 className="text-lg font-semibold">
                 {activeTab === 'following' ? 'Chưa theo d��i ai' :
-                 activeTab === 'live' ? 'Không có live stream' :
+
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
                  'Chưa có bài vi���t'}
               </h3>
