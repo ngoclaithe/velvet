@@ -43,7 +43,9 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { postsApi } from '@/lib/api/posts'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import type { ApiResponse, UploadResponse } from '@/types/api'
+import type { CloudinaryUploadResponse } from '@/types/cloudinary'
 
 interface MediaFile {
   id: string
@@ -58,6 +60,17 @@ export default function CreatePostPage() {
   const router = useRouter()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Cloudinary upload hook
+  const {
+    uploadMultiple,
+    uploading: cloudinaryUploading,
+    progress: uploadProgress,
+    error: uploadError,
+    clearError: clearUploadError,
+    results: uploadResults,
+    clearResults: clearUploadResults
+  } = useCloudinaryUpload()
   
   const [postData, setPostData] = useState({
     title: '',
@@ -78,6 +91,7 @@ export default function CreatePostPage() {
   const [isPosting, setIsPosting] = useState(false)
   const [isDraft, setIsDraft] = useState(false)
   const [postType, setPostType] = useState<'text' | 'image' | 'video' | 'audio'>('text')
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
 
   const categories = [
     'Giải trí',
@@ -197,6 +211,11 @@ export default function CreatePostPage() {
     setIsPosting(true)
     setIsDraft(saveAsDraft)
 
+    // Clear any previous upload errors
+    if (uploadError) {
+      clearUploadError()
+    }
+
     try {
       // Prepare post data for API
       const postPayload: any = {
@@ -222,19 +241,23 @@ export default function CreatePostPage() {
         })) : undefined
       }
 
-      // Upload media files first if any
+      // Upload media files to Cloudinary first if any
       const uploadedMediaUrls: string[] = []
       if (mediaFiles.length > 0) {
-        for (const mediaFile of mediaFiles) {
-          try {
-            const uploadResponse = await postsApi.uploadMedia(mediaFile.file) as ApiResponse<UploadResponse>
-            if (uploadResponse.success && uploadResponse.data) {
-              uploadedMediaUrls.push(uploadResponse.data.url)
-            }
-          } catch (uploadError) {
-            console.error('Failed to upload media:', uploadError)
-            // Continue with other files even if one fails
-          }
+        try {
+          const files = mediaFiles.map(mediaFile => mediaFile.file)
+          const cloudinaryResults: CloudinaryUploadResponse[] = await uploadMultiple(files, {
+            folder: 'posts',
+            tags: 'post-media'
+          })
+
+          // Extract URLs from Cloudinary results
+          uploadedMediaUrls.push(...cloudinaryResults.map(result => result.secure_url))
+
+          console.log('Uploaded to Cloudinary:', cloudinaryResults)
+        } catch (uploadError) {
+          console.error('Failed to upload media to Cloudinary:', uploadError)
+          throw new Error('Không thể tải lên media. Vui lòng thử lại.')
         }
 
         // Add uploaded media URLs to post payload
@@ -303,7 +326,7 @@ export default function CreatePostPage() {
         // Redirect to the created post or home
         setTimeout(() => {
           if (response.data?.id && !saveAsDraft) {
-            router.push(`/posts/${response.data.id}`)
+            router.push(`/post/${response.data.id}`)
           } else {
             router.push('/')
           }
