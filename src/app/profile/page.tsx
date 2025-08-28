@@ -48,6 +48,7 @@ import type { KycSubmission, KycSubmissionData, DocumentType, KycStatus } from '
 import type { ApiResponse } from '@/types/api'
 import type { CloudinaryUploadResponse } from '@/types/cloudinary'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import ImageUploader from '@/components/ImageUploader'
 
 type Gender = 'male' | 'female' | 'other';
 
@@ -110,7 +111,7 @@ export default function ProfilePage() {
   const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
   const [selectedKycDocType, setSelectedKycDocType] = useState('')
 
-  // State để lưu 3 file ảnh KYC cục bộ (chưa upload)
+  // State để lưu 3 file ảnh KYC cục bộ (chưa upload) - giống logic create-post
   const [kycDocuments, setKycDocuments] = useState({
     documentFrontFile: null as File | null,
     documentBackFile: null as File | null,
@@ -261,81 +262,58 @@ export default function ProfilePage() {
     }
   }
 
-  // Handler để chọn file ảnh KYC (chưa upload)
-  const handleKycFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file || !selectedKycDocType) return
+  // Handler để upload ảnh KYC qua ImageUploader (học theo create-post)
+  const handleKycImageUpload = (docType: string) => {
+    return (results: CloudinaryUploadResponse[]) => {
+      if (results.length > 0) {
+        const fileKey = docType.replace('Url', 'File') as keyof typeof kycDocuments
+        const urlKey = docType as keyof typeof kycPreviewUrls
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "File không hợp lệ",
-        description: "Vui lòng chọn file ảnh (JPG, PNG, WEBP)",
-        variant: "destructive"
-      })
-      return
-    }
+        // Tạo một file object giả để compatibility với existing logic
+        const fakeFile = new File([''], results[0].original_filename || 'document.jpg', {
+          type: 'image/jpeg'
+        })
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File quá lớn",
-        description: "Kích thước file không được vượt quá 10MB",
-        variant: "destructive"
-      })
-      return
-    }
+        setKycDocuments(prev => ({
+          ...prev,
+          [fileKey]: fakeFile
+        }))
 
-    try {
-      // Lưu file vào state và tạo preview URL
-      const fileKey = selectedKycDocType.replace('Url', 'File') as keyof typeof kycDocuments
-      const urlKey = selectedKycDocType as keyof typeof kycPreviewUrls
+        // Lưu URL từ Cloudinary
+        setKycPreviewUrls(prev => ({
+          ...prev,
+          [urlKey]: results[0].secure_url
+        }))
 
-      // Clear previous preview URL
-      if (kycPreviewUrls[urlKey]) {
-        URL.revokeObjectURL(kycPreviewUrls[urlKey])
+        toast({
+          title: "Tải ảnh thành công!",
+          description: `${getDocumentTypeDescription(docType)} đã được tải lên`,
+          variant: "default"
+        })
+
+        setKycUploadDialogOpen(false)
+        setSelectedKycDocType('')
       }
-
-      // Create new preview URL
-      const previewUrl = URL.createObjectURL(file)
-
-      setKycDocuments(prev => ({
-        ...prev,
-        [fileKey]: file
-      }))
-
-      setKycPreviewUrls(prev => ({
-        ...prev,
-        [urlKey]: previewUrl
-      }))
-
-      toast({
-        title: "Chọn ảnh thành công!",
-        description: `${getDocumentTypeDescription(selectedKycDocType)} đã được chọn`,
-        variant: "default"
-      })
-
-      setKycUploadDialogOpen(false)
-      setSelectedKycDocType('')
-    } catch (error) {
-      console.error('File selection failed:', error)
-      toast({
-        title: "Lỗi chọn file",
-        description: "Không thể chọn file. Vui lòng thử lại.",
-        variant: "destructive"
-      })
     }
+  }
+
+  const handleKycImageUploadError = (error: string) => {
+    toast({
+      title: "Lỗi tải lên",
+      description: error,
+      variant: "destructive"
+    })
   }
 
   // Đã loại bỏ handleDocumentUpload legacy
 
   // Đã loại bỏ handleKycPersonalInfoUpdate vì không cần thiết
 
-  // Kiểm tra xem đã có đủ thông tin KYC chưa
+  // Kiểm tra xem đã có đủ thông tin KYC chưa - sửa để check URLs thay vì files
   const isKycDataComplete = () => {
-    const hasAllDocuments = kycDocuments.documentFrontFile &&
-                           kycDocuments.documentBackFile &&
-                           kycDocuments.selfieFile
+    const hasAllDocuments = kycPreviewUrls.documentFrontUrl &&
+                           kycPreviewUrls.documentBackUrl &&
+                           kycPreviewUrls.selfieUrl
     const hasPersonalInfo = kycPersonalInfo.fullName &&
                            kycPersonalInfo.dateOfBirth &&
                            kycPersonalInfo.documentNumber &&
@@ -352,38 +330,21 @@ export default function ProfilePage() {
     clearError: clearUploadError
   } = useCloudinaryUpload()
 
-  // Submit toàn bộ KYC data
+  // Submit toàn bộ KYC data - logic đơn giản hơn vì ảnh đã upload sẵn
   const handleSubmitKyc = async () => {
     if (!isKycDataComplete()) {
       toast({
         title: "Thông tin chưa đầy đủ",
-        description: "Vui lòng điền đầy đủ thông tin cá nhân và chọn 3 ảnh (mặt trước, mặt sau, selfie)",
+        description: "Vui lòng điền đầy đủ thông tin cá nhân và tải lên 3 ảnh (mặt trước, mặt sau, selfie)",
         variant: "destructive"
       })
       return
     }
 
     setIsUploadingDoc(true)
-    clearUploadError()
 
     try {
-      // Bước 1: Upload 3 ảnh lên Cloudinary
-      const filesToUpload = [
-        kycDocuments.documentFrontFile!,
-        kycDocuments.documentBackFile!,
-        kycDocuments.selfieFile!
-      ]
-
-      console.log('🚀 Bắt đầu upload 3 ảnh KYC lên Cloudinary...')
-      const uploadResults = await uploadMultiple(filesToUpload)
-
-      if (uploadResults.length !== 3) {
-        throw new Error('Không thể tải lên đủ 3 ảnh. Vui lòng thử lại.')
-      }
-
-      console.log('✅ Upload Cloudinary thành công:', uploadResults.map(r => r.secure_url))
-
-      // Bước 2: Tạo KYC submission với URLs từ Cloudinary
+      // Tạo KYC submission với URLs đã có sẵn (đã upload qua ImageUploader)
       const kycData: KycSubmissionData = {
         // Thông tin cá nhân
         fullName: kycPersonalInfo.fullName,
@@ -393,13 +354,13 @@ export default function ProfilePage() {
         documentType: kycPersonalInfo.documentType,
         documentNumber: kycPersonalInfo.documentNumber,
 
-        // URLs từ Cloudinary (theo thứ tự: front, back, selfie)
-        documentFrontUrl: uploadResults[0].secure_url,
-        documentBackUrl: uploadResults[1].secure_url,
-        selfieUrl: uploadResults[2].secure_url
+        // URLs đã upload sẵn qua ImageUploader
+        documentFrontUrl: kycPreviewUrls.documentFrontUrl,
+        documentBackUrl: kycPreviewUrls.documentBackUrl,
+        selfieUrl: kycPreviewUrls.selfieUrl
       }
 
-      console.log('🚀 Gọi API tạo KYC submission...')
+      console.log('🚀 Gọi API tạo KYC submission với URLs đã có sẵn...')
       const response = await kycApi.createSubmission(kycData)
 
       if (response.success) {
@@ -416,10 +377,6 @@ export default function ProfilePage() {
           selfieFile: null
         })
 
-        // Clear preview URLs
-        Object.values(kycPreviewUrls).forEach(url => {
-          if (url) URL.revokeObjectURL(url)
-        })
         setKycPreviewUrls({
           documentFrontUrl: '',
           documentBackUrl: '',
@@ -482,14 +439,7 @@ export default function ProfilePage() {
     }
   }, [user])
 
-  // Cleanup preview URLs khi component unmount
-  useEffect(() => {
-    return () => {
-      Object.values(kycPreviewUrls).forEach(url => {
-        if (url) URL.revokeObjectURL(url)
-      })
-    }
-  }, [])
+  // Cleanup không cần thiết nữa vì URLs từ Cloudinary
 
   if (authLoading) {
     return (
@@ -964,37 +914,32 @@ export default function ProfilePage() {
                                   <DialogTrigger asChild>
                                     <Button variant="outline" size="sm">
                                       <Upload className="w-4 h-4 mr-2" />
-                                      {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Thay đổi' : 'Chọn ảnh'}
+                                      {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? 'Thay đổi' : 'Tải lên'}
                                     </Button>
                                   </DialogTrigger>
                                   <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle>Chọn {docType.label}</DialogTitle>
+                                      <DialogTitle>Tải lên {docType.label}</DialogTitle>
                                       <DialogDescription>
-                                        Chọn file ảnh {docType.label.toLowerCase()} từ thiết bị của bạn
+                                        Tải lên ảnh {docType.label.toLowerCase()} - sẽ được tự động upload lên Cloudinary
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
-                                      <div className="space-y-2">
-                                        <Label htmlFor={`file-${docType.key}`}>Chọn file ảnh</Label>
-                                        <Input
-                                          id={`file-${docType.key}`}
-                                          type="file"
-                                          accept="image/jpeg,image/png,image/webp"
-                                          onChange={handleKycFileSelect}
-                                          className="cursor-pointer"
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                          Hỗ trợ: JPG, PNG, WEBP. Tối đa 10MB.
-                                        </p>
-                                      </div>
+                                      <ImageUploader
+                                        onUploadComplete={handleKycImageUpload(docType.key)}
+                                        onUploadError={handleKycImageUploadError}
+                                        maxFiles={1}
+                                        compact={true}
+                                        hideResults={true}
+                                        acceptedTypes="image/jpeg,image/png,image/webp"
+                                      />
                                     </div>
                                   </DialogContent>
                                 </Dialog>
                               )}
                             </div>
 
-                            {/* Preview ảnh đã chọn */}
+                            {/* Preview ảnh đã upload */}
                             {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] && (
                               <div className="mt-3">
                                 <img
@@ -1002,23 +947,24 @@ export default function ProfilePage() {
                                   alt={docType.label}
                                   className="w-full max-w-xs h-32 object-cover rounded border"
                                 />
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {kycDocuments[docType.fileKey as keyof typeof kycDocuments]?.name}
+                                <p className="text-xs text-green-600 mt-1 flex items-center">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Đã tải lên Cloudinary
                                 </p>
                               </div>
                             )}
 
                             {/* Status indicator */}
                             <div className="mt-3 flex items-center space-x-2">
-                              {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? (
+                              {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] ? (
                                 <>
                                   <CheckCircle className="h-4 w-4 text-green-600" />
-                                  <span className="text-sm text-green-600">Đã chọn</span>
+                                  <span className="text-sm text-green-600">Đã tải lên</span>
                                 </>
                               ) : (
                                 <>
                                   <AlertCircle className="h-4 w-4 text-yellow-600" />
-                                  <span className="text-sm text-yellow-600">Cần chọn</span>
+                                  <span className="text-sm text-yellow-600">Cần tải lên</span>
                                 </>
                               )}
                             </div>
@@ -1029,9 +975,9 @@ export default function ProfilePage() {
                         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h4 className="font-medium">Tiến độ chọn ảnh</h4>
+                              <h4 className="font-medium">Tiến độ tải ảnh</h4>
                               <p className="text-sm text-muted-foreground">
-                                {Object.values(kycDocuments).filter(file => file).length}/3 ảnh đã chọn
+                                {Object.values(kycPreviewUrls).filter(url => url).length}/3 ảnh đã tải lên
                               </p>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -1077,58 +1023,33 @@ export default function ProfilePage() {
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
                                 {!kycPersonalInfo.dateOfBirth && <li>• Chọn ngày sinh</li>}
                                 {!kycPersonalInfo.documentNumber && <li>• Nhập số giấy tờ</li>}
-                                {!kycDocuments.documentFrontFile && <li>• Chọn ảnh mặt trước giấy tờ</li>}
-                                {!kycDocuments.documentBackFile && <li>• Chọn ảnh mặt sau giấy tờ</li>}
-                                {!kycDocuments.selfieFile && <li>• Chọn ảnh selfie</li>}
+                                {!kycPreviewUrls.documentFrontUrl && <li>• Tải lên ảnh mặt trước giấy tờ</li>}
+                                {!kycPreviewUrls.documentBackUrl && <li>• Tải lên ảnh mặt sau giấy tờ</li>}
+                                {!kycPreviewUrls.selfieUrl && <li>• Tải lên ảnh selfie</li>}
                               </ul>
                             </div>
                           )}
 
-                          {/* Upload Progress */}
-                          {(isUploadingDoc || cloudinaryUploading) && (
+                          {/* Upload Progress - đơn giản hơn vì chỉ submit API */}
+                          {isUploadingDoc && (
                             <div className="space-y-3">
                               <div className="text-center">
                                 <Icons.spinner className="w-6 h-6 mx-auto animate-spin mb-2" />
-                                <p className="text-sm font-medium">
-                                  {cloudinaryUploading ? 'Đang tải ảnh lên Cloudinary...' : 'Đang gửi hồ sơ...'}
-                                </p>
+                                <p className="text-sm font-medium">Đang gửi hồ sơ xác thực...</p>
                               </div>
-
-                              {/* Upload progress bars */}
-                              {Object.keys(uploadProgress).length > 0 && (
-                                <div className="space-y-2">
-                                  {Object.entries(uploadProgress).map(([fileIndex, progress]) => (
-                                    <div key={fileIndex} className="space-y-1">
-                                      <div className="flex justify-between text-xs">
-                                        <span>
-                                          {parseInt(fileIndex) === 0 ? 'Mặt trước' :
-                                           parseInt(fileIndex) === 1 ? 'Mặt sau' : 'Selfie'}
-                                        </span>
-                                        <span>{progress}%</span>
-                                      </div>
-                                      <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                          style={{ width: `${progress}%` }}
-                                        />
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
                             </div>
                           )}
 
                           <Button
                             onClick={handleSubmitKyc}
                             size="lg"
-                            disabled={!isKycDataComplete() || isUploadingDoc || cloudinaryUploading}
+                            disabled={!isKycDataComplete() || isUploadingDoc}
                             className={isKycDataComplete() ? 'bg-green-600 hover:bg-green-700' : ''}
                           >
-                            {(isUploadingDoc || cloudinaryUploading) ? (
+                            {isUploadingDoc ? (
                               <>
                                 <Icons.spinner className="w-4 h-4 mr-2 animate-spin" />
-                                {cloudinaryUploading ? 'Đang tải ảnh...' : 'Đang gửi...'}
+                                Đang gửi...
                               </>
                             ) : (
                               <>
