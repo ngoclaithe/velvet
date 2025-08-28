@@ -210,7 +210,7 @@ export default function ProfilePage() {
 
   const handleAvatarUploadError = (error: string) => {
     toast({
-      title: "Lỗi tải lên",
+      title: "Lỗi t��i lên",
       description: error,
       variant: "destructive"
     })
@@ -232,7 +232,23 @@ export default function ProfilePage() {
       if (submissionResponse.success && submissionResponse.data) {
         setKycSubmission(submissionResponse.data)
         if (submissionResponse.data.personalInfo) {
-          setKycPersonalInfo(submissionResponse.data.personalInfo)
+          setKycPersonalInfo({
+            fullName: submissionResponse.data.personalInfo.fullName || '',
+            dateOfBirth: submissionResponse.data.personalInfo.dateOfBirth || '',
+            nationality: submissionResponse.data.personalInfo.nationality || 'Vietnam',
+            address: submissionResponse.data.personalInfo.address || '',
+            documentNumber: submissionResponse.data.documentNumber || '',
+            documentType: submissionResponse.data.documentType || 'id_card'
+          })
+        }
+
+        // Load document URLs vào state local nếu có
+        if (submissionResponse.data.documentUrls) {
+          setKycDocuments({
+            documentFrontUrl: submissionResponse.data.documentUrls.documentFrontUrl || '',
+            documentBackUrl: submissionResponse.data.documentUrls.documentBackUrl || '',
+            selfieUrl: submissionResponse.data.documentUrls.selfieUrl || ''
+          })
         }
       }
     } catch (error) {
@@ -872,7 +888,7 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-6">
-                        {/* Hiển thị 3 loại ảnh cần upload */}
+                        {/* Hiển th�� 3 loại ảnh cần upload */}
                         {[
                           { key: 'documentFrontUrl', label: 'Mặt trước giấy tờ', icon: '🆔' },
                           { key: 'documentBackUrl', label: 'Mặt sau giấy tờ', icon: '🔄' },
@@ -1067,7 +1083,7 @@ export default function ProfilePage() {
                 <span>Cài đặt quyền riêng tư</span>
               </CardTitle>
               <CardDescription>
-                Quản lý ai có thể xem thông tin và tư��ng tác với bạn
+                Quản lý ai có thể xem thông tin và tương tác với bạn
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1124,7 +1140,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép tin nhắn</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác gửi tin nhắn cho bạn
+                    Cho ph��p người khác gửi tin nhắn cho bạn
                   </p>
                 </div>
                 <Switch
