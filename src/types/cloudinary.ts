@@ -1,9 +1,16 @@
-export interface CloudinarySignature {
+export interface CloudinarySignatureResponse {
   signature: string;
   timestamp: number;
   api_key: string;
   cloud_name: string;
   upload_preset: string;
+  folder: string;
+  tags: string;
+  quality: string;
+  fetch_format: string;
+  dpr: string;
+  flags: string;
+  transformation: string;
 }
 
 export interface CloudinaryUploadResponse {
@@ -24,4 +31,29 @@ export interface CloudinaryUploadResponse {
   secure_url: string;
   access_mode: string;
   original_filename: string;
+}
+
+export interface OptimizedImageUrls {
+  original: string;
+  optimized: string;
+  thumbnail: string;
+  placeholder: string;
+  responsive: {
+    mobile: string;
+    tablet: string;
+    desktop: string;
+    retina: string;
+  };
+}
+
+export interface OptimizedImageResponse {
+  public_id: string;
+  urls: OptimizedImageUrls;
+  srcset: string;
+}
+
+export interface UploadOptions {
+  folder?: string;
+  tags?: string;
+  transformation?: string;
 }

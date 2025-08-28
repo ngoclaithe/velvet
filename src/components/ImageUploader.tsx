@@ -1,145 +1,222 @@
-import React, { useState, useRef } from 'react';
-import CloudinaryService from '../services/cloudinary';
+'use client';
 
-interface UploadProgress {
-  fileIndex: number;
-  progress: number;
-  fileName: string;
+import React, { useState, useRef } from 'react';
+import { useCloudinaryUpload } from '../hooks/useCloudinaryUpload';
+import { OptimizedImage } from './OptimizedImage';
+import type { UploadOptions } from '../lib/cloudinary';
+
+interface ImageUploaderProps {
+  onUploadComplete?: (results: any[]) => void;
+  maxFiles?: number;
+  uploadOptions?: UploadOptions;
 }
 
-const ImageUploader: React.FC = () => {
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
+const ImageUploader: React.FC<ImageUploaderProps> = ({ 
+  onUploadComplete, 
+  maxFiles = 5,
+  uploadOptions 
+}) => {
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cloudinaryService = new CloudinaryService();
+  
+  const { 
+    uploadMultiple, 
+    uploading, 
+    progress, 
+    error, 
+    clearError, 
+    results,
+    clearResults 
+  } = useCloudinaryUpload();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files && files.length > 0) {
-      handleUpload(Array.from(files));
-    }
+    if (!files) return;
+
+    const fileArray = Array.from(files).slice(0, maxFiles);
+    setSelectedFiles(fileArray);
+    clearError();
+    clearResults();
+
+    // Create preview URLs
+    const previews = fileArray.map(file => URL.createObjectURL(file));
+    setPreviewUrls(prev => {
+      // Clean up previous URLs
+      prev.forEach(url => URL.revokeObjectURL(url));
+      return previews;
+    });
   };
 
-  const handleUpload = async (files: File[]) => {
-    setUploading(true);
-    setError(null);
-    setUploadProgress([]);
-    
-    // Initialize progress tracking
-    const initialProgress = files.map((file, index) => ({
-      fileIndex: index,
-      progress: 0,
-      fileName: file.name
-    }));
-    setUploadProgress(initialProgress);
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) return;
 
     try {
-      const results = await cloudinaryService.uploadMultipleImages(
-        files,
-        (fileIndex, progress) => {
-          setUploadProgress(prev => 
-            prev.map(item => 
-              item.fileIndex === fileIndex 
-                ? { ...item, progress }
-                : item
-            )
-          );
-        }
-      );
+      const uploadResults = await uploadMultiple(selectedFiles, uploadOptions);
+      
+      if (onUploadComplete) {
+        onUploadComplete(uploadResults);
+      }
 
-      // Lấy URLs của các ảnh đã upload
-      const imageUrls = results.map(result => result.secure_url);
-      setUploadedImages(prev => [...prev, ...imageUrls]);
+      // Clean up
+      setSelectedFiles([]);
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls([]);
       
-      console.log('Upload completed:', results);
-      
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
     } catch (error) {
       console.error('Upload failed:', error);
-      setError(error instanceof Error ? error.message : 'Upload failed');
-    } finally {
-      setUploading(false);
-      setUploadProgress([]);
     }
   };
 
-  const triggerFileSelect = () => {
-    fileInputRef.current?.click();
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => {
+      const newPreviews = prev.filter((_, i) => i !== index);
+      // Clean up removed URL
+      URL.revokeObjectURL(prev[index]);
+      return newPreviews;
+    });
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Image Uploader</h2>
+    <div className="w-full max-w-4xl mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-6">Image Uploader</h2>
       
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        multiple
-        accept="image/*"
-        style={{ display: 'none' }}
-      />
-      
-      {/* Upload button */}
-      <button
-        onClick={triggerFileSelect}
-        disabled={uploading}
-        className="bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded mb-4"
-      >
-        {uploading ? 'Uploading...' : 'Select Images'}
-      </button>
+      {/* File Input */}
+      <div className="mb-6">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          multiple
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+        />
+        
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+        >
+          {uploading ? 'Uploading...' : `Select Images (max ${maxFiles})`}
+        </button>
+      </div>
 
-      {/* Progress display */}
-      {uploadProgress.length > 0 && (
-        <div className="mb-4">
-          <h3 className="font-semibold mb-2">Upload Progress:</h3>
-          {uploadProgress.map((item) => (
-            <div key={item.fileIndex} className="mb-2">
-              <div className="flex justify-between text-sm mb-1">
-                <span>{item.fileName}</span>
-                <span>{item.progress}%</span>
+      {/* Selected Files Preview */}
+      {selectedFiles.length > 0 && (
+        <div className="mb-6">
+          <h3 className="font-semibold mb-3">Selected Files ({selectedFiles.length}):</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+            {selectedFiles.map((file, index) => (
+              <div key={index} className="relative group">
+                <img
+                  src={previewUrls[index]}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                />
+                <button
+                  onClick={() => removeFile(index)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                >
+                  ×
+                </button>
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg truncate">
+                  {file.name}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <button
+            onClick={handleUpload}
+            disabled={uploading || selectedFiles.length === 0}
+            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+          >
+            {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} Image${selectedFiles.length > 1 ? 's' : ''}`}
+          </button>
+        </div>
+      )}
+
+      {/* Upload Progress */}
+      {Object.keys(progress).length > 0 && (
+        <div className="mb-6">
+          <h3 className="font-semibold mb-3">Upload Progress:</h3>
+          {Object.entries(progress).map(([fileIndex, fileProgress]) => (
+            <div key={fileIndex} className="mb-3">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-sm font-medium">
+                  {selectedFiles[parseInt(fileIndex)]?.name || `File ${parseInt(fileIndex) + 1}`}
+                </span>
+                <span className="text-sm text-gray-600">{fileProgress}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${item.progress}%` }}
-                ></div>
+                  style={{ width: `${fileProgress}%` }}
+                />
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Error display */}
+      {/* Error Display */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span>{error}</span>
+            <button
+              onClick={clearError}
+              className="text-red-500 hover:text-red-700 font-bold"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Uploaded images display */}
-      {uploadedImages.length > 0 && (
+      {/* Upload Results */}
+      {results.length > 0 && (
         <div>
-          <h3 className="font-semibold mb-2">Uploaded Images:</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {uploadedImages.map((url, index) => (
-              <div key={index} className="border rounded-lg overflow-hidden">
+          <h3 className="font-semibold mb-3">Uploaded Images ({results.length}):</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {results.map((result, index) => (
+              <div key={result.public_id} className="border rounded-lg overflow-hidden bg-white shadow-sm">
                 <img
-                  src={url}
+                  src={result.secure_url}
                   alt={`Uploaded ${index + 1}`}
-                  className="w-full h-32 object-cover"
+                  className="w-full h-48 object-cover"
                 />
-                <div className="p-2 text-xs">
-                  <a 
-                    href={url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline truncate block"
-                  >
-                    View full size
-                  </a>
+                <div className="p-4">
+                  <p className="text-sm font-medium truncate mb-2">
+                    {result.original_filename}
+                  </p>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <p>Size: {Math.round(result.bytes / 1024)} KB</p>
+                    <p>Dimensions: {result.width} × {result.height}</p>
+                    <p>Format: {result.format.toUpperCase()}</p>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <a 
+                      href={result.secure_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-xs block"
+                    >
+                      View Original
+                    </a>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(result.secure_url)}
+                      className="text-green-600 hover:underline text-xs"
+                    >
+                      Copy URL
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
