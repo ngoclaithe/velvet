@@ -246,6 +246,11 @@ export default function CreatePostPage() {
       if (mediaFiles.length > 0) {
         try {
           const files = mediaFiles.map(mediaFile => mediaFile.file)
+          console.log('📤 Starting media upload to Cloudinary:', {
+            fileCount: files.length,
+            files: files.map(f => ({ name: f.name, size: f.size, type: f.type }))
+          })
+
           const cloudinaryResults: CloudinaryUploadResponse[] = await uploadMultiple(files, {
             folder: 'posts',
             tags: 'post-media'
@@ -254,10 +259,29 @@ export default function CreatePostPage() {
           // Extract URLs from Cloudinary results
           uploadedMediaUrls.push(...cloudinaryResults.map(result => result.secure_url))
 
-          console.log('Uploaded to Cloudinary:', cloudinaryResults)
+          console.log('✅ Successfully uploaded to Cloudinary:', {
+            count: cloudinaryResults.length,
+            urls: uploadedMediaUrls
+          })
         } catch (uploadError) {
-          console.error('Failed to upload media to Cloudinary:', uploadError)
-          throw new Error('Không thể tải lên media. Vui lòng thử lại.')
+          console.error('❌ Failed to upload media to Cloudinary:', uploadError)
+
+          // Provide more specific error messages based on the error type
+          let errorMessage = 'Không thể tải lên media. Vui lòng thử lại.'
+
+          if (uploadError instanceof Error) {
+            if (uploadError.message.includes('File quá lớn')) {
+              errorMessage = 'File quá lớn. Vui lòng chọn file nhỏ hơn.'
+            } else if (uploadError.message.includes('Định dạng file')) {
+              errorMessage = 'Định dạng file không được hỗ trợ. Vui lòng chọn file khác.'
+            } else if (uploadError.message.includes('Invalid transformation')) {
+              errorMessage = 'Lỗi xử lý media. Vui lòng thử lại hoặc chọn file khác.'
+            } else if (uploadError.message.includes('Network error') || uploadError.message.includes('timeout')) {
+              errorMessage = 'Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại.'
+            }
+          }
+
+          throw new Error(errorMessage)
         }
 
         // Add uploaded media URLs to post payload
