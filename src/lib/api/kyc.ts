@@ -27,58 +27,59 @@ export type {
 export const kycApi = {
   // Get KYC status and information
   getKycStatus: () =>
-    api.get('/kyc/status'),
+    api.get<KycStatusResponse>('/kyc/status'),
 
   // Get current KYC submission
   getCurrentSubmission: () =>
-    api.get('/kyc/submission'),
+    api.get<KycSubmission>('/kyc/submission'),
 
-  // Create or update KYC submission
-  createSubmission: (data: Partial<KycSubmission>) =>
-    api.post('/kyc/submission', data),
+  // Create KYC submission with validation
+  createSubmission: (data: KycSubmissionData) =>
+    api.post<{ id: string }>('/kyc/submission', data),
 
-  updateSubmission: (data: Partial<KycSubmission>) =>
-    api.patch('/kyc/submission', data),
+  // Update KYC submission
+  updateSubmission: (data: KycUpdateData) =>
+    api.patch<KycSubmission>('/kyc/submission', data),
 
   // Submit KYC for review
   submitForReview: () =>
-    api.post('/kyc/submit'),
+    api.post<{ message: string }>('/kyc/submit'),
 
-  // Document management
+  // Document URL management (for Cloudinary URLs)
+  updateDocumentUrl: (documentType: 'front' | 'back' | 'selfie', documentUrl: string) =>
+    api.patch(`/kyc/documents/${documentType}`, {
+      documentType,
+      documentUrl
+    } as KycDocumentUpdateData),
+
+  // Legacy document upload (for file upload)
   uploadDocument: (documentType: string, file: File) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('documentType', documentType)
-    
+
     return api.upload('/kyc/documents', formData)
   },
 
   deleteDocument: (documentId: string) =>
     api.delete(`/kyc/documents/${documentId}`),
 
-  // Get available document types
-  getDocumentTypes: () =>
-    api.get('/kyc/document-types'),
-
-  // Personal information update
-  updatePersonalInfo: (personalInfo: any) =>
-    api.patch('/kyc/personal-info', personalInfo),
+  // Personal information update with validation
+  updatePersonalInfo: (personalInfo: KycPersonalInfoUpdateData) =>
+    api.patch<KycSubmission>('/kyc/personal-info', personalInfo),
 
   // Get KYC requirements based on verification level
-  getRequirements: (level: 'basic' | 'intermediate' | 'advanced') =>
+  getRequirements: (level: VerificationLevel) =>
     api.get(`/kyc/requirements/${level}`),
 
-  // Admin endpoints (for future use)
+  // Admin endpoints
   admin: {
     // Get pending KYC submissions
     getPendingSubmissions: (params?: Record<string, string>) =>
-      api.get('/admin/kyc/pending', params),
+      api.get<KycSubmission[]>('/admin/kyc/pending', params),
 
     // Review KYC submission
-    reviewSubmission: (submissionId: string, data: { 
-      status: 'approved' | 'rejected'
-      rejectionReason?: string 
-    }) =>
+    reviewSubmission: (submissionId: string, data: KycReviewData) =>
       api.patch(`/admin/kyc/submissions/${submissionId}/review`, data),
 
     // Get KYC statistics
@@ -87,7 +88,7 @@ export const kycApi = {
 
     // Get user KYC details
     getUserKyc: (userId: string) =>
-      api.get(`/admin/kyc/users/${userId}`)
+      api.get<KycSubmission>(`/admin/kyc/users/${userId}`)
   }
 }
 
