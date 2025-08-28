@@ -42,7 +42,6 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
-import ImageUploader from '@/components/ImageUploader'
 import type { User } from '@/types/auth'
 import { kycApi, getKycStatusDescription, getVerificationLevelDescription, getDocumentTypeDescription } from '@/lib/api/kyc'
 import type { KycSubmission, KycSubmissionData, DocumentType, KycStatus } from '@/types/kyc'
@@ -106,15 +105,20 @@ export default function ProfilePage() {
   const [kycStatus, setKycStatus] = useState<string>('draft')
   const [isLoadingKyc, setIsLoadingKyc] = useState(false)
   const [isUploadingDoc, setIsUploadingDoc] = useState(false)
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [selectedDocType, setSelectedDocType] = useState('')
   const [avatarUploadDialogOpen, setAvatarUploadDialogOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [kycUploadDialogOpen, setKycUploadDialogOpen] = useState(false)
   const [selectedKycDocType, setSelectedKycDocType] = useState('')
 
-  // State để lưu 3 ảnh KYC cục bộ
+  // State để lưu 3 file ảnh KYC cục bộ (chưa upload)
   const [kycDocuments, setKycDocuments] = useState({
+    documentFrontFile: null as File | null,
+    documentBackFile: null as File | null,
+    selfieFile: null as File | null
+  })
+
+  // State để lưu preview URLs cho hiển thị
+  const [kycPreviewUrls, setKycPreviewUrls] = useState({
     documentFrontUrl: '',
     documentBackUrl: '',
     selfieUrl: ''
@@ -210,7 +214,7 @@ export default function ProfilePage() {
 
   const handleAvatarUploadError = (error: string) => {
     toast({
-      title: "Lỗi t��i lên",
+      title: "Lỗi tải lên",
       description: error,
       variant: "destructive"
     })
@@ -242,14 +246,8 @@ export default function ProfilePage() {
           })
         }
 
-        // Load document URLs vào state local nếu có
-        if (submissionResponse.data.documentUrls) {
-          setKycDocuments({
-            documentFrontUrl: submissionResponse.data.documentUrls.documentFrontUrl || '',
-            documentBackUrl: submissionResponse.data.documentUrls.documentBackUrl || '',
-            selfieUrl: submissionResponse.data.documentUrls.selfieUrl || ''
-          })
-        }
+        // Không load URLs vào state nữa vì chúng ta dùng files local
+        // URLs chỉ hiển thị ở kycSubmission để xem kết quả đã submit
       }
     } catch (error) {
       console.error('Failed to fetch KYC data:', error)
@@ -263,82 +261,81 @@ export default function ProfilePage() {
     }
   }
 
-  // KYC document upload handlers - chỉ lưu vào state local
-  const handleKycUploadComplete = async (results: CloudinaryUploadResponse[]) => {
-    if (results.length > 0 && selectedKycDocType) {
-      try {
-        // Lưu URL vào state local thay vì gọi API ngay
-        setKycDocuments(prev => ({
-          ...prev,
-          [selectedKycDocType]: results[0].secure_url
-        }))
-
-        toast({
-          title: "Tải lên thành công!",
-          description: `${getDocumentTypeDescription(selectedKycDocType)} đã được tải lên`,
-          variant: "default"
-        })
-
-        setKycUploadDialogOpen(false)
-        setSelectedKycDocType('')
-      } catch (error) {
-        console.error('KYC document upload failed:', error)
-        toast({
-          title: "Lỗi tải lên",
-          description: "Không thể tải lên tài liệu",
-          variant: "destructive"
-        })
-      }
-    }
-  }
-
-  const handleKycUploadError = (error: string) => {
-    toast({
-      title: "Lỗi tải lên",
-      description: error,
-      variant: "destructive"
-    })
-  }
-
-  const handleKycUploadStart = () => {
-    setIsUploadingDoc(true)
-  }
-
-  // Legacy function - keeping for backward compatibility
-  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handler để chọn file ảnh KYC (chưa upload)
+  const handleKycFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file || !selectedDocType) return
+    if (!file || !selectedKycDocType) return
 
-    setIsUploadingDoc(true)
-    try {
-      const response = await kycApi.uploadDocument(selectedDocType, file)
-      if (response.success) {
-        toast({
-          title: "Tải lên thành công!",
-          description: "Tài liệu đã được tải lên",
-          variant: "default"
-        })
-        setUploadDialogOpen(false)
-        fetchKycData()
-      }
-    } catch (error) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
       toast({
-        title: "Lỗi tải lên",
-        description: "Không thể tải lên tài liệu",
+        title: "File không hợp lệ",
+        description: "Vui lòng chọn file ảnh (JPG, PNG, WEBP)",
         variant: "destructive"
       })
-    } finally {
-      setIsUploadingDoc(false)
+      return
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File quá lớn",
+        description: "Kích thước file không được vượt quá 10MB",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      // Lưu file vào state và tạo preview URL
+      const fileKey = selectedKycDocType.replace('Url', 'File') as keyof typeof kycDocuments
+      const urlKey = selectedKycDocType as keyof typeof kycPreviewUrls
+
+      // Clear previous preview URL
+      if (kycPreviewUrls[urlKey]) {
+        URL.revokeObjectURL(kycPreviewUrls[urlKey])
+      }
+
+      // Create new preview URL
+      const previewUrl = URL.createObjectURL(file)
+
+      setKycDocuments(prev => ({
+        ...prev,
+        [fileKey]: file
+      }))
+
+      setKycPreviewUrls(prev => ({
+        ...prev,
+        [urlKey]: previewUrl
+      }))
+
+      toast({
+        title: "Chọn ảnh thành công!",
+        description: `${getDocumentTypeDescription(selectedKycDocType)} đã được chọn`,
+        variant: "default"
+      })
+
+      setKycUploadDialogOpen(false)
+      setSelectedKycDocType('')
+    } catch (error) {
+      console.error('File selection failed:', error)
+      toast({
+        title: "Lỗi chọn file",
+        description: "Không thể chọn file. Vui lòng thử lại.",
+        variant: "destructive"
+      })
     }
   }
+
+  // Đã loại bỏ handleDocumentUpload legacy
 
   // Đã loại bỏ handleKycPersonalInfoUpdate vì không cần thiết
 
   // Kiểm tra xem đã có đủ thông tin KYC chưa
   const isKycDataComplete = () => {
-    const hasAllDocuments = kycDocuments.documentFrontUrl &&
-                           kycDocuments.documentBackUrl &&
-                           kycDocuments.selfieUrl
+    const hasAllDocuments = kycDocuments.documentFrontFile &&
+                           kycDocuments.documentBackFile &&
+                           kycDocuments.selfieFile
     const hasPersonalInfo = kycPersonalInfo.fullName &&
                            kycPersonalInfo.dateOfBirth &&
                            kycPersonalInfo.documentNumber &&
@@ -346,20 +343,47 @@ export default function ProfilePage() {
     return hasAllDocuments && hasPersonalInfo
   }
 
+  // Cloudinary upload hook
+  const {
+    uploadMultiple,
+    uploading: cloudinaryUploading,
+    progress: uploadProgress,
+    error: uploadError,
+    clearError: clearUploadError
+  } = useCloudinaryUpload()
+
   // Submit toàn bộ KYC data
   const handleSubmitKyc = async () => {
     if (!isKycDataComplete()) {
       toast({
         title: "Thông tin chưa đầy đủ",
-        description: "Vui lòng điền đầy đủ thông tin cá nhân và tải lên 3 ảnh (mặt trước, mặt sau, selfie)",
+        description: "Vui lòng điền đầy đủ thông tin cá nhân và chọn 3 ảnh (mặt trước, mặt sau, selfie)",
         variant: "destructive"
       })
       return
     }
 
     setIsUploadingDoc(true)
+    clearUploadError()
+
     try {
-      // Tạo KYC submission với đầy đủ thông tin
+      // Bước 1: Upload 3 ảnh lên Cloudinary
+      const filesToUpload = [
+        kycDocuments.documentFrontFile!,
+        kycDocuments.documentBackFile!,
+        kycDocuments.selfieFile!
+      ]
+
+      console.log('🚀 Bắt đầu upload 3 ảnh KYC lên Cloudinary...')
+      const uploadResults = await uploadMultiple(filesToUpload)
+
+      if (uploadResults.length !== 3) {
+        throw new Error('Không thể tải lên đủ 3 ảnh. Vui lòng thử lại.')
+      }
+
+      console.log('✅ Upload Cloudinary thành công:', uploadResults.map(r => r.secure_url))
+
+      // Bước 2: Tạo KYC submission với URLs từ Cloudinary
       const kycData: KycSubmissionData = {
         // Thông tin cá nhân
         fullName: kycPersonalInfo.fullName,
@@ -369,13 +393,15 @@ export default function ProfilePage() {
         documentType: kycPersonalInfo.documentType,
         documentNumber: kycPersonalInfo.documentNumber,
 
-        // URLs của 3 ảnh
-        documentFrontUrl: kycDocuments.documentFrontUrl,
-        documentBackUrl: kycDocuments.documentBackUrl,
-        selfieUrl: kycDocuments.selfieUrl
+        // URLs từ Cloudinary (theo thứ tự: front, back, selfie)
+        documentFrontUrl: uploadResults[0].secure_url,
+        documentBackUrl: uploadResults[1].secure_url,
+        selfieUrl: uploadResults[2].secure_url
       }
 
+      console.log('🚀 Gọi API tạo KYC submission...')
       const response = await kycApi.createSubmission(kycData)
+
       if (response.success) {
         toast({
           title: "Gửi xác thực thành công!",
@@ -385,6 +411,16 @@ export default function ProfilePage() {
 
         // Reset form sau khi gửi thành công
         setKycDocuments({
+          documentFrontFile: null,
+          documentBackFile: null,
+          selfieFile: null
+        })
+
+        // Clear preview URLs
+        Object.values(kycPreviewUrls).forEach(url => {
+          if (url) URL.revokeObjectURL(url)
+        })
+        setKycPreviewUrls({
           documentFrontUrl: '',
           documentBackUrl: '',
           selfieUrl: ''
@@ -392,11 +428,12 @@ export default function ProfilePage() {
 
         fetchKycData()
       }
+
     } catch (error) {
-      console.error('Submit KYC failed:', error)
+      console.error('❌ Submit KYC failed:', error)
       toast({
         title: "Lỗi gửi hồ sơ",
-        description: "Không thể gửi hồ sơ xác thực. Vui lòng kiểm tra lại thông tin.",
+        description: error instanceof Error ? error.message : "Không thể gửi hồ sơ xác thực. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -444,6 +481,15 @@ export default function ProfilePage() {
       fetchKycData()
     }
   }, [user])
+
+  // Cleanup preview URLs khi component unmount
+  useEffect(() => {
+    return () => {
+      Object.values(kycPreviewUrls).forEach(url => {
+        if (url) URL.revokeObjectURL(url)
+      })
+    }
+  }, [])
 
   if (authLoading) {
     return (
@@ -652,7 +698,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Giới tính</Label>
+                  <Label htmlFor="gender">Gi���i tính</Label>
                   <Select 
                     value={formData.gender} 
                     onValueChange={(value) => handleInputChange('gender', value)}
@@ -705,7 +751,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Tiểu sử</Label>
+                <Label htmlFor="bio">Ti���u sử</Label>
                 <Textarea
                   id="bio"
                   value={formData.bio}
@@ -888,11 +934,11 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-6">
-                        {/* Hiển th�� 3 loại ảnh cần upload */}
+                        {/* Hiển thị 3 loại ảnh cần upload */}
                         {[
-                          { key: 'documentFrontUrl', label: 'Mặt trước giấy tờ', icon: '🆔' },
-                          { key: 'documentBackUrl', label: 'Mặt sau giấy tờ', icon: '🔄' },
-                          { key: 'selfieUrl', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
+                          { key: 'documentFrontUrl', fileKey: 'documentFrontFile', label: 'Mặt trước giấy tờ', icon: '🆔' },
+                          { key: 'documentBackUrl', fileKey: 'documentBackFile', label: 'Mặt sau giấy tờ', icon: '🔄' },
+                          { key: 'selfieUrl', fileKey: 'selfieFile', label: 'Ảnh selfie với giấy tờ', icon: '🤳' }
                         ].map((docType) => (
                           <div key={docType.key} className="border rounded-lg p-4">
                             <div className="flex items-center justify-between mb-3">
@@ -901,7 +947,7 @@ export default function ProfilePage() {
                                 <div>
                                   <h4 className="font-medium">{docType.label}</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    {kycDocuments[docType.key] ? 'Đã tải lên' : 'Chưa tải lên'}
+                                    {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Đã chọn ảnh' : 'Chưa chọn ảnh'}
                                   </p>
                                 </div>
                               </div>
@@ -918,55 +964,61 @@ export default function ProfilePage() {
                                   <DialogTrigger asChild>
                                     <Button variant="outline" size="sm">
                                       <Upload className="w-4 h-4 mr-2" />
-                                      {kycDocuments[docType.key] ? 'Thay đổi' : 'Tải lên'}
+                                      {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? 'Thay đổi' : 'Chọn ảnh'}
                                     </Button>
                                   </DialogTrigger>
                                   <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle>Tải lên {docType.label}</DialogTitle>
+                                      <DialogTitle>Chọn {docType.label}</DialogTitle>
                                       <DialogDescription>
-                                        Chọn ảnh {docType.label.toLowerCase()} của bạn
+                                        Chọn file ảnh {docType.label.toLowerCase()} từ thiết bị của bạn
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
-                                      <ImageUploader
-                                        onUploadComplete={handleKycUploadComplete}
-                                        onUploadStart={handleKycUploadStart}
-                                        onUploadError={handleKycUploadError}
-                                        maxFiles={1}
-                                        compact={true}
-                                        hideResults={true}
-                                        acceptedTypes="image/jpeg,image/png,image/webp"
-                                        disabled={isUploadingDoc}
-                                      />
+                                      <div className="space-y-2">
+                                        <Label htmlFor={`file-${docType.key}`}>Chọn file ảnh</Label>
+                                        <Input
+                                          id={`file-${docType.key}`}
+                                          type="file"
+                                          accept="image/jpeg,image/png,image/webp"
+                                          onChange={handleKycFileSelect}
+                                          className="cursor-pointer"
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                          Hỗ trợ: JPG, PNG, WEBP. Tối đa 10MB.
+                                        </p>
+                                      </div>
                                     </div>
                                   </DialogContent>
                                 </Dialog>
                               )}
                             </div>
 
-                            {/* Preview ảnh đã upload */}
-                            {kycDocuments[docType.key] && (
+                            {/* Preview ảnh đã chọn */}
+                            {kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls] && (
                               <div className="mt-3">
                                 <img
-                                  src={kycDocuments[docType.key]}
+                                  src={kycPreviewUrls[docType.key as keyof typeof kycPreviewUrls]}
                                   alt={docType.label}
                                   className="w-full max-w-xs h-32 object-cover rounded border"
                                 />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {kycDocuments[docType.fileKey as keyof typeof kycDocuments]?.name}
+                                </p>
                               </div>
                             )}
 
                             {/* Status indicator */}
                             <div className="mt-3 flex items-center space-x-2">
-                              {kycDocuments[docType.key] ? (
+                              {kycDocuments[docType.fileKey as keyof typeof kycDocuments] ? (
                                 <>
                                   <CheckCircle className="h-4 w-4 text-green-600" />
-                                  <span className="text-sm text-green-600">Đã sẵn sàng</span>
+                                  <span className="text-sm text-green-600">Đã chọn</span>
                                 </>
                               ) : (
                                 <>
                                   <AlertCircle className="h-4 w-4 text-yellow-600" />
-                                  <span className="text-sm text-yellow-600">Cần tải lên</span>
+                                  <span className="text-sm text-yellow-600">Cần chọn</span>
                                 </>
                               )}
                             </div>
@@ -977,9 +1029,9 @@ export default function ProfilePage() {
                         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h4 className="font-medium">Tiến độ tải tài liệu</h4>
+                              <h4 className="font-medium">Tiến độ chọn ảnh</h4>
                               <p className="text-sm text-muted-foreground">
-                                {Object.values(kycDocuments).filter(url => url).length}/3 tài liệu đã tải lên
+                                {Object.values(kycDocuments).filter(file => file).length}/3 ảnh đã chọn
                               </p>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -1025,23 +1077,58 @@ export default function ProfilePage() {
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
                                 {!kycPersonalInfo.dateOfBirth && <li>• Chọn ngày sinh</li>}
                                 {!kycPersonalInfo.documentNumber && <li>• Nhập số giấy tờ</li>}
-                                {!kycDocuments.documentFrontUrl && <li>• Tải lên ảnh mặt trước giấy tờ</li>}
-                                {!kycDocuments.documentBackUrl && <li>• Tải lên ảnh mặt sau giấy tờ</li>}
-                                {!kycDocuments.selfieUrl && <li>• Tải lên ảnh selfie</li>}
+                                {!kycDocuments.documentFrontFile && <li>• Chọn ảnh mặt trước giấy tờ</li>}
+                                {!kycDocuments.documentBackFile && <li>• Chọn ảnh mặt sau giấy tờ</li>}
+                                {!kycDocuments.selfieFile && <li>• Chọn ảnh selfie</li>}
                               </ul>
+                            </div>
+                          )}
+
+                          {/* Upload Progress */}
+                          {(isUploadingDoc || cloudinaryUploading) && (
+                            <div className="space-y-3">
+                              <div className="text-center">
+                                <Icons.spinner className="w-6 h-6 mx-auto animate-spin mb-2" />
+                                <p className="text-sm font-medium">
+                                  {cloudinaryUploading ? 'Đang tải ảnh lên Cloudinary...' : 'Đang gửi hồ sơ...'}
+                                </p>
+                              </div>
+
+                              {/* Upload progress bars */}
+                              {Object.keys(uploadProgress).length > 0 && (
+                                <div className="space-y-2">
+                                  {Object.entries(uploadProgress).map(([fileIndex, progress]) => (
+                                    <div key={fileIndex} className="space-y-1">
+                                      <div className="flex justify-between text-xs">
+                                        <span>
+                                          {parseInt(fileIndex) === 0 ? 'Mặt trước' :
+                                           parseInt(fileIndex) === 1 ? 'Mặt sau' : 'Selfie'}
+                                        </span>
+                                        <span>{progress}%</span>
+                                      </div>
+                                      <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                          style={{ width: `${progress}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
 
                           <Button
                             onClick={handleSubmitKyc}
                             size="lg"
-                            disabled={!isKycDataComplete() || isUploadingDoc}
+                            disabled={!isKycDataComplete() || isUploadingDoc || cloudinaryUploading}
                             className={isKycDataComplete() ? 'bg-green-600 hover:bg-green-700' : ''}
                           >
-                            {isUploadingDoc ? (
+                            {(isUploadingDoc || cloudinaryUploading) ? (
                               <>
                                 <Icons.spinner className="w-4 h-4 mr-2 animate-spin" />
-                                Đang gửi...
+                                {cloudinaryUploading ? 'Đang tải ảnh...' : 'Đang gửi...'}
                               </>
                             ) : (
                               <>
@@ -1140,7 +1227,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép tin nhắn</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho ph��p người khác gửi tin nhắn cho bạn
+                    Cho phép người khác gửi tin nh��n cho bạn
                   </p>
                 </div>
                 <Switch
