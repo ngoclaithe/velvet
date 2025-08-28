@@ -25,8 +25,18 @@ export const cloudinaryApi = {
     validateFile(file)
 
     // Lấy signature từ backend
+    console.log('🔍 Requesting signature with options:', options)
     const signatureResponse = await cloudinaryApi.getSignature(options)
+    console.log('📥 Full signature response:', signatureResponse)
+    console.log('📥 Response success:', signatureResponse.success)
+    console.log('📥 Response data:', signatureResponse.data)
+
     if (!signatureResponse.success || !signatureResponse.data) {
+      console.error('❌ Signature response failed:', {
+        success: signatureResponse.success,
+        data: signatureResponse.data,
+        error: signatureResponse.error || 'No error field'
+      })
       throw new Error('Failed to get upload signature')
     }
 
