@@ -92,40 +92,35 @@ export const kycApi = {
   }
 }
 
-// Helper function to get verification level description
+// Import helper functions and constants from types
+import {
+  VERIFICATION_LEVEL_DESCRIPTIONS,
+  KYC_STATUS_DESCRIPTIONS,
+  DOCUMENT_TYPE_LABELS,
+  isValidCloudinaryUrl,
+  validateKycSubmission
+} from '@/types/kyc'
+
+// Helper functions - re-export from types for backward compatibility
 export const getVerificationLevelDescription = (level: string) => {
-  switch (level) {
-    case 'basic':
-      return 'Xác thực cơ bản - Cho phép giao dịch tối đa 1,000,000 VND/tháng'
-    case 'intermediate':
-      return 'Xác thực trung gấp - Cho phép giao dịch tối đa 10,000,000 VND/tháng'
-    case 'advanced':
-      return 'Xác thực nâng cao - Không giới hạn giao dịch'
-    default:
-      return 'Chưa xác thực'
-  }
+  return VERIFICATION_LEVEL_DESCRIPTIONS[level as VerificationLevel] || 'Chưa xác thực'
 }
 
-// Helper function to get status description
 export const getKycStatusDescription = (status: string) => {
-  switch (status) {
-    case 'draft':
-      return 'Đang soạn thảo'
-    case 'submitted':
-      return 'Đã gửi'
-    case 'under_review':
-      return 'Đang xem xét'
-    case 'approved':
-      return 'Đã phê duyệt'
-    case 'rejected':
-      return 'Bị từ chối'
-    default:
-      return 'Không xác định'
-  }
+  return KYC_STATUS_DESCRIPTIONS[status as KycStatus] || 'Không xác định'
 }
 
 export const getDocumentTypeDescription = (type: string) => {
   switch (type) {
+    case 'documentFrontUrl':
+    case 'front':
+      return 'Mặt trước giấy tờ'
+    case 'documentBackUrl':
+    case 'back':
+      return 'Mặt sau giấy tờ'
+    case 'selfieUrl':
+    case 'selfie':
+      return 'Ảnh selfie'
     case 'citizen_id_front':
       return 'Mặt trước CCCD/CMND'
     case 'citizen_id_back':
@@ -144,3 +139,6 @@ export const getDocumentTypeDescription = (type: string) => {
       return type
   }
 }
+
+// Export validation functions
+export { isValidCloudinaryUrl, validateKycSubmission }
