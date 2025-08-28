@@ -370,8 +370,8 @@ export default function ProfilePage() {
 
       if (response.success) {
         toast({
-          title: "Gửi xác th���c thành công!",
-          description: "H��� sơ KYC của bạn đã được gửi và đang được xem xét",
+          title: "Gửi xác thực thành công!",
+          description: "Hồ sơ KYC của bạn đã được gửi và đang được xem xét",
           variant: "default"
         })
 
@@ -652,7 +652,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Gi����i tính</Label>
+                  <Label htmlFor="gender">Giới tính</Label>
                   <Select 
                     value={formData.gender} 
                     onValueChange={(value) => handleInputChange('gender', value)}
@@ -705,7 +705,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Ti���u sử</Label>
+                <Label htmlFor="bio">Tiểu sử</Label>
                 <Textarea
                   id="bio"
                   value={formData.bio}
@@ -1107,7 +1107,7 @@ export default function ProfilePage() {
                               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
                               <h4 className="font-medium text-green-900 mb-2">Sẵn sàng gửi xác thực!</h4>
                               <p className="text-sm text-green-800">
-                                Tất cả thông tin và tài liệu đã được ��iền đầy đủ. Bạn có thể gửi hồ sơ để xem xét.
+                                Tất cả thông tin và tài liệu đã được điền đầy đủ. Bạn có thể gửi hồ sơ để xem xét.
                               </p>
                             </div>
                           ) : (
@@ -1115,7 +1115,7 @@ export default function ProfilePage() {
                               <AlertCircle className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
                               <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa đầy đủ</h4>
                               <p className="text-sm text-yellow-800 mb-3">
-                                Vui lòng hoàn thành các mục sau trư���c khi gửi:
+                                Vui lòng hoàn thành các mục sau trước khi gửi:
                               </p>
                               <ul className="text-sm text-yellow-800 text-left space-y-1">
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
@@ -1152,7 +1152,7 @@ export default function ProfilePage() {
                             ) : (
                               <>
                                 <Send className="w-4 h-4 mr-2" />
-                                {kycStatus === 'rejected' ? 'Gửi lại hồ s��' : 'Gửi hồ sơ xác thực'}
+                                {kycStatus === 'rejected' ? 'Gửi lại hồ sơ' : 'Gửi hồ sơ xác thực'}
                               </>
                             )}
                           </Button>
@@ -1212,7 +1212,7 @@ export default function ProfilePage() {
                             <div>
                               <h4 className="font-medium text-green-900">Xác thực thành công!</h4>
                               <p className="text-sm text-green-800">
-                                Tài khoản của bạn đã đư���c xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
+                                Tài khoản của bạn đã được xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
                               </p>
                             </div>
                           </div>
@@ -1296,7 +1296,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Cho phép tin nhắn</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác gửi tin nh��n cho bạn
+                    Cho phép người khác gửi tin nhắn cho bạn
                   </p>
                 </div>
                 <Switch
