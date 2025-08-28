@@ -670,7 +670,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Ngày sinh</Label>
                   <Input
@@ -1115,7 +1115,7 @@ export default function ProfilePage() {
                               <AlertCircle className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
                               <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa đầy đủ</h4>
                               <p className="text-sm text-yellow-800 mb-3">
-                                Vui lòng hoàn thành các mục sau trước khi gửi:
+                                Vui lòng hoàn thành các mục sau trư���c khi gửi:
                               </p>
                               <ul className="text-sm text-yellow-800 text-left space-y-1">
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
