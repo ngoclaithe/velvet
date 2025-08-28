@@ -68,7 +68,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       {
         id: '1',
         type: 'text',
-        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt đầu khám phá các tính năng thú vị của chúng tôi.',
+        content: 'Chào mừng bạn đến với nền tảng! 🎉 H��y bắt đầu khám phá các tính năng thú vị của chúng tôi.',
         author: {
           id: 'admin',
           username: 'admin',
@@ -254,9 +254,27 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       }
 
       if (response && response.success && response.data) {
-        const posts = Array.isArray(response.data) ? response.data : response.data.posts || []
-        const total = response.data.total || posts.length
-        const hasMore = posts.length === POSTS_PER_PAGE && (page * POSTS_PER_PAGE) < total
+        // Handle different response formats
+        let posts = []
+        let total = 0
+        let pagination = null
+
+        if (Array.isArray(response.data)) {
+          posts = response.data
+          total = posts.length
+        } else if (response.data.posts) {
+          posts = response.data.posts
+          total = response.data.total || posts.length
+          pagination = response.data.pagination
+        } else {
+          posts = []
+          total = 0
+        }
+
+        // Use pagination info if available
+        const hasMore = pagination
+          ? pagination.hasNext
+          : posts.length === POSTS_PER_PAGE && (page * POSTS_PER_PAGE) < total
 
         setFeeds(prev => ({
           ...prev,
