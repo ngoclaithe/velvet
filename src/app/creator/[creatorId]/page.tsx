@@ -33,8 +33,7 @@ interface Creator {
   stageName?: string
   avatar?: string
   bio?: string
-  followerCount?: number
-  followingCount?: number
+  followersCount?: number
   isVerified?: boolean
   isOnline?: boolean
   category?: string
@@ -48,6 +47,35 @@ interface Creator {
   isAvailableForBooking?: boolean
   bookingPrice?: string
   subscriptionPrice?: string
+}
+
+// Define the API response type
+interface CreatorApiResponse {
+  id: number
+  userId: number
+  stageName?: string
+  bio?: string
+  rating: string
+  totalRatings: number
+  isVerified: boolean
+  isLive: boolean
+  streamTitle?: string | null
+  hourlyRate: string
+  isAvailableForBooking: boolean
+  bookingPrice: string
+  subscriptionPrice: string
+  category?: string
+  location?: string
+  isFollowing?: boolean
+  followersCount?: number
+  user?: {
+    id: number
+    username: string
+    firstName: string
+    lastName: string
+    avatar?: string | null
+    isOnline: boolean
+  }
 }
 
 export default function CreatorDetailPage() {
@@ -67,31 +95,34 @@ export default function CreatorDetailPage() {
         const response = await creatorAPI.getCreatorById(Number(creatorId))
         
         if (response.success && response.data) {
+          // Type assertion for the API response
+          const apiData = response.data as CreatorApiResponse
+          
           // Transform API response to match Creator interface
           const creatorDetail: Creator = {
-            id: Number(response.data.id),
-            userId: Number(response.data.userId),
-            username: response.data.user?.username || '',
-            firstName: response.data.user?.firstName || '',
-            lastName: response.data.user?.lastName || '',
-            stageName: response.data.stageName || '',
-            avatar: response.data.user?.avatar || '',
-            bio: response.data.bio || '',
-            followerCount: Number(response.data.followerCount || 0),
-            followingCount: Number(response.data.followingCount || 0),
-            isVerified: Boolean(response.data.isVerified),
-            isOnline: Boolean(response.data.user?.isOnline),
-            isLive: Boolean(response.data.isLive),
-            category: response.data.category || '',
-            location: response.data.location || '',
-            isFollowing: Boolean(response.data.isFollowing),
-            streamTitle: response.data.streamTitle || '',
-            hourlyRate: response.data.hourlyRate || '0',
-            rating: response.data.rating || '0',
-            totalRatings: Number(response.data.totalRatings || 0),
-            isAvailableForBooking: Boolean(response.data.isAvailableForBooking),
-            bookingPrice: response.data.bookingPrice || '0',
-            subscriptionPrice: response.data.subscriptionPrice || '0'
+            id: Number(apiData.id),
+            userId: Number(apiData.userId),
+            username: apiData.user?.username || '',
+            firstName: apiData.user?.firstName || '',
+            lastName: apiData.user?.lastName || '',
+            stageName: apiData.stageName || '',
+            avatar: apiData.user?.avatar || '',
+            bio: apiData.bio || '',
+            followersCount: Number(apiData.followersCount || 0),
+            // followingCount: Number(apiData.followingCount || 0),
+            isVerified: Boolean(apiData.isVerified),
+            isOnline: Boolean(apiData.user?.isOnline),
+            isLive: Boolean(apiData.isLive),
+            category: apiData.category || '',
+            location: apiData.location || '',
+            isFollowing: Boolean(apiData.isFollowing),
+            streamTitle: apiData.streamTitle || '',
+            hourlyRate: apiData.hourlyRate || '0',
+            rating: apiData.rating || '0',
+            totalRatings: Number(apiData.totalRatings || 0),
+            isAvailableForBooking: Boolean(apiData.isAvailableForBooking),
+            bookingPrice: apiData.bookingPrice || '0',
+            subscriptionPrice: apiData.subscriptionPrice || '0'
           }
           setCreator(creatorDetail)
         }
@@ -129,13 +160,14 @@ export default function CreatorDetailPage() {
       setActionLoading(true)
 
       if (creator.isFollowing) {
-        await userApi.unfollowCreator(creator.userId.toString())
+        console.log("Giá trị id của creator là:", creator.id)
+        await userApi.unfollowCreator(creator.id.toString())
         toast({
           title: "Đã bỏ theo dõi",
           description: "Bạn đã bỏ theo dõi creator này"
         })
       } else {
-        await userApi.followCreator(creator.userId.toString())
+        await userApi.followCreator(creator.id.toString())
         toast({
           title: "Đã theo dõi",
           description: "Bạn đã theo dõi creator này"
@@ -146,9 +178,9 @@ export default function CreatorDetailPage() {
       setCreator(prev => prev ? {
         ...prev,
         isFollowing: !prev.isFollowing,
-        followerCount: prev.isFollowing
-          ? (prev.followerCount || 0) - 1
-          : (prev.followerCount || 0) + 1
+        followersCount: prev.isFollowing
+          ? (prev.followersCount || 0) - 1
+          : (prev.followersCount || 0) + 1
       } : null)
 
     } catch (error) {
@@ -295,12 +327,8 @@ export default function CreatorDetailPage() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                   <div className="text-center">
-                    <p className="text-white font-bold text-2xl">{formatCount(creator.followerCount)}</p>
+                    <p className="text-white font-bold text-2xl">{formatCount(creator.followersCount)}</p>
                     <p className="text-gray-400 text-sm">Followers</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-white font-bold text-2xl">{formatCount(creator.followingCount)}</p>
-                    <p className="text-gray-400 text-sm">Following</p>
                   </div>
                   {creator.rating && Number(creator.rating) > 0 && (
                     <div className="text-center">

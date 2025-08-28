@@ -179,7 +179,7 @@ export default function CreatorList() {
   }
 
   // Handle follow/unfollow
-  const handleFollow = async (userId: number, isCurrentlyFollowing: boolean) => {
+  const handleFollow = async (id: number, isCurrentlyFollowing: boolean) => {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
@@ -190,16 +190,16 @@ export default function CreatorList() {
     }
 
     try {
-      setActionLoading(String(userId))
+      setActionLoading(String(id))
 
       if (isCurrentlyFollowing) {
-        await userApi.unfollowCreator(userId.toString())
+        await userApi.unfollowCreator(id.toString())
         toast({
           title: "Đã bỏ theo dõi",
           description: "Bạn đã bỏ theo dõi creator này"
         })
       } else {
-        await userApi.followCreator(userId.toString())
+        await userApi.followCreator(id.toString())
         toast({
           title: "Đã theo dõi",
           description: "Bạn đã theo dõi creator này"
@@ -208,7 +208,7 @@ export default function CreatorList() {
 
       // Update local state
       setCreators(prev => prev.map(creator =>
-        creator.userId === userId
+        creator.id === id
           ? {
               ...creator,
               isFollowing: !isCurrentlyFollowing,

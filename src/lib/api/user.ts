@@ -7,7 +7,7 @@ export const userApi = {
   
   uploadAvatar: (file: File) => api.upload('/users/me/avatar', file),
   
-  followCreator: (userId: string) => api.post(`/user-follows/${userId}`),
+  followCreator: (userId: string) => api.post(`/user-follows/`, { creatorId: userId }),
   
   unfollowCreator: (userId: string) => api.delete(`/user-follows/${userId}`),
   
