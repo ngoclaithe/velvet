@@ -450,33 +450,20 @@ export default function CreatorList() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
+        <TabsList className={`grid w-full ${isAuthenticated && (user?.role === 'user' || user?.role === 'admin') ? 'grid-cols-2' : 'grid-cols-1'} bg-gray-800 border-gray-700`}>
           <TabsTrigger value="all" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
             Tất cả
           </TabsTrigger>
-          <TabsTrigger 
-            value="following" 
-            className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
-            disabled={!isAuthenticated}
-          >
-            <UserPlus className="w-4 h-4" />
-            Đang theo dõi
-          </TabsTrigger>
-          {user?.role === 'creator' && (
-            <TabsTrigger value="followers" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
-              <Crown className="w-4 h-4" />
-              Followers
+          {isAuthenticated && (user?.role === 'user' || user?.role === 'admin') && (
+            <TabsTrigger
+              value="following"
+              className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
+            >
+              <UserPlus className="w-4 h-4" />
+              Đang theo dõi
             </TabsTrigger>
           )}
-          <TabsTrigger 
-            value="my-posts" 
-            className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
-            disabled={!isAuthenticated}
-          >
-            <Grid3X3 className="w-4 h-4" />
-            Bài viết của tôi
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
