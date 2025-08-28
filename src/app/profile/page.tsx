@@ -240,7 +240,7 @@ export default function ProfilePage() {
         // Nếu có submission, load dữ liệu từ submission
         setKycPersonalInfo({
           fullName: submissionResponse.data.fullName || '',
-          dateOfBirth: submissionResponse.data.dateOfBirth || '',
+          dateOfBirth: submissionResponse.data.dateOfBirth ? submissionResponse.data.dateOfBirth.split('T')[0] : '',
           nationality: submissionResponse.data.nationality || 'Vietnam',
           address: submissionResponse.data.address || '',
           documentNumber: submissionResponse.data.documentNumber || '',
@@ -370,8 +370,8 @@ export default function ProfilePage() {
 
       if (response.success) {
         toast({
-          title: "Gửi xác thực thành công!",
-          description: "Hồ sơ KYC của bạn đã được gửi và đang được xem xét",
+          title: "Gửi xác th���c thành công!",
+          description: "H��� sơ KYC của bạn đã được gửi và đang được xem xét",
           variant: "default"
         })
 
@@ -460,13 +460,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
-          <TabsTrigger value="kyc">Xác thực</TabsTrigger>
-          <TabsTrigger value="privacy">Quyền riêng tư</TabsTrigger>
-          <TabsTrigger value="notifications">Thông báo</TabsTrigger>
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
+      <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+          <TabsTrigger value="profile" className="text-xs sm:text-sm">Hồ sơ</TabsTrigger>
+          <TabsTrigger value="kyc" className="text-xs sm:text-sm">Xác thực</TabsTrigger>
+          <TabsTrigger value="privacy" className="text-xs sm:text-sm">Quyền riêng tư</TabsTrigger>
+          <TabsTrigger value="notifications" className="text-xs sm:text-sm">Thông báo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
@@ -592,8 +592,8 @@ export default function ProfilePage() {
                 Quản lý thông tin cá nhân của bạn
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">Tên</Label>
                   <Input
@@ -616,7 +616,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="username">Tên người dùng</Label>
                   <Input
@@ -652,7 +652,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Gi���i tính</Label>
+                  <Label htmlFor="gender">Gi����i tính</Label>
                   <Select 
                     value={formData.gender} 
                     onValueChange={(value) => handleInputChange('gender', value)}
@@ -670,7 +670,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Ngày sinh</Label>
                   <Input
@@ -717,8 +717,8 @@ export default function ProfilePage() {
               </div>
 
               {isEditing && (
-                <div className="flex space-x-4 pt-4">
-                  <Button onClick={handleSave} disabled={isSaving}>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 pt-4">
+                  <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
                     {isSaving ? (
                       <>
                         <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
@@ -731,7 +731,7 @@ export default function ProfilePage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" onClick={handleCancel}>
+                  <Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
                     Hủy
                   </Button>
                 </div>
@@ -764,19 +764,19 @@ export default function ProfilePage() {
               ) : (
                 <>
                   {/* Verification Levels */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {['basic', 'intermediate', 'advanced'].map((level) => (
-                      <Card key={level} className={`p-4 ${kycSubmission?.verificationLevel === level ? 'border-blue-500 bg-blue-50' : ''}`}>
+                      <Card key={level} className={`p-3 sm:p-4 ${kycSubmission?.verificationLevel === level ? 'border-blue-500 bg-blue-50' : ''}`}>
                         <div className="text-center">
-                          <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
                             level === 'basic' ? 'bg-green-100 text-green-600' :
                             level === 'intermediate' ? 'bg-yellow-100 text-yellow-600' :
                             'bg-purple-100 text-purple-600'
                           }`}>
-                            <Shield className="w-6 h-6" />
+                            <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
                           </div>
-                          <h3 className="font-medium capitalize">{level === 'basic' ? 'Cơ bản' : level === 'intermediate' ? 'Trung cấp' : 'Nâng cao'}</h3>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <h3 className="font-medium text-sm sm:text-base">{level === 'basic' ? 'Cơ bản' : level === 'intermediate' ? 'Trung cấp' : 'Nâng cao'}</h3>
+                          <p className="text-xs text-muted-foreground mt-1 leading-tight">
                             {getVerificationLevelDescription(level)}
                           </p>
                         </div>
@@ -799,48 +799,48 @@ export default function ProfilePage() {
                       {/* Hiển thị thông tin đã submit nếu có submission pending/submitted/under_review */}
                       {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
                         <div className="space-y-4">
-                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
                             <div className="flex items-center space-x-2 mb-3">
                               <Clock className="h-5 w-5 text-blue-600" />
                               <h4 className="font-medium text-blue-900">Thông tin đã gửi</h4>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                               <div>
-                                <p className="text-gray-600">Họ và tên:</p>
-                                <p className="font-medium">{kycSubmission.fullName}</p>
+                                <p className="text-gray-700 font-medium">Họ và tên:</p>
+                                <p className="text-gray-900 break-words">{kycSubmission.fullName}</p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Ngày sinh:</p>
-                                <p className="font-medium">
+                                <p className="text-gray-700 font-medium">Ngày sinh:</p>
+                                <p className="text-gray-900">
                                   {kycSubmission.dateOfBirth ? new Date(kycSubmission.dateOfBirth).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Quốc tịch:</p>
-                                <p className="font-medium">{kycSubmission.nationality}</p>
+                                <p className="text-gray-700 font-medium">Quốc tịch:</p>
+                                <p className="text-gray-900">{kycSubmission.nationality}</p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Loại giấy tờ:</p>
-                                <p className="font-medium">
+                                <p className="text-gray-700 font-medium">Loại giấy tờ:</p>
+                                <p className="text-gray-900">
                                   {kycSubmission.documentType === 'id_card' ? 'CCCD/CMND' :
                                    kycSubmission.documentType === 'passport' ? 'Hộ chiếu' :
                                    kycSubmission.documentType === 'driving_license' ? 'Bằng lái xe' : kycSubmission.documentType}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Số giấy tờ:</p>
-                                <p className="font-medium">{kycSubmission.documentNumber}</p>
+                                <p className="text-gray-700 font-medium">Số giấy tờ:</p>
+                                <p className="text-gray-900 break-all">{kycSubmission.documentNumber}</p>
                               </div>
                               <div>
-                                <p className="text-gray-600">Ngày gửi:</p>
-                                <p className="font-medium">
+                                <p className="text-gray-700 font-medium">Ngày gửi:</p>
+                                <p className="text-gray-900">
                                   {new Date(kycSubmission.createdAt).toLocaleDateString('vi-VN')}
                                 </p>
                               </div>
                               {kycSubmission.address && (
-                                <div className="md:col-span-2">
-                                  <p className="text-gray-600">Địa chỉ:</p>
-                                  <p className="font-medium">{kycSubmission.address}</p>
+                                <div className="sm:col-span-2">
+                                  <p className="text-gray-700 font-medium">Địa chỉ:</p>
+                                  <p className="text-gray-900 break-words">{kycSubmission.address}</p>
                                 </div>
                               )}
                             </div>
@@ -848,7 +848,7 @@ export default function ProfilePage() {
                         </div>
                       ) : (
                         // Hiển thị form chỉ khi draft hoặc rejected
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           <div className="space-y-2">
                             <Label>Họ và tên đầy đủ</Label>
                             <Input
@@ -900,7 +900,7 @@ export default function ProfilePage() {
                               </SelectContent>
                             </Select>
                           </div>
-                          <div className="md:col-span-2 space-y-2">
+                          <div className="sm:col-span-2 space-y-2">
                             <Label>Địa chỉ thường trú</Label>
                             <Textarea
                               value={kycPersonalInfo.address}
@@ -913,7 +913,7 @@ export default function ProfilePage() {
                               {kycPersonalInfo.address.length}/500
                             </p>
                           </div>
-                          <div className="md:col-span-2 space-y-2">
+                          <div className="sm:col-span-2 space-y-2">
                             <Label>Số giấy tờ *</Label>
                             <Input
                               value={kycPersonalInfo.documentNumber}
@@ -947,12 +947,12 @@ export default function ProfilePage() {
                         {/* Hiển thị tài liệu đã submit nếu có submission pending/submitted/under_review */}
                         {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
                           <div className="space-y-4">
-                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
                               <div className="flex items-center space-x-2 mb-4">
                                 <CheckCircle className="h-5 w-5 text-blue-600" />
                                 <h4 className="font-medium text-blue-900">Tài liệu đã gửi</h4>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                 {[
                                   { url: kycSubmission.documentFrontUrl, label: 'Mặt trước giấy tờ', icon: '🆔' },
                                   { url: kycSubmission.documentBackUrl, label: 'Mặt sau giấy tờ', icon: '🔄' },
@@ -960,15 +960,15 @@ export default function ProfilePage() {
                                 ].map((doc, index) => (
                                   <div key={index} className="text-center">
                                     <div className="mb-2">
-                                      <span className="text-2xl">{doc.icon}</span>
-                                      <p className="text-sm font-medium">{doc.label}</p>
+                                      <span className="text-xl sm:text-2xl">{doc.icon}</span>
+                                      <p className="text-xs sm:text-sm font-medium text-gray-900">{doc.label}</p>
                                     </div>
                                     {doc.url ? (
                                       <div className="space-y-2">
                                         <img
                                           src={doc.url}
                                           alt={doc.label}
-                                          className="w-full h-24 object-cover rounded border"
+                                          className="w-full h-20 sm:h-24 object-cover rounded border"
                                         />
                                         <div className="flex items-center justify-center space-x-1">
                                           <CheckCircle className="h-3 w-3 text-green-600" />
@@ -976,7 +976,7 @@ export default function ProfilePage() {
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="h-24 bg-gray-100 rounded border flex items-center justify-center">
+                                      <div className="h-20 sm:h-24 bg-gray-100 rounded border flex items-center justify-center">
                                         <span className="text-xs text-gray-500">Không có ảnh</span>
                                       </div>
                                     )}
@@ -1107,7 +1107,7 @@ export default function ProfilePage() {
                               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
                               <h4 className="font-medium text-green-900 mb-2">Sẵn sàng gửi xác thực!</h4>
                               <p className="text-sm text-green-800">
-                                Tất cả thông tin và tài liệu đã được điền đầy đủ. Bạn có thể gửi hồ sơ để xem xét.
+                                Tất cả thông tin và tài liệu đã được ��iền đầy đủ. Bạn có thể gửi hồ sơ để xem xét.
                               </p>
                             </div>
                           ) : (
@@ -1115,7 +1115,7 @@ export default function ProfilePage() {
                               <AlertCircle className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
                               <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa đầy đủ</h4>
                               <p className="text-sm text-yellow-800 mb-3">
-                                Vui lòng hoàn thành các mục sau trước khi gửi:
+                                Vui lòng hoàn thành các mục sau trư���c khi gửi:
                               </p>
                               <ul className="text-sm text-yellow-800 text-left space-y-1">
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
@@ -1152,7 +1152,7 @@ export default function ProfilePage() {
                             ) : (
                               <>
                                 <Send className="w-4 h-4 mr-2" />
-                                {kycStatus === 'rejected' ? 'Gửi lại hồ sơ' : 'Gửi hồ sơ xác thực'}
+                                {kycStatus === 'rejected' ? 'Gửi lại hồ s��' : 'Gửi hồ sơ xác thực'}
                               </>
                             )}
                           </Button>
@@ -1212,7 +1212,7 @@ export default function ProfilePage() {
                             <div>
                               <h4 className="font-medium text-green-900">Xác thực thành công!</h4>
                               <p className="text-sm text-green-800">
-                                Tài khoản của bạn đã được xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
+                                Tài khoản của bạn đã đư���c xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
                               </p>
                             </div>
                           </div>
