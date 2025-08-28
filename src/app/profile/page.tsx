@@ -1008,15 +1008,49 @@ export default function ProfilePage() {
                     <Card>
                       <CardContent className="pt-6">
                         <div className="text-center space-y-4">
-                          <div className="bg-blue-50 p-4 rounded-lg">
-                            <h4 className="font-medium text-blue-900 mb-2">Sẵn sàng gửi xác thực?</h4>
-                            <p className="text-sm text-blue-800">
-                              Hãy đảm bảo tất cả thông tin và tài liệu đã được điền đầy đủ và chính xác.
-                            </p>
-                          </div>
-                          <Button onClick={handleSubmitKyc} size="lg">
-                            <Send className="w-4 h-4 mr-2" />
-                            Gửi hồ sơ xác thực
+                          {isKycDataComplete() ? (
+                            <div className="bg-green-50 p-4 rounded-lg">
+                              <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                              <h4 className="font-medium text-green-900 mb-2">Sẵn sàng gửi xác thực!</h4>
+                              <p className="text-sm text-green-800">
+                                Tất cả thông tin và tài liệu đã được điền đầy đủ. Bạn có thể gửi hồ sơ để xem xét.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="bg-yellow-50 p-4 rounded-lg">
+                              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
+                              <h4 className="font-medium text-yellow-900 mb-2">Thông tin chưa đầy đủ</h4>
+                              <p className="text-sm text-yellow-800 mb-3">
+                                Vui lòng hoàn thành các mục sau trước khi gửi:
+                              </p>
+                              <ul className="text-sm text-yellow-800 text-left space-y-1">
+                                {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
+                                {!kycPersonalInfo.dateOfBirth && <li>• Chọn ngày sinh</li>}
+                                {!kycPersonalInfo.documentNumber && <li>• Nhập số giấy tờ</li>}
+                                {!kycDocuments.documentFrontUrl && <li>• Tải lên ảnh mặt trước giấy tờ</li>}
+                                {!kycDocuments.documentBackUrl && <li>• Tải lên ảnh mặt sau giấy tờ</li>}
+                                {!kycDocuments.selfieUrl && <li>• Tải lên ảnh selfie</li>}
+                              </ul>
+                            </div>
+                          )}
+
+                          <Button
+                            onClick={handleSubmitKyc}
+                            size="lg"
+                            disabled={!isKycDataComplete() || isUploadingDoc}
+                            className={isKycDataComplete() ? 'bg-green-600 hover:bg-green-700' : ''}
+                          >
+                            {isUploadingDoc ? (
+                              <>
+                                <Icons.spinner className="w-4 h-4 mr-2 animate-spin" />
+                                Đang gửi...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-2" />
+                                Gửi hồ sơ xác thực
+                              </>
+                            )}
                           </Button>
                         </div>
                       </CardContent>
@@ -1215,7 +1249,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Thông báo like</Label>
                   <p className="text-sm text-muted-foreground">
-                    Khi có người thích bài viết của b���n
+                    Khi có người thích bài viết của bạn
                   </p>
                 </div>
                 <Switch
