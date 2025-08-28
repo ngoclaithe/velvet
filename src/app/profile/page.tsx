@@ -717,8 +717,8 @@ export default function ProfilePage() {
               </div>
 
               {isEditing && (
-                <div className="flex space-x-4 pt-4">
-                  <Button onClick={handleSave} disabled={isSaving}>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 pt-4">
+                  <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
                     {isSaving ? (
                       <>
                         <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
@@ -731,7 +731,7 @@ export default function ProfilePage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" onClick={handleCancel}>
+                  <Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
                     Hủy
                   </Button>
                 </div>
@@ -1212,7 +1212,7 @@ export default function ProfilePage() {
                             <div>
                               <h4 className="font-medium text-green-900">Xác thực thành công!</h4>
                               <p className="text-sm text-green-800">
-                                Tài khoản của bạn đã được xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
+                                Tài khoản của bạn đã đư���c xác thực. Bây giờ bạn có thể sử dụng đầy đủ các tính năng.
                               </p>
                             </div>
                           </div>
