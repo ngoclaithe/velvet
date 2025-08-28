@@ -340,64 +340,6 @@ export default function CreatorList() {
     </Card>
   )
 
-  // Render post card
-  const renderPostCard = (post: Post) => (
-    <Card key={post.id} className="bg-gray-800 border-gray-700">
-      <CardContent className="p-4">
-        <p className="text-white mb-3 leading-relaxed">{post.content}</p>
-        
-        {post.media && post.media.length > 0 && (
-          <div className="mb-3">
-            {post.media[0].type === 'image' ? (
-              <img
-                src={post.media[0].url}
-                alt="Post content"
-                className="w-full h-48 object-cover rounded-lg"
-              />
-            ) : (
-              <div className="relative">
-                <img
-                  src={post.media[0].thumbnail || post.media[0].url}
-                  alt="Video thumbnail"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-1" />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between text-gray-400 text-sm">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center gap-1">
-              <Heart className="w-4 h-4" />
-              {post.likes}
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageCircle className="w-4 h-4" />
-              {post.comments}
-            </div>
-          </div>
-          <span>{formatTimeAgo(post.createdAt)}</span>
-        </div>
-
-        {(post.isAdult || post.isPremium) && (
-          <div className="flex gap-2 mt-2">
-            {post.isAdult && (
-              <Badge variant="destructive" className="text-xs">18+</Badge>
-            )}
-            {post.isPremium && (
-              <Badge className="text-xs bg-yellow-600 hover:bg-yellow-700">Premium</Badge>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
 
   // Render loading skeleton
   const renderSkeleton = () => (
