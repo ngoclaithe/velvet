@@ -184,7 +184,7 @@ export default function ProfilePage() {
         setAvatarUploadDialogOpen(false)
         toast({
           title: "Cập nhật avatar thành công!",
-          description: "Ảnh đại diện của bạn đã được cập nhật.",
+          description: "Ảnh đại diện của bạn đã được c��p nhật.",
           variant: "default"
         })
       } catch (error) {
@@ -759,15 +759,6 @@ export default function ProfilePage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Số điện thoại</Label>
-                          <Input
-                            value={kycPersonalInfo.phoneNumber}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                            placeholder="Số điện thoại"
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
-                        </div>
-                        <div className="space-y-2">
                           <Label>Quốc tịch</Label>
                           <Select
                             value={kycPersonalInfo.nationality}
@@ -783,6 +774,23 @@ export default function ProfilePage() {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div className="space-y-2">
+                          <Label>Loại giấy tờ *</Label>
+                          <Select
+                            value={kycPersonalInfo.documentType}
+                            onValueChange={(value: DocumentType) => setKycPersonalInfo(prev => ({ ...prev, documentType: value }))}
+                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="id_card">CCCD/CMND</SelectItem>
+                              <SelectItem value="passport">Hộ chiếu</SelectItem>
+                              <SelectItem value="driving_license">Bằng lái xe</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="space-y-2">
@@ -790,38 +798,27 @@ export default function ProfilePage() {
                         <Textarea
                           value={kycPersonalInfo.address}
                           onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, address: e.target.value }))}
-                          placeholder="Địa chỉ chi tiết"
+                          placeholder="Địa chỉ chi tiết (tối đa 500 ký tự)"
+                          maxLength={500}
                           disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
                         />
+                        <p className="text-xs text-muted-foreground text-right">
+                          {kycPersonalInfo.address.length}/500
+                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Loại giấy tờ</Label>
-                          <Select
-                            value={kycPersonalInfo.idType}
-                            onValueChange={(value: any) => setKycPersonalInfo(prev => ({ ...prev, idType: value }))}
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="citizen_id">CCCD/CMND</SelectItem>
-                              <SelectItem value="passport">Hộ chiếu</SelectItem>
-                              <SelectItem value="driver_license">Bằng lái xe</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Số giấy tờ</Label>
-                          <Input
-                            value={kycPersonalInfo.idNumber}
-                            onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, idNumber: e.target.value }))}
-                            placeholder="Số CCCD/CMND/Hộ chiếu"
-                            disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <Label>Số giấy tờ *</Label>
+                        <Input
+                          value={kycPersonalInfo.documentNumber}
+                          onChange={(e) => setKycPersonalInfo(prev => ({ ...prev, documentNumber: e.target.value }))}
+                          placeholder="Số CCCD/CMND/Hộ chiếu (3-50 ký tự)"
+                          maxLength={50}
+                          disabled={kycStatus === 'approved' || kycStatus === 'under_review'}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
+                        </p>
                       </div>
 
                       {(kycStatus === 'draft' || kycStatus === 'rejected') && (
