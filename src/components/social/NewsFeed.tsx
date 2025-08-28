@@ -21,11 +21,9 @@ import {
   Play,
   TrendingUp,
   Users,
-  Video,
   Loader2,
   RefreshCw
 } from 'lucide-react'
-import LiveStreamPreview from '@/components/streaming/LiveStreamPreview'
 
 interface FeedState {
   posts: Post[]
@@ -39,15 +37,14 @@ interface FeedState {
 const POSTS_PER_PAGE = 10
 
 interface NewsFeedProps {
-  activeTab?: 'for-you' | 'following' | 'live' | 'my-posts'
+  activeTab?: 'for-you' | 'following' | 'my-posts'
 }
 
 export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {}) {
-  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'live' | 'my-posts'>(propActiveTab || 'for-you')
+  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'my-posts'>(propActiveTab || 'for-you')
   const [feeds, setFeeds] = useState<Record<string, FeedState>>({
     'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
     'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
-    'live': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
     'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
   })
   const [refreshing, setRefreshing] = useState(false)
@@ -84,8 +81,9 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       isBookmarked: false,
       visibility: apiPost.isPublic ? 'public' : 'private',
       media: apiPost.mediaUrls && apiPost.mediaUrls.length > 0 ?
-        apiPost.mediaUrls.map((url: string) => ({
-          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+        apiPost.mediaUrls.map((url: string, index: number) => ({
+          id: `${apiPost.id}-media-${index}`,
+          type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
           thumbnail: apiPost.thumbnailUrl
         })) : undefined
@@ -127,75 +125,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       }
     ]
 
-    if (tab === 'live') {
-      // Mock live streams data
-      const mockLiveStreams: Post[] = [
-        {
-          id: 'live-1',
-          type: 'live',
-          content: 'Epic Gaming Session - Boss Battles!',
-          author: {
-            id: 'gamer123',
-            username: 'gamer123',
-            displayName: 'ProGamer',
-            avatar: '/api/placeholder/40/40',
-            isVerified: true,
-            isOnline: true
-          },
-          createdAt: new Date(Date.now() - 7200000),
-          updatedAt: new Date(Date.now() - 7200000),
-          likes: 312,
-          comments: 45,
-          shares: 12,
-          views: 1247,
-          isAdult: false,
-          isPremium: false,
-          isLiked: false,
-          isBookmarked: false,
-          visibility: 'public' as const,
-          streamData: {
-            streamId: 'stream-1',
-            viewerCount: 1247,
-            category: 'Gaming',
-            tags: ['gaming', 'action', 'boss-fights'],
-            isLive: true
-          }
-        },
-        {
-          id: 'live-2',
-          type: 'live',
-          content: 'Cooking Traditional Vietnamese Food',
-          author: {
-            id: 'chef_anna',
-            username: 'chef_anna',
-            displayName: 'Chef Anna',
-            avatar: '/api/placeholder/40/40',
-            isVerified: false,
-            isOnline: true
-          },
-          createdAt: new Date(Date.now() - 3600000),
-          updatedAt: new Date(Date.now() - 3600000),
-          likes: 89,
-          comments: 23,
-          shares: 5,
-          views: 856,
-          isAdult: false,
-          isPremium: false,
-          isLiked: false,
-          isBookmarked: false,
-          visibility: 'public' as const,
-          streamData: {
-            streamId: 'stream-2',
-            viewerCount: 856,
-            category: 'Cooking',
-            tags: ['cooking', 'vietnamese', 'traditional'],
-            isLive: true
-          }
-        }
-      ]
-
-      return page === 1 ? mockLiveStreams : []
-    }
 
     if (tab === 'my-posts' && isAuthenticated) {
       // Mock posts matching API response format
@@ -204,7 +133,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: 5,
           userId: user?.id || 13,
           creatorId: null,
-          content: 'Đây là bài viết đầu tiên của tôi trên nền tảng! 🎉',
+          content: 'Đây là bài viết đầu tiên của tôi trên n���n tảng! 🎉',
           mediaType: 'text',
           mediaUrls: [],
           thumbnailUrl: null,
@@ -257,8 +186,9 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         isLiked: false,
         isBookmarked: false,
         visibility: 'public' as const,
-        media: apiPost.mediaUrls.length > 0 ? apiPost.mediaUrls.map(url => ({
-          type: apiPost.mediaType === 'image' ? 'image' : 'video',
+        media: apiPost.mediaUrls.length > 0 ? apiPost.mediaUrls.map((url, index) => ({
+          id: `${apiPost.id}-media-${index}`,
+          type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
           thumbnail: apiPost.thumbnailUrl
         })) : undefined
@@ -309,13 +239,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         } else {
           throw new Error('Authentication required')
         }
-      } else if (tab === 'live') {
-        // Use getTrendingPosts or a specific live posts endpoint
-        response = await postsApi.getTrendingPosts({
-          page: page.toString(),
-          limit: POSTS_PER_PAGE.toString(),
-          type: 'live'
-        })
       } else if (tab === 'my-posts') {
         // Use getUserPosts for current user's posts
         if (isAuthenticated && user?.id) {
@@ -337,10 +260,16 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         if (Array.isArray(response.data)) {
           rawPosts = response.data
           total = rawPosts.length
-        } else if (response.data.posts) {
-          rawPosts = response.data.posts
-          total = response.data.total || rawPosts.length
-          pagination = response.data.pagination
+        } else if (response.data && typeof response.data === 'object') {
+          if ('posts' in response.data) {
+            rawPosts = response.data.posts || []
+            total = response.data.total || rawPosts.length
+            pagination = response.data.pagination
+          } else {
+            // Single post wrapped in data
+            rawPosts = [response.data]
+            total = 1
+          }
         } else {
           rawPosts = []
           total = 0
@@ -537,7 +466,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 <div className="text-2xl mb-2">🔞</div>
                 <p className="text-sm">Nội dung 18+</p>
                 <Button size="sm" variant="secondary" className="mt-2">
-                  Đăng nhập để xem
+                  ��ăng nhập để xem
                 </Button>
               </div>
             </div>
@@ -595,7 +524,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 <h4 className="font-semibold">{post.author.displayName}</h4>
                 {post.author.isVerified && (
                   <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
+                    <span className="text-white text-xs">��</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
@@ -604,12 +533,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                   )}
                   {post.isAdult && (
                     <Badge className="text-xs bg-red-100 text-red-700">18+</Badge>
-                  )}
-                  {post.type === 'live' && (
-                    <Badge className="text-xs bg-red-500 text-white">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                      LIVE
-                    </Badge>
                   )}
                 </div>
               </div>
@@ -631,22 +554,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           {post.content}
         </p>
 
-        {/* Render LiveStreamPreview for live posts */}
-        {post.type === 'live' && post.streamData ? (
-          <div className="mb-4">
-            <LiveStreamPreview
-              streamId={post.streamData.streamId}
-              title={post.content}
-              creatorName={post.author.displayName}
-              creatorAvatar={post.author.avatar}
-              viewerCount={post.streamData.viewerCount}
-              category={post.streamData.category}
-              tags={post.streamData.tags}
-            />
-          </div>
-        ) : (
-          renderMediaContent(post)
-        )}
+        {renderMediaContent(post)}
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
@@ -718,7 +626,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       {!propActiveTab && (
         <div className="flex items-center justify-between mb-6">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="for-you" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Dành cho bạn
@@ -726,10 +634,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               <TabsTrigger value="following" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 Đang theo dõi
-              </TabsTrigger>
-              <TabsTrigger value="live" className="flex items-center gap-2">
-                <Video className="w-4 h-4" />
-                Live
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -773,20 +677,17 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
             <div className="space-y-4">
               <div className="text-6xl mb-4">
                 {activeTab === 'following' ? '👥' :
-                 activeTab === 'live' ? '📹' :
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
                 {activeTab === 'following' ? 'Chưa theo d��i ai' :
-                 activeTab === 'live' ? 'Không có live stream' :
+
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
-                 'Chưa có bài viết'}
+                 'Chưa có bài vi���t'}
               </h3>
               <p className="text-muted-foreground">
                 {activeTab === 'following'
                   ? 'Hãy theo dõi một số người để xem bài viết của họ tại đây'
-                  : activeTab === 'live'
-                  ? 'Hiện tại không có ai đang live stream'
                   : activeTab === 'my-posts'
                   ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                   : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
