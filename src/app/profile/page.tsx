@@ -170,6 +170,42 @@ export default function ProfilePage() {
     setIsEditing(false)
   }
 
+  // Avatar upload handlers
+  const handleAvatarUploadComplete = async (results: CloudinaryUploadResponse[]) => {
+    if (results.length > 0 && user) {
+      setIsUploadingAvatar(true)
+      try {
+        await updateProfile({
+          avatar: results[0].secure_url
+        } as Partial<User>)
+
+        setAvatarUploadDialogOpen(false)
+        toast({
+          title: "Cập nhật avatar thành công!",
+          description: "Ảnh đại diện của bạn đã được cập nhật.",
+          variant: "default"
+        })
+      } catch (error) {
+        console.error('Update avatar failed:', error)
+        toast({
+          title: "Lỗi cập nhật avatar",
+          description: "Không thể cập nhật ảnh đại diện. Vui lòng thử lại.",
+          variant: "destructive"
+        })
+      } finally {
+        setIsUploadingAvatar(false)
+      }
+    }
+  }
+
+  const handleAvatarUploadError = (error: string) => {
+    toast({
+      title: "Lỗi tải lên",
+      description: error,
+      variant: "destructive"
+    })
+  }
+
   // KYC functions
   const fetchKycData = async () => {
     setIsLoadingKyc(true)
