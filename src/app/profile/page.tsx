@@ -460,13 +460,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
-          <TabsTrigger value="kyc">Xác thực</TabsTrigger>
-          <TabsTrigger value="privacy">Quyền riêng tư</TabsTrigger>
-          <TabsTrigger value="notifications">Thông báo</TabsTrigger>
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
+      <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+          <TabsTrigger value="profile" className="text-xs sm:text-sm">Hồ sơ</TabsTrigger>
+          <TabsTrigger value="kyc" className="text-xs sm:text-sm">Xác thực</TabsTrigger>
+          <TabsTrigger value="privacy" className="text-xs sm:text-sm">Quyền riêng tư</TabsTrigger>
+          <TabsTrigger value="notifications" className="text-xs sm:text-sm">Thông báo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
