@@ -262,10 +262,16 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         if (Array.isArray(response.data)) {
           rawPosts = response.data
           total = rawPosts.length
-        } else if (response.data.posts) {
-          rawPosts = response.data.posts
-          total = response.data.total || rawPosts.length
-          pagination = response.data.pagination
+        } else if (response.data && typeof response.data === 'object') {
+          if ('posts' in response.data) {
+            rawPosts = response.data.posts || []
+            total = response.data.total || rawPosts.length
+            pagination = response.data.pagination
+          } else {
+            // Single post wrapped in data
+            rawPosts = [response.data]
+            total = 1
+          }
         } else {
           rawPosts = []
           total = 0
