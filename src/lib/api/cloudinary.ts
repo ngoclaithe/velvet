@@ -42,31 +42,39 @@ export const cloudinaryApi = {
 
     const signatureData = signatureResponse.data
     
-    // Tạo FormData với t��t cả parameters cần thiết
+    // Tạo FormData với ch�� những parameters có trong signature
     const formData = new FormData()
     formData.append('file', file)
     formData.append('signature', signatureData.signature)
     formData.append('timestamp', signatureData.timestamp.toString())
     formData.append('api_key', signatureData.api_key)
     formData.append('upload_preset', signatureData.upload_preset)
-    formData.append('folder', signatureData.folder)
-    formData.append('tags', signatureData.tags)
-    formData.append('quality', signatureData.quality)
-    formData.append('fetch_format', signatureData.fetch_format)
-    formData.append('dpr', signatureData.dpr)
-    formData.append('flags', signatureData.flags)
 
-    // Thêm các parameter tối ưu khác thay vì transformation
-    if (file.type.startsWith('image/')) {
-      // Chỉ áp dụng cho hình ảnh
-      formData.append('format', 'auto')  // Tự động chọn format tốt nhất
-      formData.append('crop', 'limit')   // Không crop, chỉ giới hạn kích thước
-      formData.append('width', '1200')   // Giới hạn width tối đa
-      formData.append('height', '1200')  // Giới hạn height tối đa
+    // Chỉ thêm các parameters có trong response từ backend
+    if (signatureData.folder) {
+      formData.append('folder', signatureData.folder)
+    }
+    if (signatureData.tags) {
+      formData.append('tags', signatureData.tags)
+    }
+    if (signatureData.quality) {
+      formData.append('quality', signatureData.quality)
+    }
+    if (signatureData.fetch_format) {
+      formData.append('fetch_format', signatureData.fetch_format)
+    }
+    if (signatureData.dpr) {
+      formData.append('dpr', signatureData.dpr)
+    }
+    if (signatureData.flags) {
+      formData.append('flags', signatureData.flags)
+    }
+    if (signatureData.transformation) {
+      formData.append('transformation', signatureData.transformation)
     }
 
-    console.log('🔧 Skipping complex transformation parameter to avoid errors')
-    console.log('🔧 Using individual optimization parameters instead')
+    console.log('🔧 Using only backend-signed parameters to avoid signature errors')
+    console.log('🔧 Parameters included:', Object.keys(signatureData))
     console.log('🔧 File type:', file.type, 'Size:', file.size)
 
     // Determine resource type
