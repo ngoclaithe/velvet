@@ -316,25 +316,7 @@ export default function ProfilePage() {
     }
   }
 
-  const handleKycPersonalInfoUpdate = async () => {
-    try {
-      const response = await kycApi.updatePersonalInfo(kycPersonalInfo)
-      if (response.success) {
-        toast({
-          title: "Cập nhật thành công!",
-          description: "Thông tin cá nhân đã được cập nhật",
-          variant: "default"
-        })
-        fetchKycData()
-      }
-    } catch (error) {
-      toast({
-        title: "Lỗi cập nhật",
-        description: "Không thể cập nhật thông tin",
-        variant: "destructive"
-      })
-    }
-  }
+  // Đã loại bỏ handleKycPersonalInfoUpdate vì không cần thiết
 
   // Kiểm tra xem đã có đủ thông tin KYC chưa
   const isKycDataComplete = () => {
@@ -1027,7 +1009,7 @@ export default function ProfilePage() {
                                 {!kycPersonalInfo.fullName && <li>• Điền họ và tên đầy đủ</li>}
                                 {!kycPersonalInfo.dateOfBirth && <li>• Chọn ngày sinh</li>}
                                 {!kycPersonalInfo.documentNumber && <li>• Nhập số giấy tờ</li>}
-                                {!kycDocuments.documentFrontUrl && <li>• Tải lên ���nh mặt trước giấy tờ</li>}
+                                {!kycDocuments.documentFrontUrl && <li>• Tải lên ảnh mặt trước giấy tờ</li>}
                                 {!kycDocuments.documentBackUrl && <li>• Tải lên ảnh mặt sau giấy tờ</li>}
                                 {!kycDocuments.selfieUrl && <li>• Tải lên ảnh selfie</li>}
                               </ul>
@@ -1085,7 +1067,7 @@ export default function ProfilePage() {
                 <span>Cài đặt quyền riêng tư</span>
               </CardTitle>
               <CardDescription>
-                Quản lý ai có thể xem thông tin và tương tác với bạn
+                Quản lý ai có thể xem thông tin và tư��ng tác với bạn
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
