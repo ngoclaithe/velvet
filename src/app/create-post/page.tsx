@@ -236,8 +236,6 @@ export default function CreatePostPage() {
           type: file.type,
           fileName: file.file.name,
           fileSize: file.file.size,
-          // Note: In real implementation, files should be uploaded first
-          // and their URLs should be included here
         })) : undefined
       }
 

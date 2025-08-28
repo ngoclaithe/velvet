@@ -131,7 +131,7 @@ export default function PostDetailPage() {
       
       toast({
         title: isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
-        description: "Thay đổi đã đ��ợc lưu",
+        description: "Thay đổi đã được lưu",
         variant: "default"
       })
     } catch (error) {

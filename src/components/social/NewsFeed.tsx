@@ -88,122 +88,12 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       media: apiPost.mediaUrls && apiPost.mediaUrls.length > 0 ?
         apiPost.mediaUrls.map((url: string, index: number) => ({
           id: `${apiPost.id}-media-${index}`,
-          type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
+          type: apiPost.mediaType === 'video' ? 'video' : 'image' as 'image' | 'video',
           url: url,
           thumbnail: apiPost.thumbnailUrl || undefined
         })) : undefined
     }
   }, [])
-
-  // Mock data cho demo khi chưa có backend
-  const getMockPosts = useCallback((tab: string, page: number): Post[] => {
-    // Nếu chưa có bài viết thì trả về mảng rỗng
-    if ((tab === 'following' || tab === 'my-posts') && !isAuthenticated) {
-      return []
-    }
-
-    // Demo posts cho "for-you" và khi đã đăng nhập
-    const mockPosts: Post[] = [
-      {
-        id: '1',
-        type: 'text',
-        content: 'Chào mừng bạn đến với nền tảng! 🎉 Hãy bắt đầu khám phá các tính năng thú vị của chúng tôi.',
-        author: {
-          id: 'admin',
-          username: 'admin',
-          displayName: 'Admin',
-          avatar: '/api/placeholder/40/40',
-          isVerified: true,
-          isOnline: true
-        },
-        createdAt: new Date(Date.now() - 3600000),
-        updatedAt: new Date(Date.now() - 3600000),
-        likes: 125,
-        comments: 8,
-        shares: 3,
-        views: 450,
-        isAdult: false,
-        isPremium: false,
-        isLiked: false,
-        isBookmarked: false,
-        visibility: 'public' as const
-      }
-    ]
-
-
-    if (tab === 'my-posts' && isAuthenticated) {
-      // Mock posts matching API response format
-      const mockApiPosts = [
-        {
-          id: 5,
-          userId: user?.id || 13,
-          creatorId: null,
-          content: 'Đây là bài viết đầu tiên của tôi trên n���n tảng! 🎉',
-          mediaType: 'text',
-          mediaUrls: [],
-          thumbnailUrl: null,
-          isPublic: true,
-          isPremium: false,
-          price: null,
-          viewCount: 15,
-          likeCount: 5,
-          commentCount: 2,
-          shareCount: 1,
-          status: 'published',
-          scheduledAt: null,
-          tags: [],
-          location: null,
-          isPromoted: false,
-          createdAt: new Date(Date.now() - 1800000).toISOString(),
-          updatedAt: new Date(Date.now() - 1800000).toISOString(),
-          user: {
-            id: user?.id || 13,
-            username: user?.username || 'user1',
-            firstName: user?.firstName || 'User',
-            lastName: user?.lastName || 'Name',
-            avatar: user?.avatar || null
-          },
-          creator: null
-        }
-      ]
-
-      // Transform to Post format
-      const mockMyPosts: Post[] = mockApiPosts.map(apiPost => ({
-        id: apiPost.id.toString(),
-        type: 'text',
-        content: apiPost.content,
-        author: {
-          id: apiPost.user.id.toString(),
-          username: apiPost.user.username,
-          displayName: `${apiPost.user.firstName} ${apiPost.user.lastName}`.trim() || apiPost.user.username,
-          avatar: apiPost.user.avatar || '/api/placeholder/40/40',
-          isVerified: false,
-          isOnline: true
-        },
-        createdAt: new Date(apiPost.createdAt),
-        updatedAt: new Date(apiPost.updatedAt),
-        likes: apiPost.likeCount,
-        comments: apiPost.commentCount,
-        shares: apiPost.shareCount,
-        views: apiPost.viewCount,
-        isAdult: false,
-        isPremium: apiPost.isPremium,
-        isLiked: false,
-        isBookmarked: false,
-        visibility: 'public' as const,
-        media: apiPost.mediaUrls.length > 0 ? apiPost.mediaUrls.map((url, index) => ({
-          id: `${apiPost.id}-media-${index}`,
-          type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
-          url: url,
-          thumbnail: apiPost.thumbnailUrl || undefined
-        })) : undefined
-      }))
-
-      return page === 1 ? mockMyPosts : []
-    }
-
-    return page === 1 ? mockPosts : [] // Chỉ có 1 trang mock data
-  }, [isAuthenticated, user])
 
   // Load posts cho tab hiện tại
   const loadPosts = useCallback(async (
@@ -291,7 +181,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           ...prev,
           [feedKey]: {
             ...prev[feedKey],
-            posts: posts, // For Facebook-style pagination, always replace posts with current page content
+            posts: posts,
             loading: false,
             hasMore: hasMore,
             page: page,
@@ -304,24 +194,27 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
     } catch (error) {
       console.error('Error loading posts:', error)
-
-      // Fallback to mock data if API fails
-      const mockPosts = getMockPosts(tab, page)
-
+      
       setFeeds(prev => ({
         ...prev,
         [feedKey]: {
           ...prev[feedKey],
-          posts: mockPosts, // For Facebook-style pagination, always replace posts with current page content
+          posts: [],
           loading: false,
-          hasMore: false, // No more pages for mock data
+          hasMore: false,
           page: page,
-          total: mockPosts.length,
-          error: 'Sử dụng dữ liệu demo (API chưa sẵn sàng)'
+          total: 0,
+          error: error instanceof Error ? error.message : 'Không thể tải bài viết. Vui lòng thử lại sau.'
         }
       }))
+
+      toast({
+        title: "Lỗi tải bài viết",
+        description: error instanceof Error ? error.message : "Không thể tải bài viết. Vui lòng thử lại sau.",
+        variant: "destructive"
+      })
     }
-  }, [getMockPosts, isAuthenticated, user, transformApiPostToPost])
+  }, [isAuthenticated, user, transformApiPostToPost, toast])
 
   // Load more posts (infinite scroll)
   const loadMore = useCallback(() => {
@@ -351,8 +244,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     }
   }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts])
 
-  // Removed infinite scroll - now using manual pagination only
-
   // Format time ago
   const formatTimeAgo = useCallback((date: Date) => {
     const now = new Date()
@@ -367,8 +258,8 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     return 'Vừa xong'
   }, [])
 
-  // Handle post interactions (chỉ local update, không gọi API)
-  const handleLike = useCallback((postId: string) => {
+  // Handle post interactions
+  const handleLike = useCallback(async (postId: string) => {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
@@ -378,33 +269,54 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       return
     }
 
-    // Chỉ update local state, không gọi API
-    setFeeds(prev => ({
-      ...prev,
-      [activeTab]: {
-        ...prev[activeTab],
-        posts: prev[activeTab].posts.map(post =>
-          post.id === postId
-            ? {
-                ...post,
-                isLiked: !post.isLiked,
-                likes: post.isLiked ? post.likes - 1 : post.likes + 1
-              }
-            : post
-        )
-      }
-    }))
+    try {
+      // Optimistic update
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? {
+                  ...post,
+                  isLiked: !post.isLiked,
+                  likes: post.isLiked ? post.likes - 1 : post.likes + 1
+                }
+              : post
+          )
+        }
+      }))
 
-    // Hiển thị thông báo thành công
-    const post = currentFeed.posts.find(p => p.id === postId)
-    toast({
-      title: post?.isLiked ? "Đã bỏ thích" : "Đã thích bài viết",
-      description: "Thay đổi đã được lưu cục bộ",
-      variant: "default"
-    })
-  }, [isAuthenticated, activeTab, currentFeed.posts, toast])
+      // TODO: Call API to like/unlike post
+      // await postsApi.likePost(postId)
+      
+    } catch (error) {
+      // Revert optimistic update on error
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? {
+                  ...post,
+                  isLiked: !post.isLiked,
+                  likes: post.isLiked ? post.likes + 1 : post.likes - 1
+                }
+              : post
+          )
+        }
+      }))
 
-  const handleBookmark = useCallback((postId: string) => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể thực hiện thao tác. Vui lòng thử lại.",
+        variant: "destructive"
+      })
+    }
+  }, [isAuthenticated, activeTab, toast])
+
+  const handleBookmark = useCallback(async (postId: string) => {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
@@ -414,27 +326,44 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       return
     }
 
-    // Chỉ update local state, không gọi API
-    setFeeds(prev => ({
-      ...prev,
-      [activeTab]: {
-        ...prev[activeTab],
-        posts: prev[activeTab].posts.map(post =>
-          post.id === postId
-            ? { ...post, isBookmarked: !post.isBookmarked }
-            : post
-        )
-      }
-    }))
+    try {
+      // Optimistic update
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? { ...post, isBookmarked: !post.isBookmarked }
+              : post
+          )
+        }
+      }))
 
-    // Hiển thị thông báo thành công
-    const post = currentFeed.posts.find(p => p.id === postId)
-    toast({
-      title: post?.isBookmarked ? "Đã bỏ lưu" : "Đã lưu bài viết",
-      description: "Thay đổi đã được lưu cục bộ",
-      variant: "default"
-    })
-  }, [isAuthenticated, activeTab, currentFeed.posts, toast])
+      // TODO: Call API to bookmark/unbookmark post
+      // await postsApi.bookmarkPost(postId)
+
+    } catch (error) {
+      // Revert optimistic update on error
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(post =>
+            post.id === postId
+              ? { ...post, isBookmarked: !post.isBookmarked }
+              : post
+          )
+        }
+      }))
+
+      toast({
+        title: "Lỗi",
+        description: "Không thể thực hiện thao tác. Vui lòng thử lại.",
+        variant: "destructive"
+      })
+    }
+  }, [isAuthenticated, activeTab, toast])
 
   // Render media content
   const renderMediaContent = useCallback((post: Post) => {
@@ -457,7 +386,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 <div className="text-2xl mb-2">🔞</div>
                 <p className="text-sm">Nội dung 18+</p>
                 <Button size="sm" variant="secondary" className="mt-2">
-                  ��ăng nhập để xem
+                  Đăng nhập để xem
                 </Button>
               </div>
             </div>
@@ -515,7 +444,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 <h4 className="font-semibold">{post.author.displayName}</h4>
                 {post.author.isVerified && (
                   <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">��</span>
+                    <span className="text-white text-xs">✓</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
@@ -648,10 +577,14 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         
         {currentFeed.error && (
           <Card className="p-6 text-center">
-            <p className="text-red-600 mb-4">{currentFeed.error}</p>
-            <p className="text-muted-foreground text-sm">
-              Backend chưa sẵn sàng. Sử dụng mock data để demo.
-            </p>
+            <div className="space-y-4">
+              <div className="text-6xl mb-4">😞</div>
+              <h3 className="text-lg font-semibold text-red-600">Có lỗi xảy ra</h3>
+              <p className="text-muted-foreground">{currentFeed.error}</p>
+              <Button onClick={refreshFeed} variant="outline">
+                Thử lại
+              </Button>
+            </div>
           </Card>
         )}
         
@@ -703,17 +636,16 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? 'Chưa theo d��i ai' :
-
+                {activeTab === 'following' ? 'Chưa theo dõi ai' :
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
-                 'Chưa có bài vi���t'}
+                 'Chưa có bài viết'}
               </h3>
               <p className="text-muted-foreground">
                 {activeTab === 'following'
                   ? 'Hãy theo dõi một số người để xem bài viết của họ tại đây'
                   : activeTab === 'my-posts'
                   ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
-                  : 'Bắt đầu tạo bài viết đầu tiên của bạn!'
+                  : 'Hiện tại chưa có bài viết nào. Hãy quay lại sau!'
                 }
               </p>
               {activeTab === 'following' && (
