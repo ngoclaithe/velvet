@@ -534,12 +534,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                   {post.isAdult && (
                     <Badge className="text-xs bg-red-100 text-red-700">18+</Badge>
                   )}
-                  {post.type === 'live' && (
-                    <Badge className="text-xs bg-red-500 text-white">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                      LIVE
-                    </Badge>
-                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -560,22 +554,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           {post.content}
         </p>
 
-        {/* Render LiveStreamPreview for live posts */}
-        {post.type === 'live' && post.streamData ? (
-          <div className="mb-4">
-            <LiveStreamPreview
-              streamId={post.streamData.streamId}
-              title={post.content}
-              creatorName={post.author.displayName}
-              creatorAvatar={post.author.avatar}
-              viewerCount={post.streamData.viewerCount}
-              category={post.streamData.category}
-              tags={post.streamData.tags}
-            />
-          </div>
-        ) : (
-          renderMediaContent(post)
-        )}
+        {renderMediaContent(post)}
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
