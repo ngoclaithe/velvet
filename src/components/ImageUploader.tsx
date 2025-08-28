@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useCloudinaryUpload } from '../hooks/useCloudinaryUpload';
-import type { UploadOptions, CloudinaryUploadResponse } from '@/types/cloudinary';
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload';
+import type { UploadOptions, CloudinaryUploadResponse } from '@/types/cloudinary';
 
 interface ImageUploaderProps {
   onUploadComplete?: (results: CloudinaryUploadResponse[]) => void;
