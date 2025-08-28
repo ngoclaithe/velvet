@@ -97,7 +97,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   // Mock data cho demo khi chưa có backend
   const getMockPosts = useCallback((tab: string, page: number): Post[] => {
-    // Nếu chưa có bài viết thì trả về mảng rỗng
+    // Nếu chưa có bài viết thì tr�� về mảng rỗng
     if ((tab === 'following' || tab === 'my-posts') && !isAuthenticated) {
       return []
     }
@@ -138,7 +138,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: 5,
           userId: user?.id || 13,
           creatorId: null,
-          content: '��ây là bài viết đầu tiên của tôi trên n���n tảng! 🎉',
+          content: 'Đây là bài viết đầu tiên của tôi trên n���n tảng! 🎉',
           mediaType: 'text',
           mediaUrls: [],
           thumbnailUrl: null,
@@ -195,7 +195,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           id: `${apiPost.id}-media-${index}`,
           type: apiPost.mediaType === 'image' ? 'image' : 'video' as 'image' | 'video',
           url: url,
-          thumbnail: apiPost.thumbnailUrl
+          thumbnail: apiPost.thumbnailUrl || undefined
         })) : undefined
       }))
 
@@ -386,7 +386,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
-        description: "Vui lòng đăng nhập để thích bài viết",
+        description: "Vui lòng đăng nhập đ�� thích bài viết",
         variant: "destructive"
       })
       return
