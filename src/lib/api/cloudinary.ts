@@ -74,7 +74,15 @@ export const cloudinaryApi = {
     
     // Upload URL
     const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/${resourceType}/upload`
-    
+
+    console.log('📤 Uploading to Cloudinary:', {
+      url: uploadUrl,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+      resourceType: resourceType
+    })
+
     // Perform upload with progress tracking
     return performUpload(uploadUrl, formData, onProgress)
   },
