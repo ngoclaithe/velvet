@@ -368,9 +368,9 @@ export default function ProfilePage() {
 
   // Kiểm tra xem đã có đủ thông tin KYC chưa
   const isKycDataComplete = () => {
-    const hasAllDocuments = kycDocuments.documentFrontUrl &&
-                           kycDocuments.documentBackUrl &&
-                           kycDocuments.selfieUrl
+    const hasAllDocuments = kycDocuments.documentFrontFile &&
+                           kycDocuments.documentBackFile &&
+                           kycDocuments.selfieFile
     const hasPersonalInfo = kycPersonalInfo.fullName &&
                            kycPersonalInfo.dateOfBirth &&
                            kycPersonalInfo.documentNumber &&
@@ -411,7 +411,7 @@ export default function ProfilePage() {
       if (response.success) {
         toast({
           title: "Gửi xác thực thành công!",
-          description: "Hồ sơ KYC của bạn đã được gửi và đang được xem xét",
+          description: "Hồ sơ KYC của bạn ��ã được gửi và đang được xem xét",
           variant: "default"
         })
 
@@ -532,7 +532,7 @@ export default function ProfilePage() {
                       <DialogHeader>
                         <DialogTitle>Cập nhật ảnh đại diện</DialogTitle>
                         <DialogDescription>
-                          Chọn ��nh mới để làm ảnh đại diện của bạn
+                          Chọn ảnh mới để làm ảnh đại diện của bạn
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
@@ -582,7 +582,7 @@ export default function ProfilePage() {
                   className="w-full sm:w-auto"
                 >
                   <Edit3 className="h-4 w-4 mr-2" />
-                  {isEditing ? 'Hủy chỉnh sửa' : 'Ch���nh sửa hồ sơ'}
+                  {isEditing ? 'Hủy chỉnh sửa' : 'Chỉnh sửa hồ sơ'}
                 </Button>
               </div>
             </CardContent>
