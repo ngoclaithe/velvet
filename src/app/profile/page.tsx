@@ -511,6 +511,15 @@ export default function ProfilePage() {
     }
   }, [user])
 
+  // Cleanup preview URLs khi component unmount
+  useEffect(() => {
+    return () => {
+      Object.values(kycPreviewUrls).forEach(url => {
+        if (url) URL.revokeObjectURL(url)
+      })
+    }
+  }, [])
+
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
