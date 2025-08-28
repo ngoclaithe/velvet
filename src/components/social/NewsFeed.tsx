@@ -38,8 +38,12 @@ interface FeedState {
 
 const POSTS_PER_PAGE = 10
 
-export default function NewsFeed() {
-  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'live'>('for-you')
+interface NewsFeedProps {
+  activeTab?: 'for-you' | 'following' | 'live' | 'my-posts'
+}
+
+export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {}) {
+  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'live' | 'my-posts'>(propActiveTab || 'for-you')
   const [feeds, setFeeds] = useState<Record<string, FeedState>>({
     'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
     'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
