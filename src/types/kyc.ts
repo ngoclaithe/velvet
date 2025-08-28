@@ -48,18 +48,38 @@ export interface KycDocument {
 }
 
 export interface KycSubmission {
-  id: string;
-  userId: string;
+  id: number;
+  userId?: string;
   status: KycStatus;
-  documents: KycDocument[];
-  personalInfo: KycPersonalInfo;
+  documents?: KycDocument[];
+  personalInfo?: KycPersonalInfo;
   documentUrls?: KycDocumentUrls;
-  documentType?: DocumentType;
-  documentNumber?: string;
-  submittedAt?: Date;
-  reviewedAt?: Date;
+
+  // Direct fields from API response
+  documentType: DocumentType;
+  documentNumber: string;
+  fullName: string;
+  dateOfBirth: string;
+  nationality: string;
+  address: string;
+  reviewNotes?: string;
   rejectionReason?: string;
-  verificationLevel: VerificationLevel;
+  verifiedAt?: string;
+  expiryDate?: string;
+  createdAt: string;
+  updatedAt: string;
+
+  // Document URLs - direct fields from API
+  documentFrontUrl: string;
+  documentBackUrl: string;
+  selfieUrl: string;
+  hasDocumentFront: boolean;
+  hasDocumentBack: boolean;
+  hasSelfie: boolean;
+  reviewer?: any;
+
+  // Optional verification level
+  verificationLevel?: VerificationLevel;
 }
 
 // API Response types
