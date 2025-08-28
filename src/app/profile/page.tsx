@@ -408,6 +408,8 @@ export default function ProfilePage() {
         return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Đã xác thực</Badge>
       case 'under_review':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Đang xem xét</Badge>
+      case 'pending':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Đang chờ xử lý</Badge>
       case 'submitted':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Đã gửi</Badge>
       case 'rejected':
@@ -524,7 +526,7 @@ export default function ProfilePage() {
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{user?.followers || 0} ngư��i theo dõi</span>
+                      <span className="text-sm">{user?.followers || 0} người theo dõi</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Heart className="h-4 w-4 text-red-500" />
@@ -921,7 +923,7 @@ export default function ProfilePage() {
                               disabled={kycStatus === 'approved'}
                             />
                             <p className="text-xs text-muted-foreground">
-                              Ch��� được chứa chữ, số, dấu gạch ngang và khoảng trắng
+                              Chỉ được chứa chữ, số, dấu gạch ngang và khoảng trắng
                             </p>
                           </div>
                         </div>
@@ -1277,7 +1279,7 @@ export default function ProfilePage() {
                 <div className="space-y-0.5">
                   <Label>Hiển thị số điện thoại</Label>
                   <p className="text-sm text-muted-foreground">
-                    Cho phép người khác xem s�� điện thoại của bạn
+                    Cho phép người khác xem số điện thoại của bạn
                   </p>
                 </div>
                 <Switch
