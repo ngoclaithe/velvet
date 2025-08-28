@@ -947,12 +947,12 @@ export default function ProfilePage() {
                         {/* Hiển thị tài liệu đã submit nếu có submission pending/submitted/under_review */}
                         {kycSubmission && (kycStatus === 'pending' || kycStatus === 'submitted' || kycStatus === 'under_review') ? (
                           <div className="space-y-4">
-                            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
                               <div className="flex items-center space-x-2 mb-4">
                                 <CheckCircle className="h-5 w-5 text-blue-600" />
                                 <h4 className="font-medium text-blue-900">Tài liệu đã gửi</h4>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                 {[
                                   { url: kycSubmission.documentFrontUrl, label: 'Mặt trước giấy tờ', icon: '🆔' },
                                   { url: kycSubmission.documentBackUrl, label: 'Mặt sau giấy tờ', icon: '🔄' },
@@ -960,15 +960,15 @@ export default function ProfilePage() {
                                 ].map((doc, index) => (
                                   <div key={index} className="text-center">
                                     <div className="mb-2">
-                                      <span className="text-2xl">{doc.icon}</span>
-                                      <p className="text-sm font-medium">{doc.label}</p>
+                                      <span className="text-xl sm:text-2xl">{doc.icon}</span>
+                                      <p className="text-xs sm:text-sm font-medium text-gray-900">{doc.label}</p>
                                     </div>
                                     {doc.url ? (
                                       <div className="space-y-2">
                                         <img
                                           src={doc.url}
                                           alt={doc.label}
-                                          className="w-full h-24 object-cover rounded border"
+                                          className="w-full h-20 sm:h-24 object-cover rounded border"
                                         />
                                         <div className="flex items-center justify-center space-x-1">
                                           <CheckCircle className="h-3 w-3 text-green-600" />
@@ -976,7 +976,7 @@ export default function ProfilePage() {
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="h-24 bg-gray-100 rounded border flex items-center justify-center">
+                                      <div className="h-20 sm:h-24 bg-gray-100 rounded border flex items-center justify-center">
                                         <span className="text-xs text-gray-500">Không có ảnh</span>
                                       </div>
                                     )}
