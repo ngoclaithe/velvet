@@ -240,7 +240,7 @@ export default function ProfilePage() {
         // Nếu có submission, load dữ liệu từ submission
         setKycPersonalInfo({
           fullName: submissionResponse.data.fullName || '',
-          dateOfBirth: submissionResponse.data.dateOfBirth || '',
+          dateOfBirth: submissionResponse.data.dateOfBirth ? submissionResponse.data.dateOfBirth.split('T')[0] : '',
           nationality: submissionResponse.data.nationality || 'Vietnam',
           address: submissionResponse.data.address || '',
           documentNumber: submissionResponse.data.documentNumber || '',
@@ -652,7 +652,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Gi���i tính</Label>
+                  <Label htmlFor="gender">Gi����i tính</Label>
                   <Select 
                     value={formData.gender} 
                     onValueChange={(value) => handleInputChange('gender', value)}
