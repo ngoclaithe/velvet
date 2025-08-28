@@ -55,7 +55,26 @@ export const cloudinaryApi = {
     formData.append('fetch_format', signatureData.fetch_format)
     formData.append('dpr', signatureData.dpr)
     formData.append('flags', signatureData.flags)
-    formData.append('transformation', signatureData.transformation)
+
+    // Parse and handle transformation parameter correctly
+    if (signatureData.transformation) {
+      try {
+        // If transformation is a JSON string, parse it and convert to Cloudinary format
+        const transformations = JSON.parse(signatureData.transformation)
+        if (Array.isArray(transformations) && transformations.length > 0) {
+          // Convert transformation array to Cloudinary transformation string format
+          const transformationStr = transformations.map(t => {
+            return Object.entries(t).map(([key, value]) => `${key}_${value}`).join(',')
+          }).join('/')
+          formData.append('transformation', transformationStr)
+        } else {
+          formData.append('transformation', signatureData.transformation)
+        }
+      } catch (error) {
+        // If not JSON, use as-is
+        formData.append('transformation', signatureData.transformation)
+      }
+    }
 
     // Determine resource type
     const resourceType = getResourceType(file, options?.resource_type)
