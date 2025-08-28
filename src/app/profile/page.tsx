@@ -117,9 +117,8 @@ export default function ProfilePage() {
     dateOfBirth: '',
     nationality: 'Vietnam',
     address: '',
-    phoneNumber: '',
-    idNumber: '',
-    idType: 'citizen_id' as 'citizen_id' | 'passport' | 'driver_license'
+    documentNumber: '',
+    documentType: 'id_card' as DocumentType
   })
 
   const handleInputChange = (field: string, value: string) => {
