@@ -6,10 +6,8 @@ let isConnecting = false
 const subscribedTopics = new Set<string>()
 
 const getBrokerUrl = () => {
-  // Prefer WebSocket URL for browser (ws or wss)
   const envUrl = process.env.NEXT_PUBLIC_MQTT_URL
   if (envUrl && envUrl.trim().length > 0) return envUrl
-  // Fallback to ws on localhost (must be a WS-enabled MQTT broker)
   return 'ws://localhost:1883'
 }
 

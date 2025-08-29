@@ -391,14 +391,15 @@ export default function CreatorDetailPage() {
                         try {
                           setChatLoading(true)
                           const resp = await createConversation({ receiverId: creator.userId })
+                          console.log("Giá trị resp:", resp)
                           if (!resp.success || !resp.data) {
                             throw new Error(resp.error || 'Không tạo được cuộc trò chuyện')
                           }
-                          const topic = (resp.data as any).topic as string | undefined
-                          if (topic) {
-                            const ok = await subscribeTopic(topic)
+                          const mqttTopic = (resp.data as any).mqttTopic as string | undefined
+                          if (mqttTopic) {
+                            const ok = await subscribeTopic(mqttTopic)
                             if (ok) {
-                              toast({ title: 'Đã mở chat', description: 'Đã subscribe topic ' + topic })
+                              toast({ title: 'Đã mở chat', description: 'Đã subscribe topic ' + mqttTopic })
                             } else {
                               toast({ title: 'Subscribe thất bại', description: 'Không thể subscribe MQTT topic', variant: 'destructive' })
                             }
