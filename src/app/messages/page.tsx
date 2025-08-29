@@ -109,62 +109,6 @@ export default function MessagesPage() {
       .catch(() => setSelectedConversation(null))
   }, [isAuthenticated, selectedConversationId])
 
-  const mockConversations: Conversation[] = [
-    {
-      id: '1',
-      participants: [mockUsers[0]],
-      lastMessage: {
-        id: 'm1',
-        senderId: '1',
-        receiverId: user?.id || '',
-        content: 'Chào bạn! Mình thích nội dung của bạn lắm. Có thể hợp tác không?',
-        type: 'text',
-        timestamp: new Date('2024-01-15T14:30:00'),
-        isRead: false,
-        isDelivered: true
-      },
-      unreadCount: 2,
-      isPinned: true,
-      isArchived: false,
-      updatedAt: new Date('2024-01-15T14:30:00')
-    },
-    {
-      id: '2',
-      participants: [mockUsers[1]],
-      lastMessage: {
-        id: 'm2',
-        senderId: user?.id || '',
-        receiverId: '2',
-        content: 'Cảm ơn bạn đã ủng hộ!',
-        type: 'text',
-        timestamp: new Date('2024-01-15T12:00:00'),
-        isRead: true,
-        isDelivered: true
-      },
-      unreadCount: 0,
-      isPinned: false,
-      isArchived: false,
-      updatedAt: new Date('2024-01-15T12:00:00')
-    },
-    {
-      id: '3',
-      participants: [mockUsers[2]],
-      lastMessage: {
-        id: 'm3',
-        senderId: '3',
-        receiverId: user?.id || '',
-        content: 'Bạn có muốn tham gia dự án nhiếp ảnh cùng mình không?',
-        type: 'text',
-        timestamp: new Date('2024-01-14T16:20:00'),
-        isRead: true,
-        isDelivered: true
-      },
-      unreadCount: 0,
-      isPinned: false,
-      isArchived: false,
-      updatedAt: new Date('2024-01-14T16:20:00')
-    }
-  ]
 
   const mockMessages: Message[] = [
     {
@@ -533,7 +477,7 @@ export default function MessagesPage() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Ch��n cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
               </div>
             </div>
           )}
