@@ -18,6 +18,7 @@ export interface Conversation {
   isMuted: boolean
   blockedBy?: string
   mutedUntil?: Date
+  topic?: string
 }
 
 export interface CreateConversationRequest {

@@ -4,6 +4,7 @@ import { useEffect, ReactNode } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useHydration } from '@/hooks/useHydration'
 import type { User } from '@/types/auth'
+import { subscribeUserNotifications, unsubscribeAll, disconnectMqtt } from '@/lib/mqttClient'
 
 // Default guest user
 const guestUser: User = {
@@ -24,6 +25,28 @@ interface AuthProviderProps {
 export default function AuthProvider({ children }: AuthProviderProps) {
   const isHydrated = useHydration()
   const { user, session } = useAuthStore()
+
+  // Subscribe to per-user notifications when logged in
+  useEffect(() => {
+    const doSub = async () => {
+      if (user && user.id && user.id !== 'guest') {
+        await subscribeUserNotifications(user.id)
+      }
+    }
+    doSub()
+
+    return () => {
+      // Cleanup on unmount/change
+      unsubscribeAll()
+    }
+  }, [user?.id])
+
+  // Disconnect on app unmount
+  useEffect(() => {
+    return () => {
+      disconnectMqtt()
+    }
+  }, [])
 
   useEffect(() => {
     if (isHydrated && !user && !session) {
