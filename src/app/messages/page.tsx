@@ -116,7 +116,6 @@ export default function MessagesPage() {
   }
 
   const getMessagesForConversation = (conversationId: string) => {
-    if (conversationId === '1') return mockMessages
     return []
   }
 
@@ -222,7 +221,7 @@ export default function MessagesPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <Input placeholder="Tìm người d��ng..." />
+                    <Input placeholder="Tìm người dùng..." />
                     <div className="space-y-2">
                       {mockUsers.map(user => (
                         <div key={user.id} className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
