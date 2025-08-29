@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -89,6 +89,7 @@ export default function CreatorDetailPage() {
   const [chatLoading, setChatLoading] = useState(false)
   const { toast } = useToast()
   const { user, isAuthenticated } = useAuth()
+  const router = useRouter()
 
   // Fetch creator details
   useEffect(() => {
@@ -392,20 +393,15 @@ export default function CreatorDetailPage() {
                           setChatLoading(true)
                           const resp = await createConversation({ receiverId: creator.userId })
                           console.log("Giá trị resp:", resp)
-                          if (!resp.success || !resp.data) {
+                          if (!resp.success || !resp.data || !(resp.data as any).conversation) {
                             throw new Error(resp.error || 'Không tạo được cuộc trò chuyện')
                           }
-                          const mqttTopic = (resp.data as any).mqttTopic as string | undefined
-                          if (mqttTopic) {
-                            const ok = await subscribeTopic(mqttTopic)
-                            if (ok) {
-                              toast({ title: 'Đã mở chat', description: 'Đã subscribe topic ' + mqttTopic })
-                            } else {
-                              toast({ title: 'Subscribe thất bại', description: 'Không thể subscribe MQTT topic', variant: 'destructive' })
-                            }
-                          } else {
-                            toast({ title: 'Thiếu topic', description: 'API không trả về topic để subscribe', variant: 'destructive' })
+                          const { conversation, mqttTopic } = resp.data as any
+                          const topic = mqttTopic || conversation?.topic
+                          if (topic) {
+                            try { await subscribeTopic(topic) } catch {}
                           }
+                          router.push(`/messages?conversationId=${conversation.id}`)
                         } catch (e: any) {
                           toast({ title: 'Lỗi', description: e?.message || 'Không thể nhắn tin', variant: 'destructive' })
                         } finally {
