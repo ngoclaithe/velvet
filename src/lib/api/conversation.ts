@@ -41,6 +41,12 @@ export interface MuteConversationRequest {
   isMuted: boolean
 }
 
+export interface CreateConversationResponse {
+  conversation: Conversation
+  isNew: boolean
+  mqttTopic?: string | null
+}
+
 /**
  * Lấy danh sách conversations
  * GET /api/conversations
@@ -60,8 +66,8 @@ export const getConversations = async (
  */
 export const createConversation = async (
   data: CreateConversationRequest
-): Promise<ApiResponse<Conversation>> => {
-  return api.post<Conversation>('/conversations', data)
+): Promise<ApiResponse<CreateConversationResponse>> => {
+  return api.post<CreateConversationResponse>('/conversations', data)
 }
 
 /**
