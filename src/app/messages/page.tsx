@@ -110,38 +110,6 @@ export default function MessagesPage() {
   }, [isAuthenticated, selectedConversationId])
 
 
-  const mockMessages: Message[] = [
-    {
-      id: 'm1',
-      senderId: '1',
-      receiverId: user?.id || '',
-      content: 'Chào bạn!',
-      type: 'text',
-      timestamp: new Date('2024-01-15T14:25:00'),
-      isRead: true,
-      isDelivered: true
-    },
-    {
-      id: 'm2',
-      senderId: '1',
-      receiverId: user?.id || '',
-      content: 'Mình thích nội dung của bạn lắm. Có thể hợp tác không?',
-      type: 'text',
-      timestamp: new Date('2024-01-15T14:30:00'),
-      isRead: false,
-      isDelivered: true
-    },
-    {
-      id: 'm3',
-      senderId: user?.id || '',
-      receiverId: '1',
-      content: 'Chào Alice! Cảm ơn bạn đã liên hệ. Mình rất quan tâm đến việc hợp tác.',
-      type: 'text',
-      timestamp: new Date('2024-01-15T14:32:00'),
-      isRead: false,
-      isDelivered: true
-    }
-  ]
 
   const getSelectedConversationData = () => {
     return mockConversations.find(conv => conv.id === selectedConversation)
