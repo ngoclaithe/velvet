@@ -282,7 +282,7 @@ export default function MessagesPage() {
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col">
-          {selectedConversation ? (
+          {selectedConversationId ? (
             <>
               {/* Chat Header */}
               <CardHeader className="pb-3">
