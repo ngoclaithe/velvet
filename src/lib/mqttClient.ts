@@ -71,7 +71,7 @@ export const subscribeTopic = async (topic: string): Promise<boolean> => {
   if (!c) return false
 
   return new Promise((resolve) => {
-    c.subscribe(topic, { qos: 0 }, (err) => {
+    c.subscribe(topic, { qos: 0 }, (err: Error | null) => {
       if (!err) {
         subscribedTopics.add(topic)
         resolve(true)
@@ -85,7 +85,7 @@ export const subscribeTopic = async (topic: string): Promise<boolean> => {
 export const unsubscribeTopic = async (topic: string): Promise<boolean> => {
   if (!client || !client.connected) return false
   return new Promise((resolve) => {
-    client!.unsubscribe(topic, (err) => {
+    client!.unsubscribe(topic, (err: Error | null) => {
       if (!err) {
         subscribedTopics.delete(topic)
         resolve(true)

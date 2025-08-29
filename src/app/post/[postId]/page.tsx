@@ -82,12 +82,20 @@ export default function PostDetailPage() {
       const response = await postsApi.getPost(postId)
 
       if (response.success && response.data) {
-        setPost(response.data)
-        setLikes(response.data.likeCount)
+        // Kiểm tra xem response.data có phải là PostData hợp lệ không
+        const postData = response.data as PostData
+        
+        // Validate dữ liệu cơ bản trước khi set state
+        if (postData && typeof postData === 'object' && 'id' in postData && 'likeCount' in postData) {
+          setPost(postData)
+          setLikes(postData.likeCount || 0)
+        } else {
+          setError('Dữ liệu bài viết không hợp lệ')
+        }
       } else {
         setError('Không thể tải bài viết')
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error loading post:', err)
       setError('Có lỗi xảy ra khi tải bài viết')
     } finally {
@@ -134,7 +142,7 @@ export default function PostDetailPage() {
         description: "Thay đổi đã được lưu",
         variant: "default"
       })
-    } catch (error) {
+    } catch (error: unknown) {
       // Fallback to local update if API fails
       setIsLiked(!isLiked)
       setLikes(prev => isLiked ? prev - 1 : prev + 1)
@@ -170,7 +178,7 @@ export default function PostDetailPage() {
         description: "Thay đổi đã được lưu",
         variant: "default"
       })
-    } catch (error) {
+    } catch (error: unknown) {
       // Fallback to local update if API fails
       setIsBookmarked(!isBookmarked)
       
@@ -189,7 +197,7 @@ export default function PostDetailPage() {
           title: post?.content.substring(0, 50) + '...',
           url: window.location.href
         })
-      } catch (error) {
+      } catch (error: unknown) {
         console.log('Share cancelled')
       }
     } else {
@@ -201,7 +209,7 @@ export default function PostDetailPage() {
           description: "Liên kết bài viết đã được sao chép vào clipboard",
           variant: "default"
         })
-      } catch (error) {
+      } catch (error: unknown) {
         toast({
           title: "Không thể sao chép",
           description: "Có lỗi xảy ra khi sao chép liên kết",
