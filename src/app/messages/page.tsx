@@ -79,6 +79,35 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Load conversations and selected
+  useEffect(() => {
+    if (!isAuthenticated) return
+    chatApi.getConversations()
+      .then((resp: any) => {
+        if (resp?.success && resp.data) {
+          const list = Array.isArray(resp.data.conversations) ? resp.data.conversations : (Array.isArray(resp.data) ? resp.data : [])
+          setConversations(list)
+          const qId = searchParams.get('conversationId')
+          if (qId) {
+            setSelectedConversationId(qId)
+          } else if (list.length > 0) {
+            setSelectedConversationId(list[0].id?.toString?.() || String(list[0].id))
+          }
+        }
+      })
+      .catch(() => {})
+  }, [isAuthenticated, searchParams])
+
+  useEffect(() => {
+    if (!isAuthenticated || !selectedConversationId) {
+      setSelectedConversation(null)
+      return
+    }
+    chatApi.getConversation(selectedConversationId)
+      .then((resp: any) => {
+        if (resp?.success && resp.data) setSelectedConversation(resp.data)
+      })
+      .catch(() => setSelectedConversation(null))
+  }, [isAuthenticated, selectedConversationId])
   const mockUsers: User[] = [
     {
       id: '1',
