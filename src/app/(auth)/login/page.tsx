@@ -51,14 +51,6 @@ export default function LoginPage() {
         password,
         rememberMe
       })
-
-      // Hiện thông báo thành công
-      toast({
-        title: "Đăng nhập thành công!",
-        description: "Chào mừng bạn trở lại!",
-        variant: "default"
-      })
-
       // Redirect dựa trên role của user
       setTimeout(() => {
         if (user?.role === 'admin') {

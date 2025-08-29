@@ -64,22 +64,34 @@ export default function Header() {
 
         const handler = (topic: string, payload: Buffer) => {
           if (!isMounted) return
+          if (topic !== userTopic) return
           try {
             const raw = payload.toString('utf-8')
             const data = JSON.parse(raw)
+
+            let title = data?.title
+            let message = data?.message
+            if ((data?.type || '') === 'message') {
+              const sender = data?.data?.senderUsername || data?.data?.senderName || ''
+              title = 'Cuộc trò chuyện mới'
+              message = sender ? `${sender} đã bắt đầu cuộc trò chuyện với bạn` : 'Bạn có cuộc trò chuyện mới'
+            }
+
             const n: AppNotification = {
               id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
               type: data?.type || 'info',
-              title: data?.title,
-              message: data?.message,
+              title,
+              message,
               data: data?.data,
               topic,
               read: false,
               receivedAt: Date.now(),
             }
             setNotifications((prev) => [n, ...prev].slice(0, 50))
-            // Quick toast for visibility
-            toast({ title: n.title || 'Thông báo', description: n.message })
+            // Chỉ toast khi có nội dung rõ ràng và không phải chat message
+            if (n.type !== 'message' && (n.title || n.message)) {
+              toast({ title: n.title, description: n.message })
+            }
           } catch {}
         }
         client.on('message', handler)
@@ -98,23 +110,6 @@ export default function Header() {
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
 
-  const handleNotificationClick = async (n: AppNotification) => {
-    // Mark as read
-    setNotifications((prev) => prev.map(x => x.id === n.id ? { ...x, read: true } : x))
-
-    if (n.type === 'message') {
-      const convId = n.data?.conversationId
-      const mqttTopic = n.data?.mqttTopic
-      if (mqttTopic) {
-        try { await subscribeTopic(mqttTopic) } catch {}
-      }
-      if (convId) {
-        router.push(`/messages?conversationId=${convId}`)
-        return
-      }
-      router.push('/messages')
-    }
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -198,8 +193,7 @@ export default function Header() {
                     notifications.slice(0, 10).map((n) => (
                       <DropdownMenuItem
                         key={n.id}
-                        className="cursor-pointer flex flex-col items-start space-y-1"
-                        onClick={() => handleNotificationClick(n)}
+                        className="flex flex-col items-start space-y-1"
                       >
                         <div className="w-full flex items-center justify-between">
                           <span className="font-medium text-sm">{n.title || 'Thông báo'}</span>

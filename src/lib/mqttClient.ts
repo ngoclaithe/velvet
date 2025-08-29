@@ -108,6 +108,29 @@ export const unsubscribeAll = async () => {
   await Promise.all(topics.map((t) => unsubscribeTopic(t)))
 }
 
+export const publishTopic = async (topic: string, payload: any): Promise<boolean> => {
+  if (!topic) return false
+  const c = await connectMqtt()
+  if (!c) return false
+  const message = typeof payload === 'string' ? payload : JSON.stringify(payload)
+  return new Promise((resolve) => {
+    try {
+      console.log('[MQTT] publish ->', topic, message)
+      c.publish(topic, message, { qos: 0 }, (err?: Error) => {
+        if (err) {
+          console.error('[MQTT] publish error', err)
+          resolve(false)
+        } else {
+          resolve(true)
+        }
+      })
+    } catch (e) {
+      console.error('[MQTT] publish exception', e)
+      resolve(false)
+    }
+  })
+}
+
 export const disconnectMqtt = async () => {
   if (client) {
     try {

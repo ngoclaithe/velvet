@@ -11,23 +11,25 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+
 import { Icons } from '@/components/common/Icons'
 import { chatApi } from '@/lib/api/chat'
-import { 
-  MessageCircle, 
-  Send, 
-  Search, 
-  Plus, 
+import { subscribeTopic, connectMqtt, publishTopic } from '@/lib/mqttClient'
+import { getConversationById } from '@/lib/api/conversation'
+import ImageUploader from '@/components/ImageUploader'
+import {
+  MessageCircle,
+  Send,
+  Search,
+  Plus,
   MoreVertical,
   Phone,
   Video,
-  Info,
   Archive,
   Trash2,
   Pin,
   Star,
   Image,
-  Paperclip,
   Smile,
   Check,
   CheckCheck,
@@ -77,6 +79,14 @@ export default function MessagesPage() {
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const [messagesByConv, setMessagesByConv] = useState<Record<string, any[]>>({})
+  const seenMsgKeysRef = useRef<Map<string, number>>(new Map())
+  const lastConvRef = useRef<string | null>(null)
+  const lastCountRef = useRef<number>(0)
+  const [showImageUpload, setShowImageUpload] = useState(false)
+  const [showEmojiPad, setShowEmojiPad] = useState(false)
+  const quickIcons = ['😀','😂','❤️','👍','🔥']
 
   // Load conversations and selected
   useEffect(() => {
@@ -102,12 +112,68 @@ export default function MessagesPage() {
       setSelectedConversation(null)
       return
     }
-    chatApi.getConversation(selectedConversationId)
-      .then((resp: any) => {
-        if (resp?.success && resp.data) setSelectedConversation(resp.data)
+    const urlTopic = searchParams.get('mqttTopic') || undefined
+
+    getConversationById(String(selectedConversationId))
+      .then(async (resp: any) => {
+        if (resp?.success && resp.data) {
+          const payload = resp.data
+          const conv = (payload as any).conversation || payload
+          let topic: string | undefined = (conv as any)?.topic
+          if (!topic && urlTopic) topic = urlTopic
+          const merged = topic ? { ...conv, topic } : conv
+          setSelectedConversation(merged)
+          if (topic) {
+            try {
+              await subscribeTopic(topic)
+              console.log('[MQTT] subscribed to conversation topic:', topic)
+              const client = await connectMqtt()
+              const onMsg = (t: string, buf: Buffer) => {
+                if (t !== topic) return
+                try {
+                  const data = JSON.parse(buf.toString('utf-8'))
+                  if (data?.type === 'chat_message' && (data.conversationId?.toString?.() === selectedConversationId)) {
+                    const contentStr = String(data.content || '').trim()
+                    const key = String(data.messageId || data.clientMessageId || `${data.conversationId}:${data.senderId}:${contentStr}`)
+                    const now = Date.now()
+                    const seenAt = seenMsgKeysRef.current.get(key)
+                    // Drop duplicates within 6s window
+                    if (seenAt && now - seenAt < 6000) {
+                      return
+                    }
+                    // Record key
+                    seenMsgKeysRef.current.set(key, now)
+                    // Prune old
+                    seenMsgKeysRef.current.forEach((ts, k) => { if (now - ts > 15000) seenMsgKeysRef.current.delete(k) })
+
+                    setMessagesByConv(prev => {
+                      const arr = prev[selectedConversationId] ? [...prev[selectedConversationId]] : []
+                      arr.push({
+                        id: String(data.messageId || data.clientMessageId || `${data.timestamp || now}`),
+                        senderId: String(data.senderId || ''),
+                        receiverId: '',
+                        content: contentStr,
+                        type: 'text',
+                        timestamp: new Date(data.timestamp || now),
+                        isRead: false,
+                        isDelivered: true,
+                      })
+                      return { ...prev, [selectedConversationId!]: arr }
+                    })
+                  }
+                } catch {}
+              }
+              client?.on('message', onMsg)
+
+              return () => {
+                try { client?.off('message', onMsg as any) } catch {}
+              }
+            } catch {}
+          }
+        }
       })
       .catch(() => setSelectedConversation(null))
-  }, [isAuthenticated, selectedConversationId])
+  }, [isAuthenticated, selectedConversationId, searchParams])
 
 
 
@@ -116,7 +182,7 @@ export default function MessagesPage() {
   }
 
   const getMessagesForConversation = (conversationId: string) => {
-    return []
+    return messagesByConv[conversationId] || []
   }
 
   const formatMessageTime = (date: Date) => {
@@ -141,23 +207,74 @@ export default function MessagesPage() {
     }
   }
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const isImageUrl = (s: string) => {
+    try {
+      if (!s) return false
+      const u = s.toString()
+      return /^https?:\/\//.test(u) && /(\.png|\.jpe?g|\.webp|\.gif|cloudinary\.com\/.+\.(png|jpe?g|webp|gif))/i.test(u)
+    } catch { return false }
   }
 
+  const scrollToBottom = () => {
+    const el = messagesContainerRef.current
+    if (el) {
+      el.scrollTop = el.scrollHeight
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
+  const currentMessages = useMemo(() => selectedConversationId ? (messagesByConv[selectedConversationId] || []) : [], [messagesByConv, selectedConversationId])
   useEffect(() => {
-    scrollToBottom()
-  }, [selectedConversation, selectedConversationId])
+    if (selectedConversationId !== lastConvRef.current) {
+      lastConvRef.current = selectedConversationId
+      lastCountRef.current = currentMessages.length
+      return
+    }
+    if (currentMessages.length > lastCountRef.current) {
+      const last = currentMessages[currentMessages.length - 1]
+      const el = messagesContainerRef.current
+      const nearBottom = () => {
+        if (!el) return true
+        const threshold = 120
+        return el.scrollHeight - el.scrollTop - el.clientHeight < threshold
+      }
+      if (String(last?.senderId) === String(user?.id) || nearBottom()) {
+        const raf = requestAnimationFrame(() => scrollToBottom())
+        // Note: no cleanup needed for one-off raf
+      }
+      lastCountRef.current = currentMessages.length
+    }
+  }, [currentMessages.length, selectedConversationId])
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return
 
     setIsSending(true)
     try {
-      // Mock sending message
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // In real app, would update messages via API/WebSocket
+      const conversationId = selectedConversationId as string
+      const content = messageInput.trim()
+      const topic = (selectedConversation as any)?.topic as string | undefined
+      const clientMessageId = `c:${user?.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`
+      // Gửi qua API (kèm clientMessageId nếu backend hỗ trợ)
+      try {
+        await chatApi.sendDirectMessage(conversationId, { content, clientMessageId })
+      } catch (e) {
+        console.warn('sendDirectMessage failed', e)
+      }
+      // Publish client-side để đảm bảo realtime
+      if (topic) {
+        try {
+          await publishTopic(topic, {
+            type: 'chat_message',
+            conversationId,
+            senderId: user?.id,
+            content,
+            timestamp: Date.now(),
+            clientMessageId,
+          })
+        } catch {}
+      }
       setMessageInput('')
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -207,7 +324,7 @@ export default function MessagesPage() {
     <div className="container mx-auto p-4 max-w-7xl">
       <Card className="h-[80vh] flex">
         {/* Conversations List */}
-        <div className="w-1/3 border-r">
+        <div className="hidden md:block md:w-1/3 border-r">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Tin nhắn</h2>
@@ -281,7 +398,7 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           {selectedConversationId ? (
             <>
               {/* Chat Header */}
@@ -306,9 +423,7 @@ export default function MessagesPage() {
                     <Button size="icon" variant="ghost">
                       <Video className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost">
-                      <Info className="h-4 w-4" />
-                    </Button>
+
                     <Button size="icon" variant="ghost">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
@@ -319,18 +434,31 @@ export default function MessagesPage() {
               <Separator />
 
               {/* Messages */}
-              <CardContent className="flex-1 p-0">
-                <ScrollArea className="h-[calc(80vh-200px)] p-4">
+              <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
+                <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
                     {getMessagesForConversation(selectedConversationId).map((message: any) => {
-                      const isOwnMessage = message.senderId === user?.id
-                      
+                      const isOwnMessage = String(message.senderId) === String(user?.id)
+                      const other = (getSelectedConversationData() as any)?.otherUser || (getSelectedConversationData() as any)?.participants?.[0]
+                      const otherName = other?.displayName || other?.username || 'Người dùng'
+                      const otherAvatar = other?.avatar
+                      const selfAvatar = user?.avatar
+
                       return (
                         <div
                           key={message.id}
-                          className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                          className={`flex items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                         >
-                          <div className={`max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}>
+                          {!isOwnMessage && (
+                            <Avatar className="h-8 w-8 mr-2">
+                              <AvatarImage src={otherAvatar} />
+                              <AvatarFallback>{otherName.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                          )}
+                          <div className={`max-w-xs lg:max-w-md ${isOwnMessage ? 'items-end text-right' : 'items-start text-left'}`}>
+                            {!isOwnMessage && (
+                              <p className="text-xs text-muted-foreground mb-1">{otherName}</p>
+                            )}
                             <div
                               className={`px-4 py-2 rounded-lg ${
                                 isOwnMessage
@@ -338,7 +466,11 @@ export default function MessagesPage() {
                                   : 'bg-gray-100 text-gray-900'
                               }`}
                             >
-                              <p className="text-sm">{message.content}</p>
+                              {isImageUrl(String(message.content)) || message.type === 'image' ? (
+                                <img src={message.content} alt="image" className="max-w-full rounded" />
+                              ) : (
+                                <p className="text-sm break-words whitespace-pre-wrap">{message.content}</p>
+                              )}
                             </div>
                             <div className={`flex items-center mt-1 space-x-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                               <span className="text-xs text-muted-foreground">
@@ -359,34 +491,49 @@ export default function MessagesPage() {
                               )}
                             </div>
                           </div>
+                          {isOwnMessage && (
+                            <Avatar className="h-8 w-8 ml-2">
+                              <AvatarImage src={selfAvatar} />
+                              <AvatarFallback>{String(user?.username || 'U').charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                          )}
                         </div>
                       )
                     })}
                     <div ref={messagesEndRef} />
                   </div>
-                </ScrollArea>
+                </div>
               </CardContent>
 
               {/* Message Input */}
               <div className="p-4 border-t">
                 <div className="flex items-center space-x-2">
-                  <Button size="icon" variant="ghost">
-                    <Paperclip className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
+                  <Button size="icon" variant="ghost" onClick={() => setShowImageUpload(v => !v)}>
                     <Image className="h-4 w-4" />
                   </Button>
+                  <div className="relative">
+                    <Button size="icon" variant="ghost" aria-label="Chèn biểu tượng" onClick={() => setShowEmojiPad(v => !v)}>
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                    {showEmojiPad && (
+                      <div className="absolute bottom-10 left-0 z-50 bg-background border rounded shadow-md p-2">
+                        <div className="flex items-center gap-2">
+                          {quickIcons.map((ic, idx) => (
+                          <button key={idx} className="text-xl" title={`Icon ${idx+1}`} onClick={() => { setMessageInput(prev => prev + ic); setShowEmojiPad(false) }}>
+                            {ic}
+                          </button>
+                        ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 relative">
                     <Input
                       placeholder="Nhập tin nhắn..."
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      className="pr-10"
                     />
-                    <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 transform -translate-y-1/2">
-                      <Smile className="h-4 w-4" />
-                    </Button>
                   </div>
                   <Button
                     size="icon"
@@ -398,6 +545,28 @@ export default function MessagesPage() {
                   </Button>
                 </div>
               </div>
+              {showImageUpload && (
+                <div className="border-t p-3">
+                  <ImageUploader
+                    compact
+                    maxFiles={3}
+                    hideResults
+                    onUploadComplete={async (results) => {
+                      const convId = selectedConversationId as string
+                      const topic = (selectedConversation as any)?.topic as string | undefined
+                      for (const r of results) {
+                        const url = (r as any).secure_url || (r as any).url || ''
+                        if (!url) continue
+                        try { await chatApi.sendDirectMessage(convId, { content: url, clientMessageId: `img:${Date.now()}:${Math.random().toString(16).slice(2)}` }) } catch {}
+                        if (topic) {
+                          try { await publishTopic(topic, { type: 'chat_message', conversationId: convId, senderId: user?.id, content: url, timestamp: Date.now(), clientMessageId: `img:${Date.now()}:${Math.random().toString(16).slice(2)}` }) } catch {}
+                        }
+                      }
+                      setShowImageUpload(false)
+                    }}
+                  />
+                </div>
+              )}
             </>
           ) : (
             /* No Conversation Selected */
