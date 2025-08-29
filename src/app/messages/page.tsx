@@ -147,7 +147,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [selectedConversation])
+  }, [selectedConversation, selectedConversationId])
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return
