@@ -244,14 +244,15 @@ export default function MessagesPage() {
           <CardContent className="p-0">
             <ScrollArea className="h-[calc(80vh-140px)]">
               <div className="space-y-1 p-3">
-                {filteredConversations.map((conversation) => {
-                  const participant = conversation.participants[0]
-                  const isSelected = selectedConversation === conversation.id
-                  
+                {filteredConversations.map((conversation: any) => {
+                  const participant: any = conversation.otherUser || (conversation.participants && conversation.participants[0])
+                  const isSelected = selectedConversationId === (conversation.id?.toString?.() || String(conversation.id))
+                  const displayName = participant?.displayName || participant?.username || 'Người dùng'
+                  const avatar = participant?.avatar
                   return (
                     <div
                       key={conversation.id}
-                      onClick={() => setSelectedConversation(conversation.id)}
+                      onClick={() => setSelectedConversationId(conversation.id?.toString?.() || String(conversation.id))}
                       className={`p-3 rounded-lg cursor-pointer transition-colors ${
                         isSelected ? 'bg-primary/10' : 'hover:bg-gray-100'
                       }`}
@@ -259,39 +260,16 @@ export default function MessagesPage() {
                       <div className="flex items-center space-x-3">
                         <div className="relative">
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={participant.avatar} />
-                            <AvatarFallback>{participant.username.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarImage src={avatar} />
+                            <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                          {participant.isOnline && (
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                          )}
                         </div>
-                        
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
-                              <p className="font-medium truncate">{participant.username}</p>
-                              {conversation.isPinned && <Pin className="h-3 w-3 text-muted-foreground" />}
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              {conversation.lastMessage && (
-                                <span className="text-xs text-muted-foreground">
-                                  {formatLastMessageTime(conversation.lastMessage.timestamp)}
-                                </span>
-                              )}
-                              {conversation.unreadCount > 0 && (
-                                <Badge variant="default" className="bg-blue-600 text-white h-5 w-5 text-xs rounded-full p-0 flex items-center justify-center">
-                                  {conversation.unreadCount}
-                                </Badge>
-                              )}
+                              <p className="font-medium truncate">{displayName}</p>
                             </div>
                           </div>
-                          {conversation.lastMessage && (
-                            <p className="text-sm text-muted-foreground truncate">
-                              {conversation.lastMessage.senderId === user?.id && 'Bạn: '}
-                              {conversation.lastMessage.content}
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>
