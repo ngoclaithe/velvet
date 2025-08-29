@@ -108,33 +108,6 @@ export default function MessagesPage() {
       })
       .catch(() => setSelectedConversation(null))
   }, [isAuthenticated, selectedConversationId])
-  const mockUsers: User[] = [
-    {
-      id: '1',
-      username: 'alice_creator',
-      avatar: '/avatars/alice.jpg',
-      isOnline: true
-    },
-    {
-      id: '2',
-      username: 'bob_artist',
-      avatar: '/avatars/bob.jpg',
-      isOnline: false,
-      lastSeen: new Date('2024-01-15T10:30:00')
-    },
-    {
-      id: '3',
-      username: 'carol_photographer',
-      avatar: '/avatars/carol.jpg',
-      isOnline: true
-    },
-    {
-      id: '4',
-      username: 'david_musician',
-      isOnline: false,
-      lastSeen: new Date('2024-01-14T15:45:00')
-    }
-  ]
 
   const mockConversations: Conversation[] = [
     {
@@ -560,7 +533,7 @@ export default function MessagesPage() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Ch��n cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
               </div>
             </div>
           )}
