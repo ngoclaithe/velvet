@@ -32,8 +32,8 @@ export const connectMqtt = async (): Promise<MqttClient | null> => {
     username,
     password,
     clean: true,
-    reconnectPeriod: 2000,
-    connectTimeout: 10_000,
+    reconnectPeriod: 1000,
+    connectTimeout: 30_000,
     // Unique clientId per tab
     clientId: `web_${Math.random().toString(16).slice(2)}`,
     protocolVersion: 4,
