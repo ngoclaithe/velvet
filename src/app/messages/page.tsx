@@ -226,18 +226,7 @@ export default function MessagesPage() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <Input placeholder="Tìm người dùng..." />
-                    <div className="space-y-2">
-                      {mockUsers.map(user => (
-                        <div key={user.id} className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.avatar} />
-                            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{user.username}</span>
-                          {user.isOnline && <Badge variant="secondary" className="bg-green-100 text-green-800">Online</Badge>}
-                        </div>
-                      ))}
-                    </div>
+                    <div className="space-y-2"></div>
                   </div>
                 </DialogContent>
               </Dialog>
