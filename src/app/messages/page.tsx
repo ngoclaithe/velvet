@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Icons } from '@/components/common/Icons'
+import { chatApi } from '@/lib/api/chat'
 import { 
   MessageCircle, 
   Send, 
@@ -67,138 +68,54 @@ interface Conversation {
 export default function MessagesPage() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const [conversations, setConversations] = useState<any[]>([])
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<any | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Mock data - would come from API
-  const mockUsers: User[] = [
-    {
-      id: '1',
-      username: 'alice_creator',
-      avatar: '/avatars/alice.jpg',
-      isOnline: true
-    },
-    {
-      id: '2',
-      username: 'bob_artist',
-      avatar: '/avatars/bob.jpg',
-      isOnline: false,
-      lastSeen: new Date('2024-01-15T10:30:00')
-    },
-    {
-      id: '3',
-      username: 'carol_photographer',
-      avatar: '/avatars/carol.jpg',
-      isOnline: true
-    },
-    {
-      id: '4',
-      username: 'david_musician',
-      isOnline: false,
-      lastSeen: new Date('2024-01-14T15:45:00')
-    }
-  ]
+  // Load conversations and selected
+  useEffect(() => {
+    if (!isAuthenticated) return
+    chatApi.getConversations()
+      .then((resp: any) => {
+        if (resp?.success && resp.data) {
+          const list = Array.isArray(resp.data.conversations) ? resp.data.conversations : (Array.isArray(resp.data) ? resp.data : [])
+          setConversations(list)
+          const qId = searchParams.get('conversationId')
+          if (qId) {
+            setSelectedConversationId(qId)
+          } else if (list.length > 0) {
+            setSelectedConversationId(list[0].id?.toString?.() || String(list[0].id))
+          }
+        }
+      })
+      .catch(() => {})
+  }, [isAuthenticated, searchParams])
 
-  const mockConversations: Conversation[] = [
-    {
-      id: '1',
-      participants: [mockUsers[0]],
-      lastMessage: {
-        id: 'm1',
-        senderId: '1',
-        receiverId: user?.id || '',
-        content: 'Chào bạn! Mình thích nội dung của bạn lắm. Có thể hợp tác không?',
-        type: 'text',
-        timestamp: new Date('2024-01-15T14:30:00'),
-        isRead: false,
-        isDelivered: true
-      },
-      unreadCount: 2,
-      isPinned: true,
-      isArchived: false,
-      updatedAt: new Date('2024-01-15T14:30:00')
-    },
-    {
-      id: '2',
-      participants: [mockUsers[1]],
-      lastMessage: {
-        id: 'm2',
-        senderId: user?.id || '',
-        receiverId: '2',
-        content: 'Cảm ơn bạn đã ủng hộ!',
-        type: 'text',
-        timestamp: new Date('2024-01-15T12:00:00'),
-        isRead: true,
-        isDelivered: true
-      },
-      unreadCount: 0,
-      isPinned: false,
-      isArchived: false,
-      updatedAt: new Date('2024-01-15T12:00:00')
-    },
-    {
-      id: '3',
-      participants: [mockUsers[2]],
-      lastMessage: {
-        id: 'm3',
-        senderId: '3',
-        receiverId: user?.id || '',
-        content: 'Bạn có muốn tham gia dự án nhiếp ảnh cùng mình không?',
-        type: 'text',
-        timestamp: new Date('2024-01-14T16:20:00'),
-        isRead: true,
-        isDelivered: true
-      },
-      unreadCount: 0,
-      isPinned: false,
-      isArchived: false,
-      updatedAt: new Date('2024-01-14T16:20:00')
+  useEffect(() => {
+    if (!isAuthenticated || !selectedConversationId) {
+      setSelectedConversation(null)
+      return
     }
-  ]
+    chatApi.getConversation(selectedConversationId)
+      .then((resp: any) => {
+        if (resp?.success && resp.data) setSelectedConversation(resp.data)
+      })
+      .catch(() => setSelectedConversation(null))
+  }, [isAuthenticated, selectedConversationId])
 
-  const mockMessages: Message[] = [
-    {
-      id: 'm1',
-      senderId: '1',
-      receiverId: user?.id || '',
-      content: 'Chào bạn!',
-      type: 'text',
-      timestamp: new Date('2024-01-15T14:25:00'),
-      isRead: true,
-      isDelivered: true
-    },
-    {
-      id: 'm2',
-      senderId: '1',
-      receiverId: user?.id || '',
-      content: 'Mình thích nội dung của bạn lắm. Có thể hợp tác không?',
-      type: 'text',
-      timestamp: new Date('2024-01-15T14:30:00'),
-      isRead: false,
-      isDelivered: true
-    },
-    {
-      id: 'm3',
-      senderId: user?.id || '',
-      receiverId: '1',
-      content: 'Chào Alice! Cảm ơn bạn đã liên hệ. Mình rất quan tâm đến việc hợp tác.',
-      type: 'text',
-      timestamp: new Date('2024-01-15T14:32:00'),
-      isRead: false,
-      isDelivered: true
-    }
-  ]
+
 
   const getSelectedConversationData = () => {
-    return mockConversations.find(conv => conv.id === selectedConversation)
+    return selectedConversation as any
   }
 
   const getMessagesForConversation = (conversationId: string) => {
-    if (conversationId === '1') return mockMessages
     return []
   }
 
@@ -230,7 +147,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [selectedConversation])
+  }, [selectedConversation, selectedConversationId])
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return
@@ -256,11 +173,15 @@ export default function MessagesPage() {
     }
   }
 
-  const filteredConversations = mockConversations.filter(conv => {
-    if (!searchQuery) return true
-    const participant = conv.participants[0]
-    return participant.username.toLowerCase().includes(searchQuery.toLowerCase())
-  })
+  const filteredConversations = useMemo(() => {
+    const list = conversations
+    if (!searchQuery) return list
+    return list.filter((conv: any) => {
+      const participant: any = conv.otherUser || (conv.participants && conv.participants[0])
+      const name = participant?.username || participant?.displayName || ''
+      return name.toLowerCase().includes(searchQuery.toLowerCase())
+    })
+  }, [conversations, searchQuery])
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -305,18 +226,7 @@ export default function MessagesPage() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <Input placeholder="Tìm người dùng..." />
-                    <div className="space-y-2">
-                      {mockUsers.map(user => (
-                        <div key={user.id} className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.avatar} />
-                            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{user.username}</span>
-                          {user.isOnline && <Badge variant="secondary" className="bg-green-100 text-green-800">Online</Badge>}
-                        </div>
-                      ))}
-                    </div>
+                    <div className="space-y-2"></div>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -334,14 +244,15 @@ export default function MessagesPage() {
           <CardContent className="p-0">
             <ScrollArea className="h-[calc(80vh-140px)]">
               <div className="space-y-1 p-3">
-                {filteredConversations.map((conversation) => {
-                  const participant = conversation.participants[0]
-                  const isSelected = selectedConversation === conversation.id
-                  
+                {filteredConversations.map((conversation: any) => {
+                  const participant: any = conversation.otherUser || (conversation.participants && conversation.participants[0])
+                  const isSelected = selectedConversationId === (conversation.id?.toString?.() || String(conversation.id))
+                  const displayName = participant?.displayName || participant?.username || 'Người dùng'
+                  const avatar = participant?.avatar
                   return (
                     <div
                       key={conversation.id}
-                      onClick={() => setSelectedConversation(conversation.id)}
+                      onClick={() => setSelectedConversationId(conversation.id?.toString?.() || String(conversation.id))}
                       className={`p-3 rounded-lg cursor-pointer transition-colors ${
                         isSelected ? 'bg-primary/10' : 'hover:bg-gray-100'
                       }`}
@@ -349,39 +260,16 @@ export default function MessagesPage() {
                       <div className="flex items-center space-x-3">
                         <div className="relative">
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={participant.avatar} />
-                            <AvatarFallback>{participant.username.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarImage src={avatar} />
+                            <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                          {participant.isOnline && (
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                          )}
                         </div>
-                        
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
-                              <p className="font-medium truncate">{participant.username}</p>
-                              {conversation.isPinned && <Pin className="h-3 w-3 text-muted-foreground" />}
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              {conversation.lastMessage && (
-                                <span className="text-xs text-muted-foreground">
-                                  {formatLastMessageTime(conversation.lastMessage.timestamp)}
-                                </span>
-                              )}
-                              {conversation.unreadCount > 0 && (
-                                <Badge variant="default" className="bg-blue-600 text-white h-5 w-5 text-xs rounded-full p-0 flex items-center justify-center">
-                                  {conversation.unreadCount}
-                                </Badge>
-                              )}
+                              <p className="font-medium truncate">{displayName}</p>
                             </div>
                           </div>
-                          {conversation.lastMessage && (
-                            <p className="text-sm text-muted-foreground truncate">
-                              {conversation.lastMessage.senderId === user?.id && 'Bạn: '}
-                              {conversation.lastMessage.content}
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -394,27 +282,21 @@ export default function MessagesPage() {
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col">
-          {selectedConversation ? (
+          {selectedConversationId ? (
             <>
               {/* Chat Header */}
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={getSelectedConversationData()?.participants[0].avatar} />
+                      <AvatarImage src={(getSelectedConversationData() as any)?.otherUser?.avatar || (getSelectedConversationData() as any)?.participants?.[0]?.avatar} />
                       <AvatarFallback>
-                        {getSelectedConversationData()?.participants[0].username.charAt(0).toUpperCase()}
+                        {(getSelectedConversationData() as any)?.otherUser?.username?.charAt(0)?.toUpperCase() || (getSelectedConversationData() as any)?.participants?.[0]?.username?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-semibold">{getSelectedConversationData()?.participants[0].username}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {getSelectedConversationData()?.participants[0].isOnline ? (
-                          <span className="text-green-600">Đang hoạt động</span>
-                        ) : (
-                          `Hoạt động ${formatMessageTime(getSelectedConversationData()?.participants[0].lastSeen || new Date())}`
-                        )}
-                      </p>
+                      <h3 className="font-semibold">{(getSelectedConversationData() as any)?.otherUser?.username || (getSelectedConversationData() as any)?.participants?.[0]?.username || 'Cuộc trò chuyện'}</h3>
+                      <p className="text-sm text-muted-foreground"></p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -440,7 +322,7 @@ export default function MessagesPage() {
               <CardContent className="flex-1 p-0">
                 <ScrollArea className="h-[calc(80vh-200px)] p-4">
                   <div className="space-y-4">
-                    {getMessagesForConversation(selectedConversation).map((message) => {
+                    {getMessagesForConversation(selectedConversationId).map((message: any) => {
                       const isOwnMessage = message.senderId === user?.id
                       
                       return (
@@ -506,17 +388,12 @@ export default function MessagesPage() {
                       <Smile className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Button 
-                    size="icon" 
-                    onClick={handleSendMessage}
-                    disabled={!messageInput.trim() || isSending}
+                  <Button
+                    size="icon"
+                    disabled
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {isSending ? (
-                      <Loader className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
+                    <Send className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

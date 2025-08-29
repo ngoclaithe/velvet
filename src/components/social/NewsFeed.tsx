@@ -131,7 +131,19 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
             limit: POSTS_PER_PAGE
           })
         } else {
-          throw new Error('Authentication required')
+          setFeeds(prev => ({
+            ...prev,
+            [feedKey]: {
+              ...prev[feedKey],
+              posts: [],
+              loading: false,
+              hasMore: false,
+              page: page,
+              total: 0,
+              error: null
+            }
+          }))
+          return
         }
       } else if (tab === 'my-posts') {
         // Use getUserPosts for current user's posts
@@ -616,13 +628,13 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? 'Chưa theo dõi ai' :
+                {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') :
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
                  'Chưa có bài viết'}
               </h3>
               <p className="text-muted-foreground">
                 {activeTab === 'following'
-                  ? 'Hãy theo dõi một số người để xem bài viết của họ tại đây'
+                  ? (!isAuthenticated ? 'Hãy đăng nhập để xem các bài viết của creator đã follow' : 'Hãy theo dõi một số người để xem bài viết của họ tại đây')
                   : activeTab === 'my-posts'
                   ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                   : 'Hiện tại chưa có bài viết nào. Hãy quay lại sau!'
