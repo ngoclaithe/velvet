@@ -33,7 +33,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
+      <div className="container flex h-16 items-center justify-between px-2 sm:px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 flex items-center justify-center">
@@ -46,7 +46,7 @@ export default function Header() {
         </Link>
 
         {/* Search */}
-        <div className="flex-1 max-w-md mx-8">
+        <div className="hidden md:flex flex-1 max-w-md mx-2 md:mx-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
@@ -58,33 +58,39 @@ export default function Header() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex items-center space-x-4">
+        <nav className="flex items-center space-x-2 md:space-x-4">
           {isAuthenticated ? (
             <>
               {/* Quick Actions */}
               <Link href="/streams">
-                <Button variant="ghost" size="sm">
-                  <Zap className="h-4 w-4 mr-2" />
-                  Live Streams
+                <Button variant="ghost" size="sm" className="px-2 md:px-3">
+                  <Zap className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Live Streams</span>
                 </Button>
               </Link>
 
               {user?.role === 'creator' && (
                 <Link href="/stream">
-                  <Button variant="ghost" size="sm" className="text-red-600">
-                    <Zap className="h-4 w-4 mr-2" />
-                    Go Live
+                  <Button variant="ghost" size="sm" className="text-red-600 px-2 md:px-3">
+                    <Zap className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Go Live</span>
                   </Button>
                 </Link>
               )}
 
               <Link href="/create-post">
-                <Button variant="ghost" size="sm" className="text-pink-600">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Tạo bài viết
+                <Button variant="ghost" size="sm" className="text-pink-600 px-2 md:px-3">
+                  <MessageCircle className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Tạo bài viết</span>
                 </Button>
               </Link>
               
+              {/* Mobile search trigger */}
+              <Link href="/search" className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Search className="h-5 w-5" />
+                </Button>
+              </Link>
               {/* Notifications */}
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
@@ -183,20 +189,20 @@ export default function Header() {
           ) : (
             <>
               {isGuest && (
-                <div className="hidden sm:flex items-center space-x-2 text-sm text-muted-foreground">
+                <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
                   <span>Đang xem dưới dạng khách</span>
                 </div>
               )}
               <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Đăng nhập
+                <Button variant="ghost" size="sm" className="px-2 md:px-3">
+                  <LogIn className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Đăng nhập</span>
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Đăng ký
+                <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-2 md:px-3">
+                  <UserPlus className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Đăng ký</span>
                 </Button>
               </Link>
             </>
