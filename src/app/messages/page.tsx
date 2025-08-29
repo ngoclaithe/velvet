@@ -68,14 +68,17 @@ interface Conversation {
 export default function MessagesPage() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const [conversations, setConversations] = useState<any[]>([])
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<any | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Mock data - would come from API
+  // Load conversations and selected
   const mockUsers: User[] = [
     {
       id: '1',
