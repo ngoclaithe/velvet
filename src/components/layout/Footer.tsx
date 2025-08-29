@@ -120,13 +120,13 @@ export default function Footer() {
             <p className="text-sm text-muted-foreground">
               Đăng ký để nhận thông tin về tính năng mới, nội dung hot và ưu đãi độc quyền.
             </p>
-            <div className="flex space-x-2">
-              <Input 
-                type="email" 
-                placeholder="Email của bạn" 
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                type="email"
+                placeholder="Email của bạn"
                 className="flex-1"
               />
-              <Button size="sm">
+              <Button size="sm" className="w-full sm:w-auto">
                 <Mail className="h-4 w-4" />
               </Button>
             </div>
