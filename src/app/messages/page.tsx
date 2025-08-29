@@ -173,11 +173,15 @@ export default function MessagesPage() {
     }
   }
 
-  const filteredConversations = mockConversations.filter(conv => {
-    if (!searchQuery) return true
-    const participant = conv.participants[0]
-    return participant.username.toLowerCase().includes(searchQuery.toLowerCase())
-  })
+  const filteredConversations = useMemo(() => {
+    const list = conversations
+    if (!searchQuery) return list
+    return list.filter((conv: any) => {
+      const participant: any = conv.otherUser || (conv.participants && conv.participants[0])
+      const name = participant?.username || participant?.displayName || ''
+      return name.toLowerCase().includes(searchQuery.toLowerCase())
+    })
+  }, [conversations, searchQuery])
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
