@@ -289,20 +289,14 @@ export default function MessagesPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={getSelectedConversationData()?.participants[0].avatar} />
+                      <AvatarImage src={(getSelectedConversationData() as any)?.otherUser?.avatar || (getSelectedConversationData() as any)?.participants?.[0]?.avatar} />
                       <AvatarFallback>
-                        {getSelectedConversationData()?.participants[0].username.charAt(0).toUpperCase()}
+                        {(getSelectedConversationData() as any)?.otherUser?.username?.charAt(0)?.toUpperCase() || (getSelectedConversationData() as any)?.participants?.[0]?.username?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-semibold">{getSelectedConversationData()?.participants[0].username}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {getSelectedConversationData()?.participants[0].isOnline ? (
-                          <span className="text-green-600">Đang hoạt động</span>
-                        ) : (
-                          `Hoạt động ${formatMessageTime(getSelectedConversationData()?.participants[0].lastSeen || new Date())}`
-                        )}
-                      </p>
+                      <h3 className="font-semibold">{(getSelectedConversationData() as any)?.otherUser?.username || (getSelectedConversationData() as any)?.participants?.[0]?.username || 'Cuộc trò chuyện'}</h3>
+                      <p className="text-sm text-muted-foreground"></p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -328,7 +322,7 @@ export default function MessagesPage() {
               <CardContent className="flex-1 p-0">
                 <ScrollArea className="h-[calc(80vh-200px)] p-4">
                   <div className="space-y-4">
-                    {getMessagesForConversation(selectedConversation).map((message) => {
+                    {getMessagesForConversation(selectedConversationId).map((message: any) => {
                       const isOwnMessage = message.senderId === user?.id
                       
                       return (
@@ -394,17 +388,12 @@ export default function MessagesPage() {
                       <Smile className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Button 
-                    size="icon" 
-                    onClick={handleSendMessage}
-                    disabled={!messageInput.trim() || isSending}
+                  <Button
+                    size="icon"
+                    disabled
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {isSending ? (
-                      <Loader className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
+                    <Send className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
