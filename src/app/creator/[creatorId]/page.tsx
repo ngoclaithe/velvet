@@ -10,6 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { creatorAPI } from '@/lib/api/creator'
+import { createConversation } from '@/lib/api/conversation'
+import { subscribeTopic } from '@/lib/mqttClient'
 import { userApi } from '@/lib/api/user'
 import {
   UserPlus,
@@ -84,6 +86,7 @@ export default function CreatorDetailPage() {
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
+  const [chatLoading, setChatLoading] = useState(false)
   const { toast } = useToast()
   const { user, isAuthenticated } = useAuth()
 
@@ -379,8 +382,41 @@ export default function CreatorDetailPage() {
                     <Button
                       variant="outline"
                       className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      disabled={chatLoading}
+                      onClick={async () => {
+                        if (!isAuthenticated) {
+                          toast({ title: 'Yêu cầu đăng nhập', description: 'Vui lòng đăng nhập để nhắn tin', variant: 'destructive' })
+                          return
+                        }
+                        try {
+                          setChatLoading(true)
+                          const resp = await createConversation({ receiverId: creator.userId })
+                          if (!resp.success || !resp.data) {
+                            throw new Error(resp.error || 'Không tạo được cuộc trò chuyện')
+                          }
+                          const topic = (resp.data as any).topic as string | undefined
+                          if (topic) {
+                            const ok = await subscribeTopic(topic)
+                            if (ok) {
+                              toast({ title: 'Đã mở chat', description: 'Đã subscribe topic ' + topic })
+                            } else {
+                              toast({ title: 'Subscribe thất bại', description: 'Không thể subscribe MQTT topic', variant: 'destructive' })
+                            }
+                          } else {
+                            toast({ title: 'Thiếu topic', description: 'API không trả về topic để subscribe', variant: 'destructive' })
+                          }
+                        } catch (e: any) {
+                          toast({ title: 'Lỗi', description: e?.message || 'Không thể nhắn tin', variant: 'destructive' })
+                        } finally {
+                          setChatLoading(false)
+                        }
+                      }}
                     >
-                      <MessageCircle className="w-4 h-4 mr-2" />
+                      {chatLoading ? (
+                        <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2" />
+                      ) : (
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                      )}
                       Nhắn tin
                     </Button>
                     {creator.isAvailableForBooking && (
