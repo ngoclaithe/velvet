@@ -112,7 +112,7 @@ export default function MessagesPage() {
 
 
   const getSelectedConversationData = () => {
-    return mockConversations.find(conv => conv.id === selectedConversation)
+    return selectedConversation as any
   }
 
   const getMessagesForConversation = (conversationId: string) => {
@@ -222,7 +222,7 @@ export default function MessagesPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <Input placeholder="Tìm người dùng..." />
+                    <Input placeholder="Tìm người d��ng..." />
                     <div className="space-y-2">
                       {mockUsers.map(user => (
                         <div key={user.id} className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
