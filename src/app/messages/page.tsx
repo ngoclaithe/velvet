@@ -390,7 +390,8 @@ export default function MessagesPage() {
                   </div>
                   <Button
                     size="icon"
-                    disabled
+                    onClick={handleSendMessage}
+                    disabled={isSending || !messageInput.trim()}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     <Send className="h-4 w-4" />

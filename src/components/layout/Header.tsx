@@ -27,9 +27,94 @@ import {
   MessageCircle,
   Shield
 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from '@/hooks/use-toast'
+import type { MqttClient } from 'mqtt'
+import { connectMqtt, subscribeTopic } from '@/lib/mqttClient'
+
+interface AppNotification {
+  id: string
+  type: string
+  title?: string
+  message?: string
+  data?: any
+  topic?: string
+  read?: boolean
+  receivedAt: number
+}
 
 export default function Header() {
   const { user, isAuthenticated, isGuest, logout } = useAuth()
+  const router = useRouter()
+  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const mqttRef = useRef<MqttClient | null>(null)
+
+  // Subscribe to per-user notifications and listen for incoming messages
+  useEffect(() => {
+    let isMounted = true
+    const setup = async () => {
+      if (!isAuthenticated || !user?.id) return
+      try {
+        const client = await connectMqtt()
+        if (!client) return
+        mqttRef.current = client
+        const userTopic = `notifications/${user.id}`
+        await subscribeTopic(userTopic)
+
+        const handler = (topic: string, payload: Buffer) => {
+          if (!isMounted) return
+          try {
+            const raw = payload.toString('utf-8')
+            const data = JSON.parse(raw)
+            const n: AppNotification = {
+              id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+              type: data?.type || 'info',
+              title: data?.title,
+              message: data?.message,
+              data: data?.data,
+              topic,
+              read: false,
+              receivedAt: Date.now(),
+            }
+            setNotifications((prev) => [n, ...prev].slice(0, 50))
+            // Quick toast for visibility
+            toast({ title: n.title || 'Thông báo', description: n.message })
+          } catch {}
+        }
+        client.on('message', handler)
+
+        return () => {
+          try { client.off('message', handler as any) } catch {}
+        }
+      } catch {}
+    }
+    const cleanup = setup()
+    return () => {
+      ;(async () => { await cleanup })()
+      isMounted = false
+    }
+  }, [isAuthenticated, user?.id])
+
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
+
+  const handleNotificationClick = async (n: AppNotification) => {
+    // Mark as read
+    setNotifications((prev) => prev.map(x => x.id === n.id ? { ...x, read: true } : x))
+
+    if (n.type === 'message') {
+      const convId = n.data?.conversationId
+      const mqttTopic = n.data?.mqttTopic
+      if (mqttTopic) {
+        try { await subscribeTopic(mqttTopic) } catch {}
+      }
+      if (convId) {
+        router.push(`/messages?conversationId=${convId}`)
+        return
+      }
+      router.push('/messages')
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -91,13 +176,41 @@ export default function Header() {
                   <Search className="h-5 w-5" />
                 </Button>
               </Link>
+
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">
-                  3
-                </Badge>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full p-0 text-xs flex items-center justify-center">
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-80" align="end">
+                  <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-sm text-muted-foreground">Không có thông báo</div>
+                  ) : (
+                    notifications.slice(0, 10).map((n) => (
+                      <DropdownMenuItem
+                        key={n.id}
+                        className="cursor-pointer flex flex-col items-start space-y-1"
+                        onClick={() => handleNotificationClick(n)}
+                      >
+                        <div className="w-full flex items-center justify-between">
+                          <span className="font-medium text-sm">{n.title || 'Thông báo'}</span>
+                          {!n.read && <span className="ml-2 h-2 w-2 rounded-full bg-blue-600" />}
+                        </div>
+                        {n.message && <span className="text-xs text-muted-foreground">{n.message}</span>}
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* User Menu */}
               <DropdownMenu>
