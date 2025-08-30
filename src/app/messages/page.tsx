@@ -609,10 +609,10 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button size="icon" variant="ghost">
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')}>
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost">
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')}>
                       <Video className="h-4 w-4" />
                     </Button>
 
