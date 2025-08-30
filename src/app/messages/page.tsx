@@ -531,7 +531,8 @@ export default function MessagesPage() {
   }
 
   const handleIncomingIce = async (cand: RTCIceCandidateInit) => {
-    const pc = peerRef.current
+    let pc = peerRef.current
+    if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
     if (!pc) return
     try { await pc.addIceCandidate(cand) } catch (e) { console.error('[CALL] addIceCandidate error', e) }
   }
@@ -717,7 +718,7 @@ export default function MessagesPage() {
                   <DialogHeader>
                     <DialogTitle>Tin nhắn mới</DialogTitle>
                     <DialogDescription>
-                      Tìm và nhắn tin cho người dùng khác
+                      Tìm và nh��n tin cho người dùng khác
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
