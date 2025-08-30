@@ -200,6 +200,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!callRoomId) return
     initiatorRef.current = false
     setState({ callRoomId, callType: type, status: 'active' })
+    console.log('[CALL][EMIT] join_call_room (accept)', { callRoomId })
+    socket.emit('join_call_room', { token: session?.accessToken, callRoomId })
     console.log('[CALL][EMIT] call_answer', { callRoomId })
     socket.emit('call_answer', { token: session?.accessToken, callRoomId })
     await ensurePeerAndMedia(type)
