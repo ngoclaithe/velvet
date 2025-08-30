@@ -53,7 +53,7 @@ export default function Header() {
   const { user, session, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<AppNotification[]>([])
-  const [incomingCall, setIncomingCall] = useState<AppNotification | null>(null)
+  // IncomingCallModal will handle call popups globally
   const [callOverlay, setCallOverlay] = useState<{ active: boolean; roomId: string | null; type: 'audio' | 'video'; status: 'waiting' | 'active' }>({ active: false, roomId: null, type: 'video', status: 'waiting' })
   const [isMicOn, setIsMicOn] = useState(true)
   const [isCamOn, setIsCamOn] = useState(true)
@@ -107,9 +107,7 @@ export default function Header() {
               receivedAt: Date.now(),
             }
             setNotifications((prev) => [n, ...prev].slice(0, 50))
-            if (n.type === 'call_request') {
-              setIncomingCall(n)
-            } else if (n.type !== 'message' && (n.title || n.message)) {
+            if (n.type !== 'message' && (n.title || n.message)) {
               toast({ title: n.title, description: n.message })
             }
           } catch {}
@@ -130,6 +128,7 @@ export default function Header() {
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
 
+  // Call handling moved to IncomingCallModal
   const handleAcceptCall = async () => {
     if (!incomingCall?.data?.callRoomId || !user?.id) return
     try {
@@ -345,7 +344,9 @@ export default function Header() {
 
   return (
     <>
-    {incomingCall && (
+    {/* IncomingCallModal renders globally; Header no longer shows call popup */}
+    {/* incomingCall UI removed */}
+    {false && (
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
         <div className="bg-background rounded-lg shadow-xl p-6 w-[92%] max-w-md text-center">
           <div className="text-lg font-semibold mb-2">{incomingCall.title || 'Video Call'}</div>
