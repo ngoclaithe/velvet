@@ -25,96 +25,16 @@ import {
   MessageCircle,
   Shield,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from '@/hooks/use-toast'
-import type { MqttClient } from 'mqtt'
-import { connectMqtt, subscribeTopic } from '@/lib/mqttClient'
-
-interface AppNotification {
-  id: string
-  type: string
-  title?: string
-  message?: string
-  data?: any
-  topic?: string
-  read?: boolean
-  receivedAt: number
-}
+import { useNotification } from '@/components/notification/NotificationProvider'
 
 export default function Header() {
   const { user, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
-  const [notifications, setNotifications] = useState<AppNotification[]>([])
-  const mqttRef = useRef<MqttClient | null>(null)
+  const { notifications, unreadCount } = useNotification()
 
-  useEffect(() => {
-    let isMounted = true
-    const setup = async () => {
-      if (!isAuthenticated || !user?.id) return
-      try {
-        const client = await connectMqtt()
-        if (!client) return
-        mqttRef.current = client
-        const userTopic = `notifications/${user.id}`
-        await subscribeTopic(userTopic)
-
-        const handler = (topic: string, payload: Buffer) => {
-          console.log('[HEADER][MQTT][message] topic=', topic, 'len=', payload?.length)
-          if (!isMounted) return
-          if (topic !== userTopic) return
-          try {
-            const raw = payload.toString('utf-8')
-            console.log('[HEADER][MQTT] raw=', raw)
-            const data = JSON.parse(raw)
-            console.log('[HEADER][MQTT] parsed=', data)
-
-            let title = data?.title
-            let message = data?.message
-            if ((data?.type || '') === 'message') {
-              const sender = data?.data?.senderUsername || data?.data?.senderName || ''
-              title = 'Cuộc trò chuyện mới'
-              message = sender ? `${sender} đã bắt đầu cuộc trò chuyện với bạn` : 'Bạn có cuộc trò chuyện mới'
-            }
-
-            const isCallType = ['audio', 'video', 'call'].includes(String(data?.type)) || ['audio','video','call'].includes(String(data?.data?.callType || data?.data?.mediaType))
-            const n: AppNotification = {
-              id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-              type: data?.type || 'info',
-              title,
-              message,
-              data: data?.data,
-              topic,
-              read: false,
-              receivedAt: Date.now(),
-            }
-            setNotifications((prev) => [n, ...prev].slice(0, 50))
-
-            const isCall = isCallType
-            console.log('[HEADER][MQTT] notify - isCall=', isCall, 'notification=', n)
-            if (!isCall && (n.title || n.message)) {
-              toast({ title: n.title, description: n.message })
-            }
-          } catch {}
-        }
-        client.on('message', handler)
-
-        return () => {
-          try { client.off('message', handler as any) } catch {}
-        }
-      } catch {}
-    }
-    const cleanup = setup()
-    return () => {
-      ;(async () => { await cleanup })()
-      isMounted = false
-    }
-  }, [isAuthenticated, user?.id])
-
-  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
-
-  const openNotification = (n: AppNotification) => {
-    console.log('[HEADER] openNotification', n)
+  const openNotification = (n: any) => {
     const isCall = ['audio', 'video', 'call'].includes(String(n.type))
     if (isCall) {
       const convId = n.data?.conversationId?.toString?.() || n.data?.conversation?.id?.toString?.()
