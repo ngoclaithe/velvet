@@ -249,19 +249,25 @@ export default function Header() {
 
     const onAnswered = async (data: any) => {
       if (!mounted) return
-      if (String(data?.answererId) !== String(user?.id)) { console.log('[CALL][Header] call_answered (ignored - not answerer)', data); return }
-      console.log('[CALL][Header] call_answered', data)
       const roomId = data?.callRoomId
       if (!roomId) return
-      const useType: 'audio' | 'video' = (incomingCall?.data?.callType === 'audio' ? 'audio' : 'video') || 'video'
-      roleRef.current = 'answerer'
+      const isAnswerer = String(data?.answererId) === String(user?.id)
+      let useType: 'audio' | 'video' = 'video'
+      if (isAnswerer) {
+        useType = (incomingCall?.data?.callType === 'audio' ? 'audio' : 'video') || 'video'
+      } else {
+        try { const stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null'); if (stored?.type) useType = stored.type } catch {}
+      }
+      console.log('[CALL][Header] call_answered', { ...data, role: isAnswerer ? 'answerer' : 'caller', useType })
       setCallOverlay({ active: true, roomId, type: useType, status: 'active' })
       await initPeerConnection(useType)
+      if (!isAnswerer) {
+        await createAndSendOffer(roomId)
+      }
     }
 
     const onMediaStream = async (payload: any) => {
       if (!mounted) return
-      if (roleRef.current !== 'answerer') return
       const rid = payload?.callRoomId
       if (!rid || rid !== callOverlay.roomId) return
       if (!payload?.streamData) return
@@ -270,7 +276,6 @@ export default function Header() {
 
     const onIce = async (payload: any) => {
       if (!mounted) return
-      if (roleRef.current !== 'answerer') return
       const rid = payload?.callRoomId
       if (!rid || rid !== callOverlay.roomId) return
       if (!payload?.candidate) return
@@ -325,6 +330,7 @@ export default function Header() {
     try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
     mediaStreamRef.current = null
     roleRef.current = null
+    try { sessionStorage.removeItem('active_call_room') } catch {}
     setCallOverlay({ active: false, roomId: null, type: 'video', status: 'waiting' })
   }
 
