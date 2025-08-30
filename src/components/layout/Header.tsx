@@ -66,6 +66,7 @@ export default function Header() {
   const initiatorRef = useRef<boolean>(false)
   const acceptedRef = useRef<boolean>(false)
   const roleRef = useRef<'caller' | 'answerer' | null>(null)
+  const lastAnsweredRef = useRef<{ roomId: string; at: number } | null>(null)
   const mqttRef = useRef<MqttClient | null>(null)
 
   // Subscribe to per-user notifications and listen for incoming messages
