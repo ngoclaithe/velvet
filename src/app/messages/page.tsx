@@ -99,6 +99,7 @@ export default function MessagesPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
   const peerRef = useRef<RTCPeerConnection | null>(null)
+  const initiatorRef = useRef<boolean>(false)
   const [isMicOn, setIsMicOn] = useState(true)
   const [isCamOn, setIsCamOn] = useState(true)
   const seenMsgKeysRef = useRef<Map<string, number>>(new Map())
@@ -124,6 +125,7 @@ export default function MessagesPage() {
         status: data.status === 'active' ? 'active' : 'waiting',
         participants: Number(data.participants || 1)
       })
+      console.log('[CALL][DEBUG] state after join', { state: callState, initiator: initiatorRef.current })
     }
 
     const onStarted = (data: any) => {
@@ -132,6 +134,7 @@ export default function MessagesPage() {
       console.log('[CALL] call_started', data)
       const type: 'audio' | 'video' = (data.callType === 'audio') ? 'audio' : 'video'
       setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2), callType: type }))
+      console.log('[CALL][DEBUG] onStarted => will start legacy stream', { type, room: data.callRoomId })
       startSendingStream(data.callRoomId, type)
     }
 
@@ -169,8 +172,9 @@ export default function MessagesPage() {
         const roomId = data?.callRoomId
         if (!roomId) return
         if (callState.callRoomId && callState.callRoomId !== roomId) return
-        const role: 'caller' | 'answerer' = callState.status === 'waiting' ? 'caller' : 'answerer'
+        const role: 'caller' | 'answerer' = initiatorRef.current ? 'caller' : 'answerer'
         const type: 'audio' | 'video' = callState.callType || 'video'
+        console.log('[CALL][DEBUG] onAnswered -> role/type/state', { role, type, prevState: callState })
         setCallState(prev => ({ ...prev, callRoomId: roomId, status: 'active', callType: type }))
         await initPeerConnection(type)
         if (role === 'caller') {
@@ -184,6 +188,7 @@ export default function MessagesPage() {
 
     const onMediaStream = async (payload: any) => {
       try {
+        console.log('[CALL] <- media_stream', payload)
         const roomId = payload?.callRoomId
         if (!roomId || roomId !== callState.callRoomId) return
         const sd = payload?.streamData
@@ -197,6 +202,7 @@ export default function MessagesPage() {
 
     const onIceCandidate = async (payload: any) => {
       try {
+        console.log('[CALL] <- ice_candidate', payload)
         const roomId = payload?.callRoomId
         if (!roomId || roomId !== callState.callRoomId) return
         const cand = payload?.candidate
@@ -463,13 +469,17 @@ export default function MessagesPage() {
       ]
     })
 
+    console.log('[CALL][DEBUG] initPeerConnection', { type })
+
     pc.onicecandidate = (event) => {
       if (event.candidate && callState.callRoomId) {
-        wsRef.current?.emit('ice_candidate', {
+        console.log('[CALL] -> ice_candidate', event.candidate)
+        const ok = wsRef.current?.emit('ice_candidate', {
           callRoomId: callState.callRoomId,
           candidate: event.candidate,
           token: session?.accessToken,
         })
+        console.log('[CALL][EMIT ice_candidate] sent?', ok)
       }
     }
 
@@ -502,28 +512,33 @@ export default function MessagesPage() {
     if (!pc) return
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
-    wsRef.current?.emit('media_stream', {
+    console.log('[CALL] -> media_stream (offer)', { roomId, sdpLen: offer.sdp?.length })
+    const ok = wsRef.current?.emit('media_stream', {
       callRoomId: roomId,
       streamData: { type: 'offer', sdp: offer.sdp },
       token: session?.accessToken,
     })
+    console.log('[CALL][EMIT media_stream] sent?', ok)
   }
 
   const handleIncomingSDP = async (sd: { type: 'offer' | 'answer'; sdp: string }) => {
     let pc = peerRef.current
     if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
     if (!pc) return
+    console.log('[CALL][DEBUG] handleIncomingSDP', sd.type)
     const desc = new RTCSessionDescription({ type: sd.type, sdp: sd.sdp })
     if (sd.type === 'offer') {
       await pc.setRemoteDescription(desc)
       const ans = await pc.createAnswer()
       await pc.setLocalDescription(ans)
       if (callState.callRoomId) {
-        wsRef.current?.emit('media_stream', {
+        console.log('[CALL] -> media_stream (answer)', { roomId: callState.callRoomId, sdpLen: ans.sdp?.length })
+        const ok = wsRef.current?.emit('media_stream', {
           callRoomId: callState.callRoomId,
           streamData: { type: 'answer', sdp: ans.sdp },
           token: session?.accessToken,
         })
+        console.log('[CALL][EMIT media_stream] sent?', ok)
       }
     } else if (sd.type === 'answer') {
       if (!pc.currentRemoteDescription) {
@@ -556,6 +571,7 @@ export default function MessagesPage() {
   }
 
   const endCall = () => {
+    initiatorRef.current = false
     try { peerRef.current?.getSenders?.().forEach(s => { try { s.track?.stop() } catch {} }) } catch {}
     try { peerRef.current?.close() } catch {}
     peerRef.current = null
@@ -579,8 +595,11 @@ export default function MessagesPage() {
         await ws.connect(String(user?.id || ''))
         console.log('[CALL] emit join_call_room', { callRoomId: roomId })
         ws.emit('join_call_room', { callRoomId: roomId, token: session?.accessToken })
+        initiatorRef.current = true
         setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
+        console.log('[CALL][DEBUG] initiateCall set waiting', { roomId, callType, initiator: initiatorRef.current })
         try { await ensureLocalMedia(callType) } catch {}
+        console.log('[CALL][DEBUG] local media ready')
       } else {
         console.warn('[CALL] No roomId from API')
       }
