@@ -112,6 +112,7 @@ export default function MessagesPage() {
 
     const onJoined = (data: any) => {
       if (!data?.callRoomId) return
+      console.log('[CALL] call_room_joined', data)
       setCallState({
         callRoomId: data.callRoomId,
         callType: (data.callType === 'audio' ? 'audio' : 'video'),
@@ -122,13 +123,16 @@ export default function MessagesPage() {
 
     const onStarted = (data: any) => {
       if (!data?.callRoomId) return
-      setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2) }))
-      startSendingStream()
+      console.log('[CALL] call_started', data)
+      const type: 'audio' | 'video' = (data.callType === 'audio') ? 'audio' : 'video'
+      setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2), callType: type }))
+      startSendingStream(data.callRoomId, type)
     }
 
     const onReceiveStream = async (data: any) => {
       if (!data?.callRoomId || data.callRoomId !== callState.callRoomId) return
       try {
+        console.log('[CALL] receive_stream', { roomId: data.callRoomId, type: data.streamType, size: data.streamData?.length || 0 })
         const base64 = data.streamData
         const byteCharacters = atob(base64)
         const byteNumbers = new Array(byteCharacters.length)
@@ -340,18 +344,18 @@ export default function MessagesPage() {
     }
   }, [currentMessages.length, selectedConversationId])
 
-  const startSendingStream = async () => {
+  const startSendingStream = async (roomId: string, type: 'audio' | 'video') => {
     try {
-      if (!callState.callRoomId || !callState.callType) return
-      const constraints: MediaStreamConstraints = callState.callType === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
+      console.log('[CALL] startSendingStream', { roomId, type })
+      const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
       mediaStreamRef.current = mediaStream
-      if (localVideoRef.current && callState.callType === 'video') {
-        localVideoRef.current.srcObject = mediaStream
+      if (localVideoRef.current && type === 'video') {
+        ;(localVideoRef.current as any).srcObject = mediaStream
         localVideoRef.current.muted = true
         try { await localVideoRef.current.play() } catch {}
       }
-      const mime = callState.callType === 'audio' ? 'audio/webm' : 'video/webm;codecs=vp8'
+      const mime = type === 'audio' ? 'audio/webm' : 'video/webm;codecs=vp8'
       const recorder = new MediaRecorder(mediaStream, { mimeType: mime })
       mediaRecorderRef.current = recorder
       recorder.ondataavailable = async (ev: BlobEvent) => {
@@ -364,10 +368,12 @@ export default function MessagesPage() {
           binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)))
         }
         const base64Data = btoa(binary)
-        wsRef.current?.emit('send_stream', { callRoomId: callState.callRoomId, streamData: base64Data, streamType: callState.callType })
+        wsRef.current?.emit('send_stream', { callRoomId: roomId, streamData: base64Data, streamType: type })
       }
       recorder.start(1000)
-    } catch {}
+    } catch (e) {
+      console.error('[CALL] startSendingStream error', e)
+    }
   }
 
   const stopSendingStream = () => {
@@ -385,17 +391,24 @@ export default function MessagesPage() {
   const initiateCall = async (type: 'audio' | 'video') => {
     if (!selectedConversationId || !selectedConversation) return
     try {
+      console.log('[CALL] initiateCall -> sendDirectMessage', { conversationId: String(selectedConversationId), type })
       const resp: any = await chatApi.sendDirectMessage(String(selectedConversationId), { content: null, messageType: type })
+      console.log('[CALL] API response', resp)
       const callRoom = resp?.data?.callRoom || resp?.data?.data?.callRoom || resp?.callRoom
       const roomId = callRoom?.roomId
       const callType = (callRoom?.callType === 'audio') ? 'audio' : 'video'
       if (roomId) {
         const ws = wsRef.current || getWebSocket()
-        ws.connect(String(user?.id || ''))
+        await ws.connect(String(user?.id || ''))
+        console.log('[CALL] emit join_call_room', { callRoomId: roomId })
         ws.emit('join_call_room', { callRoomId: roomId })
         setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
+      } else {
+        console.warn('[CALL] No roomId from API')
       }
-    } catch {}
+    } catch (e) {
+      console.error('[CALL] initiateCall error', e)
+    }
   }
 
   const handleSendMessage = async () => {
