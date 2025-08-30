@@ -575,6 +575,7 @@ export default function MessagesPage() {
         console.log('[CALL] emit join_call_room', { callRoomId: roomId })
         ws.emit('join_call_room', { callRoomId: roomId, token: session?.accessToken })
         setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
+        try { await ensureLocalMedia(callType) } catch {}
       } else {
         console.warn('[CALL] No roomId from API')
       }
