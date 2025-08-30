@@ -192,6 +192,49 @@ function MessagesInner() {
       .catch(() => setSelectedConversation(null))
   }, [isAuthenticated, selectedConversationId, searchParams, user?.id])
 
+  // Receiver-side fallback: listen to user notifications and auto-attach incoming call params
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return
+    let mounted = true
+    ;(async () => {
+      try {
+        const client = await connectMqtt()
+        if (!client) return
+        const topics = [`notifications/${user.id}`, `noti/${user.id}`]
+        await Promise.all(topics.map(t => subscribeTopic(t)))
+        const onMsg = (topic: string, buf: Buffer) => {
+          if (!mounted) return
+          try {
+            const raw = buf.toString('utf-8')
+            const data = JSON.parse(raw)
+            const t = (data?.type || '').toString().toLowerCase()
+            const media = (data?.mediaType || data?.callType || data?.data?.mediaType || data?.data?.callType || '').toString().toLowerCase()
+            const isCall = t === 'call' || media === 'audio' || media === 'video'
+            if (!isCall) return
+            const payload = data?.data || {}
+            const roomId = payload.callRoomId || payload.roomId
+            const convId = (payload.conversationId || payload.conversation?.id || selectedConversationId)?.toString?.()
+            const callType = (payload.callType || payload.mediaType || media || 'video').toString().toLowerCase()
+            if (!roomId || !convId) return
+            console.log('[MESSAGES][MQTT][incoming-call]', { roomId, convId, callType, topic })
+            const params = new URLSearchParams(window.location.search)
+            params.set('incoming', '1')
+            params.set('callRoomId', String(roomId))
+            params.set('callType', callType)
+            if (!params.get('conversationId')) params.set('conversationId', String(convId))
+            const url = `/messages?${params.toString()}`
+            if (window.location.search !== `?${params.toString()}`) {
+              router.replace(url)
+            }
+          } catch {}
+        }
+        client.on('message', onMsg)
+        return () => { try { client.off('message', onMsg as any) } catch {} }
+      } catch {}
+    })()
+    return () => { mounted = false }
+  }, [isAuthenticated, user?.id, router, selectedConversationId])
+
   const getSelectedConversationData = () => selectedConversation as any
   const getMessagesForConversation = (conversationId: string) => messagesByConv[conversationId] || []
 
