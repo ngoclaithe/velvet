@@ -166,8 +166,43 @@ export default function MessagesPage() {
     ws.on('call_room_joined', onJoined)
     ws.on('call_started', onStarted)
     ws.on('receive_stream', onReceiveStream)
-    const onAnswered = () => {}
+    const onAnswered = async (data: any) => {
+      try {
+        if (String(data?.answererId) === String(user?.id)) return
+        console.log('[CALL][Messages] call_answered (caller)', data)
+        const roomId = data?.callRoomId
+        if (!roomId) return
+        const type: 'audio' | 'video' = callState.callType || 'video'
+        setCallState(prev => ({ ...prev, callRoomId: roomId, status: 'active', callType: type }))
+        await initPeerConnection(type)
+        await createAndSendOffer(roomId)
+      } catch (e) {
+        console.error('[CALL][Messages] onAnswered error', e)
+      }
+    }
     ws.on('call_answered', onAnswered)
+
+    const onMediaStream = async (payload: any) => {
+      try {
+        if (String(user?.id) === String((payload as any)?.answererId)) return
+        if (!payload?.callRoomId || payload.callRoomId !== callState.callRoomId) return
+        if (!payload?.streamData) return
+        console.log('[CALL][Messages] <- media_stream', payload)
+        await handleIncomingSDP(payload.streamData)
+      } catch (e) { console.error('[CALL][Messages] onMediaStream error', e) }
+    }
+    ws.on('media_stream', onMediaStream)
+
+    const onIceCandidate = async (payload: any) => {
+      try {
+        if (String(user?.id) === String((payload as any)?.answererId)) return
+        if (!payload?.callRoomId || payload.callRoomId !== callState.callRoomId) return
+        if (!payload?.candidate) return
+        console.log('[CALL][Messages] <- ice_candidate', payload)
+        await handleIncomingIce(payload.candidate)
+      } catch (e) { console.error('[CALL][Messages] onIceCandidate error', e) }
+    }
+    ws.on('ice_candidate', onIceCandidate)
 
     return () => {
       try {
@@ -175,6 +210,8 @@ export default function MessagesPage() {
         ws.off('call_started', onStarted)
         ws.off('receive_stream', onReceiveStream)
         ws.off('call_answered', onAnswered)
+        ws.off('media_stream', onMediaStream)
+        ws.off('ice_candidate', onIceCandidate)
       } catch {}
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -775,10 +812,10 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')}>
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')} disabled={callState.status !== 'idle'}>
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')}>
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')} disabled={callState.status !== 'idle'}>
                       <Video className="h-4 w-4" />
                     </Button>
 

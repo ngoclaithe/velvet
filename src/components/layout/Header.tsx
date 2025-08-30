@@ -65,6 +65,7 @@ export default function Header() {
   const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
   const initiatorRef = useRef<boolean>(false)
   const acceptedRef = useRef<boolean>(false)
+  const roleRef = useRef<'caller' | 'answerer' | null>(null)
   const mqttRef = useRef<MqttClient | null>(null)
 
   // Subscribe to per-user notifications and listen for incoming messages
@@ -140,7 +141,7 @@ export default function Header() {
       console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
       ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
       const t: 'audio' | 'video' = (incomingCall?.data?.callType === 'audio') ? 'audio' : 'video'
-      try { sessionStorage.setItem('active_call_room', JSON.stringify({ roomId: incomingCall.data.callRoomId, type: t, initiator: false, ts: Date.now() })) } catch {}
+      roleRef.current = 'answerer'
       setCallOverlay({ active: true, roomId: incomingCall.data.callRoomId, type: t, status: 'active' })
     } catch (e) {
       console.error('[CALL][Header] call_answer error', e)
@@ -248,17 +249,19 @@ export default function Header() {
 
     const onAnswered = async (data: any) => {
       if (!mounted) return
-      if (String(data?.answererId) !== String(user?.id)) { console.log('[CALL][Header] call_answered (ignored - not answerer)', data); return }
-      console.log('[CALL][Header] call_answered', data)
       const roomId = data?.callRoomId
       if (!roomId) return
-      let stored: any = null
-      try { stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null') } catch {}
-      const useType: 'audio' | 'video' = stored?.type || (incomingCall?.data?.callType === 'audio' ? 'audio' : 'video') || 'video'
+      const isAnswerer = String(data?.answererId) === String(user?.id)
+      let useType: 'audio' | 'video' = 'video'
+      if (isAnswerer) {
+        useType = (incomingCall?.data?.callType === 'audio' ? 'audio' : 'video') || 'video'
+      } else {
+        try { const stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null'); if (stored?.type) useType = stored.type } catch {}
+      }
+      console.log('[CALL][Header] call_answered', { ...data, role: isAnswerer ? 'answerer' : 'caller', useType })
       setCallOverlay({ active: true, roomId, type: useType, status: 'active' })
       await initPeerConnection(useType)
-      initiatorRef.current = stored?.initiator === true && !acceptedRef.current
-      if (initiatorRef.current) {
+      if (!isAnswerer) {
         await createAndSendOffer(roomId)
       }
     }
@@ -266,17 +269,7 @@ export default function Header() {
     const onMediaStream = async (payload: any) => {
       if (!mounted) return
       const rid = payload?.callRoomId
-      if (!rid) return
-      if (!callOverlay.roomId) {
-        let stored: any = null
-        try { stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null') } catch {}
-        if (stored?.roomId === rid) {
-          setCallOverlay(prev => ({ ...prev, active: true, roomId: rid, type: stored?.type || prev.type, status: 'active' }))
-        } else {
-          return
-        }
-      }
-      if (rid !== callOverlay.roomId) return
+      if (!rid || rid !== callOverlay.roomId) return
       if (!payload?.streamData) return
       await handleIncomingSDP(payload.streamData)
     }
@@ -284,17 +277,7 @@ export default function Header() {
     const onIce = async (payload: any) => {
       if (!mounted) return
       const rid = payload?.callRoomId
-      if (!rid) return
-      if (!callOverlay.roomId) {
-        let stored: any = null
-        try { stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null') } catch {}
-        if (stored?.roomId === rid) {
-          setCallOverlay(prev => ({ ...prev, active: true, roomId: rid, type: stored?.type || prev.type, status: 'active' }))
-        } else {
-          return
-        }
-      }
-      if (rid !== callOverlay.roomId) return
+      if (!rid || rid !== callOverlay.roomId) return
       if (!payload?.candidate) return
       await handleIncomingIce(payload.candidate)
     }
@@ -346,6 +329,7 @@ export default function Header() {
     peerRef.current = null
     try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
     mediaStreamRef.current = null
+    roleRef.current = null
     try { sessionStorage.removeItem('active_call_room') } catch {}
     setCallOverlay({ active: false, roomId: null, type: 'video', status: 'waiting' })
   }
