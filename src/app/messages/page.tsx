@@ -331,6 +331,7 @@ function MessagesInner() {
   const callRoomIdParam = searchParams.get('callRoomId')
   const incoming = searchParams.get('incoming')
   const callTypeParam = (searchParams.get('callType') || 'video').toLowerCase() as 'audio' | 'video'
+  useEffect(() => { console.log('[MESSAGES] params', { callRoomIdParam, incoming, callTypeParam }); }, [callRoomIdParam, incoming, callTypeParam])
 
   if (authLoading) {
     return (
@@ -349,11 +350,13 @@ function MessagesInner() {
   }
 
   const acceptIncoming = async () => {
+    console.log('[MESSAGES] acceptIncoming click', { callRoomIdParam, callTypeParam })
     if (callRoomIdParam) {
       await call.acceptCall(callRoomIdParam, callTypeParam)
     }
   }
   const rejectIncoming = () => {
+    console.log('[MESSAGES] rejectIncoming click', { callRoomIdParam })
     if (callRoomIdParam) {
       call.rejectCall(callRoomIdParam)
     }
