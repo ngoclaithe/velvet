@@ -627,6 +627,28 @@ export default function MessagesPage() {
 
               {/* Messages */}
               <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
+                {callState.status !== 'idle' && (
+                  <div className="p-3 border-b bg-muted/20 flex items-center gap-3">
+                    <div className="text-sm">
+                      <div className="font-medium">{callState.callType === 'audio' ? 'Đang gọi thoại' : 'Đang gọi video'}</div>
+                      <div className="text-xs text-muted-foreground">Trạng thái: {callState.status} · Người tham gia: {callState.participants}</div>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                      {callState.callType === 'video' && (
+                        <>
+                          <video ref={localVideoRef} className="w-28 h-20 bg-black rounded" playsInline muted />
+                          <video ref={remoteVideoRef} className="w-36 h-24 bg-black rounded" playsInline />
+                        </>
+                      )}
+                      {callState.callType === 'audio' && (
+                        <audio ref={remoteAudioRef} controls className="w-48" />
+                      )}
+                      <Button size="sm" variant="destructive" onClick={endCall}>
+                        <PhoneOff className="h-4 w-4 mr-1" /> Kết thúc
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
                     {getMessagesForConversation(selectedConversationId).map((message: any) => {
