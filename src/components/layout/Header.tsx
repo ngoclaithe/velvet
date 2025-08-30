@@ -141,6 +141,24 @@ export default function Header() {
     setIncomingCall(null)
   }
 
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return
+    const ws = getWebSocket()
+    let mounted = true
+    ws.connect(String(user.id)).catch(() => {})
+
+    const onAnswered = (data: any) => {
+      if (!mounted) return
+      console.log('[CALL][Header] call_answered', data)
+    }
+    ws.on('call_answered', onAnswered)
+
+    return () => {
+      try { ws.off('call_answered', onAnswered) } catch {}
+      mounted = false
+    }
+  }, [isAuthenticated, user?.id])
+
   return (
     <>
     {incomingCall && (
