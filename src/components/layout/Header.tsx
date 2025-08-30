@@ -32,6 +32,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from '@/hooks/use-toast'
 import type { MqttClient } from 'mqtt'
 import { connectMqtt, subscribeTopic } from '@/lib/mqttClient'
+import { getWebSocket } from '@/lib/websocket'
 
 interface AppNotification {
   id: string
