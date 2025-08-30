@@ -46,7 +46,8 @@ interface StreamData {
 }
 
 interface StartStreamResponse {
-  id: string
+  id?: string | number
+  streamId?: string | number
   streamKey: string
   socketEndpoint: string
   title?: string
@@ -136,7 +137,7 @@ export default function StreamPage() {
         const apiStreamData = response.data as StartStreamResponse
         console.log('✅ Stream API data:', apiStreamData)
 
-        const streamId = String(apiStreamData.id)
+        const streamId = String((apiStreamData.id ?? apiStreamData.streamId) as string | number)
         const streamKey = apiStreamData.streamKey
         console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
@@ -153,7 +154,7 @@ export default function StreamPage() {
         console.log('📺 Setting currentStream:', newCurrentStream)
         setCurrentStream(newCurrentStream)
 
-        toast.success('Stream đã được bắt đầu thành công!')
+        toast.success('Stream đã được bắt đầu th��nh công!')
       } else {
         console.log('❌ Stream API failed:', response.error)
         toast.error(response.error || 'Không thể bắt đầu stream')

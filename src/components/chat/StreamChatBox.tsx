@@ -82,7 +82,7 @@ export default function StreamChatBox({
 
   // Setup WebSocket for real-time chat
   useEffect(() => {
-    if (!streamId || !chatEnabled) return
+    if (!streamId || streamId === 'undefined' || streamId === 'null' || streamId.trim() === '' || !chatEnabled) return
 
     const webSocket = getWebSocket()
     
@@ -173,6 +173,10 @@ export default function StreamChatBox({
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !isAuthenticated || !user) return
+    if (!streamId || streamId === 'undefined' || streamId === 'null' || streamId.trim() === '') {
+      toast.error('Stream chưa sẵn sàng, vui lòng thử lại')
+      return
+    }
 
     const messageText = newMessage.trim()
     setNewMessage('')
