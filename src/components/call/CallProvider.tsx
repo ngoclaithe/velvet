@@ -119,12 +119,19 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const ensurePeerAndMedia = useCallback(async (type: CallType) => {
     if (!pcRef.current) {
       console.log('[CALL] create RTCPeerConnection')
-      const pc = new RTCPeerConnection({
+      let pc: RTCPeerConnection
+      const cfg: RTCConfiguration = {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:global.stun.twilio.com:3478?transport=udp' },
+          { urls: 'stun:stun1.l.google.com:19302' },
         ],
-      })
+      }
+      try {
+        pc = new RTCPeerConnection(cfg)
+      } catch (e) {
+        console.log('[CALL][ERROR] RTCPeerConnection config failed, fallback to default', e)
+        pc = new RTCPeerConnection()
+      }
 
       pc.onicecandidate = (event) => {
         if (event.candidate && state.callRoomId) {
