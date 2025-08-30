@@ -24,11 +24,12 @@ export const streamApi = {
     tags?: string[];
     isPrivate?: boolean;
   }) => api.post<{
-    id: string;
+    id?: string | number;
+    streamId?: string | number;
     streamKey: string;
     socketEndpoint: string;
-    title: string;
-    isLive: boolean;
+    title?: string;
+    isLive?: boolean;
   }>('/streams/start', data),
 
   stopStream: (streamId: string) => api.post(`/streams/${streamId}/stop`),
