@@ -71,7 +71,7 @@ interface Conversation {
 }
 
 export default function MessagesPage() {
-  const { user, isLoading: authLoading, isAuthenticated } = useAuth()
+  const { user, session, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [conversations, setConversations] = useState<any[]>([])
@@ -371,7 +371,7 @@ export default function MessagesPage() {
           binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)))
         }
         const base64Data = btoa(binary)
-        wsRef.current?.emit('send_stream', { callRoomId: roomId, streamData: base64Data, streamType: type })
+        wsRef.current?.emit('send_stream', { callRoomId: roomId, streamData: base64Data, streamType: type, token: session?.accessToken })
       }
       recorder.start(1000)
     } catch (e) {
@@ -404,7 +404,7 @@ export default function MessagesPage() {
         const ws = wsRef.current || getWebSocket()
         await ws.connect(String(user?.id || ''))
         console.log('[CALL] emit join_call_room', { callRoomId: roomId })
-        ws.emit('join_call_room', { callRoomId: roomId })
+        ws.emit('join_call_room', { callRoomId: roomId, token: session?.accessToken })
         setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
       } else {
         console.warn('[CALL] No roomId from API')
