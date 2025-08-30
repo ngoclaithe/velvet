@@ -36,7 +36,9 @@ import {
   CheckCheck,
   Loader,
   AlertCircle,
-  PhoneOff
+  PhoneOff,
+  Mic,
+  MicOff
 } from 'lucide-react'
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -830,7 +832,7 @@ export default function MessagesPage() {
 
                     <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-3">
                       <Button size="icon" variant={isMicOn ? 'default' : 'secondary'} onClick={toggleMic} className="rounded-full h-10 w-10">
-                        {isMicOn ? <Icons.mic className="h-5 w-5" /> : <Icons.micOff className="h-5 w-5" />}
+                        {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
                       </Button>
                       {callState.callType === 'video' && (
                         <Button size="icon" variant={isCamOn ? 'default' : 'secondary'} onClick={toggleCam} className="rounded-full h-10 w-10">
