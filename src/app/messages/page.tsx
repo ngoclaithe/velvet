@@ -84,6 +84,18 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const [messagesByConv, setMessagesByConv] = useState<Record<string, any[]>>({})
+  const [callState, setCallState] = useState<{
+    callRoomId: string | null
+    callType: 'audio' | 'video' | null
+    status: 'idle' | 'waiting' | 'active'
+    participants: number
+  }>({ callRoomId: null, callType: null, status: 'idle', participants: 0 })
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteAudioRef = useRef<HTMLAudioElement>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
   const seenMsgKeysRef = useRef<Map<string, number>>(new Map())
   const lastConvRef = useRef<string | null>(null)
   const lastCountRef = useRef<number>(0)
