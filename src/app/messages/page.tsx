@@ -157,11 +157,14 @@ export default function MessagesPage() {
     ws.on('call_room_joined', onJoined)
     ws.on('call_started', onStarted)
     ws.on('receive_stream', onReceiveStream)
+    const onAnswered = (data: any) => { console.log('[CALL] call_answered', data) }
+    ws.on('call_answered', onAnswered)
     return () => {
       try {
         ws.off('call_room_joined', onJoined)
         ws.off('call_started', onStarted)
         ws.off('receive_stream', onReceiveStream)
+        ws.off('call_answered', onAnswered)
       } catch {}
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
