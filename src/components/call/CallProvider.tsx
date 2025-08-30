@@ -77,18 +77,23 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const onWebrtcOffered = async (payload: any) => {
-      console.log('[CALL][EVT] webrtc-offerd', payload)
+      console.log('[CALL][EVT] webrtc_offerd', payload)
       const roomId = payload?.callRoomId || payload?.roomId
       const offer = payload?.offer
-      if (!roomId || roomId !== state.callRoomId || !offer) { console.log('[CALL][EVT] webrtc-offerd ignored'); return }
+      if (!roomId || roomId !== state.callRoomId || !offer) { console.log('[CALL][EVT] webrtc_offerd ignored'); return }
       try {
         await ensurePeerAndMedia(state.callType || 'video')
         if (!pcRef.current) return
         const desc = new RTCSessionDescription(offer)
         console.log('[CALL] setRemoteDescription(offer)')
         await pcRef.current.setRemoteDescription(desc)
-        // Note: Spec only asked to handle offer; answer event not specified.
-      } catch {}
+        const answer = await pcRef.current.createAnswer()
+        await pcRef.current.setLocalDescription(answer)
+        console.log('[CALL][EMIT] webrtc_answer', { callRoomId: roomId })
+        socket.emit('webrtc_answer', { callRoomId: roomId, answer, token: session?.accessToken })
+      } catch (e) {
+        console.log('[CALL][ERR] onWebrtcOffered', e)
+      }
     }
 
     const onIceCandidated = async (payload: any) => {
@@ -103,12 +108,30 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {}
     }
 
+    const onWebrtcAnswered = async (payload: any) => {
+      console.log('[CALL][EVT] webrtc_answered', payload)
+      const roomId = payload?.callRoomId || payload?.roomId
+      const answer = payload?.answer
+      if (!roomId || roomId !== state.callRoomId || !answer) { console.log('[CALL][EVT] webrtc_answered ignored'); return }
+      try {
+        if (!pcRef.current) return
+        const desc = new RTCSessionDescription(answer)
+        console.log('[CALL] setRemoteDescription(answer)')
+        await pcRef.current.setRemoteDescription(desc)
+      } catch (e) {
+        console.log('[CALL][ERR] onWebrtcAnswered', e)
+      }
+    }
+
     socket.on('call_answerd', onCallAnswered)
     socket.on('call_answered', onCallAnswered)
     socket.on('webrtc-offerd', onWebrtcOffered)
     socket.on('webrtc_offerd', onWebrtcOffered)
     socket.on('webrtc-offered', onWebrtcOffered)
     socket.on('webrtc_offered', onWebrtcOffered)
+    socket.on('webrtc-answered', onWebrtcAnswered)
+    socket.on('webrtc_answered', onWebrtcAnswered)
+    socket.on('webrtc_answerd', onWebrtcAnswered)
     socket.on('ice_candidated', onIceCandidated)
     socket.on('ice_candidate_received', onIceCandidated)
 
@@ -120,6 +143,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off('webrtc_offerd', onWebrtcOffered)
       socket.off('webrtc-offered', onWebrtcOffered)
       socket.off('webrtc_offered', onWebrtcOffered)
+      socket.off('webrtc-answered', onWebrtcAnswered)
+      socket.off('webrtc_answered', onWebrtcAnswered)
+      socket.off('webrtc_answerd', onWebrtcAnswered)
       socket.off('ice_candidated', onIceCandidated)
       socket.off('ice_candidate_received', onIceCandidated)
     }
