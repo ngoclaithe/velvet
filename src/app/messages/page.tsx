@@ -38,6 +38,7 @@ import {
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { CallProvider, useCall } from '@/components/call/CallProvider'
+import { useNotification } from '@/components/notification/NotificationProvider'
 
 interface User {
   id: string
@@ -73,6 +74,7 @@ function MessagesInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const call = useCall()
+  const { latestIncomingCall, clearIncomingCall } = useNotification()
 
   const [conversations, setConversations] = useState<any[]>([])
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
@@ -192,48 +194,7 @@ function MessagesInner() {
       .catch(() => setSelectedConversation(null))
   }, [isAuthenticated, selectedConversationId, searchParams, user?.id])
 
-  // Receiver-side fallback: listen to user notifications and auto-attach incoming call params
-  useEffect(() => {
-    if (!isAuthenticated || !user?.id) return
-    let mounted = true
-    ;(async () => {
-      try {
-        const client = await connectMqtt()
-        if (!client) return
-        const topics = [`notifications/${user.id}`, `noti/${user.id}`]
-        await Promise.all(topics.map(t => subscribeTopic(t)))
-        const onMsg = (topic: string, buf: Buffer) => {
-          if (!mounted) return
-          try {
-            const raw = buf.toString('utf-8')
-            const data = JSON.parse(raw)
-            const t = (data?.type || '').toString().toLowerCase()
-            const media = (data?.mediaType || data?.callType || data?.data?.mediaType || data?.data?.callType || '').toString().toLowerCase()
-            const isCall = t === 'call' || media === 'audio' || media === 'video'
-            if (!isCall) return
-            const payload = data?.data || {}
-            const roomId = payload.callRoomId || payload.roomId
-            const convId = (payload.conversationId || payload.conversation?.id || selectedConversationId)?.toString?.()
-            const callType = (payload.callType || payload.mediaType || media || 'video').toString().toLowerCase()
-            if (!roomId || !convId) return
-            console.log('[MESSAGES][MQTT][incoming-call]', { roomId, convId, callType, topic })
-            const params = new URLSearchParams(window.location.search)
-            params.set('incoming', '1')
-            params.set('callRoomId', String(roomId))
-            params.set('callType', callType)
-            if (!params.get('conversationId')) params.set('conversationId', String(convId))
-            const url = `/messages?${params.toString()}`
-            if (window.location.search !== `?${params.toString()}`) {
-              router.replace(url)
-            }
-          } catch {}
-        }
-        client.on('message', onMsg)
-        return () => { try { client.off('message', onMsg as any) } catch {} }
-      } catch {}
-    })()
-    return () => { mounted = false }
-  }, [isAuthenticated, user?.id, router, selectedConversationId])
+  // Removed receiver MQTT fallback; now sourced from NotificationProvider
 
   const getSelectedConversationData = () => selectedConversation as any
   const getMessagesForConversation = (conversationId: string) => messagesByConv[conversationId] || []
@@ -373,8 +334,10 @@ function MessagesInner() {
 
   const callRoomIdParam = searchParams.get('callRoomId')
   const incoming = searchParams.get('incoming')
-  const callTypeParam = (searchParams.get('callType') || 'video').toLowerCase() as 'audio' | 'video'
-  useEffect(() => { console.log('[MESSAGES] params', { callRoomIdParam, incoming, callTypeParam }); }, [callRoomIdParam, incoming, callTypeParam])
+  const callTypeParam = (searchParams.get('callType') || (latestIncomingCall?.callType || 'video')).toLowerCase() as 'audio' | 'video'
+  const effectiveCallRoomId = callRoomIdParam || latestIncomingCall?.callRoomId || null
+  const shouldShowIncoming = (!!incoming && !!effectiveCallRoomId && call.state.status === 'idle') || (!!latestIncomingCall && call.state.status === 'idle' && (!incoming))
+  useEffect(() => { console.log('[MESSAGES] params', { callRoomIdParam, incoming, callTypeParam, latestIncomingCall, effectiveCallRoomId, shouldShowIncoming }); }, [callRoomIdParam, incoming, callTypeParam, latestIncomingCall, effectiveCallRoomId, shouldShowIncoming])
 
   if (authLoading) {
     return (
@@ -394,14 +357,18 @@ function MessagesInner() {
 
   const acceptIncoming = async () => {
     console.log('[MESSAGES] acceptIncoming click', { callRoomIdParam, callTypeParam })
-    if (callRoomIdParam) {
-      await call.acceptCall(callRoomIdParam, callTypeParam)
+    const roomId = effectiveCallRoomId
+    if (roomId) {
+      await call.acceptCall(roomId, callTypeParam)
+      clearIncomingCall()
     }
   }
   const rejectIncoming = () => {
     console.log('[MESSAGES] rejectIncoming click', { callRoomIdParam })
-    if (callRoomIdParam) {
-      call.rejectCall(callRoomIdParam)
+    const roomId = effectiveCallRoomId
+    if (roomId) {
+      call.rejectCall(roomId)
+      clearIncomingCall()
     }
   }
 
@@ -514,7 +481,7 @@ function MessagesInner() {
               <Separator />
 
               <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
-                {incoming && callRoomIdParam && call.state.status === 'idle' && (
+                {shouldShowIncoming && (
                   <div className="p-3 border-b bg-yellow-50 flex items-center justify-between">
                     <div className="text-sm">Có cuộc gọi đến</div>
                     <div className="flex items-center gap-2">
