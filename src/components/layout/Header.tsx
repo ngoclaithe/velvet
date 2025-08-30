@@ -252,6 +252,8 @@ export default function Header() {
       if (!mounted) return
       const roomId = data?.callRoomId
       if (!roomId) return
+      if (lastAnsweredRef.current?.roomId === roomId && callOverlay.active) { console.log('[CALL][Header] answered duplicate ignored'); return }
+      lastAnsweredRef.current = { roomId, at: Date.now() }
       const isAnswerer = String(data?.answererId) === String(user?.id)
       let useType: 'audio' | 'video' = 'video'
       if (isAnswerer) {
