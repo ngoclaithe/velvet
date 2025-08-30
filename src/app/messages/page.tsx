@@ -33,7 +33,8 @@ import {
   Smile,
   Check,
   CheckCheck,
-  Loader
+  Loader,
+  AlertCircle
 } from 'lucide-react'
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -148,8 +149,22 @@ export default function MessagesPage() {
 
                     setMessagesByConv(prev => {
                       const arr = prev[selectedConversationId] ? [...prev[selectedConversationId]] : []
-                      arr.push({
-                        id: String(data.messageId || data.clientMessageId || `${data.timestamp || now}`),
+                      const cid = data.clientMessageId ? String(data.clientMessageId) : undefined
+                      const idCandidate = String(data.messageId || cid || `${data.timestamp || now}`)
+                      let idx = cid ? arr.findIndex((m: any) => m.id === cid || m.clientMessageId === cid) : -1
+                      if (idx < 0 && String(data.senderId || '') === String(user?.id)) {
+                        const arrivedTs = Number(data.timestamp || now)
+                        idx = arr.findIndex((m: any) => {
+                          const mt = new Date(m.timestamp as any).getTime()
+                          const within = Math.abs((arrivedTs || now) - (mt || now)) < 15000
+                          const contentMatch = m.content === contentStr
+                          const self = String(m.senderId) === String(user?.id)
+                          return self && contentMatch && within
+                        })
+                      }
+                      const msgObj = {
+                        id: idCandidate,
+                        clientMessageId: cid,
                         senderId: String(data.senderId || ''),
                         receiverId: '',
                         content: contentStr,
@@ -157,7 +172,12 @@ export default function MessagesPage() {
                         timestamp: new Date(data.timestamp || now),
                         isRead: false,
                         isDelivered: true,
-                      })
+                      }
+                      if (idx >= 0) {
+                        arr[idx] = { ...arr[idx], ...msgObj }
+                      } else {
+                        arr.push(msgObj)
+                      }
                       return { ...prev, [selectedConversationId!]: arr }
                     })
                   }
@@ -250,34 +270,74 @@ export default function MessagesPage() {
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return
 
+    const conversationId = selectedConversationId as string
+    const content = messageInput.trim()
+    const topic = (selectedConversation as any)?.topic as string | undefined
+    const clientMessageId = `c:${user?.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`
+
+    // Optimistically add message with 'sending' status
+    const optimisticMsg = {
+      id: clientMessageId,
+      clientMessageId,
+      senderId: String(user?.id || ''),
+      receiverId: '',
+      content,
+      type: isImageUrl(content) ? 'image' : 'text',
+      timestamp: new Date(),
+      isRead: false,
+      isDelivered: false,
+      status: 'sending',
+    }
+    setMessagesByConv(prev => {
+      const arr = prev[conversationId] ? [...prev[conversationId]] : []
+      arr.push(optimisticMsg)
+      return { ...prev, [conversationId]: arr }
+    })
+
+    setMessageInput('')
     setIsSending(true)
     try {
-      const conversationId = selectedConversationId as string
-      const content = messageInput.trim()
-      const topic = (selectedConversation as any)?.topic as string | undefined
-      const clientMessageId = `c:${user?.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`
-      // Gửi qua API (kèm clientMessageId nếu backend hỗ trợ)
-      try {
-        await chatApi.sendDirectMessage(conversationId, { content, clientMessageId })
-      } catch (e) {
-        console.warn('sendDirectMessage failed', e)
+      const resp = await chatApi.sendDirectMessage(conversationId, { content, clientMessageId })
+      if (resp?.success) {
+        setMessagesByConv(prev => {
+          const arr = prev[conversationId] ? [...prev[conversationId]] : []
+          const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
+          if (idx >= 0) {
+            arr[idx] = { ...arr[idx], status: 'sent', isDelivered: true }
+          }
+          return { ...prev, [conversationId]: arr }
+        })
+        if (topic) {
+          try {
+            await publishTopic(topic, {
+              type: 'chat_message',
+              conversationId,
+              senderId: user?.id,
+              content,
+              timestamp: Date.now(),
+              clientMessageId,
+            })
+          } catch {}
+        }
+      } else {
+        setMessagesByConv(prev => {
+          const arr = prev[conversationId] ? [...prev[conversationId]] : []
+          const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
+          if (idx >= 0) {
+            arr[idx] = { ...arr[idx], status: 'error' }
+          }
+          return { ...prev, [conversationId]: arr }
+        })
       }
-      // Publish client-side để đảm bảo realtime
-      if (topic) {
-        try {
-          await publishTopic(topic, {
-            type: 'chat_message',
-            conversationId,
-            senderId: user?.id,
-            content,
-            timestamp: Date.now(),
-            clientMessageId,
-          })
-        } catch {}
-      }
-      setMessageInput('')
     } catch (error) {
-      console.error('Failed to send message:', error)
+      setMessagesByConv(prev => {
+        const arr = prev[conversationId] ? [...prev[conversationId]] : []
+        const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
+        if (idx >= 0) {
+          arr[idx] = { ...arr[idx], status: 'error' }
+        }
+        return { ...prev, [conversationId]: arr }
+      })
     } finally {
       setIsSending(false)
     }
@@ -477,15 +537,13 @@ export default function MessagesPage() {
                                 {formatMessageTime(message.timestamp)}
                               </span>
                               {isOwnMessage && (
-                                <div className="flex">
-                                  {message.isDelivered ? (
-                                    message.isRead ? (
-                                      <CheckCheck className="h-3 w-3 text-blue-600" />
-                                    ) : (
-                                      <CheckCheck className="h-3 w-3 text-gray-400" />
-                                    )
+                                <div className="flex items-center">
+                                  {message.status === 'sending' ? (
+                                    <Loader className="h-3 w-3 text-gray-400 animate-spin" />
+                                  ) : message.status === 'error' ? (
+                                    <AlertCircle className="h-3 w-3 text-red-500" />
                                   ) : (
-                                    <Check className="h-3 w-3 text-gray-400" />
+                                    <CheckCheck className="h-3 w-3 text-gray-400" />
                                   )}
                                 </div>
                               )}
@@ -557,9 +615,57 @@ export default function MessagesPage() {
                       for (const r of results) {
                         const url = (r as any).secure_url || (r as any).url || ''
                         if (!url) continue
-                        try { await chatApi.sendDirectMessage(convId, { content: url, clientMessageId: `img:${Date.now()}:${Math.random().toString(16).slice(2)}` }) } catch {}
-                        if (topic) {
-                          try { await publishTopic(topic, { type: 'chat_message', conversationId: convId, senderId: user?.id, content: url, timestamp: Date.now(), clientMessageId: `img:${Date.now()}:${Math.random().toString(16).slice(2)}` }) } catch {}
+                        const clientMessageId = `img:${Date.now()}:${Math.random().toString(16).slice(2)}`
+                        // Optimistic image message
+                        setMessagesByConv(prev => {
+                          const arr = prev[convId] ? [...prev[convId]] : []
+                          arr.push({
+                            id: clientMessageId,
+                            clientMessageId,
+                            senderId: String(user?.id || ''),
+                            receiverId: '',
+                            content: url,
+                            type: 'image',
+                            timestamp: new Date(),
+                            isRead: false,
+                            isDelivered: false,
+                            status: 'sending',
+                          })
+                          return { ...prev, [convId]: arr }
+                        })
+                        try {
+                          const resp = await chatApi.sendDirectMessage(convId, { content: url, clientMessageId })
+                          if (resp?.success) {
+                            setMessagesByConv(prev => {
+                              const arr = prev[convId] ? [...prev[convId]] : []
+                              const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
+                              if (idx >= 0) {
+                                arr[idx] = { ...arr[idx], status: 'sent', isDelivered: true }
+                              }
+                              return { ...prev, [convId]: arr }
+                            })
+                            if (topic) {
+                              try { await publishTopic(topic, { type: 'chat_message', conversationId: convId, senderId: user?.id, content: url, timestamp: Date.now(), clientMessageId }) } catch {}
+                            }
+                          } else {
+                            setMessagesByConv(prev => {
+                              const arr = prev[convId] ? [...prev[convId]] : []
+                              const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
+                              if (idx >= 0) {
+                                arr[idx] = { ...arr[idx], status: 'error' }
+                              }
+                              return { ...prev, [convId]: arr }
+                            })
+                          }
+                        } catch {
+                          setMessagesByConv(prev => {
+                            const arr = prev[convId] ? [...prev[convId]] : []
+                            const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
+                            if (idx >= 0) {
+                              arr[idx] = { ...arr[idx], status: 'error' }
+                            }
+                            return { ...prev, [convId]: arr }
+                          })
                         }
                       }
                       setShowImageUpload(false)

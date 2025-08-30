@@ -13,8 +13,8 @@ export const chatApi = {
   getConversations: () => api.get('/conversations'),
   
   getConversation: (conversationId: string) =>
-    api.get(`/conversations/${conversationId}`),
+    api.get(`/messages/conversations/${conversationId}`),
   
   sendDirectMessage: (conversationId: string, data: any) =>
-    api.post(`/conversations/${conversationId}/messages`, data),
+    api.post(`/messages/conversations/${conversationId}/messages`, data),
 }
