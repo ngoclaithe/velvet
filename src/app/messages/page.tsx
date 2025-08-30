@@ -340,7 +340,7 @@ export default function MessagesPage() {
     if (isToday(date)) {
       return format(date, 'HH:mm')
     } else if (isYesterday(date)) {
-      return 'H��m qua'
+      return 'Hôm qua'
     } else if (isThisWeek(date)) {
       return format(date, 'EEEE', { locale: vi })
     } else {
@@ -508,7 +508,8 @@ export default function MessagesPage() {
   }
 
   const handleIncomingSDP = async (sd: { type: 'offer' | 'answer'; sdp: string }) => {
-    const pc = peerRef.current
+    let pc = peerRef.current
+    if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
     if (!pc) return
     const desc = new RTCSessionDescription({ type: sd.type, sdp: sd.sdp })
     if (sd.type === 'offer') {
