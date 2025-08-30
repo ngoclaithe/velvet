@@ -36,7 +36,9 @@ import {
   CheckCheck,
   Loader,
   AlertCircle,
-  PhoneOff
+  PhoneOff,
+  Mic,
+  MicOff
 } from 'lucide-react'
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -96,6 +98,9 @@ export default function MessagesPage() {
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
+  const peerRef = useRef<RTCPeerConnection | null>(null)
+  const [isMicOn, setIsMicOn] = useState(true)
+  const [isCamOn, setIsCamOn] = useState(true)
   const seenMsgKeysRef = useRef<Map<string, number>>(new Map())
   const lastConvRef = useRef<string | null>(null)
   const lastCountRef = useRef<number>(0)
@@ -123,6 +128,7 @@ export default function MessagesPage() {
 
     const onStarted = (data: any) => {
       if (!data?.callRoomId) return
+      if (peerRef.current) return
       console.log('[CALL] call_started', data)
       const type: 'audio' | 'video' = (data.callType === 'audio') ? 'audio' : 'video'
       setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2), callType: type }))
@@ -157,14 +163,59 @@ export default function MessagesPage() {
     ws.on('call_room_joined', onJoined)
     ws.on('call_started', onStarted)
     ws.on('receive_stream', onReceiveStream)
-    const onAnswered = (data: any) => { console.log('[CALL] call_answered', data) }
+    const onAnswered = async (data: any) => {
+      try {
+        console.log('[CALL] call_answered', data)
+        const roomId = data?.callRoomId
+        if (!roomId) return
+        if (callState.callRoomId && callState.callRoomId !== roomId) return
+        const role: 'caller' | 'answerer' = callState.status === 'waiting' ? 'caller' : 'answerer'
+        const type: 'audio' | 'video' = callState.callType || 'video'
+        setCallState(prev => ({ ...prev, callRoomId: roomId, status: 'active', callType: type }))
+        await initPeerConnection(type)
+        if (role === 'caller') {
+          await createAndSendOffer(roomId)
+        }
+      } catch (e) {
+        console.error('[CALL] onAnswered error', e)
+      }
+    }
     ws.on('call_answered', onAnswered)
+
+    const onMediaStream = async (payload: any) => {
+      try {
+        const roomId = payload?.callRoomId
+        if (!roomId || roomId !== callState.callRoomId) return
+        const sd = payload?.streamData
+        if (!sd?.type || !sd?.sdp) return
+        await handleIncomingSDP(sd)
+      } catch (e) {
+        console.error('[CALL] onMediaStream error', e)
+      }
+    }
+    ws.on('media_stream', onMediaStream)
+
+    const onIceCandidate = async (payload: any) => {
+      try {
+        const roomId = payload?.callRoomId
+        if (!roomId || roomId !== callState.callRoomId) return
+        const cand = payload?.candidate
+        if (!cand) return
+        await handleIncomingIce(cand)
+      } catch (e) {
+        console.error('[CALL] onIceCandidate error', e)
+      }
+    }
+    ws.on('ice_candidate', onIceCandidate)
+
     return () => {
       try {
         ws.off('call_room_joined', onJoined)
         ws.off('call_started', onStarted)
         ws.off('receive_stream', onReceiveStream)
         ws.off('call_answered', onAnswered)
+        ws.off('media_stream', onMediaStream)
+        ws.off('ice_candidate', onIceCandidate)
       } catch {}
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -386,7 +437,130 @@ export default function MessagesPage() {
     mediaStreamRef.current = null
   }
 
+  const ensureLocalMedia = async (type: 'audio' | 'video') => {
+    if (mediaStreamRef.current) return mediaStreamRef.current
+    const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
+    const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    try { stream.getAudioTracks().forEach(t => t.enabled = isMicOn) } catch {}
+    try { stream.getVideoTracks().forEach(t => t.enabled = type === 'video' ? isCamOn : false) } catch {}
+    mediaStreamRef.current = stream
+    if (type === 'video' && localVideoRef.current) {
+      ;(localVideoRef.current as any).srcObject = stream
+      localVideoRef.current.muted = true
+      try { await localVideoRef.current.play() } catch {}
+    }
+    return stream
+  }
+
+  const initPeerConnection = async (type: 'audio' | 'video') => {
+    try { peerRef.current?.close() } catch {}
+    peerRef.current = null
+
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }
+      ]
+    })
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate && callState.callRoomId) {
+        wsRef.current?.emit('ice_candidate', {
+          callRoomId: callState.callRoomId,
+          candidate: event.candidate,
+          token: session?.accessToken,
+        })
+      }
+    }
+
+    pc.ontrack = async (ev) => {
+      const stream = ev.streams[0]
+      if (!stream) return
+      const trackKind = ev.track.kind
+      if (trackKind === 'video') {
+        if (remoteVideoRef.current) {
+          ;(remoteVideoRef.current as any).srcObject = stream
+          try { await remoteVideoRef.current.play() } catch {}
+        }
+      } else if (trackKind === 'audio') {
+        if (remoteAudioRef.current) {
+          ;(remoteAudioRef.current as any).srcObject = stream
+          try { await remoteAudioRef.current.play() } catch {}
+        }
+      }
+    }
+
+    const local = await ensureLocalMedia(type)
+    local.getTracks().forEach((t) => pc.addTrack(t, local))
+
+    peerRef.current = pc
+    return pc
+  }
+
+  const createAndSendOffer = async (roomId: string) => {
+    const pc = peerRef.current
+    if (!pc) return
+    const offer = await pc.createOffer()
+    await pc.setLocalDescription(offer)
+    wsRef.current?.emit('media_stream', {
+      callRoomId: roomId,
+      streamData: { type: 'offer', sdp: offer.sdp },
+      token: session?.accessToken,
+    })
+  }
+
+  const handleIncomingSDP = async (sd: { type: 'offer' | 'answer'; sdp: string }) => {
+    let pc = peerRef.current
+    if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
+    if (!pc) return
+    const desc = new RTCSessionDescription({ type: sd.type, sdp: sd.sdp })
+    if (sd.type === 'offer') {
+      await pc.setRemoteDescription(desc)
+      const ans = await pc.createAnswer()
+      await pc.setLocalDescription(ans)
+      if (callState.callRoomId) {
+        wsRef.current?.emit('media_stream', {
+          callRoomId: callState.callRoomId,
+          streamData: { type: 'answer', sdp: ans.sdp },
+          token: session?.accessToken,
+        })
+      }
+    } else if (sd.type === 'answer') {
+      if (!pc.currentRemoteDescription) {
+        await pc.setRemoteDescription(desc)
+      }
+    }
+  }
+
+  const handleIncomingIce = async (cand: RTCIceCandidateInit) => {
+    let pc = peerRef.current
+    if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
+    if (!pc) return
+    try { await pc.addIceCandidate(cand) } catch (e) { console.error('[CALL] addIceCandidate error', e) }
+  }
+
+  const toggleMic = () => {
+    setIsMicOn(prev => {
+      const next = !prev
+      try { mediaStreamRef.current?.getAudioTracks().forEach(t => t.enabled = next) } catch {}
+      return next
+    })
+  }
+
+  const toggleCam = () => {
+    setIsCamOn(prev => {
+      const next = !prev
+      try { mediaStreamRef.current?.getVideoTracks().forEach(t => t.enabled = next) } catch {}
+      return next
+    })
+  }
+
   const endCall = () => {
+    try { peerRef.current?.getSenders?.().forEach(s => { try { s.track?.stop() } catch {} }) } catch {}
+    try { peerRef.current?.close() } catch {}
+    peerRef.current = null
+    try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
+    mediaStreamRef.current = null
     stopSendingStream()
     setCallState({ callRoomId: null, callType: null, status: 'idle', participants: 0 })
   }
@@ -406,6 +580,7 @@ export default function MessagesPage() {
         console.log('[CALL] emit join_call_room', { callRoomId: roomId })
         ws.emit('join_call_room', { callRoomId: roomId, token: session?.accessToken })
         setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
+        try { await ensureLocalMedia(callType) } catch {}
       } else {
         console.warn('[CALL] No roomId from API')
       }
@@ -643,24 +818,40 @@ export default function MessagesPage() {
               {/* Messages */}
               <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
                 {callState.status !== 'idle' && (
-                  <div className="p-3 border-b bg-muted/20 flex items-center gap-3">
-                    <div className="text-sm">
-                      <div className="font-medium">{callState.callType === 'audio' ? 'Đang gọi thoại' : 'Đang gọi video'}</div>
-                      <div className="text-xs text-muted-foreground">Trạng thái: {callState.status} · Người tham gia: {callState.participants}</div>
+                  <div className="relative border-b">
+                    <div className="h-72 md:h-96 bg-black rounded-md overflow-hidden flex items-center justify-center">
+                      {callState.callType === 'video' ? (
+                        <div className="relative w-full h-full">
+                          <video ref={remoteVideoRef} className="absolute inset-0 w-full h-full object-cover" playsInline />
+                          <div className="absolute bottom-3 right-3 w-36 h-24 bg-black/60 rounded-md overflow-hidden shadow">
+                            <video ref={localVideoRef} className="w-full h-full object-cover" playsInline muted />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-white gap-3">
+                          <div className="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center text-3xl">📞</div>
+                          <div className="text-sm text-white/80">{callState.status === 'waiting' ? 'Đang gọi...' : 'Đã kết nối'}</div>
+                          <audio ref={remoteAudioRef} className="hidden" />
+                        </div>
+                      )}
                     </div>
-                    <div className="ml-auto flex items-center gap-2">
-                      {callState.callType === 'video' && (
-                        <>
-                          <video ref={localVideoRef} className="w-28 h-20 bg-black rounded" playsInline muted />
-                          <video ref={remoteVideoRef} className="w-36 h-24 bg-black rounded" playsInline />
-                        </>
-                      )}
-                      {callState.callType === 'audio' && (
-                        <audio ref={remoteAudioRef} controls className="w-48" />
-                      )}
-                      <Button size="sm" variant="destructive" onClick={endCall}>
-                        <PhoneOff className="h-4 w-4 mr-1" /> Kết thúc
+
+                    <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-3">
+                      <Button size="icon" variant={isMicOn ? 'default' : 'secondary'} onClick={toggleMic} className="rounded-full h-10 w-10">
+                        {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
                       </Button>
+                      {callState.callType === 'video' && (
+                        <Button size="icon" variant={isCamOn ? 'default' : 'secondary'} onClick={toggleCam} className="rounded-full h-10 w-10">
+                          {isCamOn ? <Video className="h-5 w-5" /> : <Video className="h-5 w-5 opacity-40" />}
+                        </Button>
+                      )}
+                      <Button size="icon" variant="destructive" onClick={endCall} className="rounded-full h-10 w-10">
+                        <PhoneOff className="h-5 w-5" />
+                      </Button>
+                    </div>
+
+                    <div className="absolute top-2 left-2 text-xs text-muted-foreground bg-background/80 rounded px-2 py-1">
+                      {callState.callType === 'audio' ? 'Gọi thoại' : 'Gọi video'} · {callState.status}
                     </div>
                   </div>
                 )}
