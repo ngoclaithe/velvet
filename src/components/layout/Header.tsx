@@ -36,7 +36,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from '@/hooks/use-toast'
 import type { MqttClient } from 'mqtt'
 import { connectMqtt, subscribeTopic } from '@/lib/mqttClient'
-import { getWebSocket } from '@/lib/websocket'
+
 
 interface AppNotification {
   id: string
@@ -53,7 +53,7 @@ export default function Header() {
   const { user, session, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<AppNotification[]>([])
-  const [incomingCall, setIncomingCall] = useState<AppNotification | null>(null)
+  // IncomingCallModal will handle call popups globally
   const [callOverlay, setCallOverlay] = useState<{ active: boolean; roomId: string | null; type: 'audio' | 'video'; status: 'waiting' | 'active' }>({ active: false, roomId: null, type: 'video', status: 'waiting' })
   const [isMicOn, setIsMicOn] = useState(true)
   const [isCamOn, setIsCamOn] = useState(true)
@@ -66,6 +66,7 @@ export default function Header() {
   const initiatorRef = useRef<boolean>(false)
   const acceptedRef = useRef<boolean>(false)
   const roleRef = useRef<'caller' | 'answerer' | null>(null)
+  const lastAnsweredRef = useRef<{ roomId: string; at: number } | null>(null)
   const mqttRef = useRef<MqttClient | null>(null)
 
   // Subscribe to per-user notifications and listen for incoming messages
@@ -106,9 +107,7 @@ export default function Header() {
               receivedAt: Date.now(),
             }
             setNotifications((prev) => [n, ...prev].slice(0, 50))
-            if (n.type === 'call_request') {
-              setIncomingCall(n)
-            } else if (n.type !== 'message' && (n.title || n.message)) {
+            if (n.type !== 'message' && (n.title || n.message)) {
               toast({ title: n.title, description: n.message })
             }
           } catch {}
@@ -129,6 +128,7 @@ export default function Header() {
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
 
+  // Call handling moved to IncomingCallModal
   const handleAcceptCall = async () => {
     if (!incomingCall?.data?.callRoomId || !user?.id) return
     try {
@@ -164,146 +164,8 @@ export default function Header() {
   }
 
   useEffect(() => {
-    if (!isAuthenticated || !user?.id) return
-    const ws = getWebSocket()
-    wsRef.current = ws
-    let mounted = true
-    ws.connect(String(user.id)).catch(() => {})
-
-    const ensureLocalMedia = async (type: 'audio' | 'video') => {
-      if (mediaStreamRef.current) return mediaStreamRef.current
-      const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
-      try { stream.getAudioTracks().forEach(t => t.enabled = isMicOn) } catch {}
-      try { stream.getVideoTracks().forEach(t => t.enabled = type === 'video' ? isCamOn : false) } catch {}
-      mediaStreamRef.current = stream
-      if (type === 'video' && localVideoRef.current) {
-        ;(localVideoRef.current as any).srcObject = stream
-        localVideoRef.current.muted = true
-        try { await localVideoRef.current.play() } catch {}
-      }
-      return stream
-    }
-
-    const initPeerConnection = async (type: 'audio' | 'video') => {
-      try { peerRef.current?.close() } catch {}
-      peerRef.current = null
-      const pc = new RTCPeerConnection({ iceServers: [ { urls: 'stun:stun.l.google.com:19302' } ] })
-      pc.onicecandidate = (ev) => {
-        if (ev.candidate && callOverlay.roomId) {
-          console.log('[CALL][Header] -> ice_candidate', ev.candidate)
-          wsRef.current?.emit('ice_candidate', { callRoomId: callOverlay.roomId, candidate: ev.candidate, token: session?.accessToken })
-        }
-      }
-      pc.ontrack = async (ev) => {
-        const stream = ev.streams[0]
-        if (!stream) return
-        if (ev.track.kind === 'video') {
-          if (remoteVideoRef.current) { ;(remoteVideoRef.current as any).srcObject = stream; try { await remoteVideoRef.current.play() } catch {} }
-        } else if (ev.track.kind === 'audio') {
-          if (remoteAudioRef.current) { ;(remoteAudioRef.current as any).srcObject = stream; try { await remoteAudioRef.current.play() } catch {} }
-        }
-      }
-      const local = await ensureLocalMedia(type)
-      local.getTracks().forEach(t => pc.addTrack(t, local))
-      peerRef.current = pc
-      return pc
-    }
-
-    const createAndSendOffer = async (roomId: string) => {
-      const pc = peerRef.current
-      if (!pc) return
-      const offer = await pc.createOffer()
-      await pc.setLocalDescription(offer)
-      console.log('[CALL][Header] -> media_stream (offer)', { roomId, sdpLen: offer.sdp?.length })
-      wsRef.current?.emit('media_stream', { callRoomId: roomId, streamData: { type: 'offer', sdp: offer.sdp }, token: session?.accessToken })
-    }
-
-    const handleIncomingSDP = async (sd: { type: 'offer' | 'answer'; sdp: string }) => {
-      let pc = peerRef.current
-      if (!pc) { await initPeerConnection(callOverlay.type); pc = peerRef.current }
-      if (!pc) return
-      console.log('[CALL][Header] <- media_stream', sd.type)
-      const desc = new RTCSessionDescription({ type: sd.type, sdp: sd.sdp })
-      if (sd.type === 'offer') {
-        await pc.setRemoteDescription(desc)
-        const ans = await pc.createAnswer()
-        await pc.setLocalDescription(ans)
-        if (callOverlay.roomId) {
-          console.log('[CALL][Header] -> media_stream (answer)', { roomId: callOverlay.roomId, sdpLen: ans.sdp?.length })
-          wsRef.current?.emit('media_stream', { callRoomId: callOverlay.roomId, streamData: { type: 'answer', sdp: ans.sdp }, token: session?.accessToken })
-        }
-      } else if (sd.type === 'answer') {
-        if (!pc.currentRemoteDescription) {
-          await pc.setRemoteDescription(desc)
-        }
-      }
-    }
-
-    const handleIncomingIce = async (cand: RTCIceCandidateInit) => {
-      let pc = peerRef.current
-      if (!pc) { await initPeerConnection(callOverlay.type); pc = peerRef.current }
-      if (!pc) return
-      try { await pc.addIceCandidate(cand) } catch (e) { console.error('[CALL][Header] addIceCandidate error', e) }
-    }
-
-    const onAnswered = async (data: any) => {
-      if (!mounted) return
-      const roomId = data?.callRoomId
-      if (!roomId) return
-      const isAnswerer = String(data?.answererId) === String(user?.id)
-      let useType: 'audio' | 'video' = 'video'
-      if (isAnswerer) {
-        useType = (incomingCall?.data?.callType === 'audio' ? 'audio' : 'video') || 'video'
-      } else {
-        try { const stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null'); if (stored?.type) useType = stored.type } catch {}
-      }
-      console.log('[CALL][Header] call_answered', { ...data, role: isAnswerer ? 'answerer' : 'caller', useType })
-      setCallOverlay({ active: true, roomId, type: useType, status: 'active' })
-      await initPeerConnection(useType)
-      if (!isAnswerer) {
-        await createAndSendOffer(roomId)
-      }
-    }
-
-    const onMediaStream = async (payload: any) => {
-      if (!mounted) return
-      const rid = payload?.callRoomId
-      if (!rid || rid !== callOverlay.roomId) return
-      if (!payload?.streamData) return
-      await handleIncomingSDP(payload.streamData)
-    }
-
-    const onIce = async (payload: any) => {
-      if (!mounted) return
-      const rid = payload?.callRoomId
-      if (!rid || rid !== callOverlay.roomId) return
-      if (!payload?.candidate) return
-      await handleIncomingIce(payload.candidate)
-    }
-
-    const onStarted = (data: any) => {
-      console.log('[CALL][Header] call_started', data)
-      if (!data?.callRoomId) return
-      const t: 'audio' | 'video' = (data.callType === 'audio') ? 'audio' : 'video'
-      setCallOverlay(prev => ({ active: true, roomId: data.callRoomId, type: t, status: 'active' }))
-    }
-
-    ws.on('call_answered', onAnswered)
-    ws.on('media_stream', onMediaStream)
-    ws.on('ice_candidate', onIce)
-    ws.on('call_started', onStarted)
-
-    return () => {
-      try {
-        ws.off('call_answered', onAnswered)
-        ws.off('media_stream', onMediaStream)
-        ws.off('ice_candidate', onIce)
-        ws.off('call_started', onStarted)
-      } catch {}
-      mounted = false
-    }
-  }, [isAuthenticated, user?.id, callOverlay.roomId, callOverlay.type, isMicOn, isCamOn])
+    // Socket/WebRTC logic removed from Header; handled globally via IncomingCallModal (MQTT)
+  }, [isAuthenticated, user?.id])
 
   const toggleMic = () => {
     setIsMicOn(prev => {
@@ -336,7 +198,9 @@ export default function Header() {
 
   return (
     <>
-    {incomingCall && (
+    {/* IncomingCallModal renders globally; Header no longer shows call popup */}
+    {/* incomingCall UI removed */}
+    {false && (
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
         <div className="bg-background rounded-lg shadow-xl p-6 w-[92%] max-w-md text-center">
           <div className="text-lg font-semibold mb-2">{incomingCall.title || 'Video Call'}</div>
