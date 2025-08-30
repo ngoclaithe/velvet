@@ -139,6 +139,9 @@ export default function Header() {
       await ws.connect(String(user.id))
       console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
       ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
+      const t: 'audio' | 'video' = (incomingCall?.data?.callType === 'audio') ? 'audio' : 'video'
+      try { sessionStorage.setItem('active_call_room', JSON.stringify({ roomId: incomingCall.data.callRoomId, type: t, initiator: false, ts: Date.now() })) } catch {}
+      setCallOverlay({ active: true, roomId: incomingCall.data.callRoomId, type: t, status: 'active' })
     } catch (e) {
       console.error('[CALL][Header] call_answer error', e)
     }
