@@ -248,6 +248,7 @@ export default function Header() {
 
     const onAnswered = async (data: any) => {
       if (!mounted) return
+      if (String(data?.answererId) !== String(user?.id)) { console.log('[CALL][Header] call_answered (ignored - not answerer)', data); return }
       console.log('[CALL][Header] call_answered', data)
       const roomId = data?.callRoomId
       if (!roomId) return
