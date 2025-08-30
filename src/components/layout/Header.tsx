@@ -62,7 +62,7 @@ export default function Header() {
   const remoteAudioRef = useRef<HTMLAudioElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const peerRef = useRef<RTCPeerConnection | null>(null)
-  const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
+  const wsRef = useRef<any>(null)
   const initiatorRef = useRef<boolean>(false)
   const acceptedRef = useRef<boolean>(false)
   const roleRef = useRef<'caller' | 'answerer' | null>(null)
@@ -129,39 +129,9 @@ export default function Header() {
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
 
   // Call handling moved to IncomingCallModal
-  const handleAcceptCall = async () => {
-    if (!incomingCall?.data?.callRoomId || !user?.id) return
-    try {
-      const ws = getWebSocket()
-      wsRef.current = ws
-      acceptedRef.current = true
-      initiatorRef.current = false
-      console.log('[CALL][Header] accept click:', incomingCall)
-      await ws.connect(String(user.id))
-      console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
-      ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
-      const t: 'audio' | 'video' = (incomingCall?.data?.callType === 'audio') ? 'audio' : 'video'
-      roleRef.current = 'answerer'
-      setCallOverlay({ active: true, roomId: incomingCall.data.callRoomId, type: t, status: 'active' })
-    } catch (e) {
-      console.error('[CALL][Header] call_answer error', e)
-    }
-    setIncomingCall(null)
-  }
+  const handleAcceptCall = () => {}
 
-  const handleRejectCall = async () => {
-    if (!incomingCall?.data?.callRoomId || !user?.id) return
-    try {
-      const ws = getWebSocket()
-      console.log('[CALL][Header] reject click:', incomingCall)
-      await ws.connect(String(user.id))
-      console.log('[CALL][Header] emit call_reject', { callRoomId: incomingCall.data.callRoomId })
-      ws.emit('call_reject', { callRoomId: incomingCall.data.callRoomId })
-    } catch (e) {
-      console.error('[CALL][Header] call_reject error', e)
-    }
-    setIncomingCall(null)
-  }
+  const handleRejectCall = () => {}
 
   useEffect(() => {
     // Socket/WebRTC logic removed from Header; handled globally via IncomingCallModal (MQTT)
@@ -198,20 +168,6 @@ export default function Header() {
 
   return (
     <>
-    {/* IncomingCallModal renders globally; Header no longer shows call popup */}
-    {/* incomingCall UI removed */}
-    {false && (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
-        <div className="bg-background rounded-lg shadow-xl p-6 w-[92%] max-w-md text-center">
-          <div className="text-lg font-semibold mb-2">{incomingCall.title || 'Video Call'}</div>
-          <div className="text-sm text-muted-foreground mb-4">{incomingCall.message || 'Bạn đang có cuộc gọi'}</div>
-          <div className="flex items-center justify-center gap-3">
-            <Button className="bg-green-600 hover:bg-green-700" onClick={handleAcceptCall}>Đồng ý</Button>
-            <Button variant="destructive" onClick={handleRejectCall}>Từ chối</Button>
-          </div>
-        </div>
-      </div>
-    )}
     {callOverlay.active && (
       <div className="fixed inset-0 z-[70] bg-black/70 flex items-center justify-center">
         <div className="relative w-[92%] max-w-3xl">
@@ -324,7 +280,7 @@ export default function Header() {
                   <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-sm text-muted-foreground">Không có thông báo</div>
+                    <div className="p-4 text-sm text-muted-foreground">Không có th��ng báo</div>
                   ) : (
                     notifications.slice(0, 10).map((n) => (
                       <DropdownMenuItem
