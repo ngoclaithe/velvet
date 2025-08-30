@@ -97,6 +97,7 @@ export default function MessagesPage() {
   const remoteAudioRef = useRef<HTMLAudioElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  // WebSocket removed from Messages; centralized elsewhere
   const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
   const peerRef = useRef<RTCPeerConnection | null>(null)
   const initiatorRef = useRef<boolean>(false)
@@ -112,9 +113,7 @@ export default function MessagesPage() {
   // WebSocket connect for 1-1 call events
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return
-    const ws = getWebSocket()
-    wsRef.current = ws
-    ws.connect(String(user.id)).catch(() => {})
+    // WebSocket removed here; no per-component socket connection
 
     const onJoined = (data: any) => {
       if (!data?.callRoomId) return
@@ -584,10 +583,7 @@ export default function MessagesPage() {
       const roomId = callRoom?.roomId
       const callType = (callRoom?.callType === 'audio') ? 'audio' : 'video'
       if (roomId) {
-        const ws = wsRef.current || getWebSocket()
-        await ws.connect(String(user?.id || ''))
-        console.log('[CALL] emit join_call_room', { callRoomId: roomId })
-        ws.emit('join_call_room', { callRoomId: roomId, token: session?.accessToken })
+        // Socket join removed; only update local UI for now
         initiatorRef.current = true
         try { sessionStorage.setItem('active_call_room', JSON.stringify({ roomId, type: callType, initiator: true, ts: Date.now() })) } catch {}
         setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
