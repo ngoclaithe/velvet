@@ -290,6 +290,7 @@ export default function Header() {
     }
 
     ws.on('call_answered', onAnswered)
+    ws.on('call_answerd', onAnswered)
     ws.on('media_stream', onMediaStream)
     ws.on('ice_candidate', onIce)
     ws.on('call_started', onStarted)
@@ -297,6 +298,7 @@ export default function Header() {
     return () => {
       try {
         ws.off('call_answered', onAnswered)
+        ws.off('call_answerd', onAnswered)
         ws.off('media_stream', onMediaStream)
         ws.off('ice_candidate', onIce)
         ws.off('call_started', onStarted)
