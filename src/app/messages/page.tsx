@@ -16,6 +16,7 @@ import { Icons } from '@/components/common/Icons'
 import { chatApi } from '@/lib/api/chat'
 import { subscribeTopic, connectMqtt, publishTopic } from '@/lib/mqttClient'
 import { getConversationById } from '@/lib/api/conversation'
+import { getWebSocket } from '@/lib/websocket'
 import ImageUploader from '@/components/ImageUploader'
 import {
   MessageCircle,
