@@ -128,6 +128,7 @@ export default function MessagesPage() {
 
     const onStarted = (data: any) => {
       if (!data?.callRoomId) return
+      if (peerRef.current) return
       console.log('[CALL] call_started', data)
       const type: 'audio' | 'video' = (data.callType === 'audio') ? 'audio' : 'video'
       setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2), callType: type }))
@@ -339,7 +340,7 @@ export default function MessagesPage() {
     if (isToday(date)) {
       return format(date, 'HH:mm')
     } else if (isYesterday(date)) {
-      return 'Hôm qua'
+      return 'H��m qua'
     } else if (isThisWeek(date)) {
       return format(date, 'EEEE', { locale: vi })
     } else {
