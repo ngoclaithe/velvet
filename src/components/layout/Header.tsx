@@ -25,7 +25,11 @@ import {
   DollarSign,
   Heart,
   MessageCircle,
-  Shield
+  Shield,
+  PhoneOff,
+  Video,
+  Mic,
+  MicOff
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -50,6 +54,17 @@ export default function Header() {
   const router = useRouter()
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [incomingCall, setIncomingCall] = useState<AppNotification | null>(null)
+  const [callOverlay, setCallOverlay] = useState<{ active: boolean; roomId: string | null; type: 'audio' | 'video'; status: 'waiting' | 'active' }>({ active: false, roomId: null, type: 'video', status: 'waiting' })
+  const [isMicOn, setIsMicOn] = useState(true)
+  const [isCamOn, setIsCamOn] = useState(true)
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteAudioRef = useRef<HTMLAudioElement>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const peerRef = useRef<RTCPeerConnection | null>(null)
+  const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
+  const initiatorRef = useRef<boolean>(false)
+  const acceptedRef = useRef<boolean>(false)
   const mqttRef = useRef<MqttClient | null>(null)
 
   // Subscribe to per-user notifications and listen for incoming messages
@@ -117,6 +132,9 @@ export default function Header() {
     if (!incomingCall?.data?.callRoomId || !user?.id) return
     try {
       const ws = getWebSocket()
+      wsRef.current = ws
+      acceptedRef.current = true
+      initiatorRef.current = false
       console.log('[CALL][Header] accept click:', incomingCall)
       await ws.connect(String(user.id))
       console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
@@ -144,20 +162,155 @@ export default function Header() {
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return
     const ws = getWebSocket()
+    wsRef.current = ws
     let mounted = true
     ws.connect(String(user.id)).catch(() => {})
 
-    const onAnswered = (data: any) => {
+    const ensureLocalMedia = async (type: 'audio' | 'video') => {
+      if (mediaStreamRef.current) return mediaStreamRef.current
+      const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      try { stream.getAudioTracks().forEach(t => t.enabled = isMicOn) } catch {}
+      try { stream.getVideoTracks().forEach(t => t.enabled = type === 'video' ? isCamOn : false) } catch {}
+      mediaStreamRef.current = stream
+      if (type === 'video' && localVideoRef.current) {
+        ;(localVideoRef.current as any).srcObject = stream
+        localVideoRef.current.muted = true
+        try { await localVideoRef.current.play() } catch {}
+      }
+      return stream
+    }
+
+    const initPeerConnection = async (type: 'audio' | 'video') => {
+      try { peerRef.current?.close() } catch {}
+      peerRef.current = null
+      const pc = new RTCPeerConnection({ iceServers: [ { urls: 'stun:stun.l.google.com:19302' } ] })
+      pc.onicecandidate = (ev) => {
+        if (ev.candidate && callOverlay.roomId) {
+          console.log('[CALL][Header] -> ice_candidate', ev.candidate)
+          wsRef.current?.emit('ice_candidate', { callRoomId: callOverlay.roomId, candidate: ev.candidate, token: session?.accessToken })
+        }
+      }
+      pc.ontrack = async (ev) => {
+        const stream = ev.streams[0]
+        if (!stream) return
+        if (ev.track.kind === 'video') {
+          if (remoteVideoRef.current) { ;(remoteVideoRef.current as any).srcObject = stream; try { await remoteVideoRef.current.play() } catch {} }
+        } else if (ev.track.kind === 'audio') {
+          if (remoteAudioRef.current) { ;(remoteAudioRef.current as any).srcObject = stream; try { await remoteAudioRef.current.play() } catch {} }
+        }
+      }
+      const local = await ensureLocalMedia(type)
+      local.getTracks().forEach(t => pc.addTrack(t, local))
+      peerRef.current = pc
+      return pc
+    }
+
+    const createAndSendOffer = async (roomId: string) => {
+      const pc = peerRef.current
+      if (!pc) return
+      const offer = await pc.createOffer()
+      await pc.setLocalDescription(offer)
+      console.log('[CALL][Header] -> media_stream (offer)', { roomId, sdpLen: offer.sdp?.length })
+      wsRef.current?.emit('media_stream', { callRoomId: roomId, streamData: { type: 'offer', sdp: offer.sdp }, token: session?.accessToken })
+    }
+
+    const handleIncomingSDP = async (sd: { type: 'offer' | 'answer'; sdp: string }) => {
+      let pc = peerRef.current
+      if (!pc) { await initPeerConnection(callOverlay.type); pc = peerRef.current }
+      if (!pc) return
+      console.log('[CALL][Header] <- media_stream', sd.type)
+      const desc = new RTCSessionDescription({ type: sd.type, sdp: sd.sdp })
+      if (sd.type === 'offer') {
+        await pc.setRemoteDescription(desc)
+        const ans = await pc.createAnswer()
+        await pc.setLocalDescription(ans)
+        if (callOverlay.roomId) {
+          console.log('[CALL][Header] -> media_stream (answer)', { roomId: callOverlay.roomId, sdpLen: ans.sdp?.length })
+          wsRef.current?.emit('media_stream', { callRoomId: callOverlay.roomId, streamData: { type: 'answer', sdp: ans.sdp }, token: session?.accessToken })
+        }
+      } else if (sd.type === 'answer') {
+        if (!pc.currentRemoteDescription) {
+          await pc.setRemoteDescription(desc)
+        }
+      }
+    }
+
+    const handleIncomingIce = async (cand: RTCIceCandidateInit) => {
+      let pc = peerRef.current
+      if (!pc) { await initPeerConnection(callOverlay.type); pc = peerRef.current }
+      if (!pc) return
+      try { await pc.addIceCandidate(cand) } catch (e) { console.error('[CALL][Header] addIceCandidate error', e) }
+    }
+
+    const onAnswered = async (data: any) => {
       if (!mounted) return
       console.log('[CALL][Header] call_answered', data)
+      const roomId = data?.callRoomId
+      if (!roomId) return
+      const type: 'audio' | 'video' = (incomingCall?.data?.callType === 'audio') ? 'audio' : 'video'
+      setCallOverlay({ active: true, roomId, type, status: 'active' })
+      await initPeerConnection(type)
+      initiatorRef.current = !acceptedRef.current
+      if (initiatorRef.current) {
+        await createAndSendOffer(roomId)
+      }
     }
+
+    const onMediaStream = async (payload: any) => {
+      if (!mounted) return
+      if (!payload?.callRoomId || payload.callRoomId !== callOverlay.roomId) return
+      if (!payload?.streamData) return
+      await handleIncomingSDP(payload.streamData)
+    }
+
+    const onIce = async (payload: any) => {
+      if (!mounted) return
+      if (!payload?.callRoomId || payload.callRoomId !== callOverlay.roomId) return
+      if (!payload?.candidate) return
+      await handleIncomingIce(payload.candidate)
+    }
+
     ws.on('call_answered', onAnswered)
+    ws.on('media_stream', onMediaStream)
+    ws.on('ice_candidate', onIce)
 
     return () => {
-      try { ws.off('call_answered', onAnswered) } catch {}
+      try {
+        ws.off('call_answered', onAnswered)
+        ws.off('media_stream', onMediaStream)
+        ws.off('ice_candidate', onIce)
+      } catch {}
       mounted = false
     }
-  }, [isAuthenticated, user?.id])
+  }, [isAuthenticated, user?.id, callOverlay.roomId, callOverlay.type, isMicOn, isCamOn])
+
+  const toggleMic = () => {
+    setIsMicOn(prev => {
+      const next = !prev
+      try { mediaStreamRef.current?.getAudioTracks().forEach(t => t.enabled = next) } catch {}
+      return next
+    })
+  }
+
+  const toggleCam = () => {
+    setIsCamOn(prev => {
+      const next = !prev
+      try { mediaStreamRef.current?.getVideoTracks().forEach(t => t.enabled = next) } catch {}
+      return next
+    })
+  }
+
+  const endOverlayCall = () => {
+    initiatorRef.current = false
+    acceptedRef.current = false
+    try { peerRef.current?.getSenders?.().forEach(s => { try { s.track?.stop() } catch {} }) } catch {}
+    try { peerRef.current?.close() } catch {}
+    peerRef.current = null
+    try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
+    mediaStreamRef.current = null
+    setCallOverlay({ active: false, roomId: null, type: 'video', status: 'waiting' })
+  }
 
   return (
     <>
@@ -173,6 +326,42 @@ export default function Header() {
         </div>
       </div>
     )}
+    {callOverlay.active && (
+      <div className="fixed inset-0 z-[70] bg-black/70 flex items-center justify-center">
+        <div className="relative w-[92%] max-w-3xl">
+          <div className="h-[420px] md:h-[520px] bg-black rounded-lg overflow-hidden">
+            {callOverlay.type === 'video' ? (
+              <div className="relative w-full h-full">
+                <video ref={remoteVideoRef} className="absolute inset-0 w-full h-full object-cover" playsInline />
+                <div className="absolute bottom-3 right-3 w-40 h-28 bg-black/60 rounded-md overflow-hidden shadow">
+                  <video ref={localVideoRef} className="w-full h-full object-cover" playsInline muted />
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-white gap-3">
+                <div className="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center text-3xl">📞</div>
+                <div className="text-sm text-white/80">{callOverlay.status === 'waiting' ? 'Đang gọi...' : 'Đã kết nối'}</div>
+                <audio ref={remoteAudioRef} className="hidden" />
+              </div>
+            )}
+          </div>
+          <div className="absolute inset-x-0 -bottom-14 flex items-center justify-center gap-3">
+            <Button size="icon" variant={isMicOn ? 'default' : 'secondary'} onClick={toggleMic} className="rounded-full h-10 w-10">
+              {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+            </Button>
+            {callOverlay.type === 'video' && (
+              <Button size="icon" variant={isCamOn ? 'default' : 'secondary'} onClick={toggleCam} className="rounded-full h-10 w-10">
+                <Video className={`h-5 w-5 ${isCamOn ? '' : 'opacity-40'}`} />
+              </Button>
+            )}
+            <Button size="icon" variant="destructive" onClick={endOverlayCall} className="rounded-full h-10 w-10">
+              <PhoneOff className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-2 sm:px-4">
         {/* Logo */}
