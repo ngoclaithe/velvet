@@ -166,10 +166,7 @@ export default function MessagesPage() {
     ws.on('call_room_joined', onJoined)
     ws.on('call_started', onStarted)
     ws.on('receive_stream', onReceiveStream)
-    const onAnswered = (data: any) => {
-      console.log('[CALL][Messages] call_answered (passive)', data)
-      // UI/SDP handled globally in Header overlay to prevent duplicates
-    }
+    const onAnswered = () => {}
     ws.on('call_answered', onAnswered)
 
     return () => {

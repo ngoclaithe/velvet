@@ -139,6 +139,9 @@ export default function Header() {
       await ws.connect(String(user.id))
       console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
       ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
+      const t: 'audio' | 'video' = (incomingCall?.data?.callType === 'audio') ? 'audio' : 'video'
+      try { sessionStorage.setItem('active_call_room', JSON.stringify({ roomId: incomingCall.data.callRoomId, type: t, initiator: false, ts: Date.now() })) } catch {}
+      setCallOverlay({ active: true, roomId: incomingCall.data.callRoomId, type: t, status: 'active' })
     } catch (e) {
       console.error('[CALL][Header] call_answer error', e)
     }
@@ -245,6 +248,7 @@ export default function Header() {
 
     const onAnswered = async (data: any) => {
       if (!mounted) return
+      if (String(data?.answererId) !== String(user?.id)) { console.log('[CALL][Header] call_answered (ignored - not answerer)', data); return }
       console.log('[CALL][Header] call_answered', data)
       const roomId = data?.callRoomId
       if (!roomId) return
