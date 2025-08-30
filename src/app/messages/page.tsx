@@ -724,7 +724,7 @@ export default function MessagesPage() {
         <div className="hidden md:block md:w-1/3 border-r">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Tin nhắn</h2>
+              <h2 className="text-xl font-semibold">Tin nh��n</h2>
               <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="icon" variant="outline">
@@ -832,44 +832,7 @@ export default function MessagesPage() {
 
               {/* Messages */}
               <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
-                {callState.status !== 'idle' && (
-                  <div className="relative border-b">
-                    <div className="h-72 md:h-96 bg-black rounded-md overflow-hidden flex items-center justify-center">
-                      {callState.callType === 'video' ? (
-                        <div className="relative w-full h-full">
-                          <video ref={remoteVideoRef} className="absolute inset-0 w-full h-full object-cover" playsInline />
-                          <div className="absolute bottom-3 right-3 w-36 h-24 bg-black/60 rounded-md overflow-hidden shadow">
-                            <video ref={localVideoRef} className="w-full h-full object-cover" playsInline muted />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-white gap-3">
-                          <div className="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center text-3xl">📞</div>
-                          <div className="text-sm text-white/80">{callState.status === 'waiting' ? 'Đang gọi...' : 'Đã kết nối'}</div>
-                          <audio ref={remoteAudioRef} className="hidden" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-3">
-                      <Button size="icon" variant={isMicOn ? 'default' : 'secondary'} onClick={toggleMic} className="rounded-full h-10 w-10">
-                        {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-                      </Button>
-                      {callState.callType === 'video' && (
-                        <Button size="icon" variant={isCamOn ? 'default' : 'secondary'} onClick={toggleCam} className="rounded-full h-10 w-10">
-                          {isCamOn ? <Video className="h-5 w-5" /> : <Video className="h-5 w-5 opacity-40" />}
-                        </Button>
-                      )}
-                      <Button size="icon" variant="destructive" onClick={endCall} className="rounded-full h-10 w-10">
-                        <PhoneOff className="h-5 w-5" />
-                      </Button>
-                    </div>
-
-                    <div className="absolute top-2 left-2 text-xs text-muted-foreground bg-background/80 rounded px-2 py-1">
-                      {callState.callType === 'audio' ? 'Gọi thoại' : 'Gọi video'} · {callState.status}
-                    </div>
-                  </div>
-                )}
+                {/* Call UI moved to Header overlay to avoid duplication */}
                 <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
                     {getMessagesForConversation(selectedConversationId).map((message: any) => {
