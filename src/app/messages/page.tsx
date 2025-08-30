@@ -166,54 +166,12 @@ export default function MessagesPage() {
     ws.on('call_room_joined', onJoined)
     ws.on('call_started', onStarted)
     ws.on('receive_stream', onReceiveStream)
-    const onAnswered = async (data: any) => {
-      try {
-        if (String(data?.answererId) === String(user?.id)) return
-        console.log('[CALL][Messages] call_answered (caller)', data)
-        const roomId = data?.callRoomId
-        if (!roomId) return
-        const type: 'audio' | 'video' = callState.callType || 'video'
-        setCallState(prev => ({ ...prev, callRoomId: roomId, status: 'active', callType: type }))
-        await initPeerConnection(type)
-        await createAndSendOffer(roomId)
-      } catch (e) {
-        console.error('[CALL][Messages] onAnswered error', e)
-      }
-    }
-    ws.on('call_answered', onAnswered)
-    ws.on('call_answerd', onAnswered)
-
-    const onMediaStream = async (payload: any) => {
-      try {
-        if (String(user?.id) === String((payload as any)?.answererId)) return
-        if (!payload?.callRoomId || payload.callRoomId !== callState.callRoomId) return
-        if (!payload?.streamData) return
-        console.log('[CALL][Messages] <- media_stream', payload)
-        await handleIncomingSDP(payload.streamData)
-      } catch (e) { console.error('[CALL][Messages] onMediaStream error', e) }
-    }
-    ws.on('media_stream', onMediaStream)
-
-    const onIceCandidate = async (payload: any) => {
-      try {
-        if (String(user?.id) === String((payload as any)?.answererId)) return
-        if (!payload?.callRoomId || payload.callRoomId !== callState.callRoomId) return
-        if (!payload?.candidate) return
-        console.log('[CALL][Messages] <- ice_candidate', payload)
-        await handleIncomingIce(payload.candidate)
-      } catch (e) { console.error('[CALL][Messages] onIceCandidate error', e) }
-    }
-    ws.on('ice_candidate', onIceCandidate)
 
     return () => {
       try {
         ws.off('call_room_joined', onJoined)
         ws.off('call_started', onStarted)
         ws.off('receive_stream', onReceiveStream)
-        ws.off('call_answered', onAnswered)
-        ws.off('call_answerd', onAnswered)
-        ws.off('media_stream', onMediaStream)
-        ws.off('ice_candidate', onIceCandidate)
       } catch {}
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -724,7 +682,7 @@ export default function MessagesPage() {
         <div className="hidden md:block md:w-1/3 border-r">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Tin nh��n</h2>
+              <h2 className="text-xl font-semibold">Tin nhắn</h2>
               <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="icon" variant="outline">
