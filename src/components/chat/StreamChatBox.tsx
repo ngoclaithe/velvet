@@ -18,7 +18,6 @@ import {
   Volume2,
   VolumeX
 } from 'lucide-react'
-import { chatApi, paymentApi } from '@/lib/api'
 import { chatWebSocket, getWebSocket } from '@/lib/websocket'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -176,72 +175,21 @@ export default function StreamChatBox({
     if (!newMessage.trim() || !isAuthenticated || !user) return
 
     const messageText = newMessage.trim()
-    setNewMessage('') // Clear input immediately for better UX
+    setNewMessage('')
 
-    try {
-      // Try to send message via API first
-      const response = await chatApi.sendMessage(streamId, {
-        message: messageText
+    if (isWebSocketConnected) {
+      chatWebSocket.sendChatMessage(streamId, {
+        userId: user.id,
+        username: user.username,
+        displayName: user.firstName || user.username,
+        message: messageText,
+        timestamp: new Date().toISOString(),
+        type: 'message',
+        avatar: user.avatar
       })
-
-      if (response.success) {
-        // If API succeeds, also send via WebSocket for real-time delivery
-        if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, {
-            userId: user.id,
-            username: user.username,
-            displayName: user.firstName || user.username,
-            message: messageText,
-            timestamp: new Date().toISOString(),
-            type: 'message',
-            avatar: user.avatar
-          })
-        } else {
-          // If WebSocket not connected, add to local state as fallback
-          const newMsg: ChatMessage = {
-            id: Date.now().toString(),
-            userId: user.id,
-            username: user.username,
-            displayName: user.firstName || user.username,
-            message: messageText,
-            timestamp: new Date().toISOString(),
-            type: 'message'
-          }
-          setChatMessages(prev => [...prev, newMsg])
-        }
-      } else {
-        // If API fails, try WebSocket only
-        if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, {
-            userId: user.id,
-            username: user.username,
-            displayName: user.firstName || user.username,
-            message: messageText,
-            timestamp: new Date().toISOString(),
-            type: 'message',
-            avatar: user.avatar
-          })
-        } else {
-          toast.error('Không thể gửi tin nhắn')
-          setNewMessage(messageText) // Restore message for retry
-        }
-      }
-    } catch (error) {
-      // On error, try WebSocket as fallback
-      if (isWebSocketConnected) {
-        chatWebSocket.sendChatMessage(streamId, {
-          userId: user.id,
-          username: user.username,
-          displayName: user.firstName || user.username,
-          message: messageText,
-          timestamp: new Date().toISOString(),
-          type: 'message',
-          avatar: user.avatar
-        })
-      } else {
-        toast.error('Không thể gửi tin nhắn')
-        setNewMessage(messageText) // Restore message for retry
-      }
+    } else {
+      toast.error('Không thể gửi tin nhắn (mất kết nối)')
+      setNewMessage(messageText)
     }
   }
 
@@ -251,49 +199,20 @@ export default function StreamChatBox({
       return
     }
 
-    try {
-      // Send gift via API
-      const response = await paymentApi.sendGift({
-        streamId,
-        giftId: gift.id,
-        amount: gift.price
+    if (isWebSocketConnected) {
+      chatWebSocket.sendChatMessage(streamId, {
+        userId: user.id,
+        username: user.username,
+        displayName: user.firstName || user.username,
+        message: `Đã gửi ${gift.name} ${gift.icon}`,
+        timestamp: new Date().toISOString(),
+        type: 'gift',
+        avatar: user.avatar
       })
-
-      if (response.success) {
-        toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
-        setShowGiftDialog(false)
-
-        const giftMsg: ChatMessage = {
-          id: Date.now().toString(),
-          userId: user.id,
-          username: user.username,
-          displayName: user.firstName || user.username,
-          message: `Đã gửi ${gift.name} ${gift.icon}`,
-          timestamp: new Date().toISOString(),
-          type: 'gift',
-          giftType: gift.name,
-          amount: gift.price
-        }
-        
-        // Send gift message via WebSocket for real-time delivery
-        if (isWebSocketConnected) {
-          chatWebSocket.sendChatMessage(streamId, {
-            userId: user.id,
-            username: user.username,
-            displayName: user.firstName || user.username,
-            message: giftMsg.message,
-            timestamp: giftMsg.timestamp,
-            type: 'gift',
-            avatar: user.avatar
-          })
-        }
-        
-        setChatMessages(prev => [...prev, giftMsg])
-      } else {
-        toast.error(response.error || 'Không thể gửi quà')
-      }
-    } catch (error) {
-      toast.error('Không thể gửi quà')
+      setShowGiftDialog(false)
+      toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
+    } else {
+      toast.error('Không thể gửi quà (mất kết nối)')
     }
   }
 
