@@ -248,10 +248,12 @@ export default function Header() {
       console.log('[CALL][Header] call_answered', data)
       const roomId = data?.callRoomId
       if (!roomId) return
-      const type: 'audio' | 'video' = (incomingCall?.data?.callType === 'audio') ? 'audio' : 'video'
-      setCallOverlay({ active: true, roomId, type, status: 'active' })
-      await initPeerConnection(type)
-      initiatorRef.current = !acceptedRef.current
+      let stored: any = null
+      try { stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null') } catch {}
+      const useType: 'audio' | 'video' = stored?.type || (incomingCall?.data?.callType === 'audio' ? 'audio' : 'video') || 'video'
+      setCallOverlay({ active: true, roomId, type: useType, status: 'active' })
+      await initPeerConnection(useType)
+      initiatorRef.current = stored?.initiator === true && !acceptedRef.current
       if (initiatorRef.current) {
         await createAndSendOffer(roomId)
       }
@@ -259,27 +261,58 @@ export default function Header() {
 
     const onMediaStream = async (payload: any) => {
       if (!mounted) return
-      if (!payload?.callRoomId || payload.callRoomId !== callOverlay.roomId) return
+      const rid = payload?.callRoomId
+      if (!rid) return
+      if (!callOverlay.roomId) {
+        let stored: any = null
+        try { stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null') } catch {}
+        if (stored?.roomId === rid) {
+          setCallOverlay(prev => ({ ...prev, active: true, roomId: rid, type: stored?.type || prev.type, status: 'active' }))
+        } else {
+          return
+        }
+      }
+      if (rid !== callOverlay.roomId) return
       if (!payload?.streamData) return
       await handleIncomingSDP(payload.streamData)
     }
 
     const onIce = async (payload: any) => {
       if (!mounted) return
-      if (!payload?.callRoomId || payload.callRoomId !== callOverlay.roomId) return
+      const rid = payload?.callRoomId
+      if (!rid) return
+      if (!callOverlay.roomId) {
+        let stored: any = null
+        try { stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null') } catch {}
+        if (stored?.roomId === rid) {
+          setCallOverlay(prev => ({ ...prev, active: true, roomId: rid, type: stored?.type || prev.type, status: 'active' }))
+        } else {
+          return
+        }
+      }
+      if (rid !== callOverlay.roomId) return
       if (!payload?.candidate) return
       await handleIncomingIce(payload.candidate)
+    }
+
+    const onStarted = (data: any) => {
+      console.log('[CALL][Header] call_started', data)
+      if (!data?.callRoomId) return
+      const t: 'audio' | 'video' = (data.callType === 'audio') ? 'audio' : 'video'
+      setCallOverlay(prev => ({ active: true, roomId: data.callRoomId, type: t, status: 'active' }))
     }
 
     ws.on('call_answered', onAnswered)
     ws.on('media_stream', onMediaStream)
     ws.on('ice_candidate', onIce)
+    ws.on('call_started', onStarted)
 
     return () => {
       try {
         ws.off('call_answered', onAnswered)
         ws.off('media_stream', onMediaStream)
         ws.off('ice_candidate', onIce)
+        ws.off('call_started', onStarted)
       } catch {}
       mounted = false
     }
@@ -309,6 +342,7 @@ export default function Header() {
     peerRef.current = null
     try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
     mediaStreamRef.current = null
+    try { sessionStorage.removeItem('active_call_room') } catch {}
     setCallOverlay({ active: false, roomId: null, type: 'video', status: 'waiting' })
   }
 
