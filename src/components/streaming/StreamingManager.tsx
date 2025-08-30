@@ -70,9 +70,9 @@ export function StreamingManager({
       const socketConfig: SocketConnectionConfig = {
         accessCode: streamData.streamKey,
         clientType: 'creator',
-        streamId: String(streamData.id),
+        streamId: streamData.id != null ? String(streamData.id) : undefined,
         streamKey: streamData.streamKey,
-        socketEndpoint: socketEndpoint  // Pass the socketEndpoint from API response
+        socketEndpoint: socketEndpoint
       }
 
       console.log('🔌 Initializing streaming with config:', {
@@ -578,7 +578,7 @@ export function StreamingManager({
         {/* Chat for Creator */}
         <div className="lg:col-span-1">
           <StreamChatBox
-            streamId={String(streamData.id)}
+            streamId={streamData.id != null ? String(streamData.id) : ''}
             isCreator={true}
             chatEnabled={streamData.chatEnabled}
             className="h-[500px] lg:h-[600px]"
