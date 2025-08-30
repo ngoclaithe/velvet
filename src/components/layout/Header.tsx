@@ -117,9 +117,13 @@ export default function Header() {
     if (!incomingCall?.data?.callRoomId || !user?.id) return
     try {
       const ws = getWebSocket()
+      console.log('[CALL][Header] accept click:', incomingCall)
       await ws.connect(String(user.id))
+      console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId })
       ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId })
-    } catch {}
+    } catch (e) {
+      console.error('[CALL][Header] call_answer error', e)
+    }
     setIncomingCall(null)
   }
 
@@ -127,9 +131,13 @@ export default function Header() {
     if (!incomingCall?.data?.callRoomId || !user?.id) return
     try {
       const ws = getWebSocket()
+      console.log('[CALL][Header] reject click:', incomingCall)
       await ws.connect(String(user.id))
+      console.log('[CALL][Header] emit call_reject', { callRoomId: incomingCall.data.callRoomId })
       ws.emit('call_reject', { callRoomId: incomingCall.data.callRoomId })
-    } catch {}
+    } catch (e) {
+      console.error('[CALL][Header] call_reject error', e)
+    }
     setIncomingCall(null)
   }
 
