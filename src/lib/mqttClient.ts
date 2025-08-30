@@ -115,7 +115,6 @@ export const publishTopic = async (topic: string, payload: any): Promise<boolean
   const message = typeof payload === 'string' ? payload : JSON.stringify(payload)
   return new Promise((resolve) => {
     try {
-      console.log('[MQTT] publish ->', topic, message)
       c.publish(topic, message, { qos: 0 }, (err?: Error) => {
         if (err) {
           console.error('[MQTT] publish error', err)

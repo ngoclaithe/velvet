@@ -201,7 +201,6 @@ export default function MessagesPage() {
           if (topic) {
             try {
               await subscribeTopic(topic)
-              console.log('[MQTT] subscribed to conversation topic:', topic)
               const client = await connectMqtt()
               const onMsg = (t: string, buf: Buffer) => {
                 if (t !== topic) return
