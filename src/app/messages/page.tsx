@@ -166,53 +166,11 @@ export default function MessagesPage() {
     ws.on('call_room_joined', onJoined)
     ws.on('call_started', onStarted)
     ws.on('receive_stream', onReceiveStream)
-    const onAnswered = async (data: any) => {
-      try {
-        console.log('[CALL] call_answered', data)
-        const roomId = data?.callRoomId
-        if (!roomId) return
-        if (callState.callRoomId && callState.callRoomId !== roomId) return
-        const role: 'caller' | 'answerer' = initiatorRef.current ? 'caller' : 'answerer'
-        const type: 'audio' | 'video' = callState.callType || 'video'
-        console.log('[CALL][DEBUG] onAnswered -> role/type/state', { role, type, prevState: callState })
-        setCallState(prev => ({ ...prev, callRoomId: roomId, status: 'active', callType: type }))
-        await initPeerConnection(type)
-        if (role === 'caller') {
-          await createAndSendOffer(roomId)
-        }
-      } catch (e) {
-        console.error('[CALL] onAnswered error', e)
-      }
+    const onAnswered = (data: any) => {
+      console.log('[CALL][Messages] call_answered (passive)', data)
+      // UI/SDP handled globally in Header overlay to prevent duplicates
     }
     ws.on('call_answered', onAnswered)
-
-    const onMediaStream = async (payload: any) => {
-      try {
-        console.log('[CALL] <- media_stream', payload)
-        const roomId = payload?.callRoomId
-        if (!roomId || roomId !== callState.callRoomId) return
-        const sd = payload?.streamData
-        if (!sd?.type || !sd?.sdp) return
-        await handleIncomingSDP(sd)
-      } catch (e) {
-        console.error('[CALL] onMediaStream error', e)
-      }
-    }
-    ws.on('media_stream', onMediaStream)
-
-    const onIceCandidate = async (payload: any) => {
-      try {
-        console.log('[CALL] <- ice_candidate', payload)
-        const roomId = payload?.callRoomId
-        if (!roomId || roomId !== callState.callRoomId) return
-        const cand = payload?.candidate
-        if (!cand) return
-        await handleIncomingIce(cand)
-      } catch (e) {
-        console.error('[CALL] onIceCandidate error', e)
-      }
-    }
-    ws.on('ice_candidate', onIceCandidate)
 
     return () => {
       try {
@@ -220,8 +178,6 @@ export default function MessagesPage() {
         ws.off('call_started', onStarted)
         ws.off('receive_stream', onReceiveStream)
         ws.off('call_answered', onAnswered)
-        ws.off('media_stream', onMediaStream)
-        ws.off('ice_candidate', onIceCandidate)
       } catch {}
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -443,6 +399,7 @@ export default function MessagesPage() {
     mediaStreamRef.current = null
   }
 
+  // Local media/WebRTC now handled by Header overlay to avoid duplication
   const ensureLocalMedia = async (type: 'audio' | 'video') => {
     if (mediaStreamRef.current) return mediaStreamRef.current
     const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
@@ -458,6 +415,7 @@ export default function MessagesPage() {
     return stream
   }
 
+  // Deprecated in Messages: kept for backward compatibility but not used
   const initPeerConnection = async (type: 'audio' | 'video') => {
     try { peerRef.current?.close() } catch {}
     peerRef.current = null
@@ -507,6 +465,7 @@ export default function MessagesPage() {
     return pc
   }
 
+  // Deprecated in Messages
   const createAndSendOffer = async (roomId: string) => {
     const pc = peerRef.current
     if (!pc) return
@@ -521,6 +480,7 @@ export default function MessagesPage() {
     console.log('[CALL][EMIT media_stream] sent?', ok)
   }
 
+  // Deprecated in Messages
   const handleIncomingSDP = async (sd: { type: 'offer' | 'answer'; sdp: string }) => {
     let pc = peerRef.current
     if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
@@ -547,6 +507,7 @@ export default function MessagesPage() {
     }
   }
 
+  // Deprecated in Messages
   const handleIncomingIce = async (cand: RTCIceCandidateInit) => {
     let pc = peerRef.current
     if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
@@ -596,10 +557,9 @@ export default function MessagesPage() {
         console.log('[CALL] emit join_call_room', { callRoomId: roomId })
         ws.emit('join_call_room', { callRoomId: roomId, token: session?.accessToken })
         initiatorRef.current = true
+        try { sessionStorage.setItem('active_call_room', JSON.stringify({ roomId, type: callType, initiator: true, ts: Date.now() })) } catch {}
         setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
         console.log('[CALL][DEBUG] initiateCall set waiting', { roomId, callType, initiator: initiatorRef.current })
-        try { await ensureLocalMedia(callType) } catch {}
-        console.log('[CALL][DEBUG] local media ready')
       } else {
         console.warn('[CALL] No roomId from API')
       }
