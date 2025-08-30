@@ -107,6 +107,7 @@ export default function ChatBox({ streamId, className }: ChatBoxProps) {
       
       <CardContent className="space-y-4">
         {/* Messages */}
+        
         <ScrollArea className="h-96 border rounded-md p-3">
           <div className="space-y-3">
             {messages.map((msg) => (
