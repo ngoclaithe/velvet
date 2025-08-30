@@ -113,8 +113,40 @@ export default function Header() {
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications])
 
+  const handleAcceptCall = async () => {
+    if (!incomingCall?.data?.callRoomId || !user?.id) return
+    try {
+      const ws = getWebSocket()
+      await ws.connect(String(user.id))
+      ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId })
+    } catch {}
+    setIncomingCall(null)
+  }
+
+  const handleRejectCall = async () => {
+    if (!incomingCall?.data?.callRoomId || !user?.id) return
+    try {
+      const ws = getWebSocket()
+      await ws.connect(String(user.id))
+      ws.emit('call_reject', { callRoomId: incomingCall.data.callRoomId })
+    } catch {}
+    setIncomingCall(null)
+  }
 
   return (
+    <>
+    {incomingCall && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
+        <div className="bg-background rounded-lg shadow-xl p-6 w-[92%] max-w-md text-center">
+          <div className="text-lg font-semibold mb-2">{incomingCall.title || 'Video Call'}</div>
+          <div className="text-sm text-muted-foreground mb-4">{incomingCall.message || 'Bạn đang có cuộc gọi'}</div>
+          <div className="flex items-center justify-center gap-3">
+            <Button className="bg-green-600 hover:bg-green-700" onClick={handleAcceptCall}>Đồng ý</Button>
+            <Button variant="destructive" onClick={handleRejectCall}>Từ chối</Button>
+          </div>
+        </div>
+      </div>
+    )}
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-2 sm:px-4">
         {/* Logo */}
@@ -320,5 +352,6 @@ export default function Header() {
         </nav>
       </div>
     </header>
+    </>
   )
 }
