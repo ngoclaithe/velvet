@@ -1,4 +1,21 @@
 import { io, Socket } from 'socket.io-client'
+import { useAuthStore } from '@/store/authStore'
+
+function getSocketAuthToken(): string | undefined {
+  if (typeof window === 'undefined') return undefined
+  try {
+    const state = (useAuthStore as any).getState ? (useAuthStore as any).getState() : null
+    const token = state?.session?.accessToken as string | undefined
+    if (token && typeof token === 'string' && token.length > 0) return token
+    const raw = localStorage.getItem('auth-storage')
+    if (!raw) return undefined
+    const parsed = JSON.parse(raw)
+    const persisted = parsed?.state?.session?.accessToken as string | undefined
+    if (persisted && typeof persisted === 'string' && persisted.length > 0) return persisted
+  } catch (e) {
+  }
+  return undefined
+}
 
 export interface SocketConnectionConfig {
   accessCode?: string
@@ -60,6 +77,7 @@ export class WebSocketClient {
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         timeout: 20000,
+        auth: (function(){ const t = getSocketAuthToken(); return t ? { token: t } : undefined })(),
         query: userId ? {
           userId: userId
         } : {}
