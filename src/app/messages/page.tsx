@@ -16,6 +16,7 @@ import { Icons } from '@/components/common/Icons'
 import { chatApi } from '@/lib/api/chat'
 import { subscribeTopic, connectMqtt, publishTopic } from '@/lib/mqttClient'
 import { getConversationById } from '@/lib/api/conversation'
+import { getWebSocket } from '@/lib/websocket'
 import ImageUploader from '@/components/ImageUploader'
 import {
   MessageCircle,
@@ -34,7 +35,8 @@ import {
   Check,
   CheckCheck,
   Loader,
-  AlertCircle
+  AlertCircle,
+  PhoneOff
 } from 'lucide-react'
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -82,12 +84,84 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const [messagesByConv, setMessagesByConv] = useState<Record<string, any[]>>({})
+  const [callState, setCallState] = useState<{
+    callRoomId: string | null
+    callType: 'audio' | 'video' | null
+    status: 'idle' | 'waiting' | 'active'
+    participants: number
+  }>({ callRoomId: null, callType: null, status: 'idle', participants: 0 })
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteAudioRef = useRef<HTMLAudioElement>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
   const seenMsgKeysRef = useRef<Map<string, number>>(new Map())
   const lastConvRef = useRef<string | null>(null)
   const lastCountRef = useRef<number>(0)
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [showEmojiPad, setShowEmojiPad] = useState(false)
   const quickIcons = ['😀','😂','❤️','👍','🔥']
+
+  // WebSocket connect for 1-1 call events
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return
+    const ws = getWebSocket()
+    wsRef.current = ws
+    ws.connect(String(user.id)).catch(() => {})
+
+    const onJoined = (data: any) => {
+      if (!data?.callRoomId) return
+      setCallState({
+        callRoomId: data.callRoomId,
+        callType: (data.callType === 'audio' ? 'audio' : 'video'),
+        status: data.status === 'active' ? 'active' : 'waiting',
+        participants: Number(data.participants || 1)
+      })
+    }
+
+    const onStarted = (data: any) => {
+      if (!data?.callRoomId) return
+      setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2) }))
+      startSendingStream()
+    }
+
+    const onReceiveStream = async (data: any) => {
+      if (!data?.callRoomId || data.callRoomId !== callState.callRoomId) return
+      try {
+        const base64 = data.streamData
+        const byteCharacters = atob(base64)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i)
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: data.streamType === 'audio' ? 'audio/webm' : 'video/webm' })
+        const url = URL.createObjectURL(blob)
+        if (data.streamType === 'audio') {
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.src = url
+            try { await remoteAudioRef.current.play() } catch {}
+          }
+        } else {
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.src = url
+            try { await remoteVideoRef.current.play() } catch {}
+          }
+        }
+      } catch {}
+    }
+
+    ws.on('call_room_joined', onJoined)
+    ws.on('call_started', onStarted)
+    ws.on('receive_stream', onReceiveStream)
+    return () => {
+      try {
+        ws.off('call_room_joined', onJoined)
+        ws.off('call_started', onStarted)
+        ws.off('receive_stream', onReceiveStream)
+      } catch {}
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id, callState.callRoomId])
 
   // Load conversations and selected
   useEffect(() => {
@@ -266,6 +340,64 @@ export default function MessagesPage() {
       lastCountRef.current = currentMessages.length
     }
   }, [currentMessages.length, selectedConversationId])
+
+  const startSendingStream = async () => {
+    try {
+      if (!callState.callRoomId || !callState.callType) return
+      const constraints: MediaStreamConstraints = callState.callType === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
+      mediaStreamRef.current = mediaStream
+      if (localVideoRef.current && callState.callType === 'video') {
+        localVideoRef.current.srcObject = mediaStream
+        localVideoRef.current.muted = true
+        try { await localVideoRef.current.play() } catch {}
+      }
+      const mime = callState.callType === 'audio' ? 'audio/webm' : 'video/webm;codecs=vp8'
+      const recorder = new MediaRecorder(mediaStream, { mimeType: mime })
+      mediaRecorderRef.current = recorder
+      recorder.ondataavailable = async (ev: BlobEvent) => {
+        if (!ev.data || ev.data.size === 0) return
+        const buf = await ev.data.arrayBuffer()
+        const bytes = new Uint8Array(buf)
+        let binary = ''
+        const chunk = 0x8000
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)))
+        }
+        const base64Data = btoa(binary)
+        wsRef.current?.emit('send_stream', { callRoomId: callState.callRoomId, streamData: base64Data, streamType: callState.callType })
+      }
+      recorder.start(1000)
+    } catch {}
+  }
+
+  const stopSendingStream = () => {
+    try { mediaRecorderRef.current?.stop() } catch {}
+    mediaRecorderRef.current = null
+    try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
+    mediaStreamRef.current = null
+  }
+
+  const endCall = () => {
+    stopSendingStream()
+    setCallState({ callRoomId: null, callType: null, status: 'idle', participants: 0 })
+  }
+
+  const initiateCall = async (type: 'audio' | 'video') => {
+    if (!selectedConversationId || !selectedConversation) return
+    try {
+      const resp: any = await chatApi.sendDirectMessage(String(selectedConversationId), { content: null, messageType: type })
+      const callRoom = resp?.data?.callRoom || resp?.data?.data?.callRoom || resp?.callRoom
+      const roomId = callRoom?.roomId
+      const callType = (callRoom?.callType === 'audio') ? 'audio' : 'video'
+      if (roomId) {
+        const ws = wsRef.current || getWebSocket()
+        ws.connect(String(user?.id || ''))
+        ws.emit('join_call_room', { callRoomId: roomId })
+        setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
+      }
+    } catch {}
+  }
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return
@@ -477,10 +609,10 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button size="icon" variant="ghost">
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')}>
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost">
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')}>
                       <Video className="h-4 w-4" />
                     </Button>
 
@@ -495,6 +627,28 @@ export default function MessagesPage() {
 
               {/* Messages */}
               <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
+                {callState.status !== 'idle' && (
+                  <div className="p-3 border-b bg-muted/20 flex items-center gap-3">
+                    <div className="text-sm">
+                      <div className="font-medium">{callState.callType === 'audio' ? 'Đang gọi thoại' : 'Đang gọi video'}</div>
+                      <div className="text-xs text-muted-foreground">Trạng thái: {callState.status} · Người tham gia: {callState.participants}</div>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                      {callState.callType === 'video' && (
+                        <>
+                          <video ref={localVideoRef} className="w-28 h-20 bg-black rounded" playsInline muted />
+                          <video ref={remoteVideoRef} className="w-36 h-24 bg-black rounded" playsInline />
+                        </>
+                      )}
+                      {callState.callType === 'audio' && (
+                        <audio ref={remoteAudioRef} controls className="w-48" />
+                      )}
+                      <Button size="sm" variant="destructive" onClick={endCall}>
+                        <PhoneOff className="h-4 w-4 mr-1" /> Kết thúc
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
                     {getMessagesForConversation(selectedConversationId).map((message: any) => {
@@ -680,7 +834,7 @@ export default function MessagesPage() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để b���t đầu nhắn tin</p>
               </div>
             </div>
           )}
