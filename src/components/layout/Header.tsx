@@ -46,7 +46,7 @@ interface AppNotification {
 }
 
 export default function Header() {
-  const { user, isAuthenticated, isGuest, logout } = useAuth()
+  const { user, session, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [incomingCall, setIncomingCall] = useState<AppNotification | null>(null)
@@ -119,7 +119,7 @@ export default function Header() {
       const ws = getWebSocket()
       console.log('[CALL][Header] accept click:', incomingCall)
       await ws.connect(String(user.id))
-      console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId })
+      console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
       ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId })
     } catch (e) {
       console.error('[CALL][Header] call_answer error', e)
