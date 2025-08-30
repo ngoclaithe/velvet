@@ -120,7 +120,7 @@ export default function Header() {
       console.log('[CALL][Header] accept click:', incomingCall)
       await ws.connect(String(user.id))
       console.log('[CALL][Header] emit call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
-      ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId })
+      ws.emit('call_answer', { callRoomId: incomingCall.data.callRoomId, token: session?.accessToken })
     } catch (e) {
       console.error('[CALL][Header] call_answer error', e)
     }
