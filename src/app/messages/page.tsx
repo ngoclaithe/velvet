@@ -16,7 +16,7 @@ import { Icons } from '@/components/common/Icons'
 import { chatApi } from '@/lib/api/chat'
 import { subscribeTopic, connectMqtt, publishTopic } from '@/lib/mqttClient'
 import { getConversationById } from '@/lib/api/conversation'
-import { getWebSocket } from '@/lib/websocket'
+
 import ImageUploader from '@/components/ImageUploader'
 import {
   MessageCircle,
@@ -98,7 +98,7 @@ export default function MessagesPage() {
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   // WebSocket removed from Messages; centralized elsewhere
-  const wsRef = useRef<ReturnType<typeof getWebSocket> | null>(null)
+  const wsRef = useRef<any>(null)
   const peerRef = useRef<RTCPeerConnection | null>(null)
   const initiatorRef = useRef<boolean>(false)
   const [isMicOn, setIsMicOn] = useState(true)
@@ -110,109 +110,10 @@ export default function MessagesPage() {
   const [showEmojiPad, setShowEmojiPad] = useState(false)
   const quickIcons = ['😀','😂','❤️','👍','🔥']
 
-  // WebSocket connect for 1-1 call events
+  // WebSocket connect for 1-1 call events (removed)
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return
-    // WebSocket removed here; no per-component socket connection
-
-    const onJoined = (data: any) => {
-      if (!data?.callRoomId) return
-      console.log('[CALL] call_room_joined', data)
-      setCallState({
-        callRoomId: data.callRoomId,
-        callType: (data.callType === 'audio' ? 'audio' : 'video'),
-        status: data.status === 'active' ? 'active' : 'waiting',
-        participants: Number(data.participants || 1)
-      })
-      console.log('[CALL][DEBUG] state after join', { state: callState, initiator: initiatorRef.current })
-    }
-
-    const onStarted = (data: any) => {
-      if (!data?.callRoomId) return
-      if (peerRef.current) return
-      console.log('[CALL] call_started', data)
-      const type: 'audio' | 'video' = (data.callType === 'audio') ? 'audio' : 'video'
-      setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2), callType: type }))
-      console.log('[CALL][DEBUG] onStarted => will start legacy stream', { type, room: data.callRoomId })
-      startSendingStream(data.callRoomId, type)
-    }
-
-    const onReceiveStream = async (data: any) => {
-      if (!data?.callRoomId || data.callRoomId !== callState.callRoomId) return
-      try {
-        console.log('[CALL] receive_stream', { roomId: data.callRoomId, type: data.streamType, size: data.streamData?.length || 0 })
-        const base64 = data.streamData
-        const byteCharacters = atob(base64)
-        const byteNumbers = new Array(byteCharacters.length)
-        for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i)
-        const byteArray = new Uint8Array(byteNumbers)
-        const blob = new Blob([byteArray], { type: data.streamType === 'audio' ? 'audio/webm' : 'video/webm' })
-        const url = URL.createObjectURL(blob)
-        if (data.streamType === 'audio') {
-          if (remoteAudioRef.current) {
-            remoteAudioRef.current.src = url
-            try { await remoteAudioRef.current.play() } catch {}
-          }
-        } else {
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.src = url
-            try { await remoteVideoRef.current.play() } catch {}
-          }
-        }
-      } catch {}
-    }
-
-    ws.on('call_room_joined', onJoined)
-    ws.on('call_started', onStarted)
-    ws.on('receive_stream', onReceiveStream)
-
-    const onAnswered2 = async (data: any) => {
-      try {
-        console.log('[CALL][Messages] call_answered_2', data)
-        const roomId = data?.callRoomId
-        if (!roomId) return
-        const type: 'audio' | 'video' = callState.callType || 'video'
-        setCallState(prev => ({ ...prev, callRoomId: roomId, status: 'active', callType: type }))
-        await initPeerConnection(type)
-        await createAndSendOffer(roomId)
-      } catch (e) { console.error('[CALL][Messages] onAnswered_2 error', e) }
-    }
-    ws.on('call_answered_2', onAnswered2)
-    ws.on('call_answerd_2', onAnswered2)
-
-    const onMediaStream = async (payload: any) => {
-      try {
-        if (!payload?.callRoomId || payload.callRoomId !== callState.callRoomId) return
-        if (!payload?.streamData) return
-        console.log('[CALL][Messages] <- media_stream', payload)
-        await handleIncomingSDP(payload.streamData)
-      } catch (e) { console.error('[CALL][Messages] onMediaStream error', e) }
-    }
-    ws.on('media_stream', onMediaStream)
-
-    const onIceCandidate = async (payload: any) => {
-      try {
-        if (!payload?.callRoomId || payload.callRoomId !== callState.callRoomId) return
-        if (!payload?.candidate) return
-        console.log('[CALL][Messages] <- ice_candidate', payload)
-        await handleIncomingIce(payload.candidate)
-      } catch (e) { console.error('[CALL][Messages] onIceCandidate error', e) }
-    }
-    ws.on('ice_candidate', onIceCandidate)
-
-    return () => {
-      try {
-        ws.off('call_room_joined', onJoined)
-        ws.off('call_started', onStarted)
-        ws.off('receive_stream', onReceiveStream)
-        ws.off('call_answered_2', onAnswered2)
-        ws.off('call_answerd_2', onAnswered2)
-        ws.off('media_stream', onMediaStream)
-        ws.off('ice_candidate', onIceCandidate)
-      } catch {}
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user?.id, callState.callRoomId])
+  }, [isAuthenticated, user?.id])
 
   // Load conversations and selected
   useEffect(() => {
