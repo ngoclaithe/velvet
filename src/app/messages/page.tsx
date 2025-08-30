@@ -812,10 +812,10 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')}>
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')} disabled={callState.status !== 'idle'}>
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')}>
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')} disabled={callState.status !== 'idle'}>
                       <Video className="h-4 w-4" />
                     </Button>
 
