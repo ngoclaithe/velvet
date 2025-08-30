@@ -104,14 +104,20 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     socket.on('call_answerd', onCallAnswered)
+    socket.on('call_answered', onCallAnswered)
     socket.on('webrtc-offerd', onWebrtcOffered)
+    socket.on('webrtc-offered', onWebrtcOffered)
     socket.on('ice_candidated', onIceCandidated)
+    socket.on('ice_candidate_received', onIceCandidated)
 
     return () => {
       mounted = false
       socket.off('call_answerd', onCallAnswered)
+      socket.off('call_answered', onCallAnswered)
       socket.off('webrtc-offerd', onWebrtcOffered)
+      socket.off('webrtc-offered', onWebrtcOffered)
       socket.off('ice_candidated', onIceCandidated)
+      socket.off('ice_candidate_received', onIceCandidated)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, state.callRoomId, state.callType, session?.accessToken, socket])
