@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -26,13 +26,8 @@ import {
   MoreVertical,
   Phone,
   Video,
-  Archive,
-  Trash2,
-  Pin,
-  Star,
   Image,
   Smile,
-  Check,
   CheckCheck,
   Loader,
   AlertCircle,
@@ -42,6 +37,7 @@ import {
 } from 'lucide-react'
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { CallProvider, useCall } from '@/components/call/CallProvider'
 
 interface User {
   id: string
@@ -72,10 +68,12 @@ interface Conversation {
   updatedAt: Date
 }
 
-export default function MessagesPage() {
+function MessagesInner() {
   const { user, session, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const call = useCall()
+
   const [conversations, setConversations] = useState<any[]>([])
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const [selectedConversation, setSelectedConversation] = useState<any | null>(null)
@@ -86,36 +84,13 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const [messagesByConv, setMessagesByConv] = useState<Record<string, any[]>>({})
-  const [callState, setCallState] = useState<{
-    callRoomId: string | null
-    callType: 'audio' | 'video' | null
-    status: 'idle' | 'waiting' | 'active'
-    participants: number
-  }>({ callRoomId: null, callType: null, status: 'idle', participants: 0 })
-  const localVideoRef = useRef<HTMLVideoElement>(null)
-  const remoteVideoRef = useRef<HTMLVideoElement>(null)
-  const remoteAudioRef = useRef<HTMLAudioElement>(null)
-  const mediaStreamRef = useRef<MediaStream | null>(null)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  // WebSocket removed from Messages; centralized elsewhere
-  const wsRef = useRef<any>(null)
-  const peerRef = useRef<RTCPeerConnection | null>(null)
-  const initiatorRef = useRef<boolean>(false)
-  const [isMicOn, setIsMicOn] = useState(true)
-  const [isCamOn, setIsCamOn] = useState(true)
-  const seenMsgKeysRef = useRef<Map<string, number>>(new Map())
-  const lastConvRef = useRef<string | null>(null)
-  const lastCountRef = useRef<number>(0)
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [showEmojiPad, setShowEmojiPad] = useState(false)
   const quickIcons = ['😀','😂','❤️','👍','🔥']
+  const seenMsgKeysRef = useRef<Map<string, number>>(new Map())
+  const lastConvRef = useRef<string | null>(null)
+  const lastCountRef = useRef<number>(0)
 
-  // WebSocket connect for 1-1 call events (removed)
-  useEffect(() => {
-    if (!isAuthenticated || !user?.id) return
-  }, [isAuthenticated, user?.id])
-
-  // Load conversations and selected
   useEffect(() => {
     if (!isAuthenticated) return
     chatApi.getConversations()
@@ -163,13 +138,10 @@ export default function MessagesPage() {
                     const key = String(data.messageId || data.clientMessageId || `${data.conversationId}:${data.senderId}:${contentStr}`)
                     const now = Date.now()
                     const seenAt = seenMsgKeysRef.current.get(key)
-                    // Drop duplicates within 6s window
                     if (seenAt && now - seenAt < 6000) {
                       return
                     }
-                    // Record key
                     seenMsgKeysRef.current.set(key, now)
-                    // Prune old
                     seenMsgKeysRef.current.forEach((ts, k) => { if (now - ts > 15000) seenMsgKeysRef.current.delete(k) })
 
                     setMessagesByConv(prev => {
@@ -218,38 +190,21 @@ export default function MessagesPage() {
         }
       })
       .catch(() => setSelectedConversation(null))
-  }, [isAuthenticated, selectedConversationId, searchParams])
+  }, [isAuthenticated, selectedConversationId, searchParams, user?.id])
 
-
-
-  const getSelectedConversationData = () => {
-    return selectedConversation as any
-  }
-
-  const getMessagesForConversation = (conversationId: string) => {
-    return messagesByConv[conversationId] || []
-  }
+  const getSelectedConversationData = () => selectedConversation as any
+  const getMessagesForConversation = (conversationId: string) => messagesByConv[conversationId] || []
 
   const formatMessageTime = (date: Date) => {
-    if (isToday(date)) {
-      return format(date, 'HH:mm')
-    } else if (isYesterday(date)) {
-      return 'Hôm qua'
-    } else if (isThisWeek(date)) {
-      return format(date, 'EEEE', { locale: vi })
-    } else {
-      return format(date, 'dd/MM/yyyy')
-    }
+    if (isToday(date)) return format(date, 'HH:mm')
+    if (isYesterday(date)) return 'Hôm qua'
+    if (isThisWeek(date)) return format(date, 'EEEE', { locale: vi })
+    return format(date, 'dd/MM/yyyy')
   }
-
   const formatLastMessageTime = (date: Date) => {
-    if (isToday(date)) {
-      return format(date, 'HH:mm')
-    } else if (isYesterday(date)) {
-      return 'Hôm qua'
-    } else {
-      return format(date, 'dd/MM')
-    }
+    if (isToday(date)) return format(date, 'HH:mm')
+    if (isYesterday(date)) return 'Hôm qua'
+    return format(date, 'dd/MM')
   }
 
   const isImageUrl = (s: string) => {
@@ -262,11 +217,8 @@ export default function MessagesPage() {
 
   const scrollToBottom = () => {
     const el = messagesContainerRef.current
-    if (el) {
-      el.scrollTop = el.scrollHeight
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
+    if (el) el.scrollTop = el.scrollHeight
+    else messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   const currentMessages = useMemo(() => selectedConversationId ? (messagesByConv[selectedConversationId] || []) : [], [messagesByConv, selectedConversationId])
@@ -285,217 +237,11 @@ export default function MessagesPage() {
         return el.scrollHeight - el.scrollTop - el.clientHeight < threshold
       }
       if (String(last?.senderId) === String(user?.id) || nearBottom()) {
-        const raf = requestAnimationFrame(() => scrollToBottom())
-        // Note: no cleanup needed for one-off raf
+        requestAnimationFrame(() => scrollToBottom())
       }
       lastCountRef.current = currentMessages.length
     }
-  }, [currentMessages.length, selectedConversationId])
-
-  const startSendingStream = async (roomId: string, type: 'audio' | 'video') => {
-    try {
-      console.log('[CALL] startSendingStream', { roomId, type })
-      const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
-      mediaStreamRef.current = mediaStream
-      if (localVideoRef.current && type === 'video') {
-        ;(localVideoRef.current as any).srcObject = mediaStream
-        localVideoRef.current.muted = true
-        try { await localVideoRef.current.play() } catch {}
-      }
-      const mime = type === 'audio' ? 'audio/webm' : 'video/webm;codecs=vp8'
-      const recorder = new MediaRecorder(mediaStream, { mimeType: mime })
-      mediaRecorderRef.current = recorder
-      recorder.ondataavailable = async (ev: BlobEvent) => {
-        if (!ev.data || ev.data.size === 0) return
-        const buf = await ev.data.arrayBuffer()
-        const bytes = new Uint8Array(buf)
-        let binary = ''
-        const chunk = 0x8000
-        for (let i = 0; i < bytes.length; i += chunk) {
-          binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)))
-        }
-        const base64Data = btoa(binary)
-        wsRef.current?.emit('send_stream', { callRoomId: roomId, streamData: base64Data, streamType: type, token: session?.accessToken })
-      }
-      recorder.start(1000)
-    } catch (e) {
-      console.error('[CALL] startSendingStream error', e)
-    }
-  }
-
-  const stopSendingStream = () => {
-    try { mediaRecorderRef.current?.stop() } catch {}
-    mediaRecorderRef.current = null
-    try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
-    mediaStreamRef.current = null
-  }
-
-  // Local media/WebRTC now handled by Header overlay to avoid duplication
-  const ensureLocalMedia = async (type: 'audio' | 'video') => {
-    if (mediaStreamRef.current) return mediaStreamRef.current
-    const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
-    const stream = await navigator.mediaDevices.getUserMedia(constraints)
-    try { stream.getAudioTracks().forEach(t => t.enabled = isMicOn) } catch {}
-    try { stream.getVideoTracks().forEach(t => t.enabled = type === 'video' ? isCamOn : false) } catch {}
-    mediaStreamRef.current = stream
-    if (type === 'video' && localVideoRef.current) {
-      ;(localVideoRef.current as any).srcObject = stream
-      localVideoRef.current.muted = true
-      try { await localVideoRef.current.play() } catch {}
-    }
-    return stream
-  }
-
-  // Deprecated in Messages: kept for backward compatibility but not used
-  const initPeerConnection = async (type: 'audio' | 'video') => {
-    try { peerRef.current?.close() } catch {}
-    peerRef.current = null
-
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }
-      ]
-    })
-
-    console.log('[CALL][DEBUG] initPeerConnection', { type })
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate && callState.callRoomId) {
-        console.log('[CALL] -> ice_candidate', event.candidate)
-        const ok = wsRef.current?.emit('ice_candidate', {
-          callRoomId: callState.callRoomId,
-          candidate: event.candidate,
-          token: session?.accessToken,
-        })
-        console.log('[CALL][EMIT ice_candidate] sent?', ok)
-      }
-    }
-
-    pc.ontrack = async (ev) => {
-      const stream = ev.streams[0]
-      if (!stream) return
-      const trackKind = ev.track.kind
-      if (trackKind === 'video') {
-        if (remoteVideoRef.current) {
-          ;(remoteVideoRef.current as any).srcObject = stream
-          try { await remoteVideoRef.current.play() } catch {}
-        }
-      } else if (trackKind === 'audio') {
-        if (remoteAudioRef.current) {
-          ;(remoteAudioRef.current as any).srcObject = stream
-          try { await remoteAudioRef.current.play() } catch {}
-        }
-      }
-    }
-
-    const local = await ensureLocalMedia(type)
-    local.getTracks().forEach((t) => pc.addTrack(t, local))
-
-    peerRef.current = pc
-    return pc
-  }
-
-  // Deprecated in Messages
-  const createAndSendOffer = async (roomId: string) => {
-    const pc = peerRef.current
-    if (!pc) return
-    const offer = await pc.createOffer()
-    await pc.setLocalDescription(offer)
-    console.log('[CALL] -> media_stream (offer)', { roomId, sdpLen: offer.sdp?.length })
-    const ok = wsRef.current?.emit('media_stream', {
-      callRoomId: roomId,
-      streamData: { type: 'offer', sdp: offer.sdp },
-      token: session?.accessToken,
-    })
-    console.log('[CALL][EMIT media_stream] sent?', ok)
-  }
-
-  // Deprecated in Messages
-  const handleIncomingSDP = async (sd: { type: 'offer' | 'answer'; sdp: string }) => {
-    let pc = peerRef.current
-    if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
-    if (!pc) return
-    console.log('[CALL][DEBUG] handleIncomingSDP', sd.type)
-    const desc = new RTCSessionDescription({ type: sd.type, sdp: sd.sdp })
-    if (sd.type === 'offer') {
-      await pc.setRemoteDescription(desc)
-      const ans = await pc.createAnswer()
-      await pc.setLocalDescription(ans)
-      if (callState.callRoomId) {
-        console.log('[CALL] -> media_stream (answer)', { roomId: callState.callRoomId, sdpLen: ans.sdp?.length })
-        const ok = wsRef.current?.emit('media_stream', {
-          callRoomId: callState.callRoomId,
-          streamData: { type: 'answer', sdp: ans.sdp },
-          token: session?.accessToken,
-        })
-        console.log('[CALL][EMIT media_stream] sent?', ok)
-      }
-    } else if (sd.type === 'answer') {
-      if (!pc.currentRemoteDescription) {
-        await pc.setRemoteDescription(desc)
-      }
-    }
-  }
-
-  // Deprecated in Messages
-  const handleIncomingIce = async (cand: RTCIceCandidateInit) => {
-    let pc = peerRef.current
-    if (!pc) { await initPeerConnection(callState.callType || 'video'); pc = peerRef.current }
-    if (!pc) return
-    try { await pc.addIceCandidate(cand) } catch (e) { console.error('[CALL] addIceCandidate error', e) }
-  }
-
-  const toggleMic = () => {
-    setIsMicOn(prev => {
-      const next = !prev
-      try { mediaStreamRef.current?.getAudioTracks().forEach(t => t.enabled = next) } catch {}
-      return next
-    })
-  }
-
-  const toggleCam = () => {
-    setIsCamOn(prev => {
-      const next = !prev
-      try { mediaStreamRef.current?.getVideoTracks().forEach(t => t.enabled = next) } catch {}
-      return next
-    })
-  }
-
-  const endCall = () => {
-    initiatorRef.current = false
-    try { peerRef.current?.getSenders?.().forEach(s => { try { s.track?.stop() } catch {} }) } catch {}
-    try { peerRef.current?.close() } catch {}
-    peerRef.current = null
-    try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
-    mediaStreamRef.current = null
-    stopSendingStream()
-    setCallState({ callRoomId: null, callType: null, status: 'idle', participants: 0 })
-  }
-
-  const initiateCall = async (type: 'audio' | 'video') => {
-    if (!selectedConversationId || !selectedConversation) return
-    try {
-      console.log('[CALL] initiateCall -> sendDirectMessage', { conversationId: String(selectedConversationId), type })
-      const resp: any = await chatApi.sendDirectMessage(String(selectedConversationId), { content: null, messageType: type })
-      console.log('[CALL] API response', resp)
-      const callRoom = resp?.data?.callRoom || resp?.data?.data?.callRoom || resp?.callRoom
-      const roomId = callRoom?.roomId
-      const callType = (callRoom?.callType === 'audio') ? 'audio' : 'video'
-      if (roomId) {
-        // Socket join removed; only update local UI for now
-        initiatorRef.current = true
-        try { sessionStorage.setItem('active_call_room', JSON.stringify({ roomId, type: callType, initiator: true, ts: Date.now() })) } catch {}
-        setCallState({ callRoomId: roomId, callType, status: 'waiting', participants: 1 })
-        console.log('[CALL][DEBUG] initiateCall set waiting', { roomId, callType, initiator: initiatorRef.current })
-      } else {
-        console.warn('[CALL] No roomId from API')
-      }
-    } catch (e) {
-      console.error('[CALL] initiateCall error', e)
-    }
-  }
+  }, [currentMessages.length, selectedConversationId, user?.id])
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return
@@ -505,7 +251,6 @@ export default function MessagesPage() {
     const topic = (selectedConversation as any)?.topic as string | undefined
     const clientMessageId = `c:${user?.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`
 
-    // Optimistically add message with 'sending' status
     const optimisticMsg = {
       id: clientMessageId,
       clientMessageId,
@@ -532,30 +277,19 @@ export default function MessagesPage() {
         setMessagesByConv(prev => {
           const arr = prev[conversationId] ? [...prev[conversationId]] : []
           const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
-          if (idx >= 0) {
-            arr[idx] = { ...arr[idx], status: 'sent', isDelivered: true }
-          }
+          if (idx >= 0) arr[idx] = { ...arr[idx], status: 'sent', isDelivered: true }
           return { ...prev, [conversationId]: arr }
         })
         if (topic) {
           try {
-            await publishTopic(topic, {
-              type: 'chat_message',
-              conversationId,
-              senderId: user?.id,
-              content,
-              timestamp: Date.now(),
-              clientMessageId,
-            })
+            await publishTopic(topic, { type: 'chat_message', conversationId, senderId: user?.id, content, timestamp: Date.now(), clientMessageId })
           } catch {}
         }
       } else {
         setMessagesByConv(prev => {
           const arr = prev[conversationId] ? [...prev[conversationId]] : []
           const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
-          if (idx >= 0) {
-            arr[idx] = { ...arr[idx], status: 'error' }
-          }
+          if (idx >= 0) arr[idx] = { ...arr[idx], status: 'error' }
           return { ...prev, [conversationId]: arr }
         })
       }
@@ -563,9 +297,7 @@ export default function MessagesPage() {
       setMessagesByConv(prev => {
         const arr = prev[conversationId] ? [...prev[conversationId]] : []
         const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
-        if (idx >= 0) {
-          arr[idx] = { ...arr[idx], status: 'error' }
-        }
+        if (idx >= 0) arr[idx] = { ...arr[idx], status: 'error' }
         return { ...prev, [conversationId]: arr }
       })
     } finally {
@@ -596,6 +328,10 @@ export default function MessagesPage() {
     }
   }, [authLoading, isAuthenticated, router])
 
+  const callRoomIdParam = searchParams.get('callRoomId')
+  const incoming = searchParams.get('incoming')
+  const callTypeParam = (searchParams.get('callType') || 'video').toLowerCase() as 'audio' | 'video'
+
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -605,15 +341,27 @@ export default function MessagesPage() {
       </div>
     )
   }
+  if (!isAuthenticated) return null
 
-  if (!isAuthenticated) {
-    return null // Component sẽ redirect trước khi render
+  const initiateCall = async (type: 'audio' | 'video') => {
+    if (!selectedConversationId) return
+    await call.initiateCall(type, String(selectedConversationId))
+  }
+
+  const acceptIncoming = async () => {
+    if (callRoomIdParam) {
+      await call.acceptCall(callRoomIdParam, callTypeParam)
+    }
+  }
+  const rejectIncoming = () => {
+    if (callRoomIdParam) {
+      call.rejectCall(callRoomIdParam)
+    }
   }
 
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <Card className="h-[80vh] flex">
-        {/* Conversations List */}
         <div className="hidden md:block md:w-1/3 border-r">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -687,11 +435,9 @@ export default function MessagesPage() {
           </CardContent>
         </div>
 
-        {/* Chat Area */}
         <div className="flex-1 flex flex-col min-h-0">
           {selectedConversationId ? (
             <>
-              {/* Chat Header */}
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -703,17 +449,15 @@ export default function MessagesPage() {
                     </Avatar>
                     <div>
                       <h3 className="font-semibold">{(getSelectedConversationData() as any)?.otherUser?.username || (getSelectedConversationData() as any)?.participants?.[0]?.username || 'Cuộc trò chuyện'}</h3>
-                      <p className="text-sm text-muted-foreground"></p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')} disabled={callState.status !== 'idle'}>
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('audio')} disabled={call.state.status !== 'idle'}>
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')} disabled={callState.status !== 'idle'}>
+                    <Button size="icon" variant="ghost" onClick={() => initiateCall('video')} disabled={call.state.status !== 'idle'}>
                       <Video className="h-4 w-4" />
                     </Button>
-
                     <Button size="icon" variant="ghost">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
@@ -723,49 +467,59 @@ export default function MessagesPage() {
 
               <Separator />
 
-              {/* Messages */}
               <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
-                {callState.status !== 'idle' && (
+                {incoming && callRoomIdParam && call.state.status === 'idle' && (
+                  <div className="p-3 border-b bg-yellow-50 flex items-center justify-between">
+                    <div className="text-sm">Có cuộc gọi đến</div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" onClick={acceptIncoming}>Đồng ý</Button>
+                      <Button size="sm" variant="destructive" onClick={rejectIncoming}>Từ chối</Button>
+                    </div>
+                  </div>
+                )}
+
+                {call.state.status !== 'idle' && (
                   <div className="relative border-b">
                     <div className="h-72 md:h-96 bg-black rounded-md overflow-hidden flex items-center justify-center">
-                      {callState.callType === 'video' ? (
+                      {call.state.callType === 'video' ? (
                         <div className="relative w-full h-full">
-                          <video ref={remoteVideoRef} className="absolute inset-0 w-full h-full object-cover" playsInline />
+                          <video ref={call.remoteVideoRef} className="absolute inset-0 w-full h-full object-cover" playsInline />
                           <div className="absolute bottom-3 right-3 w-36 h-24 bg-black/60 rounded-md overflow-hidden shadow">
-                            <video ref={localVideoRef} className="w-full h-full object-cover" playsInline muted />
+                            <video ref={call.localVideoRef} className="w-full h-full object-cover" playsInline muted />
                           </div>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center text-white gap-3">
                           <div className="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center text-3xl">📞</div>
-                          <div className="text-sm text-white/80">{callState.status === 'waiting' ? 'Đang gọi...' : 'Đã kết nối'}</div>
-                          <audio ref={remoteAudioRef} className="hidden" />
+                          <div className="text-sm text-white/80">{call.state.status === 'waiting' ? 'Đang gọi...' : 'Đã kết nối'}</div>
+                          <audio ref={call.remoteAudioRef} className="hidden" />
                         </div>
                       )}
                     </div>
 
                     <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-3">
-                      <Button size="icon" variant={isMicOn ? 'default' : 'secondary'} onClick={toggleMic} className="rounded-full h-10 w-10">
-                        {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+                      <Button size="icon" variant={call.isMicOn ? 'default' : 'secondary'} onClick={call.toggleMic} className="rounded-full h-10 w-10">
+                        {call.isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
                       </Button>
-                      {callState.callType === 'video' && (
-                        <Button size="icon" variant={isCamOn ? 'default' : 'secondary'} onClick={toggleCam} className="rounded-full h-10 w-10">
-                          {isCamOn ? <Video className="h-5 w-5" /> : <Video className="h-5 w-5 opacity-40" />}
+                      {call.state.callType === 'video' && (
+                        <Button size="icon" variant={call.isCamOn ? 'default' : 'secondary'} onClick={call.toggleCam} className="rounded-full h-10 w-10">
+                          {call.isCamOn ? <Video className="h-5 w-5" /> : <Video className="h-5 w-5 opacity-40" />}
                         </Button>
                       )}
-                      <Button size="icon" variant="destructive" onClick={endCall} className="rounded-full h-10 w-10">
+                      <Button size="icon" variant="destructive" onClick={call.endCall} className="rounded-full h-10 w-10">
                         <PhoneOff className="h-5 w-5" />
                       </Button>
                     </div>
 
                     <div className="absolute top-2 left-2 text-xs text-muted-foreground bg-background/80 rounded px-2 py-1">
-                      {callState.callType === 'audio' ? 'Gọi thoại' : 'Gọi video'} · {callState.status}
+                      {call.state.callType === 'audio' ? 'Gọi thoại' : 'Gọi video'} · {call.state.status}
                     </div>
                   </div>
                 )}
+
                 <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
-                    {getMessagesForConversation(selectedConversationId).map((message: any) => {
+                    {selectedConversationId && getMessagesForConversation(selectedConversationId).map((message: any) => {
                       const isOwnMessage = String(message.senderId) === String(user?.id)
                       const other = (getSelectedConversationData() as any)?.otherUser || (getSelectedConversationData() as any)?.participants?.[0]
                       const otherName = other?.displayName || other?.username || 'Người dùng'
@@ -773,10 +527,7 @@ export default function MessagesPage() {
                       const selfAvatar = user?.avatar
 
                       return (
-                        <div
-                          key={message.id}
-                          className={`flex items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
-                        >
+                        <div key={message.id} className={`flex items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                           {!isOwnMessage && (
                             <Avatar className="h-8 w-8 mr-2">
                               <AvatarImage src={otherAvatar} />
@@ -787,13 +538,7 @@ export default function MessagesPage() {
                             {!isOwnMessage && (
                               <p className="text-xs text-muted-foreground mb-1">{otherName}</p>
                             )}
-                            <div
-                              className={`px-4 py-2 rounded-lg ${
-                                isOwnMessage
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-100 text-gray-900'
-                              }`}
-                            >
+                            <div className={`px-4 py-2 rounded-lg ${isOwnMessage ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
                               {isImageUrl(String(message.content)) || message.type === 'image' ? (
                                 <img src={message.content} alt="image" className="max-w-full rounded" />
                               ) : (
@@ -801,9 +546,7 @@ export default function MessagesPage() {
                               )}
                             </div>
                             <div className={`flex items-center mt-1 space-x-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                              <span className="text-xs text-muted-foreground">
-                                {formatMessageTime(message.timestamp)}
-                              </span>
+                              <span className="text-xs text-muted-foreground">{formatMessageTime(message.timestamp)}</span>
                               {isOwnMessage && (
                                 <div className="flex items-center">
                                   {message.status === 'sending' ? (
@@ -831,7 +574,6 @@ export default function MessagesPage() {
                 </div>
               </CardContent>
 
-              {/* Message Input */}
               <div className="p-4 border-t">
                 <div className="flex items-center space-x-2">
                   <Button size="icon" variant="ghost" onClick={() => setShowImageUpload(v => !v)}>
@@ -845,28 +587,18 @@ export default function MessagesPage() {
                       <div className="absolute bottom-10 left-0 z-50 bg-background border rounded shadow-md p-2">
                         <div className="flex items-center gap-2">
                           {quickIcons.map((ic, idx) => (
-                          <button key={idx} className="text-xl" title={`Icon ${idx+1}`} onClick={() => { setMessageInput(prev => prev + ic); setShowEmojiPad(false) }}>
-                            {ic}
-                          </button>
-                        ))}
+                            <button key={idx} className="text-xl" title={`Icon ${idx+1}`} onClick={() => { setMessageInput(prev => prev + ic); setShowEmojiPad(false) }}>
+                              {ic}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="flex-1 relative">
-                    <Input
-                      placeholder="Nhập tin nhắn..."
-                      value={messageInput}
-                      onChange={(e) => setMessageInput(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                    />
+                    <Input placeholder="Nhập tin nhắn..." value={messageInput} onChange={(e) => setMessageInput(e.target.value)} onKeyPress={handleKeyPress} />
                   </div>
-                  <Button
-                    size="icon"
-                    onClick={handleSendMessage}
-                    disabled={isSending || !messageInput.trim()}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
+                  <Button size="icon" onClick={handleSendMessage} disabled={isSending || !messageInput.trim()} className="bg-blue-600 hover:bg-blue-700">
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
@@ -884,7 +616,6 @@ export default function MessagesPage() {
                         const url = (r as any).secure_url || (r as any).url || ''
                         if (!url) continue
                         const clientMessageId = `img:${Date.now()}:${Math.random().toString(16).slice(2)}`
-                        // Optimistic image message
                         setMessagesByConv(prev => {
                           const arr = prev[convId] ? [...prev[convId]] : []
                           arr.push({
@@ -907,9 +638,7 @@ export default function MessagesPage() {
                             setMessagesByConv(prev => {
                               const arr = prev[convId] ? [...prev[convId]] : []
                               const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
-                              if (idx >= 0) {
-                                arr[idx] = { ...arr[idx], status: 'sent', isDelivered: true }
-                              }
+                              if (idx >= 0) arr[idx] = { ...arr[idx], status: 'sent', isDelivered: true }
                               return { ...prev, [convId]: arr }
                             })
                             if (topic) {
@@ -919,9 +648,7 @@ export default function MessagesPage() {
                             setMessagesByConv(prev => {
                               const arr = prev[convId] ? [...prev[convId]] : []
                               const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
-                              if (idx >= 0) {
-                                arr[idx] = { ...arr[idx], status: 'error' }
-                              }
+                              if (idx >= 0) arr[idx] = { ...arr[idx], status: 'error' }
                               return { ...prev, [convId]: arr }
                             })
                           }
@@ -929,9 +656,7 @@ export default function MessagesPage() {
                           setMessagesByConv(prev => {
                             const arr = prev[convId] ? [...prev[convId]] : []
                             const idx = arr.findIndex((m: any) => m.id === clientMessageId || m.clientMessageId === clientMessageId)
-                            if (idx >= 0) {
-                              arr[idx] = { ...arr[idx], status: 'error' }
-                            }
+                            if (idx >= 0) arr[idx] = { ...arr[idx], status: 'error' }
                             return { ...prev, [convId]: arr }
                           })
                         }
@@ -943,17 +668,24 @@ export default function MessagesPage() {
               )}
             </>
           ) : (
-            /* No Conversation Selected */
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để b���t đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
               </div>
             </div>
           )}
         </div>
       </Card>
     </div>
+  )
+}
+
+export default function MessagesPage() {
+  return (
+    <CallProvider>
+      <MessagesInner />
+    </CallProvider>
   )
 }
