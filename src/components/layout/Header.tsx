@@ -90,8 +90,9 @@ export default function Header() {
               receivedAt: Date.now(),
             }
             setNotifications((prev) => [n, ...prev].slice(0, 50))
-            // Chỉ toast khi có nội dung rõ ràng và không phải chat message
-            if (n.type !== 'message' && (n.title || n.message)) {
+            if (n.type === 'call_request') {
+              setIncomingCall(n)
+            } else if (n.type !== 'message' && (n.title || n.message)) {
               toast({ title: n.title, description: n.message })
             }
           } catch {}
