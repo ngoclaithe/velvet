@@ -255,6 +255,13 @@ export default function Header() {
       if (lastAnsweredRef.current?.roomId === roomId && callOverlay.active) { console.log('[CALL][Header] answered duplicate ignored'); return }
       lastAnsweredRef.current = { roomId, at: Date.now() }
       const isAnswerer = String(data?.answererId) === String(user?.id)
+      try {
+        const stored = JSON.parse(sessionStorage.getItem('active_call_room') || 'null')
+        if (!isAnswerer && stored?.initiator === true && stored?.roomId === roomId) {
+          console.log('[CALL][Header] call_answered ignored (caller tab)')
+          return
+        }
+      } catch {}
       let useType: 'audio' | 'video' = 'video'
       if (isAnswerer) {
         useType = (incomingCall?.data?.callType === 'audio' ? 'audio' : 'video') || 'video'
@@ -264,9 +271,6 @@ export default function Header() {
       console.log('[CALL][Header] call_answered', { ...data, role: isAnswerer ? 'answerer' : 'caller', useType })
       setCallOverlay({ active: true, roomId, type: useType, status: 'active' })
       await initPeerConnection(useType)
-      if (!isAnswerer) {
-        await createAndSendOffer(roomId)
-      }
     }
 
     const onMediaStream = async (payload: any) => {
