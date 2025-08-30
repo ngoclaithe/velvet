@@ -49,6 +49,7 @@ export default function Header() {
   const { user, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [incomingCall, setIncomingCall] = useState<AppNotification | null>(null)
   const mqttRef = useRef<MqttClient | null>(null)
 
   // Subscribe to per-user notifications and listen for incoming messages
