@@ -70,8 +70,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('[CALL] creating local offer')
           const offer = await pcRef.current.createOffer()
           await pcRef.current.setLocalDescription(offer)
-          console.log('[CALL][EMIT] webrtc-offer', { callRoomId: roomId })
-          socket.emit('webrtc-offer', { callRoomId: roomId, offer, token: session?.accessToken })
+          console.log('[CALL][EMIT] webrtc_offer', { callRoomId: roomId })
+          socket.emit('webrtc_offer', { callRoomId: roomId, offer, token: session?.accessToken })
         }
       } catch {}
     }
@@ -106,7 +106,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     socket.on('call_answerd', onCallAnswered)
     socket.on('call_answered', onCallAnswered)
     socket.on('webrtc-offerd', onWebrtcOffered)
+    socket.on('webrtc_offerd', onWebrtcOffered)
     socket.on('webrtc-offered', onWebrtcOffered)
+    socket.on('webrtc_offered', onWebrtcOffered)
     socket.on('ice_candidated', onIceCandidated)
     socket.on('ice_candidate_received', onIceCandidated)
 
@@ -115,7 +117,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off('call_answerd', onCallAnswered)
       socket.off('call_answered', onCallAnswered)
       socket.off('webrtc-offerd', onWebrtcOffered)
+      socket.off('webrtc_offerd', onWebrtcOffered)
       socket.off('webrtc-offered', onWebrtcOffered)
+      socket.off('webrtc_offered', onWebrtcOffered)
       socket.off('ice_candidated', onIceCandidated)
       socket.off('ice_candidate_received', onIceCandidated)
     }
