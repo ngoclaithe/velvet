@@ -103,6 +103,66 @@ export default function MessagesPage() {
   const [showEmojiPad, setShowEmojiPad] = useState(false)
   const quickIcons = ['😀','😂','❤️','👍','🔥']
 
+  // WebSocket connect for 1-1 call events
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return
+    const ws = getWebSocket()
+    wsRef.current = ws
+    ws.connect(String(user.id)).catch(() => {})
+
+    const onJoined = (data: any) => {
+      if (!data?.callRoomId) return
+      setCallState({
+        callRoomId: data.callRoomId,
+        callType: (data.callType === 'audio' ? 'audio' : 'video'),
+        status: data.status === 'active' ? 'active' : 'waiting',
+        participants: Number(data.participants || 1)
+      })
+    }
+
+    const onStarted = (data: any) => {
+      if (!data?.callRoomId) return
+      setCallState(prev => ({ ...prev, callRoomId: data.callRoomId, status: 'active', participants: Number(data.participants || prev.participants || 2) }))
+      startSendingStream()
+    }
+
+    const onReceiveStream = async (data: any) => {
+      if (!data?.callRoomId || data.callRoomId !== callState.callRoomId) return
+      try {
+        const base64 = data.streamData
+        const byteCharacters = atob(base64)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i)
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: data.streamType === 'audio' ? 'audio/webm' : 'video/webm' })
+        const url = URL.createObjectURL(blob)
+        if (data.streamType === 'audio') {
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.src = url
+            try { await remoteAudioRef.current.play() } catch {}
+          }
+        } else {
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.src = url
+            try { await remoteVideoRef.current.play() } catch {}
+          }
+        }
+      } catch {}
+    }
+
+    ws.on('call_room_joined', onJoined)
+    ws.on('call_started', onStarted)
+    ws.on('receive_stream', onReceiveStream)
+    return () => {
+      try {
+        ws.off('call_room_joined', onJoined)
+        ws.off('call_started', onStarted)
+        ws.off('receive_stream', onReceiveStream)
+      } catch {}
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id, callState.callRoomId])
+
   // Load conversations and selected
   useEffect(() => {
     if (!isAuthenticated) return
@@ -694,7 +754,7 @@ export default function MessagesPage() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để b���t đầu nhắn tin</p>
               </div>
             </div>
           )}
