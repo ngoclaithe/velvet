@@ -441,6 +441,8 @@ export default function MessagesPage() {
     if (mediaStreamRef.current) return mediaStreamRef.current
     const constraints: MediaStreamConstraints = type === 'audio' ? { audio: true, video: false } : { audio: true, video: true }
     const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    try { stream.getAudioTracks().forEach(t => t.enabled = isMicOn) } catch {}
+    try { stream.getVideoTracks().forEach(t => t.enabled = type === 'video' ? isCamOn : false) } catch {}
     mediaStreamRef.current = stream
     if (type === 'video' && localVideoRef.current) {
       ;(localVideoRef.current as any).srcObject = stream
@@ -718,7 +720,7 @@ export default function MessagesPage() {
                   <DialogHeader>
                     <DialogTitle>Tin nhắn mới</DialogTitle>
                     <DialogDescription>
-                      Tìm và nh��n tin cho người dùng khác
+                      Tìm và nhắn tin cho người dùng khác
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
