@@ -181,6 +181,7 @@ export default function MessagesPage() {
       }
     }
     ws.on('call_answered', onAnswered)
+    ws.on('call_answerd', onAnswered)
 
     const onMediaStream = async (payload: any) => {
       try {
@@ -210,6 +211,7 @@ export default function MessagesPage() {
         ws.off('call_started', onStarted)
         ws.off('receive_stream', onReceiveStream)
         ws.off('call_answered', onAnswered)
+        ws.off('call_answerd', onAnswered)
         ws.off('media_stream', onMediaStream)
         ws.off('ice_candidate', onIceCandidate)
       } catch {}
