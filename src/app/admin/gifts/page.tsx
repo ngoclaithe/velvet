@@ -44,6 +44,7 @@ export default function AdminGiftsPage() {
     setLoading(true)
     try {
       const resp: any = await giftApi.getAllGifts()
+      console.log("Giá trị resp là:", resp)
       if (resp?.success && Array.isArray(resp.data)) {
         setGifts(resp.data)
       } else {
@@ -175,7 +176,7 @@ export default function AdminGiftsPage() {
             {gifts.map((g) => (
               <div key={String(g.id)} className="p-4 rounded-lg border bg-white">
                 <div className="flex items-start justify-between">
-                  <div className="font-medium">{g.name}</div>
+                  <div className="text-black font-medium">{g.name}</div>
                   <Badge variant={g.isActive ? 'default' : 'secondary'}>{g.isActive ? 'Active' : 'Inactive'}</Badge>
                 </div>
                 {g.imageUrl && (
