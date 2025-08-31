@@ -234,16 +234,7 @@ export default function StreamChatBox({
     const messageText = newMessage.trim()
     setNewMessage('')
 
-    try {
-      await chatApi.sendMessage({
-        streamId,
-        message: messageText,
-        messageType: 'text',
-      })
-    } catch (e) {
-      // ignore; UI will still try websocket if available
-    }
-
+    // Send to socket first for text messages, regardless of API result
     if (isWebSocketConnected) {
       chatWebSocket.sendChatMessage(streamId, {
         userId: user.id,
@@ -258,6 +249,13 @@ export default function StreamChatBox({
       toast.error('Không thể gửi tin nhắn (mất kết nối)')
       setNewMessage(messageText)
     }
+
+    // Fire-and-forget API persistence, do not block UI or show error
+    void chatApi.sendMessage({
+      streamId,
+      message: messageText,
+      messageType: 'text',
+    })
   }
 
   const handleSendGift = async (gift: GiftOption) => {
@@ -266,16 +264,19 @@ export default function StreamChatBox({
       return
     }
 
-    try {
-      await chatApi.sendMessage({
-        streamId,
-        message: `gift:${gift.id}:x${selectedQuantity}`,
-        messageType: 'gift',
-        giftId: gift.id,
-        quantity: selectedQuantity,
-      })
-    } catch (e) {
-      // ignore
+    // Ensure API succeeds before emitting over socket
+    const resp: any = await chatApi.sendMessage({
+      streamId,
+      message: `gift:${gift.id}:x${selectedQuantity}`,
+      messageType: 'gift',
+      giftId: gift.id,
+      quantity: selectedQuantity,
+    })
+
+    if (!resp?.success) {
+      const msg = resp?.error || 'Gửi quà thất bại'
+      toast.error(msg)
+      return
     }
 
     if (isWebSocketConnected) {
@@ -311,6 +312,28 @@ export default function StreamChatBox({
       return <Badge className="bg-yellow-500 text-white text-xs ml-1">GIFT</Badge>
     }
     return null
+  }
+
+  const renderGiftMessage = (text: string) => {
+    const urlMatch = text.match(/https?:\/\/\S+/)
+    if (urlMatch) {
+      const url = urlMatch[0]
+      const prefix = text.replace(url, '').trim()
+      return (
+        <span>
+          {prefix}{' '}
+          <img src={url} alt="gift" className="inline-block w-10 h-10 align-middle rounded" />
+        </span>
+      )
+    }
+    const parts = text.trim().split(' ')
+    const last = parts[parts.length - 1] || ''
+    const before = parts.slice(0, -1).join(' ')
+    return (
+      <span>
+        {before} {last && <span className="text-2xl align-middle">{last}</span>}
+      </span>
+    )
   }
 
   if (!chatEnabled) {
@@ -421,7 +444,7 @@ export default function StreamChatBox({
                         ? 'text-blue-400 italic'
                         : 'text-gray-300'
                     }`}>
-                      {message.message}
+                      {message.type === 'gift' ? renderGiftMessage(message.message) : message.message}
                     </div>
                   </div>
                 </div>
