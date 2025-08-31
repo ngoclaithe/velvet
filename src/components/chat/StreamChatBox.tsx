@@ -54,9 +54,6 @@ interface StreamChatBoxProps {
   maxHeight?: string
 }
 
-const [giftOptions, setGiftOptions] = useState<GiftOption[]>([])
-const [selectedQuantity, setSelectedQuantity] = useState<number>(1)
-
 export default function StreamChatBox({ 
   streamId, 
   isCreator = false, 
@@ -71,6 +68,10 @@ export default function StreamChatBox({
   const [showGiftDialog, setShowGiftDialog] = useState(false)
   const [isSoundEnabled, setIsSoundEnabled] = useState(true)
   const [connectedUsers, setConnectedUsers] = useState(0)
+  
+  // Di chuyển 2 state này vào bên trong component
+  const [giftOptions, setGiftOptions] = useState<GiftOption[]>([])
+  const [selectedQuantity, setSelectedQuantity] = useState<number>(1)
   
   const chatScrollRef = useRef<HTMLDivElement>(null)
   const recentMessageKeysRef = useRef<Map<string, number>>(new Map())
@@ -127,7 +128,7 @@ export default function StreamChatBox({
               displayName: m.displayName || m.sender?.username || m.username || '',
               message: m.content || m.message || '',
               timestamp: m.timestamp || m.createdAt || new Date().toISOString(),
-              type: (m.type || m.messageType || 'message') as any,
+              type: (m.type || m.messageType || 'text') as any,
               giftType: m.giftType,
               amount: m.amount,
               giftId: m.giftId,
@@ -151,7 +152,7 @@ export default function StreamChatBox({
             displayName: data.displayName || data.username || '',
             message: data.message || data.content || '',
             timestamp: data.timestamp || data.createdAt || new Date().toISOString(),
-            type: data.type || data.messageType || 'message',
+            type: data.type || data.messageType || 'text',
             giftType: data.giftType,
             amount: data.amount,
             giftId: data.giftId,
@@ -236,9 +237,8 @@ export default function StreamChatBox({
     try {
       await chatApi.sendMessage({
         streamId,
-        content: messageText,
-        messageType: 'message',
-        messageTypes: 'message',
+        message: messageText,
+        messageType: 'text',
       })
     } catch (e) {
       // ignore; UI will still try websocket if available
@@ -269,9 +269,8 @@ export default function StreamChatBox({
     try {
       await chatApi.sendMessage({
         streamId,
-        content: `gift:${gift.id}:x${selectedQuantity}`,
+        message: `gift:${gift.id}:x${selectedQuantity}`,
         messageType: 'gift',
-        messageTypes: 'gift',
         giftId: gift.id,
         quantity: selectedQuantity,
       })
