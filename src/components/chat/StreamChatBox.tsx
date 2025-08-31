@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { toast } from 'react-hot-toast'
+import { toast } from '@/hooks/use-toast'
 import {
   Send,
   Gift,
@@ -16,7 +16,8 @@ import {
   Users,
   Settings,
   Volume2,
-  VolumeX
+  VolumeX,
+  Loader2
 } from 'lucide-react'
 import { chatWebSocket, getWebSocket } from '@/lib/websocket'
 import { chatApi } from '@/lib/api/chat'
@@ -72,6 +73,8 @@ export default function StreamChatBox({
   // Di chuyển 2 state này vào bên trong component
   const [giftOptions, setGiftOptions] = useState<GiftOption[]>([])
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1)
+  const [isSendingGift, setIsSendingGift] = useState(false)
+  const [sendingGiftId, setSendingGiftId] = useState<string | null>(null)
   
   const chatScrollRef = useRef<HTMLDivElement>(null)
   const recentMessageKeysRef = useRef<Map<string, number>>(new Map())
@@ -227,7 +230,7 @@ export default function StreamChatBox({
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !isAuthenticated || !user) return
     if (!streamId || streamId === 'undefined' || streamId === 'null' || streamId.trim() === '') {
-      toast.error('Stream chưa sẵn sàng, vui lòng thử lại')
+      toast({ variant: 'destructive', title: 'Lỗi', description: 'Stream chưa sẵn sàng, vui lòng thử lại' })
       return
     }
 
@@ -246,7 +249,7 @@ export default function StreamChatBox({
         avatar: user.avatar
       })
     } else {
-      toast.error('Không thể gửi tin nhắn (mất kết nối)')
+      toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể gửi tin nhắn (mất kết nối)' })
       setNewMessage(messageText)
     }
 
@@ -260,49 +263,55 @@ export default function StreamChatBox({
 
   const handleSendGift = async (gift: GiftOption) => {
     if (!isAuthenticated || !user) {
-      toast.error('Vui lòng đăng nhập để gửi quà')
+      toast({ variant: 'destructive', title: 'Lỗi', description: 'Vui lòng đăng nhập để gửi quà' })
       return
     }
-
-    // Ensure API succeeds before emitting over socket
-    const resp: any = await chatApi.sendMessage({
-      streamId,
-      message: `gift:${gift.id}:x${selectedQuantity}`,
-      messageType: 'gift',
-      giftId: gift.id,
-      quantity: selectedQuantity,
-    })
-
-    if (!resp?.success) {
-      const baseMsg = (typeof resp?.message === 'string' && resp.message) || resp?.error || 'Gửi quà thất bại'
-      if (resp?.data && typeof resp.data === 'object') {
-        const { required, current, shortage } = resp.data as any
-        const detail = [
-          required !== undefined ? `Cần: ${required}` : null,
-          current !== undefined ? `Hiện có: ${current}` : null,
-          shortage !== undefined ? `Thiếu: ${shortage}` : null,
-        ].filter(Boolean).join(' | ')
-        toast.error(detail ? `${baseMsg} (${detail})` : baseMsg)
-      } else {
-        toast.error(baseMsg)
-      }
-      return
-    }
-
-    if (isWebSocketConnected) {
-      chatWebSocket.sendChatMessage(streamId, {
-        userId: user.id,
-        username: user.username,
-        displayName: user.firstName || user.username,
-        message: `Đã gửi ${gift.name} x${selectedQuantity} ${gift.icon || ''}`.trim(),
-        timestamp: new Date().toISOString(),
-        type: 'gift',
-        avatar: user.avatar
+    if (isSendingGift) return
+    setIsSendingGift(true)
+    setSendingGiftId(gift.id)
+    try {
+      const resp: any = await chatApi.sendMessage({
+        streamId,
+        message: `gift:${gift.id}:x${selectedQuantity}`,
+        messageType: 'gift',
+        giftId: gift.id,
+        quantity: selectedQuantity,
       })
-      setShowGiftDialog(false)
-      toast.success(`Đã gửi ${gift.name} x${selectedQuantity}`)
-    } else {
-      toast.error('Không thể gửi quà (mất kết nối)')
+
+      if (!resp?.success) {
+        const baseMsg = (typeof resp?.message === 'string' && resp.message) || resp?.error || 'Gửi quà thất bại'
+        if (resp?.data && typeof resp.data === 'object') {
+          const { required, current, shortage } = resp.data as any
+          const detail = [
+            required !== undefined ? `Cần: ${required}` : null,
+            current !== undefined ? `Hiện có: ${current}` : null,
+            shortage !== undefined ? `Thiếu: ${shortage}` : null,
+          ].filter(Boolean).join(' | ')
+          toast({ variant: 'destructive', title: 'Lỗi', description: detail ? `${baseMsg} (${detail})` : baseMsg })
+        } else {
+          toast({ variant: 'destructive', title: 'Lỗi', description: baseMsg })
+        }
+        return
+      }
+
+      if (isWebSocketConnected) {
+        chatWebSocket.sendChatMessage(streamId, {
+          userId: user.id,
+          username: user.username,
+          displayName: user.firstName || user.username,
+          message: `Đã gửi ${gift.name} x${selectedQuantity} ${gift.icon || ''}`.trim(),
+          timestamp: new Date().toISOString(),
+          type: 'gift',
+          avatar: user.avatar
+        })
+        setShowGiftDialog(false)
+        toast({ title: 'Đã gửi quà', description: `Đã gửi ${gift.name} x${selectedQuantity}` })
+      } else {
+        toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể gửi quà (mất kết nối)' })
+      }
+    } finally {
+      setIsSendingGift(false)
+      setSendingGiftId(null)
     }
   }
 
@@ -396,19 +405,21 @@ export default function StreamChatBox({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm text-gray-300">Số lượng</div>
                   <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => setSelectedQuantity(q => Math.max(1, q - 1))}>-</Button>
+                    <Button size="sm" variant="outline" disabled={isSendingGift} onClick={() => setSelectedQuantity(q => Math.max(1, q - 1))}>-</Button>
                     <span className="w-8 text-center text-white">{selectedQuantity}</span>
-                    <Button size="sm" variant="outline" onClick={() => setSelectedQuantity(q => q + 1)}>+</Button>
+                    <Button size="sm" variant="outline" disabled={isSendingGift} onClick={() => setSelectedQuantity(q => q + 1)}>+</Button>
                   </div>
                 </div>
                 <div className="grid grid-cols-4 gap-3">
                   {giftOptions.map((gift) => (
                     <div
                       key={gift.id}
-                      onClick={() => handleSendGift(gift)}
-                      className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors text-center"
+                      onClick={() => { if (!isSendingGift) handleSendGift(gift) }}
+                      className={`p-3 bg-gray-700 rounded-lg ${isSendingGift ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-600'} transition-colors text-center`}
                     >
-                      {gift.icon && gift.icon.startsWith('http') ? (
+                      {sendingGiftId === gift.id ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-white mx-auto mb-1" />
+                      ) : gift.icon && gift.icon.startsWith('http') ? (
                         <img src={gift.icon} alt={gift.name} className="w-10 h-10 object-contain mx-auto mb-1" />
                       ) : (
                         <div className="text-2xl mb-1">{gift.icon || '🎁'}</div>
