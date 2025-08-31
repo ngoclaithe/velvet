@@ -97,18 +97,13 @@ export const PAYMENT_CONFIG = {
 } as const
 
 // Gift items
-export const GIFT_ITEMS = [
-  { id: '1', name: 'Heart', image: '❤️', cost: 1, rarity: 'common' },
-  { id: '2', name: 'Rose', image: '🌹', cost: 5, rarity: 'common' },
-  { id: '3', name: 'Diamond', image: '💎', cost: 10, rarity: 'rare' },
-  { id: '4', name: 'Crown', image: '👑', cost: 25, rarity: 'epic' },
-  { id: '5', name: 'Rocket', image: '🚀', cost: 50, rarity: 'legendary' },
-  { id: '6', name: 'Star', image: '⭐', cost: 2, rarity: 'common' },
-  { id: '7', name: 'Fire', image: '🔥', cost: 15, rarity: 'rare' },
-  { id: '8', name: 'Lightning', image: '⚡', cost: 20, rarity: 'epic' },
-  { id: '9', name: 'Golden Star', image: '🌟', cost: 100, rarity: 'legendary' },
-  { id: '10', name: 'Trophy', image: '🏆', cost: 75, rarity: 'legendary' },
-] as const
+export const GIFT_ITEMS: ReadonlyArray<{
+  id: string
+  name: string
+  image?: string
+  cost: number
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary'
+}> = [] as const
 
 // User roles and permissions
 export const USER_ROLES = {

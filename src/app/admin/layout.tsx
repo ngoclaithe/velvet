@@ -28,7 +28,8 @@ import {
   Heart,
   DollarSign,
   Menu,
-  X
+  X,
+  Gift
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -62,6 +63,12 @@ const sidebarItems = [
     href: '/admin/payments',
     icon: CreditCard,
     description: 'Quản lý thanh toán'
+  },
+  {
+    title: 'Quản lý Gifts',
+    href: '/admin/gifts',
+    icon: Gift,
+    description: 'Quản lý quà tặng'
   },
   {
     title: 'Cài đặt',
