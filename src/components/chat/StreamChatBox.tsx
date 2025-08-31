@@ -274,7 +274,7 @@ export default function StreamChatBox({
     })
 
     if (!resp?.success) {
-      const msg = resp?.error || 'Gửi quà thất bại'
+      const msg = resp?.message || resp?.error || 'Gửi quà thất bại'
       toast.error(msg)
       return
     }
