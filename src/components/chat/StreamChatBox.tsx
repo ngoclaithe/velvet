@@ -85,7 +85,7 @@ export default function StreamChatBox({
           const mapped: GiftOption[] = resp.data.map((g: any) => ({
             id: String(g.id ?? g._id ?? g.giftId ?? ''),
             name: g.name,
-            icon: g.icon || '',
+            icon: g.imageUrl || g.icon || '',
             price: Number(g.price ?? g.cost ?? 0),
             animation: g.animationUrl || g.animation,
           })).filter((g: GiftOption) => g.id)
@@ -376,7 +376,11 @@ export default function StreamChatBox({
                       onClick={() => handleSendGift(gift)}
                       className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors text-center"
                     >
-                      <div className="text-2xl mb-1">{gift.icon || '🎁'}</div>
+                      {gift.icon && gift.icon.startsWith('http') ? (
+                        <img src={gift.icon} alt={gift.name} className="w-10 h-10 object-contain mx-auto mb-1" />
+                      ) : (
+                        <div className="text-2xl mb-1">{gift.icon || '🎁'}</div>
+                      )}
                       <div className="text-xs text-white">{gift.name}</div>
                       <div className="text-xs text-yellow-400">{gift.price} xu</div>
                     </div>

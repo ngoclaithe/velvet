@@ -180,9 +180,13 @@ export default function AdminGiftsPage() {
                   <Badge variant={g.isActive ? 'default' : 'secondary'}>{g.isActive ? 'Active' : 'Inactive'}</Badge>
                 </div>
                 {g.imageUrl && (
-                  <div className="mt-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={g.imageUrl} alt={g.name} className="w-full h-28 object-cover rounded" />
+                  <div className="mt-2 flex items-center justify-center">
+                    {g.imageUrl.startsWith('http') ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={g.imageUrl} alt={g.name} className="w-full h-28 object-contain rounded" />
+                    ) : (
+                      <span className="text-5xl">{g.imageUrl}</span>
+                    )}
                   </div>
                 )}
                 <div className="text-sm text-gray-600 mt-2">Giá: {g.price}</div>
