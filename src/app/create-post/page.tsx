@@ -184,15 +184,6 @@ export default function CreatePostPage() {
       return false
     }
 
-    if (!postData.category) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn danh mục",
-        variant: "destructive"
-      })
-      return false
-    }
-
     if (postData.isPremium && postData.price <= 0) {
       toast({
         title: "Lỗi",
@@ -651,21 +642,6 @@ export default function CreatePostPage() {
               <CardTitle>Cài đặt bài viết</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Danh mục *</Label>
-                <Select value={postData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn danh mục" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="space-y-2">
                 <Label>Quyền riêng tư</Label>
