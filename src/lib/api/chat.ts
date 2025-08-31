@@ -1,15 +1,15 @@
 import { api } from './core'
 
 export const chatApi = {
-  getMessages: (streamId: string, params?: Record<string, string>) =>
-    api.get(`/streams/${streamId}/messages`, params),
+  getMessages: (streamId: string) =>
+    api.get(`/chats/${streamId}`),
   
-  sendMessage: (streamId: string, data: any) =>
-    api.post(`/streams/${streamId}/messages`, data),
-  
+  sendMessage: ( data: any) =>
+    api.post(`/chats/`, data),
+
   deleteMessage: (messageId: string) =>
-    api.delete(`/messages/${messageId}`),
-  
+    api.delete(`/chats/${messageId}`),
+
   getConversations: () => api.get('/conversations'),
   
   getConversation: (conversationId: string) =>
