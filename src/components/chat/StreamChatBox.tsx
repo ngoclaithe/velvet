@@ -274,8 +274,18 @@ export default function StreamChatBox({
     })
 
     if (!resp?.success) {
-      const msg = resp?.message || resp?.error || 'Gửi quà thất bại'
-      toast.error(msg)
+      const baseMsg = (typeof resp?.message === 'string' && resp.message) || resp?.error || 'Gửi quà thất bại'
+      if (resp?.data && typeof resp.data === 'object') {
+        const { required, current, shortage } = resp.data as any
+        const detail = [
+          required !== undefined ? `Cần: ${required}` : null,
+          current !== undefined ? `Hiện có: ${current}` : null,
+          shortage !== undefined ? `Thiếu: ${shortage}` : null,
+        ].filter(Boolean).join(' | ')
+        toast.error(detail ? `${baseMsg} (${detail})` : baseMsg)
+      } else {
+        toast.error(baseMsg)
+      }
       return
     }
 
