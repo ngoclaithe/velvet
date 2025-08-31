@@ -19,6 +19,8 @@ import {
   VolumeX
 } from 'lucide-react'
 import { chatWebSocket, getWebSocket } from '@/lib/websocket'
+import { chatApi } from '@/lib/api/chat'
+import { giftApi } from '@/lib/api/gift'
 import { useAuth } from '@/hooks/useAuth'
 
 interface ChatMessage {
@@ -31,6 +33,8 @@ interface ChatMessage {
   type: 'message' | 'gift' | 'tip' | 'system'
   giftType?: string
   amount?: number
+  giftId?: string | number
+  quantity?: number
   avatar?: string
 }
 
@@ -50,16 +54,8 @@ interface StreamChatBoxProps {
   maxHeight?: string
 }
 
-const giftOptions: GiftOption[] = [
-  { id: '1', name: 'Hoa hồng', icon: '🌹', price: 1 },
-  { id: '2', name: 'Tim', icon: '❤️', price: 2 },
-  { id: '3', name: 'Kem', icon: '🍦', price: 5 },
-  { id: '4', name: 'Pizza', icon: '🍕', price: 10 },
-  { id: '5', name: 'Xe hơi', icon: '🚗', price: 50 },
-  { id: '6', name: 'Nhà', icon: '🏠', price: 100 },
-  { id: '7', name: 'Máy bay', icon: '✈️', price: 500 },
-  { id: '8', name: 'Tên lửa', icon: '🚀', price: 1000 }
-]
+const [giftOptions, setGiftOptions] = useState<GiftOption[]>([])
+const [selectedQuantity, setSelectedQuantity] = useState<number>(1)
 
 export default function StreamChatBox({ 
   streamId, 
@@ -77,8 +73,30 @@ export default function StreamChatBox({
   const [connectedUsers, setConnectedUsers] = useState(0)
   
   const chatScrollRef = useRef<HTMLDivElement>(null)
+  const recentMessageKeysRef = useRef<Map<string, number>>(new Map())
 
-  // Chat messages will be populated entirely through WebSocket real-time events
+  // Load gifts from API
+  useEffect(() => {
+    let mounted = true
+    giftApi.getAllGifts()
+      .then((resp: any) => {
+        if (!mounted) return
+        if (resp?.success && Array.isArray(resp.data)) {
+          const mapped: GiftOption[] = resp.data.map((g: any) => ({
+            id: String(g.id ?? g._id ?? g.giftId ?? ''),
+            name: g.name,
+            icon: g.icon || '',
+            price: Number(g.price ?? g.cost ?? 0),
+            animation: g.animationUrl || g.animation,
+          })).filter((g: GiftOption) => g.id)
+          setGiftOptions(mapped)
+        }
+      })
+      .catch(() => {})
+    return () => { mounted = false }
+  }, [])
+
+  // Chat messages will be populated through API on join and real-time via WebSocket events
 
   // Setup WebSocket for real-time chat
   useEffect(() => {
@@ -97,28 +115,62 @@ export default function StreamChatBox({
         console.log('Joining stream chat for streamId:', streamId)
         chatWebSocket.joinStreamChat(streamId)
         setIsWebSocketConnected(true)
-        
+
+        // Fetch initial messages
+        try {
+          const resp: any = await chatApi.getMessages(streamId)
+          if (resp?.success && Array.isArray(resp.data)) {
+            const initialMessages: ChatMessage[] = resp.data.map((m: any) => ({
+              id: String(m.id || m.messageId || m._id || Date.now()),
+              userId: String(m.userId || m.senderId || ''),
+              username: m.username || m.sender?.username || '',
+              displayName: m.displayName || m.sender?.username || m.username || '',
+              message: m.content || m.message || '',
+              timestamp: m.timestamp || m.createdAt || new Date().toISOString(),
+              type: (m.type || m.messageType || 'message') as any,
+              giftType: m.giftType,
+              amount: m.amount,
+              giftId: m.giftId,
+              quantity: m.quantity,
+              avatar: m.avatar || m.sender?.avatar,
+            }))
+            setChatMessages(initialMessages)
+          }
+        } catch (e) {
+          // ignore fetch error
+        }
+
         // Listen for new chat messages from backend 'stream_chat_message' event
         const handleNewMessage = (data: any) => {
           console.log('Received stream_chat_message:', data)
           // Backend sends: { messageId, streamId, userId, username, displayName, avatar, message, timestamp }
           const newMessage: ChatMessage = {
             id: data.messageId || data.id || Date.now().toString(),
-            userId: data.userId?.toString() || data.userId,
-            username: data.username || data.displayName,
-            displayName: data.displayName || data.username,
-            message: data.message,
-            timestamp: data.timestamp || new Date().toISOString(),
-            type: data.type || 'message',
+            userId: (data.userId?.toString() || data.userId || '').toString(),
+            username: data.username || data.displayName || '',
+            displayName: data.displayName || data.username || '',
+            message: data.message || data.content || '',
+            timestamp: data.timestamp || data.createdAt || new Date().toISOString(),
+            type: data.type || data.messageType || 'message',
             giftType: data.giftType,
             amount: data.amount,
+            giftId: data.giftId,
+            quantity: data.quantity,
             avatar: data.avatar
           }
 
           // Only add message if it's for this stream
           if (data.streamId === streamId) {
+            const key = `${newMessage.userId}|${newMessage.type}|${newMessage.message}|${newMessage.giftId || ''}|${newMessage.quantity || ''}`
+            const now = Date.now()
+            const last = recentMessageKeysRef.current.get(key)
+            if (last && now - last < 2000) {
+              return
+            }
+            recentMessageKeysRef.current.set(key, now)
+
             setChatMessages(prev => {
-              // Avoid duplicate messages
+              // Avoid duplicate messages by id as well
               const exists = prev.some(msg => msg.id === newMessage.id)
               if (exists) return prev
               return [...prev, newMessage]
@@ -181,6 +233,17 @@ export default function StreamChatBox({
     const messageText = newMessage.trim()
     setNewMessage('')
 
+    try {
+      await chatApi.sendMessage({
+        streamId,
+        content: messageText,
+        messageType: 'message',
+        messageTypes: 'message',
+      })
+    } catch (e) {
+      // ignore; UI will still try websocket if available
+    }
+
     if (isWebSocketConnected) {
       chatWebSocket.sendChatMessage(streamId, {
         userId: user.id,
@@ -203,18 +266,31 @@ export default function StreamChatBox({
       return
     }
 
+    try {
+      await chatApi.sendMessage({
+        streamId,
+        content: `gift:${gift.id}:x${selectedQuantity}`,
+        messageType: 'gift',
+        messageTypes: 'gift',
+        giftId: gift.id,
+        quantity: selectedQuantity,
+      })
+    } catch (e) {
+      // ignore
+    }
+
     if (isWebSocketConnected) {
       chatWebSocket.sendChatMessage(streamId, {
         userId: user.id,
         username: user.username,
         displayName: user.firstName || user.username,
-        message: `Đã gửi ${gift.name} ${gift.icon}`,
+        message: `Đã gửi ${gift.name} x${selectedQuantity} ${gift.icon || ''}`.trim(),
         timestamp: new Date().toISOString(),
         type: 'gift',
         avatar: user.avatar
       })
       setShowGiftDialog(false)
-      toast.success(`Đã gửi ${gift.name} ${gift.icon}`)
+      toast.success(`Đã gửi ${gift.name} x${selectedQuantity}`)
     } else {
       toast.error('Không thể gửi quà (mất kết nối)')
     }
@@ -285,6 +361,14 @@ export default function StreamChatBox({
                 <DialogHeader>
                   <DialogTitle className="text-white">Gửi quà tặng</DialogTitle>
                 </DialogHeader>
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-sm text-gray-300">Số lượng</div>
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" onClick={() => setSelectedQuantity(q => Math.max(1, q - 1))}>-</Button>
+                    <span className="w-8 text-center text-white">{selectedQuantity}</span>
+                    <Button size="sm" variant="outline" onClick={() => setSelectedQuantity(q => q + 1)}>+</Button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-4 gap-3">
                   {giftOptions.map((gift) => (
                     <div
@@ -292,7 +376,7 @@ export default function StreamChatBox({
                       onClick={() => handleSendGift(gift)}
                       className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors text-center"
                     >
-                      <div className="text-2xl mb-1">{gift.icon}</div>
+                      <div className="text-2xl mb-1">{gift.icon || '🎁'}</div>
                       <div className="text-xs text-white">{gift.name}</div>
                       <div className="text-xs text-yellow-400">{gift.price} xu</div>
                     </div>
