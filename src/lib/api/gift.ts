@@ -33,7 +33,7 @@ export interface SearchGiftParams {
 export const giftApi = {
   // Tạo gift mới (Admin only)
   createGift: (data: CreateGiftData) =>
-    api.post('/stream/gifts', data),
+    api.post('/stream-gifts', data),
 
   // Lấy danh sách tất cả gifts
   getAllGifts: (params?: { category?: string; rarity?: string; isActive?: boolean }) => {
@@ -43,28 +43,28 @@ export const giftApi = {
     if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
     
     const queryString = queryParams.toString();
-    return api.get(`/stream/gifts${queryString ? `?${queryString}` : ''}`);
+    return api.get(`/stream-gifts${queryString ? `?${queryString}` : ''}`);
   },
 
   // Lấy gift theo ID
   getGiftById: (id: string | number) =>
-    api.get(`/stream/gifts/${id}`),
+    api.get(`/stream-gifts/${id}`),
 
   // Cập nhật gift (Admin only)
   updateGift: (id: string | number, data: UpdateGiftData) =>
-    api.put(`/stream/gifts/${id}`, data),
+    api.put(`/stream-gifts/${id}`, data),
 
   // Xóa gift (Admin only)
   deleteGift: (id: string | number) =>
-    api.delete(`/stream/gifts/${id}`),
+    api.delete(`/stream-gifts/${id}`),
 
   // Lấy gifts theo category
   getGiftsByCategory: (category: string) =>
-    api.get(`/stream/gifts/category/${category}`),
+    api.get(`/stream-gifts/category/${category}`),
 
   // Lấy gifts theo rarity
   getGiftsByRarity: (rarity: 'common' | 'rare' | 'epic' | 'legendary') =>
-    api.get(`/stream/gifts/rarity/${rarity}`),
+    api.get(`/stream-gifts/rarity/${rarity}`),
 
   // Tìm kiếm gifts
   searchGifts: (params?: SearchGiftParams) => {
@@ -77,6 +77,6 @@ export const giftApi = {
     if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
     
     const queryString = queryParams.toString();
-    return api.get(`/stream/gifts/search${queryString ? `?${queryString}` : ''}`);
+    return api.get(`/stream-gifts/search${queryString ? `?${queryString}` : ''}`);
   }
 }
