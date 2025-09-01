@@ -8,6 +8,6 @@ export const adminAPI = {
       role: params.role ?? '',
       search: params.search ?? ''
     } : undefined),
-  createCreator: (data: any) => api.post(`/admin_creators`, data),
+  createCreator: (data: any) => api.post(`/auth/admin_creator`, data),
 
 }

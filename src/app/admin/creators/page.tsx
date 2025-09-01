@@ -225,11 +225,11 @@ export default function CreatorsAdminPage() {
               <Input value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags} onChange={(e) => setField('tags', e.target.value)} />
             </div>
             <div>
-              <Label>Chuyên môn (phân tách bằng dấu phẩy)</Label>
+              <Label>Loại creator</Label>
               <Input value={Array.isArray(form.specialties) ? form.specialties.join(', ') : form.specialties} onChange={(e) => setField('specialties', e.target.value)} />
             </div>
             <div>
-              <Label>Ngôn ngữ (phân tách bằng dấu phẩy)</Label>
+              <Label>Ngôn ngữ</Label>
               <Input value={Array.isArray(form.languages) ? form.languages.join(', ') : form.languages} onChange={(e) => setField('languages', e.target.value)} />
             </div>
             <div>
@@ -269,11 +269,11 @@ export default function CreatorsAdminPage() {
               <Input value={form.eyeColor} onChange={(e) => setField('eyeColor', e.target.value)} />
             </div>
             <div>
-              <Label>Dịch vụ</Label>
+              <Label>Các dịch vụ</Label>
               <Input value={form.service} onChange={(e) => setField('service', e.target.value)} />
             </div>
             <div>
-              <Label>Chữ ký</Label>
+              <Label>Đặc điểm nhận dạng</Label>
               <Input value={form.signature} onChange={(e) => setField('signature', e.target.value)} />
             </div>
             <div>
