@@ -22,11 +22,8 @@ import {
   Verified,
   ArrowLeft,
   Star,
-  Clock,
   Calendar,
-  DollarSign,
-  Ruler,
-  Weigh
+  DollarSign
 } from 'lucide-react'
 
 interface Creator {
@@ -406,7 +403,7 @@ export default function CreatorDetailPage() {
                   <div className="text-center">
                     <p className="text-gray-400 mb-4">Đăng nhập để theo dõi creator</p>
                     <Button onClick={() => (window.location.href = '/login')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
-                      Đăng nhập
+                      Đ��ng nhập
                     </Button>
                   </div>
                 ) : null}
