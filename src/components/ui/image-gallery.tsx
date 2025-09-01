@@ -124,15 +124,6 @@ export function ImageGallery({ media, className = '' }: ImageGalleryProps) {
           <DialogTitle className="sr-only">Trình xem ảnh</DialogTitle>
           {selectedIndex !== null && (
             <div className="relative w-full h-[95vh] flex items-center justify-center">
-              {/* Close button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
-                onClick={closeViewer}
-              >
-                <X className="h-6 w-6" />
-              </Button>
 
               {/* Navigation buttons */}
               {media.length > 1 && (
