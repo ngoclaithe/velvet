@@ -15,6 +15,19 @@ import { subscribeTopic } from '@/lib/mqttClient'
 import { userApi } from '@/lib/api/user'
 import { ImageGallery } from '@/components/ui/image-gallery'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { bookingApi, type BookingType } from '@/lib/api/booking'
+import {
   UserPlus,
   UserMinus,
   MessageCircle,
@@ -141,6 +154,13 @@ export default function CreatorDetailPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()
 
+  const [openBooking, setOpenBooking] = useState(false)
+  const [bookingType, setBookingType] = useState<BookingType>('private_chat')
+  const [duration, setDuration] = useState<number>(5)
+  const [scheduledTime, setScheduledTime] = useState<string>('')
+  const [notes, setNotes] = useState<string>('')
+  const [submittingBooking, setSubmittingBooking] = useState(false)
+
   const languageLabel = (code: string) =>
     ({ vi: 'Tiếng Việt', en: 'Tiếng Anh', ja: 'Tiếng Nhật', ko: 'Tiếng Hàn', zh: 'Tiếng Trung' } as Record<string, string>)[code] || code
 
@@ -263,6 +283,54 @@ export default function CreatorDetailPage() {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`
     return count.toString()
+  }
+
+  const minDurationForType = (type: BookingType) => {
+    if (type === 'byhour') return 60
+    if (type === 'byshot') return 1
+    return 5
+  }
+  const maxDurationForType = (type: BookingType) => {
+    if (type === 'byshot') return 60
+    return 24 * 60
+  }
+
+  const openBookingModal = () => {
+    if (!isAuthenticated) {
+      toast({ title: 'Yêu cầu đăng nhập', description: 'Vui lòng đăng nhập để đặt lịch', variant: 'destructive' })
+      return
+    }
+    const initialType: BookingType = 'private_chat'
+    setBookingType(initialType)
+    const baseMin = Math.max(minDurationForType(initialType), creator?.minBookingDuration || 0)
+    setDuration(Math.max(5, baseMin))
+    setScheduledTime('')
+    setNotes('')
+    setOpenBooking(true)
+  }
+
+  const handleSubmitBooking = async () => {
+    if (!creator) return
+    try {
+      setSubmittingBooking(true)
+      const payload = {
+        creatorId: creator.id,
+        type: bookingType,
+        duration: duration,
+        scheduledTime: scheduledTime ? scheduledTime : undefined,
+        notes: notes ? notes : undefined,
+      }
+      const resp = await bookingApi.createBooking(payload)
+      if (!resp.success) {
+        throw new Error(resp.error || resp.message || 'Đặt lịch thất bại')
+      }
+      toast({ title: 'Thành công', description: 'Đã tạo booking thành công' })
+      setOpenBooking(false)
+    } catch (e: any) {
+      toast({ title: 'Lỗi', description: e?.message || 'Không thể đặt lịch', variant: 'destructive' })
+    } finally {
+      setSubmittingBooking(false)
+    }
   }
 
   if (loading) {
@@ -445,7 +513,7 @@ export default function CreatorDetailPage() {
                       Nhắn tin
                     </Button>
                     {creator.isAvailableForBooking && (
-                      <Button className="bg-green-600 hover:bg-green-700">
+                      <Button className="bg-green-600 hover:bg-green-700" onClick={openBookingModal}>
                         <Calendar className="w-4 h-4 mr-2" />
                         Đặt lịch
                       </Button>
@@ -664,6 +732,74 @@ export default function CreatorDetailPage() {
           </Card>
         )}
       </div>
+
+      <Dialog open={openBooking} onOpenChange={setOpenBooking}>
+        <DialogContent className="bg-gray-900 border border-gray-700 text-gray-100">
+          <DialogHeader>
+            <DialogTitle>Đặt lịch với {getDisplayName(creator)}</DialogTitle>
+            <DialogDescription>Điền thông tin bên dưới để tạo booking</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="type">Loại booking</Label>
+                <Select value={bookingType} onValueChange={(v) => { const t = v as BookingType; setBookingType(t); const min = Math.max(minDurationForType(t), creator.minBookingDuration || 0); setDuration(Math.max(min, 1)); }}>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Chọn loại" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="private_show">Private show</SelectItem>
+                    <SelectItem value="private_chat">Private chat</SelectItem>
+                    <SelectItem value="cam2cam">Cam2Cam</SelectItem>
+                    <SelectItem value="byshot">By shot</SelectItem>
+                    <SelectItem value="byhour">By hour</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400 mt-1">{bookingType === 'byhour' ? 'Tối thiểu 60 phút' : bookingType === 'byshot' ? 'Tối đa 60 phút' : 'Tối thiểu 5 phút'}</p>
+              </div>
+              <div>
+                <Label htmlFor="duration">Thời lượng (phút)</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  min={Math.max(minDurationForType(bookingType), creator.minBookingDuration || 0)}
+                  max={maxDurationForType(bookingType)}
+                  value={duration}
+                  onChange={(e) => setDuration(Math.max(parseInt(e.target.value || '0', 10) || 0, 0))}
+                  placeholder="Số phút"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="scheduledTime">Thời gian (tùy chọn)</Label>
+                <Input
+                  id="scheduledTime"
+                  type="datetime-local"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                />
+                <p className="text-xs text-gray-400 mt-1">Để trống nếu muốn bắt đầu ngay khi được chấp nhận</p>
+              </div>
+              <div>
+                <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
+                <Textarea id="notes" maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Yêu cầu chi tiết..." />
+                <div className="text-xs text-gray-500 mt-1 text-right">{notes.length}/500</div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" className="border-gray-600" onClick={() => setOpenBooking(false)}>Hủy</Button>
+            <Button onClick={handleSubmitBooking} disabled={submittingBooking} className="bg-green-600 hover:bg-green-700">
+              {submittingBooking ? <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
+              Xác nhận đặt lịch
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
