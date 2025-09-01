@@ -33,7 +33,11 @@ export interface GetBookingsOptions {
 
 function isISO8601(value: string): boolean {
   const d = new Date(value)
-  return !Number.isNaN(d.getTime()) && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)
+  if (Number.isNaN(d.getTime())) return false
+  if (!value.includes('T')) return false
+  // Accept forms like YYYY-MM-DDTHH:mm or with seconds/timezone
+  const isoLike = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+\-]\d{2}:\d{2})?$/
+  return isoLike.test(value)
 }
 
 function assertCreatePayloadValid(payload: CreateBookingPayload): void {
@@ -65,7 +69,7 @@ function assertCreatePayloadValid(payload: CreateBookingPayload): void {
 
   if (notes !== undefined) {
     if (typeof notes !== 'string' || notes.length > 500) {
-      throw new Error('Ghi chú không được vượt quá 500 ký tự')
+      throw new Error('Ghi chú không được vượt quá 500 ký t��')
     }
   }
 
@@ -135,7 +139,7 @@ export const rejectBooking = async (
   cancellationReason: string
 ): Promise<ApiResponse<Booking>> => {
   if (!cancellationReason || cancellationReason.length < 10 || cancellationReason.length > 500) {
-    throw new Error('Lý do từ chối phải từ 10-500 ký tự')
+    throw new Error('Lý do từ chối phải từ 10-500 ký t��')
   }
   return api.put<Booking>(`/bookings/${bookingId}/reject`, { cancellationReason })
 }
