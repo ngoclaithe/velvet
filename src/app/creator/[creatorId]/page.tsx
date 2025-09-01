@@ -526,10 +526,6 @@ export default function CreatorDetailPage() {
                     <div className="text-sm text-gray-400">Giá subscription</div>
                     <div className="font-semibold">{formatMoney(creator.subscriptionPrice)}</div>
                   </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Tổng thu nhập</div>
-                    <div className="font-semibold text-green-400">{formatMoney(creator.totalEarnings)}</div>
-                  </div>
                 </div>
               </div>
 
