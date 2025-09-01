@@ -134,8 +134,6 @@ export default function CreatorDetailPage() {
           const apiData = response.data as CreatorApiResponse
           const mediaCandidates: string[] = []
           if (Array.isArray(apiData.bioUrls)) mediaCandidates.push(...apiData.bioUrls)
-          if (apiData.streamThumbnail) mediaCandidates.push(apiData.streamThumbnail)
-          if (apiData.user?.avatar) mediaCandidates.push(apiData.user.avatar)
 
           const creatorDetail: Creator = {
             id: Number(apiData.id),
@@ -403,7 +401,7 @@ export default function CreatorDetailPage() {
                   <div className="text-center">
                     <p className="text-gray-400 mb-4">Đăng nhập để theo dõi creator</p>
                     <Button onClick={() => (window.location.href = '/login')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
-                      Đ��ng nhập
+                      Đăng nhập
                     </Button>
                   </div>
                 ) : null}
@@ -499,22 +497,6 @@ export default function CreatorDetailPage() {
                     <div className="text-sm text-gray-400">Màu tóc</div>
                     <div className="font-semibold">{creator.hairColor || '-'}</div>
                   </div>
-                </div>
-              )}
-              {(creator.createdAt || creator.updatedAt) && (
-                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {creator.createdAt && (
-                    <div>
-                      <div className="text-sm text-gray-400">Ngày tạo</div>
-                      <div className="font-semibold">{new Date(creator.createdAt).toLocaleString()}</div>
-                    </div>
-                  )}
-                  {creator.updatedAt && (
-                    <div>
-                      <div className="text-sm text-gray-400">Cập nhật</div>
-                      <div className="font-semibold">{new Date(creator.updatedAt).toLocaleString()}</div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
