@@ -2,10 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
 import { Toaster } from '@/components/ui/toaster'
 import { NotificationProvider } from '@/components/notification/NotificationProvider'
+import RootShell from '@/components/layout/RootShell'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,11 +23,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <NotificationProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <RootShell>
+              {children}
+            </RootShell>
             <Toaster />
           </NotificationProvider>
         </AuthProvider>

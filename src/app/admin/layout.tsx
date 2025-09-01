@@ -29,7 +29,8 @@ import {
   DollarSign,
   Menu,
   X,
-  Gift
+  Gift,
+  UserPlus
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -45,6 +46,12 @@ const sidebarItems = [
     href: '/admin/users',
     icon: Users,
     description: 'Quản lý người dùng'
+  },
+  {
+    title: 'Quản lý Creator',
+    href: '/admin/creators',
+    icon: UserPlus,
+    description: 'Tạo và quản lý thông tin creator'
   },
   {
     title: 'Quản lý Streams',
