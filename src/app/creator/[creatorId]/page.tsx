@@ -267,23 +267,23 @@ export default function CreatorDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 p-6">
+      <div className="min-h-screen bg-gray-900 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-3 mb-6">
             <Skeleton className="w-8 h-8 rounded-full" />
-            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-5 w-28" />
           </div>
-          <Card className="bg-gray-800 border-gray-700 mb-6">
-            <CardContent className="p-4 sm:p-8">
-              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <Skeleton className="w-32 h-32 rounded-full" />
-                <div className="flex-1 space-y-4">
-                  <Skeleton className="h-8 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-16 w-full" />
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <Skeleton className="h-10 w-32" />
-                    <Skeleton className="h-10 w-32" />
+          <Card className="bg-gray-800 border-gray-700 mb-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                <Skeleton className="w-24 h-24 rounded-full" />
+                <div className="flex-1 space-y-3">
+                  <Skeleton className="h-7 w-44" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-14 w-full" />
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <Skeleton className="h-10 w-28" />
+                    <Skeleton className="h-10 w-28" />
                   </div>
                 </div>
               </div>
@@ -297,9 +297,9 @@ export default function CreatorDetailPage() {
   if (!creator) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <Card className="bg-gray-800 border-gray-700 p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Không tìm thấy creator</h2>
-          <p className="text-gray-400 mb-6">Creator này không tồn tại hoặc đã bị xóa</p>
+        <Card className="bg-gray-800 border-gray-700 p-6 text-center">
+          <h2 className="text-xl font-bold text-white mb-3">Không tìm thấy creator</h2>
+          <p className="text-gray-400 mb-4">Creator này không tồn tại hoặc đã bị xóa</p>
           <Button onClick={() => window.history.back()}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
@@ -311,27 +311,27 @@ export default function CreatorDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <div className="border-b border-gray-800 p-6">
+      <div className="border-b border-gray-800 p-4">
         <div className="max-w-4xl mx-auto">
-          <Button variant="ghost" onClick={() => window.history.back()} className="text-gray-400 hover:text-white mb-4">
+          <Button variant="ghost" onClick={() => window.history.back()} className="text-gray-400 hover:text-white mb-3">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
           </Button>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6">
-        <Card className="bg-gray-800 border-gray-700 mb-6">
-          <CardContent className="p-4 sm:p-8">
-            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+      <div className="max-w-4xl mx-auto p-4">
+        <Card className="bg-gray-800 border-gray-700 mb-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
               <div className="relative">
-                <Avatar className="w-24 h-24 sm:w-32 sm:h-32">
+                <Avatar className="w-24 h-24 sm:w-28 sm:h-28">
                   <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
-                  <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-4xl">
+                  <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-3xl">
                     {getDisplayName(creator).charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                {creator.isOnline && <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-gray-800 rounded-full" />}
+                {creator.isOnline && <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-green-500 border-4 border-gray-800 rounded-full" />}
                 {creator.isLive && (
                   <div className="absolute -top-2 -right-2">
                     <Badge className="bg-red-500 hover:bg-red-600 text-white">LIVE</Badge>
@@ -340,62 +340,62 @@ export default function CreatorDetailPage() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
-                  {creator.isVerified && <Verified className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />}
+                <div className="flex items-center gap-2 mb-1.5">
+                  <h1 className="text-2xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
+                  {creator.isVerified && <Verified className="w-6 h-6 text-blue-500" />}
                 </div>
-                <p className="text-gray-400 text-sm sm:text-base mb-1 break-all">@{creator.username}</p>
+                <p className="text-gray-400 text-sm mb-1 break-all">@{creator.username}</p>
                 
                 {creator.titleBio && (
-                  <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-3 mb-4">
-                    <p className="text-pink-300 font-semibold text-sm sm:text-base leading-relaxed">{creator.titleBio}</p>
+                  <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-2.5 mb-3">
+                    <p className="text-pink-300 font-semibold text-sm leading-relaxed">{creator.titleBio}</p>
                   </div>
                 )}
 
                 {creator.location && (
-                  <div className="flex items-center gap-2 text-gray-400 text-xs sm:text-sm mb-4">
+                  <div className="flex items-center gap-2 text-gray-400 text-xs mb-3">
                     <MapPin className="w-4 h-4" />
                     {creator.location}
                   </div>
                 )}
-                {creator.bio && <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed mb-6 whitespace-pre-line break-words">{creator.bio}</p>}
+                {creator.bio && <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-4 whitespace-pre-line break-words">{creator.bio}</p>}
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="text-center">
-                    <p className="text-white font-bold text-lg sm:text-2xl">{formatCount(creator.followersCount)}</p>
-                    <p className="text-gray-400 text-sm">Followers</p>
+                    <p className="text-white font-bold text-lg">{formatCount(creator.followersCount)}</p>
+                    <p className="text-gray-400 text-xs">Followers</p>
                   </div>
                   {creator.rating && Number(creator.rating) > 0 && (
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        <span className="text-white font-bold text-lg sm:text-2xl">{Number(creator.rating).toFixed(1)}</span>
+                        <span className="text-white font-bold text-lg">{Number(creator.rating).toFixed(1)}</span>
                       </div>
-                      <p className="text-gray-400 text-sm">{creator.totalRatings} đánh giá</p>
+                      <p className="text-gray-400 text-xs">{creator.totalRatings} đánh giá</p>
                     </div>
                   )}
                   {creator.hourlyRate && Number(creator.hourlyRate) > 0 && (
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <DollarSign className="w-5 h-5 text-green-400" />
-                        <span className="text-white font-bold text-lg sm:text-2xl">{creator.hourlyRate}</span>
+                        <span className="text-white font-bold text-lg">{creator.hourlyRate}</span>
                       </div>
-                      <p className="text-gray-400 text-sm">Per hour</p>
+                      <p className="text-gray-400 text-xs">Per hour</p>
                     </div>
                   )}
                   {creator.totalEarnings && Number(creator.totalEarnings) > 0 && (
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Award className="w-5 h-5 text-yellow-400" />
-                        <span className="text-white font-bold text-lg sm:text-2xl">{formatMoney(creator.totalEarnings)}</span>
+                        <span className="text-white font-bold text-lg">{formatMoney(creator.totalEarnings)}</span>
                       </div>
-                      <p className="text-gray-400 text-sm">Total Earnings</p>
+                      <p className="text-gray-400 text-xs">Total Earnings</p>
                     </div>
                   )}
                 </div>
 
                 {isAuthenticated && creator.userId.toString() !== user?.id ? (
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Button onClick={handleFollow} disabled={actionLoading} className={`flex-1 ${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'}`}>
                       {actionLoading ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -450,10 +450,14 @@ export default function CreatorDetailPage() {
                         Đặt lịch
                       </Button>
                     )}
+                    <Button variant="outline" disabled title="Sắp có" className="border-gray-600 text-gray-300">
+                      <Star className="w-4 h-4 mr-2" />
+                      Đánh giá
+                    </Button>
                   </div>
                 ) : !isAuthenticated ? (
                   <div className="text-center">
-                    <p className="text-gray-400 mb-4">Đăng nhập để theo dõi creator</p>
+                    <p className="text-gray-400 mb-3">Đăng nhập để theo dõi creator</p>
                     <Button onClick={() => (window.location.href = '/login')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
                       Đăng nhập
                     </Button>
@@ -465,22 +469,22 @@ export default function CreatorDetailPage() {
         </Card>
 
         {galleryMedia.length > 0 && (
-          <Card className="bg-gray-800 border-gray-700 mb-6">
+          <Card className="bg-gray-800 border-gray-700 mb-4">
             <CardContent className="p-4">
-              <h3 className="text-xl font-semibold text-white mb-3">Hình ảnh</h3>
+              <h3 className="text-lg font-semibold text-white mb-3">Hình ảnh</h3>
               <ImageGallery media={galleryMedia} />
             </CardContent>
           </Card>
         )}
 
         {creator.service && (
-          <Card className="bg-gray-800 border-gray-700 mb-6">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                <Award className="w-6 h-6 text-pink-400" />
+          <Card className="bg-gray-800 border-gray-700 mb-4">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                <Award className="w-5 h-5 text-pink-400" />
                 Dịch vụ
               </h3>
-              <div className="bg-gray-700/50 rounded-lg p-4">
+              <div className="bg-gray-700/50 rounded-lg p-3">
                 <p className="text-gray-300 whitespace-pre-line leading-relaxed">{creator.service}</p>
               </div>
             </CardContent>
@@ -488,12 +492,12 @@ export default function CreatorDetailPage() {
         )}
 
         {(creator.category || (creator.tags && creator.tags.length > 0)) && (
-          <Card className="bg-gray-800 border-gray-700 mb-6">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Phân loại & Tags</h3>
+          <Card className="bg-gray-800 border-gray-700 mb-4">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold text-white mb-3">Phân loại & Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {creator.category && (
-                  <Badge variant="outline" className="border-gray-600 text-gray-300 px-4 py-2">{creator.category}</Badge>
+                  <Badge variant="outline" className="border-gray-600 text-gray-300 px-3 py-1.5">{creator.category}</Badge>
                 )}
                 {creator.tags?.map((t) => (
                   <Badge key={t} variant="secondary" className="bg-gray-700 text-gray-200">#{t}</Badge>
@@ -503,17 +507,17 @@ export default function CreatorDetailPage() {
           </Card>
         )}
 
-        <Card className="bg-gray-800 border-gray-700 mb-6">
-          <CardContent className="p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Thông tin chi tiết</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
+        <Card className="bg-gray-800 border-gray-700 mb-4">
+          <CardContent className="p-4">
+            <h3 className="text-lg font-semibold text-white mb-3">Thông tin chi tiết</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
               {/* Pricing Information */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-pink-300 mb-3 flex items-center gap-2">
+              <div className="space-y-3">
+                <h4 className="text-base font-semibold text-pink-300 mb-2.5 flex items-center gap-2">
                   <DollarSign className="w-5 h-5" />
                   Thông tin giá
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div>
                     <div className="text-sm text-gray-400">Giá theo giờ</div>
                     <div className="font-semibold">{formatMoney(creator.hourlyRate)}</div>
@@ -530,12 +534,12 @@ export default function CreatorDetailPage() {
               </div>
 
               {/* Booking Information */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-blue-300 mb-3 flex items-center gap-2">
+              <div className="space-y-3">
+                <h4 className="text-base font-semibold text-blue-300 mb-2.5 flex items-center gap-2">
                   <Clock className="w-5 h-5" />
                   Thông tin booking
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div>
                     <div className="text-sm text-gray-400">Thời gian tối thiểu (phút)</div>
                     <div className="font-semibold">{creator.minBookingDuration || '-'}</div>
@@ -559,7 +563,7 @@ export default function CreatorDetailPage() {
 
               {/* Languages and Specialties */}
               {((creator.languages && creator.languages.length > 0) || (creator.specialties && creator.specialties.length > 0)) && (
-                <div className="md:col-span-2 space-y-4">
+                <div className="md:col-span-2 space-y-3">
                   {creator.languages && creator.languages.length > 0 && (
                     <div>
                       <div className="text-sm text-gray-400 mb-2">Ngôn ngữ</div>
@@ -585,11 +589,11 @@ export default function CreatorDetailPage() {
 
               {/* Physical Information */}
               <div className="md:col-span-2">
-                <h4 className="text-lg font-semibold text-green-300 mb-3 flex items-center gap-2">
+                <h4 className="text-base font-semibold text-green-300 mb-2.5 flex items-center gap-2">
                   <Users className="w-5 h-5" />
                   Thông tin hình thể
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
                     <div className="text-sm text-gray-400">Chiều cao</div>
                     <div className="font-semibold">{creator.height ? `${creator.height} cm` : '-'}</div>
@@ -611,11 +615,11 @@ export default function CreatorDetailPage() {
 
               {/* Appearance Information */}
               <div className="md:col-span-2">
-                <h4 className="text-lg font-semibold text-purple-300 mb-3 flex items-center gap-2">
+                <h4 className="text-base font-semibold text-purple-300 mb-2.5 flex items-center gap-2">
                   <Palette className="w-5 h-5" />
                   Thông tin ngoại hình
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
                     <div className="text-sm text-gray-400">Màu mắt</div>
                     <div className="font-semibold">{creator.eyeColor || '-'}</div>
@@ -638,8 +642,8 @@ export default function CreatorDetailPage() {
                   </div>
                 </div>
                 {creator.signature && (
-                  <div className="mt-4 p-4 bg-gray-700/50 rounded-lg">
-                    <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                  <div className="mt-3 p-3 bg-gray-700/50 rounded-lg">
+                    <div className="text-sm text-gray-400 mb-1.5 flex items-center gap-2">
                       <Scissors className="w-4 h-4" />
                       Đặc điểm nổi bật
                     </div>
@@ -652,9 +656,9 @@ export default function CreatorDetailPage() {
         </Card>
 
         {creator.streamTitle && (
-          <Card className="bg-gray-800 border-gray-700 mb-6">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Stream hiện tại</h3>
+          <Card className="bg-gray-800 border-gray-700 mb-4">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold text-white mb-3">Stream hiện tại</h3>
               <p className="text-gray-300">{creator.streamTitle}</p>
             </CardContent>
           </Card>
