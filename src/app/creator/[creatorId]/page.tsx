@@ -236,14 +236,14 @@ export default function CreatorDetailPage() {
             <Skeleton className="h-6 w-32" />
           </div>
           <Card className="bg-gray-800 border-gray-700 mb-6">
-            <CardContent className="p-8">
-              <div className="flex items-start gap-6">
+            <CardContent className="p-4 sm:p-8">
+              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                 <Skeleton className="w-32 h-32 rounded-full" />
                 <div className="flex-1 space-y-4">
                   <Skeleton className="h-8 w-48" />
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-16 w-full" />
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <Skeleton className="h-10 w-32" />
                     <Skeleton className="h-10 w-32" />
                   </div>
@@ -284,10 +284,10 @@ export default function CreatorDetailPage() {
 
       <div className="max-w-4xl mx-auto p-6">
         <Card className="bg-gray-800 border-gray-700 mb-6">
-          <CardContent className="p-8">
-            <div className="flex items-start gap-6">
+          <CardContent className="p-4 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               <div className="relative">
-                <Avatar className="w-32 h-32">
+                <Avatar className="w-24 h-24 sm:w-32 sm:h-32">
                   <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
                   <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-4xl">
                     {getDisplayName(creator).charAt(0).toUpperCase()}
@@ -301,30 +301,30 @@ export default function CreatorDetailPage() {
                 )}
               </div>
 
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-white">{getDisplayName(creator)}</h1>
-                  {creator.isVerified && <Verified className="w-8 h-8 text-blue-500" />}
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
+                  {creator.isVerified && <Verified className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />}
                 </div>
-                <p className="text-gray-400 text-lg mb-1">@{creator.username}</p>
+                <p className="text-gray-400 text-sm sm:text-base mb-1 break-all">@{creator.username}</p>
                 {creator.location && (
-                  <div className="flex items-center gap-2 text-gray-400 mb-4">
+                  <div className="flex items-center gap-2 text-gray-400 text-xs sm:text-sm mb-4">
                     <MapPin className="w-4 h-4" />
                     {creator.location}
                   </div>
                 )}
-                {creator.bio && <p className="text-gray-300 text-lg leading-relaxed mb-6 whitespace-pre-line">{creator.bio}</p>}
+                {creator.bio && <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed mb-6 whitespace-pre-line break-words">{creator.bio}</p>}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                   <div className="text-center">
-                    <p className="text-white font-bold text-2xl">{formatCount(creator.followersCount)}</p>
+                    <p className="text-white font-bold text-lg sm:text-2xl">{formatCount(creator.followersCount)}</p>
                     <p className="text-gray-400 text-sm">Followers</p>
                   </div>
                   {creator.rating && Number(creator.rating) > 0 && (
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        <span className="text-white font-bold text-2xl">{Number(creator.rating).toFixed(1)}</span>
+                        <span className="text-white font-bold text-lg sm:text-2xl">{Number(creator.rating).toFixed(1)}</span>
                       </div>
                       <p className="text-gray-400 text-sm">{creator.totalRatings} đánh giá</p>
                     </div>
@@ -333,7 +333,7 @@ export default function CreatorDetailPage() {
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <DollarSign className="w-5 h-5 text-green-400" />
-                        <span className="text-white font-bold text-2xl">${creator.hourlyRate}</span>
+                        <span className="text-white font-bold text-lg sm:text-2xl">${creator.hourlyRate}</span>
                       </div>
                       <p className="text-gray-400 text-sm">Per hour</p>
                     </div>
@@ -341,7 +341,7 @@ export default function CreatorDetailPage() {
                 </div>
 
                 {isAuthenticated && creator.userId.toString() !== user?.id ? (
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <Button onClick={handleFollow} disabled={actionLoading} className={`flex-1 ${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'}`}>
                       {actionLoading ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
