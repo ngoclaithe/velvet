@@ -23,7 +23,12 @@ import {
   ArrowLeft,
   Star,
   Calendar,
-  DollarSign
+  DollarSign,
+  Clock,
+  Users,
+  Award,
+  Palette,
+  Scissors
 } from 'lucide-react'
 
 interface Creator {
@@ -34,6 +39,7 @@ interface Creator {
   lastName: string
   stageName?: string
   avatar?: string
+  titleBio?: string
   bio?: string
   followersCount?: number
   isVerified?: boolean
@@ -44,6 +50,11 @@ interface Creator {
   isLive?: boolean
   streamTitle?: string
   hourlyRate?: string
+  minBookingDuration?: number
+  maxConcurrentBookings?: number
+  currentBookingsCount?: number
+  totalEarnings?: string
+  availabilitySchedule?: object
   rating?: string
   totalRatings?: number
   isAvailableForBooking?: boolean
@@ -55,8 +66,13 @@ interface Creator {
   bodyType?: string | null
   height?: number | null
   weight?: number | null
+  measurement?: string | null
   eyeColor?: string | null
   hairColor?: string | null
+  service?: string | null
+  isTatto?: boolean
+  signature?: string | null
+  cosmeticSurgery?: string | null
   createdAt?: string
   updatedAt?: string
   mediaUrls?: string[]
@@ -67,6 +83,7 @@ interface CreatorApiResponse {
   id: number
   userId: number
   stageName?: string
+  titleBio?: string
   bio?: string
   rating?: string
   totalRatings?: number
@@ -74,6 +91,11 @@ interface CreatorApiResponse {
   isLive?: boolean
   streamTitle?: string | null
   hourlyRate?: string
+  minBookingDuration?: number
+  maxConcurrentBookings?: number
+  currentBookingsCount?: number
+  totalEarnings?: string
+  availabilitySchedule?: object
   isAvailableForBooking?: boolean
   bookingPrice?: string | null
   subscriptionPrice?: string | null
@@ -87,8 +109,13 @@ interface CreatorApiResponse {
   bodyType?: string | null
   height?: number | null
   weight?: number | null
+  measurement?: string | null
   eyeColor?: string | null
   hairColor?: string | null
+  service?: string | null
+  isTatto?: boolean
+  signature?: string | null
+  cosmeticSurgery?: string | null
   createdAt?: string
   updatedAt?: string
   bioUrls?: string[]
@@ -121,7 +148,7 @@ export default function CreatorDetailPage() {
     if (!v) return '-'
     const n = Number(v)
     if (Number.isNaN(n) || n <= 0) return '-'
-    return `$${n.toFixed(2)}`
+    return `${n.toFixed(2)}`
   }
 
   // Fetch creator details
@@ -143,6 +170,7 @@ export default function CreatorDetailPage() {
             lastName: apiData.user?.lastName || '',
             stageName: apiData.stageName || '',
             avatar: apiData.user?.avatar || '',
+            titleBio: apiData.titleBio || '',
             bio: apiData.bio || '',
             followersCount: Number(apiData.followersCount || 0),
             isVerified: Boolean(apiData.isVerified),
@@ -153,6 +181,11 @@ export default function CreatorDetailPage() {
             isFollowing: Boolean(apiData.isFollowing),
             streamTitle: apiData.streamTitle || '',
             hourlyRate: apiData.hourlyRate || '0',
+            minBookingDuration: apiData.minBookingDuration || 0,
+            maxConcurrentBookings: apiData.maxConcurrentBookings || 0,
+            currentBookingsCount: apiData.currentBookingsCount || 0,
+            totalEarnings: apiData.totalEarnings || '0',
+            availabilitySchedule: apiData.availabilitySchedule || {},
             rating: apiData.rating || '0',
             totalRatings: Number(apiData.totalRatings || 0),
             isAvailableForBooking: Boolean(apiData.isAvailableForBooking),
@@ -164,8 +197,13 @@ export default function CreatorDetailPage() {
             bodyType: apiData.bodyType ?? null,
             height: apiData.height ?? null,
             weight: apiData.weight ?? null,
+            measurement: apiData.measurement ?? null,
             eyeColor: apiData.eyeColor ?? null,
             hairColor: apiData.hairColor ?? null,
+            service: apiData.service ?? null,
+            isTatto: Boolean(apiData.isTatto),
+            signature: apiData.signature ?? null,
+            cosmeticSurgery: apiData.cosmeticSurgery ?? null,
             createdAt: apiData.createdAt,
             updatedAt: apiData.updatedAt,
             mediaUrls: mediaCandidates.filter(Boolean)
@@ -261,7 +299,7 @@ export default function CreatorDetailPage() {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <Card className="bg-gray-800 border-gray-700 p-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Không tìm thấy creator</h2>
-          <p className="text-gray-400 mb-6">Creator này không tồn tại ho���c đã bị xóa</p>
+          <p className="text-gray-400 mb-6">Creator này không tồn tại hoặc đã bị xóa</p>
           <Button onClick={() => window.history.back()}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
@@ -307,6 +345,13 @@ export default function CreatorDetailPage() {
                   {creator.isVerified && <Verified className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />}
                 </div>
                 <p className="text-gray-400 text-sm sm:text-base mb-1 break-all">@{creator.username}</p>
+                
+                {creator.titleBio && (
+                  <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-3 mb-4">
+                    <p className="text-pink-300 font-semibold text-sm sm:text-base leading-relaxed">{creator.titleBio}</p>
+                  </div>
+                )}
+
                 {creator.location && (
                   <div className="flex items-center gap-2 text-gray-400 text-xs sm:text-sm mb-4">
                     <MapPin className="w-4 h-4" />
@@ -333,9 +378,18 @@ export default function CreatorDetailPage() {
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <DollarSign className="w-5 h-5 text-green-400" />
-                        <span className="text-white font-bold text-lg sm:text-2xl">${creator.hourlyRate}</span>
+                        <span className="text-white font-bold text-lg sm:text-2xl">{creator.hourlyRate}</span>
                       </div>
                       <p className="text-gray-400 text-sm">Per hour</p>
+                    </div>
+                  )}
+                  {creator.totalEarnings && Number(creator.totalEarnings) > 0 && (
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Award className="w-5 h-5 text-yellow-400" />
+                        <span className="text-white font-bold text-lg sm:text-2xl">{formatMoney(creator.totalEarnings)}</span>
+                      </div>
+                      <p className="text-gray-400 text-sm">Total Earnings</p>
                     </div>
                   )}
                 </div>
@@ -419,6 +473,20 @@ export default function CreatorDetailPage() {
           </Card>
         )}
 
+        {creator.service && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <Award className="w-6 h-6 text-pink-400" />
+                Dịch vụ
+              </h3>
+              <div className="bg-gray-700/50 rounded-lg p-4">
+                <p className="text-gray-300 whitespace-pre-line leading-relaxed">{creator.service}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {(creator.category || (creator.tags && creator.tags.length > 0)) && (
           <Card className="bg-gray-800 border-gray-700 mb-6">
             <CardContent className="p-6">
@@ -438,41 +506,94 @@ export default function CreatorDetailPage() {
         <Card className="bg-gray-800 border-gray-700 mb-6">
           <CardContent className="p-6">
             <h3 className="text-xl font-semibold text-white mb-4">Thông tin chi tiết</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
-              <div>
-                <div className="text-sm text-gray-400">Giá theo giờ</div>
-                <div className="font-semibold">{formatMoney(creator.hourlyRate)}</div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-400">Giá đặt lịch</div>
-                <div className="font-semibold">{formatMoney(creator.bookingPrice)}</div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-400">Giá subscription</div>
-                <div className="font-semibold">{formatMoney(creator.subscriptionPrice)}</div>
-              </div>
-              {creator.languages && creator.languages.length > 0 && (
-                <div className="md:col-span-2">
-                  <div className="text-sm text-gray-400">Ngôn ngữ</div>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {creator.languages.map((l) => (
-                      <Badge key={l} variant="outline" className="border-gray-600 text-gray-300">{languageLabel(l)}</Badge>
-                    ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
+              {/* Pricing Information */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-pink-300 mb-3 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  Thông tin giá
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm text-gray-400">Giá theo giờ</div>
+                    <div className="font-semibold">{formatMoney(creator.hourlyRate)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Giá đặt lịch</div>
+                    <div className="font-semibold">{formatMoney(creator.bookingPrice)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Giá subscription</div>
+                    <div className="font-semibold">{formatMoney(creator.subscriptionPrice)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Tổng thu nhập</div>
+                    <div className="font-semibold text-green-400">{formatMoney(creator.totalEarnings)}</div>
                   </div>
                 </div>
-              )}
-              {creator.specialties && creator.specialties.length > 0 && (
-                <div className="md:col-span-2">
-                  <div className="text-sm text-gray-400">Loại creator</div>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {creator.specialties.map((s) => (
-                      <Badge key={s} className="bg-purple-600/20 text-purple-300">{s}</Badge>
-                    ))}
+              </div>
+
+              {/* Booking Information */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-blue-300 mb-3 flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Thông tin booking
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm text-gray-400">Thời gian tối thiểu (phút)</div>
+                    <div className="font-semibold">{creator.minBookingDuration || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Số booking tối đa</div>
+                    <div className="font-semibold">{creator.maxConcurrentBookings || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Booking hiện tại</div>
+                    <div className="font-semibold">{creator.currentBookingsCount || 0}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Có thể booking</div>
+                    <div className={`font-semibold ${creator.isAvailableForBooking ? 'text-green-400' : 'text-red-400'}`}>
+                      {creator.isAvailableForBooking ? 'Có' : 'Không'}
+                    </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Languages and Specialties */}
+              {((creator.languages && creator.languages.length > 0) || (creator.specialties && creator.specialties.length > 0)) && (
+                <div className="md:col-span-2 space-y-4">
+                  {creator.languages && creator.languages.length > 0 && (
+                    <div>
+                      <div className="text-sm text-gray-400 mb-2">Ngôn ngữ</div>
+                      <div className="flex flex-wrap gap-2">
+                        {creator.languages.map((l) => (
+                          <Badge key={l} variant="outline" className="border-gray-600 text-gray-300">{languageLabel(l)}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {creator.specialties && creator.specialties.length > 0 && (
+                    <div>
+                      <div className="text-sm text-gray-400 mb-2">Loại creator</div>
+                      <div className="flex flex-wrap gap-2">
+                        {creator.specialties.map((s) => (
+                          <Badge key={s} className="bg-purple-600/20 text-purple-300">{s}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
-              {(creator.height || creator.weight || creator.bodyType) && (
-                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+              {/* Physical Information */}
+              <div className="md:col-span-2">
+                <h4 className="text-lg font-semibold text-green-300 mb-3 flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Thông tin hình thể
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <div className="text-sm text-gray-400">Chiều cao</div>
                     <div className="font-semibold">{creator.height ? `${creator.height} cm` : '-'}</div>
@@ -485,10 +606,20 @@ export default function CreatorDetailPage() {
                     <div className="text-sm text-gray-400">Dáng người</div>
                     <div className="font-semibold">{creator.bodyType || '-'}</div>
                   </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Số đo</div>
+                    <div className="font-semibold">{creator.measurement || '-'}</div>
+                  </div>
                 </div>
-              )}
-              {(creator.eyeColor || creator.hairColor) && (
-                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              </div>
+
+              {/* Appearance Information */}
+              <div className="md:col-span-2">
+                <h4 className="text-lg font-semibold text-purple-300 mb-3 flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  Thông tin ngoại hình
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <div className="text-sm text-gray-400">Màu mắt</div>
                     <div className="font-semibold">{creator.eyeColor || '-'}</div>
@@ -497,8 +628,29 @@ export default function CreatorDetailPage() {
                     <div className="text-sm text-gray-400">Màu tóc</div>
                     <div className="font-semibold">{creator.hairColor || '-'}</div>
                   </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Có hình xăm</div>
+                    <div className={`font-semibold ${creator.isTatto ? 'text-pink-400' : 'text-gray-400'}`}>
+                      {creator.isTatto ? 'Có' : 'Không'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Phẫu thuật thẩm mỹ</div>
+                    <div className={`font-semibold ${creator.cosmeticSurgery === 'true' ? 'text-blue-400' : 'text-gray-400'}`}>
+                      {creator.cosmeticSurgery === 'true' ? 'Có' : creator.cosmeticSurgery === 'false' ? 'Không' : '-'}
+                    </div>
+                  </div>
                 </div>
-              )}
+                {creator.signature && (
+                  <div className="mt-4 p-4 bg-gray-700/50 rounded-lg">
+                    <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                      <Scissors className="w-4 h-4" />
+                      Đặc điểm nổi bật
+                    </div>
+                    <div className="font-semibold text-pink-300">{creator.signature}</div>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
