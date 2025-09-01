@@ -187,35 +187,12 @@ export function ImageGallery({ media, className = '' }: ImageGalleryProps) {
 
               {/* Thumbnail strip for multiple images (right side) */}
               {media.length > 1 && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:block">
+                <div className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10">
                   <div className="flex flex-col space-y-2 bg-black/60 rounded-lg p-2 max-h-[70vh] overflow-y-auto">
                     {media.map((item, index) => (
                       <button
                         key={item.id}
-                        className={`w-14 h-14 rounded overflow-hidden border-2 ${
-                          index === selectedIndex ? 'border-white' : 'border-transparent'
-                        }`}
-                        onClick={() => setSelectedIndex(index)}
-                      >
-                        <img
-                          src={item.url}
-                          alt={`Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Mobile thumbnails (bottom) */}
-              {media.length > 1 && (
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 sm:hidden">
-                  <div className="flex space-x-2 bg-black/60 rounded-lg p-2 max-w-[85vw] overflow-x-auto">
-                    {media.map((item, index) => (
-                      <button
-                        key={item.id}
-                        className={`flex-shrink-0 w-12 h-12 rounded overflow-hidden border-2 ${
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded overflow-hidden border-2 ${
                           index === selectedIndex ? 'border-white' : 'border-transparent'
                         }`}
                         onClick={() => setSelectedIndex(index)}
