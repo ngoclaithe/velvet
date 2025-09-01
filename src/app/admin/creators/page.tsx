@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import ImageUploader from '@/components/ImageUploader'
 import { adminAPI } from '@/lib/api/admin'
 import { toast } from 'react-hot-toast'
@@ -16,6 +17,32 @@ interface Credentials {
   password: string
   note?: string
 }
+
+const CREATOR_TYPES = [
+  'stream',
+  'chat',
+  'callgirl',
+  'stream+callgirl',
+  'chat+callgirl',
+]
+
+const BODY_TYPES = [
+  { value: 'slim', label: 'mình dây' },
+  { value: 'chubby', label: 'chubby' },
+  { value: 'curvy', label: 'đầy đặn' },
+  { value: 'hourglass', label: 'Đồng hồ cát' },
+  { value: 'triangle', label: 'Tam giác' },
+  { value: 'inverted_triangle', label: 'Tam giác ngược' },
+  { value: 'athletic', label: 'Athletic/Gym' },
+]
+
+const LANGUAGE_OPTIONS = [
+  { value: 'vi', label: 'Tiếng Việt' },
+  { value: 'en', label: 'Tiếng Anh' },
+  { value: 'ja', label: 'Tiếng Nhật' },
+  { value: 'ko', label: 'Tiếng Hàn' },
+  { value: 'zh', label: 'Tiếng Trung' },
+]
 
 export default function CreatorsAdminPage() {
   const [submitting, setSubmitting] = useState(false)
@@ -30,7 +57,7 @@ export default function CreatorsAdminPage() {
     gender: '',
     country: '',
     city: '',
-    timezone: '',
+    timezone: 'Asia/Ho_Chi_Minh',
     language: 'vi',
     referralCode: '',
     stageName: '',
@@ -41,8 +68,8 @@ export default function CreatorsAdminPage() {
     isVerified: false,
     hourlyRate: '',
     minBookingDuration: '',
-    specialties: [] as string[],
-    languages: [] as string[],
+    specialties: [] as string[], // Loại creator
+    languages: ['vi'] as string[],
     bodyType: '',
     height: '',
     weight: '',
@@ -59,6 +86,14 @@ export default function CreatorsAdminPage() {
   })
 
   const setField = (key: string, value: any) => setForm((prev: any) => ({ ...prev, [key]: value }))
+
+  const toggleArrayField = (key: string, value: string) => {
+    setForm((prev: any) => {
+      const arr: string[] = Array.isArray(prev[key]) ? prev[key] : []
+      const next = arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value]
+      return { ...prev, [key]: next }
+    })
+  }
 
   const onSubmit = async () => {
     setSubmitting(true)
@@ -123,11 +158,16 @@ export default function CreatorsAdminPage() {
             </div>
             <div>
               <Label>Giới tính</Label>
-              <Input value={form.gender} onChange={(e) => setField('gender', e.target.value)} placeholder="male/female/other" />
-            </div>
-            <div>
-              <Label>Ngôn ngữ</Label>
-              <Input value={form.language} onChange={(e) => setField('language', e.target.value)} />
+              <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn giới tính" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Nam</SelectItem>
+                  <SelectItem value="female">Nữ</SelectItem>
+                  <SelectItem value="other">Khác</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Quốc gia</Label>
@@ -226,11 +266,33 @@ export default function CreatorsAdminPage() {
             </div>
             <div>
               <Label>Loại creator</Label>
-              <Input value={Array.isArray(form.specialties) ? form.specialties.join(', ') : form.specialties} onChange={(e) => setField('specialties', e.target.value)} />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CREATOR_TYPES.map((type) => (
+                  <label key={type} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
+                    <input
+                      type="checkbox"
+                      checked={Array.isArray(form.specialties) && form.specialties.includes(type)}
+                      onChange={() => toggleArrayField('specialties', type)}
+                    />
+                    <span>{type}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div>
               <Label>Ngôn ngữ</Label>
-              <Input value={Array.isArray(form.languages) ? form.languages.join(', ') : form.languages} onChange={(e) => setField('languages', e.target.value)} />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {LANGUAGE_OPTIONS.map((opt) => (
+                  <label key={opt.value} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
+                    <input
+                      type="checkbox"
+                      checked={Array.isArray(form.languages) && form.languages.includes(opt.value)}
+                      onChange={() => toggleArrayField('languages', opt.value)}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div>
               <Label>Giá theo giờ</Label>
@@ -250,7 +312,16 @@ export default function CreatorsAdminPage() {
             </div>
             <div>
               <Label>Dáng người</Label>
-              <Input value={form.bodyType} onChange={(e) => setField('bodyType', e.target.value)} />
+              <Select value={form.bodyType} onValueChange={(v) => setField('bodyType', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn dáng người" />
+                </SelectTrigger>
+                <SelectContent>
+                  {BODY_TYPES.map((b) => (
+                    <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Chiều cao (cm)</Label>
