@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, X, Download, Share2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 interface MediaItem {
   id: string
@@ -117,21 +117,13 @@ export function ImageGallery({ media, className = '' }: ImageGalleryProps) {
 
       {/* Full Screen Viewer */}
       <Dialog open={selectedIndex !== null} onOpenChange={(open) => !open && closeViewer()}>
-        <DialogContent 
+        <DialogContent
           className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none"
           onKeyDown={handleKeyDown}
         >
+          <DialogTitle className="sr-only">Trình xem ảnh</DialogTitle>
           {selectedIndex !== null && (
             <div className="relative w-full h-[95vh] flex items-center justify-center">
-              {/* Close button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
-                onClick={closeViewer}
-              >
-                <X className="h-6 w-6" />
-              </Button>
 
               {/* Navigation buttons */}
               {media.length > 1 && (
@@ -175,60 +167,23 @@ export function ImageGallery({ media, className = '' }: ImageGalleryProps) {
                 )}
               </div>
 
-              {/* Bottom bar with controls */}
+              {/* Bottom info bar */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-                <div className="flex items-center space-x-4 bg-black/60 rounded-full px-4 py-2">
-                  {/* Image counter */}
+                <div className="flex items-center bg-black/60 rounded-full px-4 py-2">
                   <span className="text-white text-sm">
                     {selectedIndex + 1} / {media.length}
                   </span>
-
-                  {/* Action buttons */}
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-white hover:bg-white/20 h-8 px-3"
-                      onClick={() => {
-                        const link = document.createElement('a')
-                        link.href = media[selectedIndex].url
-                        link.download = `image-${selectedIndex + 1}`
-                        link.click()
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Tải về
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-white hover:bg-white/20 h-8 px-3"
-                      onClick={() => {
-                        if (navigator.share) {
-                          navigator.share({
-                            title: 'Chia sẻ ảnh',
-                            url: media[selectedIndex].url
-                          })
-                        } else {
-                          navigator.clipboard.writeText(media[selectedIndex].url)
-                        }
-                      }}
-                    >
-                      <Share2 className="h-4 w-4 mr-1" />
-                      Chia sẻ
-                    </Button>
-                  </div>
                 </div>
               </div>
 
-              {/* Thumbnail strip for multiple images */}
+              {/* Thumbnail strip for multiple images (right side) */}
               {media.length > 1 && (
-                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-10">
-                  <div className="flex space-x-2 bg-black/60 rounded-lg p-2 max-w-md overflow-x-auto">
+                <div className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10">
+                  <div className="flex flex-col space-y-2 bg-black/60 rounded-lg p-2 max-h-[70vh] overflow-y-auto">
                     {media.map((item, index) => (
                       <button
                         key={item.id}
-                        className={`flex-shrink-0 w-12 h-12 rounded overflow-hidden border-2 ${
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded overflow-hidden border-2 ${
                           index === selectedIndex ? 'border-white' : 'border-transparent'
                         }`}
                         onClick={() => setSelectedIndex(index)}
