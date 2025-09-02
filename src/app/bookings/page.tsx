@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 
-const statusOptions: { value: 'all' | BookingStatus; label: string }[] = [
-  { value: 'all', label: 'Tất cả trạng thái' },
+const statusOptions: { value: BookingStatus; label: string }[] = [
   { value: 'pending', label: 'Chờ xác nhận' },
   { value: 'confirmed', label: 'Đã xác nhận' },
   { value: 'in_progress', label: 'Đang diễn ra' },
@@ -31,7 +30,7 @@ const typeOptions: { value: 'all' | BookingType; label: string }[] = [
 export default function BookingsPage() {
   const { isAuthenticated, isCreator, isAdmin } = useAuth()
   const role: 'user' | 'creator' | 'admin' = isAdmin() ? 'admin' : (isCreator() ? 'creator' : 'user')
-  const [status, setStatus] = React.useState<'all' | BookingStatus>('all')
+  const [status, setStatus] = React.useState<BookingStatus>('pending')
   const [type, setType] = React.useState<'all' | BookingType>('all')
   const [bookings, setBookings] = React.useState<Booking[]>([])
   const [loading, setLoading] = React.useState(false)
@@ -42,7 +41,7 @@ export default function BookingsPage() {
     if (!isAuthenticated) return
     setLoading(true)
     try {
-      const opts = status === 'all' ? undefined : { status }
+      const opts = { status }
       const res = role === 'creator' || role === 'admin' ? await bookingApi.getCreatorBookings(opts) : await bookingApi.getUserBookings(opts)
       if (res.success && res.data) {
         const raw: any = res.data as any
