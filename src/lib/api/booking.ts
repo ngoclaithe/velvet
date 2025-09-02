@@ -17,12 +17,36 @@ export interface Booking {
   creatorId: number
   userId: number
   type: BookingType
-  duration: number
+  duration: number // minutes
   scheduledTime: string | null
+  startTime?: string | null
+  endTime?: string | null
   notes: string | null
   status: BookingStatus
+  paymentStatus?: 'paid' | 'unpaid' | 'refunded' | string
+  pricePerMinute?: string
+  totalPrice?: string
+  tokenAmount?: number | null
+  streamUrl?: string | null
+  chatRoomId?: string | number | null
+  cancellationReason?: string | null
+  cancelledBy?: string | number | null
+  isRated?: boolean
   createdAt: string
   updatedAt: string
+  creator?: {
+    id: number
+    stageName?: string
+    rating?: string
+    avatar?: string | null
+  }
+  client?: {
+    id: number
+    username?: string
+    firstName?: string
+    lastName?: string
+    avatar?: string | null
+  }
 }
 
 export interface GetBookingsOptions {
