@@ -24,6 +24,7 @@ import {
   Heart,
   MessageCircle,
   Shield,
+  Calendar,
 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -191,12 +192,14 @@ export default function Header() {
                       <span>Ví của tôi</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/streams" className="cursor-pointer">
-                      <Zap className="mr-2 h-4 w-4" />
-                      <span>Live Streams</span>
-                    </Link>
-                  </DropdownMenuItem>
+                  {(user?.role === 'creator' || user?.role === 'admin') && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/streams" className="cursor-pointer">
+                        <Zap className="mr-2 h-4 w-4" />
+                        <span>Live Streams</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   {user?.role === 'creator' ? (
                     <DropdownMenuItem asChild>
                       <Link href="/stream" className="cursor-pointer">
@@ -216,6 +219,12 @@ export default function Header() {
                     <Link href="/messages" className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />
                       <span>Tin nhắn</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/bookings" className="cursor-pointer">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>Booking</span>
                     </Link>
                   </DropdownMenuItem>
                   {user?.role === 'admin' && (
