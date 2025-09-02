@@ -932,17 +932,24 @@ export default function CreatorDetailPage() {
               </div>
             </div>
             <div>
-              <Label>Bình lu��n (tùy chọn)</Label>
+              <Label>Bình luận (tùy chọn)</Label>
               <Textarea value={rvComment} onChange={(e) => setRvComment(e.target.value)} maxLength={1000} placeholder="Chia sẻ trải nghiệm của bạn..." />
               <div className="text-xs text-right text-muted-foreground">{rvComment.length}/1000</div>
             </div>
             <div>
               <Label>Ảnh minh họa (tối đa 5)</Label>
-              <ImageUploader compact maxFiles={5} onUploadComplete={(res) => setRvImages(res.map(r => r.secure_url))} />
+              <ImageUploader compact autoUpload maxFiles={5} onUploadComplete={(res) => setRvImages(res.map(r => r.secure_url))} />
               {rvImages.length > 0 && (
                 <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {rvImages.map((u) => (
-                    <img key={u} src={u} alt="uploaded" className="w-full h-20 object-cover rounded" />
+                    <div key={u} className="relative">
+                      <img src={u} alt="uploaded" className="w-full h-20 object-cover rounded" />
+                      {rvSubmitting && (
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
