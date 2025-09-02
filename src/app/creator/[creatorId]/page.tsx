@@ -27,6 +27,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { bookingApi, type BookingType } from '@/lib/api/booking'
+import { reviewApi, type Review } from '@/lib/api/review'
+import ImageUploader from '@/components/ImageUploader'
+import { Switch } from '@/components/ui/switch'
+import { cn } from '@/lib/utils'
 import {
   UserPlus,
   UserMinus,
@@ -161,6 +165,23 @@ export default function CreatorDetailPage() {
   const [notes, setNotes] = useState<string>('')
   const [submittingBooking, setSubmittingBooking] = useState(false)
 
+  // Reviews state
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [page, setPage] = useState(1)
+  const [limit] = useState(5)
+  const [total, setTotal] = useState(0)
+  const [loadingReviews, setLoadingReviews] = useState(false)
+  const [filterRating, setFilterRating] = useState<number | 'all'>('all')
+
+  // New review form state
+  const [rvRating, setRvRating] = useState(5)
+  const [rvHover, setRvHover] = useState(0)
+  const [rvComment, setRvComment] = useState('')
+  const [rvImages, setRvImages] = useState<string[]>([])
+  const [rvAnon, setRvAnon] = useState(false)
+  const [rvPublic, setRvPublic] = useState(true)
+  const [rvSubmitting, setRvSubmitting] = useState(false)
+
   const languageLabel = (code: string) =>
     ({ vi: 'Tiếng Việt', en: 'Tiếng Anh', ja: 'Tiếng Nhật', ko: 'Tiếng Hàn', zh: 'Tiếng Trung' } as Record<string, string>)[code] || code
 
@@ -169,6 +190,75 @@ export default function CreatorDetailPage() {
     const n = Number(v)
     if (Number.isNaN(n) || n <= 0) return '-'
     return `${n.toFixed(2)}`
+  }
+
+  // Fetch reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!creatorId) return
+      try {
+        setLoadingReviews(true)
+        const res = await reviewApi.getReviews(Number(creatorId), {
+          page,
+          limit,
+          rating: filterRating === 'all' ? undefined : filterRating,
+          sortBy: 'createdAt',
+          order: 'desc',
+        })
+        if (res.success && res.data) {
+          const data: any = res.data
+          const list: Review[] = Array.isArray(data.reviews) ? data.reviews : (Array.isArray(data) ? data as any : [])
+          setReviews(list)
+          setTotal(Number(data.total || list.length || 0))
+        } else {
+          setReviews([])
+          setTotal(0)
+        }
+      } catch (e) {
+        setReviews([])
+        setTotal(0)
+      } finally {
+        setLoadingReviews(false)
+      }
+    }
+    fetchReviews()
+  }, [creatorId, page, limit, filterRating])
+
+  // Submit new review
+  const submitNewReview = async () => {
+    if (!creator) return
+    if (!isAuthenticated) {
+      toast({ title: 'Yêu cầu đăng nhập', description: 'Vui lòng đăng nhập để đánh giá', variant: 'destructive' })
+      return
+    }
+    try {
+      setRvSubmitting(true)
+      const res = await reviewApi.postReview({
+        creatorId: creator.id,
+        rating: rvRating,
+        comment: rvComment || undefined,
+        images: rvImages.length ? rvImages.slice(0, 5) : undefined,
+        isAnonymous: rvAnon,
+        isPublic: rvPublic,
+      })
+      if (!res.success) throw new Error(res.error || res.message || 'Gửi đánh giá thất bại')
+      toast({ title: 'Đã gửi đánh giá' })
+      // reset form
+      setRvRating(5); setRvHover(0); setRvComment(''); setRvImages([]); setRvAnon(false); setRvPublic(true)
+      // refresh list
+      setPage(1)
+      const refreshed = await reviewApi.getReviews(creator.id, { page: 1, limit, sortBy: 'createdAt', order: 'desc' })
+      if (refreshed.success && refreshed.data) {
+        const data: any = refreshed.data
+        const list: Review[] = Array.isArray(data.reviews) ? data.reviews : (Array.isArray(data) ? data as any : [])
+        setReviews(list)
+        setTotal(Number(data.total || list.length || 0))
+      }
+    } catch (e: any) {
+      toast({ title: 'Lỗi', description: e?.message || 'Không thể gửi đánh giá', variant: 'destructive' })
+    } finally {
+      setRvSubmitting(false)
+    }
   }
 
   // Fetch creator details
@@ -731,6 +821,132 @@ export default function CreatorDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Reviews Section */}
+        <Card className="bg-gray-800 border-gray-700 mb-4">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h3 className="text-lg font-semibold text-white">Đánh giá</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm">Lọc:</span>
+                <Select value={String(filterRating)} onValueChange={(v) => { setFilterRating(v === 'all' ? 'all' : Number(v) as any); setPage(1) }}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Tất cả" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    {[5,4,3,2,1].map(v => (
+                      <SelectItem key={v} value={String(v)}>{v} sao</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {isAuthenticated && creator.userId.toString() !== user?.id && (
+              <div className="rounded-md border border-gray-700 p-3 sm:p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-300 text-sm">Chấm điểm:</span>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const value = i + 1
+                      const active = (rvHover || rvRating) >= value
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onMouseEnter={() => setRvHover(value)}
+                          onMouseLeave={() => setRvHover(0)}
+                          onClick={() => setRvRating(value)}
+                          className="p-0.5"
+                          aria-label={`Chấm ${value} sao`}
+                        >
+                          <Star className={cn('h-5 w-5', active ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400')} />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <Textarea value={rvComment} onChange={(e) => setRvComment(e.target.value)} maxLength={1000} placeholder="Viết cảm nhận của bạn (tối đa 1000 ký tự)" />
+                <div className="text-xs text-right text-gray-400">{rvComment.length}/1000</div>
+                <div className="mt-2">
+                  <Label className="text-gray-300">Ảnh minh họa (tối đa 5)</Label>
+                  <ImageUploader compact maxFiles={5} onUploadComplete={(res) => setRvImages(res.map(r => r.secure_url))} />
+                  {rvImages.length > 0 && (
+                    <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                      {rvImages.map(u => (
+                        <img key={u} src={u} alt="uploaded" className="w-full h-20 object-cover rounded" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Switch id="rv-anon" checked={rvAnon} onCheckedChange={setRvAnon} />
+                    <Label htmlFor="rv-anon" className="text-gray-300">Ẩn danh</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch id="rv-public" checked={rvPublic} onCheckedChange={setRvPublic} />
+                    <Label htmlFor="rv-public" className="text-gray-300">Công khai</Label>
+                  </div>
+                </div>
+                <div className="mt-3 text-right">
+                  <Button className="bg-pink-600 hover:bg-pink-700" onClick={submitNewReview} disabled={rvSubmitting}>
+                    {rvSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Reviews List */}
+            {loadingReviews ? (
+              <div className="py-6 text-center text-gray-400">Đang tải đánh giá...</div>
+            ) : reviews.length === 0 ? (
+              <div className="py-6 text-center text-gray-400">Chưa có đánh giá</div>
+            ) : (
+              <div className="space-y-3">
+                {reviews.map((r) => (
+                  <div key={r.id} className="border border-gray-700 rounded-md p-3">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={r.user?.avatar || undefined} alt={r.user?.username || 'User'} />
+                        <AvatarFallback>{(r.user?.username || 'U').slice(0,2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex items-center gap-1 text-yellow-400">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={cn('h-4 w-4', i < r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600')} />
+                            ))}
+                          </div>
+                          <span className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <div className="mt-1 text-sm text-gray-200 whitespace-pre-line break-words">
+                          {r.comment || ''}
+                        </div>
+                        {r.images && r.images.length > 0 && (
+                          <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {r.images.map((u, idx) => (
+                              <img key={`${r.id}-${idx}`} src={u} alt={`rv-${idx}`} className="w-full h-20 object-cover rounded" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {/* Simple pagination */}
+                {total > limit && (
+                  <div className="pt-2 flex items-center justify-between">
+                    <Button variant="outline" className="border-gray-600" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p-1))}>Trước</Button>
+                    <span className="text-sm text-gray-400">Trang {page}</span>
+                    <Button variant="outline" className="border-gray-600" disabled={page * limit >= total} onClick={() => setPage(p => p+1)}>Sau</Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Dialog open={openBooking} onOpenChange={setOpenBooking}>
