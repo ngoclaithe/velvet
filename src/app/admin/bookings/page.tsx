@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 
-const statusOptions: { value: 'all' | BookingStatus; label: string }[] = [
-  { value: 'all', label: 'Tất cả trạng thái' },
+const statusOptions: { value: BookingStatus; label: string }[] = [
   { value: 'pending', label: 'Chờ xác nhận' },
   { value: 'confirmed', label: 'Đã xác nhận' },
   { value: 'in_progress', label: 'Đang diễn ra' },
@@ -29,7 +28,7 @@ const typeOptions: { value: 'all' | BookingType; label: string }[] = [
 ]
 
 export default function AdminBookingsPage() {
-  const [status, setStatus] = React.useState<'all' | BookingStatus>('all')
+  const [status, setStatus] = React.useState<BookingStatus>('pending')
   const [type, setType] = React.useState<'all' | BookingType>('all')
   const [bookings, setBookings] = React.useState<Booking[]>([])
   const [loading, setLoading] = React.useState(false)
@@ -41,11 +40,13 @@ export default function AdminBookingsPage() {
     try {
       // Hiện tại lib/api/booking.ts chưa có API cho admin để lấy tất cả booking.
       // Tạm thời dùng getCreatorBookings() để hiển thị nếu admin là creator (thường sẽ rỗng).
-      const opts = status === 'all' ? undefined : { status }
+      const opts = { status }
       const res = await bookingApi.getCreatorBookings(opts)
       if (res.success && res.data) {
-        const list = res.data.bookings || []
-        setBookings(type === 'all' ? list : list.filter(b => b.type === type))
+        const raw: any = res.data as any
+        const list: any[] = Array.isArray(raw) ? raw : (Array.isArray(raw.bookings) ? raw.bookings : [])
+        const filtered = type === 'all' ? list : list.filter((b: any) => b.type === type)
+        setBookings(filtered as any)
       } else {
         setBookings([])
         if (res.error) toast({ title: 'Lỗi', description: res.error, variant: 'destructive' })

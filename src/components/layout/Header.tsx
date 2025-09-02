@@ -137,6 +137,13 @@ export default function Header() {
                           {!n.read && <span className="ml-2 h-2 w-2 rounded-full bg-blue-600" />}
                         </div>
                         {n.message && <span className="text-xs text-muted-foreground">{n.message}</span>}
+                        {(() => {
+                          const t = (n as any)?.data?.timestamp || (n as any)?.timestamp || n.receivedAt
+                          if (!t) return null
+                          const d = new Date(typeof t === 'string' ? t : Number(t))
+                          const txt = d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+                          return <span className="text-[10px] text-muted-foreground">{txt}</span>
+                        })()}
                       </DropdownMenuItem>
                     ))
                   )}
