@@ -2,11 +2,14 @@
 
 import React from 'react'
 import type { Booking, BookingStatus, BookingType } from '@/lib/api/booking'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { Calendar, Clock, DollarSign, Star } from 'lucide-react'
 
 type RoleKind = 'user' | 'creator' | 'admin'
 
@@ -65,6 +68,38 @@ const canReject = (role: RoleKind, status: BookingStatus) => (role !== 'user') &
 const canComplete = (role: RoleKind, status: BookingStatus) => (role !== 'user') && (status === 'in_progress' || status === 'confirmed')
 const canCancel = (role: RoleKind, status: BookingStatus) => (status === 'pending' || status === 'confirmed')
 
+function initials(name?: string) {
+  if (!name) return 'A'
+  const parts = name.trim().split(/\s+/)
+  const first = parts[0]?.[0] || ''
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : ''
+  return (first + last).toUpperCase() || 'A'
+}
+
+function displayName(b: Booking, role: RoleKind): string {
+  if (role === 'user') {
+    return b.creator?.stageName || `Creator #${b.creatorId}`
+  }
+  if (role === 'creator') {
+    const c = b.client
+    const full = [c?.firstName, c?.lastName].filter(Boolean).join(' ').trim()
+    return full || c?.username || `User #${b.userId}`
+  }
+  const userName = b.client?.username || `User #${b.userId}`
+  const creatorName = b.creator?.stageName || `Creator #${b.creatorId}`
+  return `${userName} → ${creatorName}`
+}
+
+function avatarInfo(b: Booking, role: RoleKind) {
+  if (role === 'user') {
+    const name = b.creator?.stageName || `Creator #${b.creatorId}`
+    return { src: b.creator?.avatar || undefined, fallback: initials(name) }
+  }
+  const c = b.client
+  const name = [c?.firstName, c?.lastName].filter(Boolean).join(' ').trim() || c?.username || `User #${b.userId}`
+  return { src: c?.avatar || undefined, fallback: initials(name) }
+}
+
 export default function BookingList({ bookings, role, onAccept, onReject, onCancel, onComplete, loading }: BookingListProps) {
   const grouped = React.useMemo(() => {
     const map = new Map<string, Booking[]>()
@@ -100,35 +135,78 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
                 const ta = a.scheduledTime ? new Date(a.scheduledTime).getTime() : 0
                 const tb = b.scheduledTime ? new Date(b.scheduledTime).getTime() : 0
                 return ta - tb
-              }).map((b, idx) => (
-                <div key={b.id} className="flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className={cn('capitalize', statusClass[b.status])}>{statusText[b.status]}</Badge>
-                      <Badge variant="secondary">{typeText[b.type]}</Badge>
-                      <span className="text-sm text-muted-foreground">{b.duration} phút</span>
+              }).map((b) => {
+                const who = displayName(b, role)
+                const av = avatarInfo(b, role)
+                const when = formatDate(b.scheduledTime)
+                const price = b.totalPrice || (b.pricePerMinute && b.duration ? (Number(b.pricePerMinute) * b.duration).toFixed(2) : undefined)
+                const paid = (b.paymentStatus || '').toString().toLowerCase() === 'paid'
+
+                return (
+                  <div key={b.id} className="rounded-md border p-4 hover:shadow-sm transition">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={av.src} alt={who} />
+                          <AvatarFallback>{av.fallback}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            {role === 'user' ? (
+                              <Link href={`/creator/${b.creatorId}`} className="font-medium hover:underline">
+                                {who}
+                              </Link>
+                            ) : (
+                              <span className="font-medium">{who}</span>
+                            )}
+                            {role === 'user' && b.creator?.rating && (
+                              <span className="inline-flex items-center text-xs text-muted-foreground">
+                                <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                                {Number(b.creator.rating).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                            <span className="inline-flex items-center"><Calendar className="h-3 w-3 mr-1" />{when}</span>
+                            <span className="inline-flex items-center"><Clock className="h-3 w-3 mr-1" />{b.duration} phút</span>
+                            {typeof price !== 'undefined' && (
+                              <span className="inline-flex items-center"><DollarSign className="h-3 w-3 mr-1" />{price}</span>
+                            )}
+                          </div>
+                          {b.notes ? (
+                            <div className="mt-1 text-sm text-muted-foreground">{b.notes}</div>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className={cn('capitalize', statusClass[b.status])}>{statusText[b.status]}</Badge>
+                        <Badge variant="secondary">{typeText[b.type]}</Badge>
+                        {b.paymentStatus && (
+                          <Badge variant={paid ? 'default' : 'outline'} className={paid ? 'bg-green-500/10 text-green-700' : ''}>
+                            {paid ? 'Đã thanh toán' : String(b.paymentStatus)}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <div className="mt-1 text-sm font-medium">{formatDate(b.scheduledTime)}</div>
-                    {b.notes ? (
-                      <div className="mt-1 text-sm text-muted-foreground">{b.notes}</div>
-                    ) : null}
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {canAccept(role, b.status) && (
+                        <Button size="sm" onClick={() => onAccept?.(b.id)} disabled={!!loading?.[b.id]}>Chấp nhận</Button>
+                      )}
+                      {canReject(role, b.status) && (
+                        <Button size="sm" variant="destructive" onClick={() => onReject?.(b.id)} disabled={!!loading?.[b.id]}>Từ chối</Button>
+                      )}
+                      {canComplete(role, b.status) && (
+                        <Button size="sm" variant="secondary" onClick={() => onComplete?.(b.id)} disabled={!!loading?.[b.id]}>Hoàn tất</Button>
+                      )}
+                      {canCancel(role, b.status) && (
+                        <Button size="sm" variant="outline" onClick={() => onCancel?.(b.id)} disabled={!!loading?.[b.id]}>Hủy</Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {canAccept(role, b.status) && (
-                      <Button size="sm" onClick={() => onAccept?.(b.id)} disabled={!!loading?.[b.id]}>Chấp nhận</Button>
-                    )}
-                    {canReject(role, b.status) && (
-                      <Button size="sm" variant="destructive" onClick={() => onReject?.(b.id)} disabled={!!loading?.[b.id]}>Từ chối</Button>
-                    )}
-                    {canComplete(role, b.status) && (
-                      <Button size="sm" variant="secondary" onClick={() => onComplete?.(b.id)} disabled={!!loading?.[b.id]}>Hoàn tất</Button>
-                    )}
-                    {canCancel(role, b.status) && (
-                      <Button size="sm" variant="outline" onClick={() => onCancel?.(b.id)} disabled={!!loading?.[b.id]}>Hủy</Button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
               <Separator />
             </CardContent>
           </Card>
