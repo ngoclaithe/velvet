@@ -10,6 +10,13 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { Calendar, Clock, DollarSign, Star } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
+import ImageUploader from '@/components/ImageUploader'
+import { reviewApi } from '@/lib/api/review'
+import { useToast } from '@/hooks/use-toast'
 
 type RoleKind = 'user' | 'creator' | 'admin'
 
@@ -101,6 +108,17 @@ function avatarInfo(b: Booking, role: RoleKind) {
 }
 
 export default function BookingList({ bookings, role, onAccept, onReject, onCancel, onComplete, loading }: BookingListProps) {
+  const { toast } = useToast()
+  const [reviewOpen, setReviewOpen] = React.useState(false)
+  const [selected, setSelected] = React.useState<Booking | null>(null)
+  const [rating, setRating] = React.useState<number>(5)
+  const [hoverRating, setHoverRating] = React.useState<number>(0)
+  const [comment, setComment] = React.useState('')
+  const [images, setImages] = React.useState<string[]>([])
+  const [isAnonymous, setIsAnonymous] = React.useState(false)
+  const [isPublic, setIsPublic] = React.useState(true)
+  const [submitting, setSubmitting] = React.useState(false)
+
   const grouped = React.useMemo(() => {
     const map = new Map<string, Booking[]>()
     ;(bookings || []).forEach(b => {
@@ -112,6 +130,48 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b))
   }, [bookings])
 
+  const openReview = (b: Booking) => {
+    setSelected(b)
+    setRating(5)
+    setHoverRating(0)
+    setComment('')
+    setImages([])
+    setIsAnonymous(false)
+    setIsPublic(true)
+    setReviewOpen(true)
+  }
+
+  const submitReview = async () => {
+    if (!selected) return
+    try {
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        toast({ title: 'Điểm đánh giá không hợp lệ', variant: 'destructive' })
+        return
+      }
+      if (comment.length > 1000) {
+        toast({ title: 'Bình luận tối đa 1000 ký tự', variant: 'destructive' })
+        return
+      }
+      setSubmitting(true)
+      const res = await reviewApi.postReview({
+        creatorId: selected.creatorId,
+        bookingId: selected.id,
+        rating,
+        comment: comment ? comment : undefined,
+        images: images.length ? images.slice(0, 5) : undefined,
+        isAnonymous,
+        isPublic,
+      })
+      if (!res.success) throw new Error(res.error || res.message || 'Gửi đánh giá thất bại')
+      toast({ title: 'Đã gửi đánh giá' })
+      setReviewOpen(false)
+    } catch (e: any) {
+      toast({ title: 'Lỗi', description: e?.message || 'Không thể gửi đánh giá', variant: 'destructive' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   if (!bookings || bookings.length === 0) {
     return (
       <Card>
@@ -121,97 +181,175 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
   }
 
   return (
-    <div className="space-y-6">
-      {grouped.map(([key, items]) => {
-        const any = items[0]
-        const label = any.scheduledTime ? new Date(any.scheduledTime).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Khác'
-        return (
-          <Card key={key}>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">{label}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {items.sort((a, b) => {
-                const ta = a.scheduledTime ? new Date(a.scheduledTime).getTime() : 0
-                const tb = b.scheduledTime ? new Date(b.scheduledTime).getTime() : 0
-                return ta - tb
-              }).map((b) => {
-                const who = displayName(b, role)
-                const av = avatarInfo(b, role)
-                const when = formatDate(b.scheduledTime)
-                const price = b.totalPrice || (b.pricePerMinute && b.duration ? (Number(b.pricePerMinute) * b.duration).toFixed(2) : undefined)
-                const paid = (b.paymentStatus || '').toString().toLowerCase() === 'paid'
+    <>
+      <div className="space-y-6">
+        {grouped.map(([key, items]) => {
+          const any = items[0]
+          const label = any.scheduledTime ? new Date(any.scheduledTime).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Khác'
+          return (
+            <Card key={key}>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">{label}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {items.sort((a, b) => {
+                  const ta = a.scheduledTime ? new Date(a.scheduledTime).getTime() : 0
+                  const tb = b.scheduledTime ? new Date(b.scheduledTime).getTime() : 0
+                  return ta - tb
+                }).map((b) => {
+                  const who = displayName(b, role)
+                  const av = avatarInfo(b, role)
+                  const when = formatDate(b.scheduledTime)
+                  const price = b.totalPrice || (b.pricePerMinute && b.duration ? (Number(b.pricePerMinute) * b.duration).toFixed(2) : undefined)
+                  const paid = (b.paymentStatus || '').toString().toLowerCase() === 'paid'
 
-                return (
-                  <div key={b.id} className="rounded-md border p-4 hover:shadow-sm transition">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={av.src} alt={who} />
-                          <AvatarFallback>{av.fallback}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            {role === 'user' ? (
-                              <Link href={`/creator/${b.creatorId}`} className="font-medium hover:underline">
-                                {who}
-                              </Link>
-                            ) : (
-                              <span className="font-medium">{who}</span>
-                            )}
-                            {role === 'user' && b.creator?.rating && (
-                              <span className="inline-flex items-center text-xs text-muted-foreground">
-                                <Star className="h-3 w-3 mr-1 text-yellow-500" />
-                                {Number(b.creator.rating).toFixed(2)}
-                              </span>
-                            )}
+                  const canReview = role === 'user' && b.status === 'completed' && !b.isRated
+
+                  return (
+                    <div key={b.id} className="rounded-md border p-4 hover:shadow-sm transition">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={av.src} alt={who} />
+                            <AvatarFallback>{av.fallback}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              {role === 'user' ? (
+                                <Link href={`/creator/${b.creatorId}`} className="font-medium hover:underline">
+                                  {who}
+                                </Link>
+                              ) : (
+                                <span className="font-medium">{who}</span>
+                              )}
+                              {role === 'user' && b.creator?.rating && (
+                                <span className="inline-flex items-center text-xs text-muted-foreground">
+                                  <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                                  {Number(b.creator.rating).toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center"><Calendar className="h-3 w-3 mr-1" />{when}</span>
+                              <span className="inline-flex items-center"><Clock className="h-3 w-3 mr-1" />{b.duration} phút</span>
+                              {typeof price !== 'undefined' && (
+                                <span className="inline-flex items-center"><DollarSign className="h-3 w-3 mr-1" />{price}</span>
+                              )}
+                            </div>
+                            {b.notes ? (
+                              <div className="mt-1 text-sm text-muted-foreground">{b.notes}</div>
+                            ) : null}
                           </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center"><Calendar className="h-3 w-3 mr-1" />{when}</span>
-                            <span className="inline-flex items-center"><Clock className="h-3 w-3 mr-1" />{b.duration} phút</span>
-                            {typeof price !== 'undefined' && (
-                              <span className="inline-flex items-center"><DollarSign className="h-3 w-3 mr-1" />{price}</span>
-                            )}
-                          </div>
-                          {b.notes ? (
-                            <div className="mt-1 text-sm text-muted-foreground">{b.notes}</div>
-                          ) : null}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge className={cn('capitalize', statusClass[b.status])}>{statusText[b.status]}</Badge>
+                          <Badge variant="secondary">{typeText[b.type]}</Badge>
+                          {b.paymentStatus && (
+                            <Badge variant={paid ? 'default' : 'outline'} className={paid ? 'bg-green-500/10 text-green-700' : ''}>
+                              {paid ? 'Đã thanh toán' : String(b.paymentStatus)}
+                            </Badge>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge className={cn('capitalize', statusClass[b.status])}>{statusText[b.status]}</Badge>
-                        <Badge variant="secondary">{typeText[b.type]}</Badge>
-                        {b.paymentStatus && (
-                          <Badge variant={paid ? 'default' : 'outline'} className={paid ? 'bg-green-500/10 text-green-700' : ''}>
-                            {paid ? 'Đã thanh toán' : String(b.paymentStatus)}
-                          </Badge>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {canAccept(role, b.status) && (
+                          <Button size="sm" onClick={() => onAccept?.(b.id)} disabled={!!loading?.[b.id]}>Chấp nhận</Button>
+                        )}
+                        {canReject(role, b.status) && (
+                          <Button size="sm" variant="destructive" onClick={() => onReject?.(b.id)} disabled={!!loading?.[b.id]}>Từ chối</Button>
+                        )}
+                        {canComplete(role, b.status) && (
+                          <Button size="sm" variant="secondary" onClick={() => onComplete?.(b.id)} disabled={!!loading?.[b.id]}>Hoàn tất</Button>
+                        )}
+                        {canCancel(role, b.status) && (
+                          <Button size="sm" variant="outline" onClick={() => onCancel?.(b.id)} disabled={!!loading?.[b.id]}>Hủy</Button>
+                        )}
+                        {canReview && (
+                          <Button size="sm" className="bg-pink-600 hover:bg-pink-700" onClick={() => openReview(b)}>
+                            <Star className="h-4 w-4 mr-1" /> Đánh giá
+                          </Button>
                         )}
                       </div>
                     </div>
+                  )
+                })}
+                <Separator />
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {canAccept(role, b.status) && (
-                        <Button size="sm" onClick={() => onAccept?.(b.id)} disabled={!!loading?.[b.id]}>Chấp nhận</Button>
-                      )}
-                      {canReject(role, b.status) && (
-                        <Button size="sm" variant="destructive" onClick={() => onReject?.(b.id)} disabled={!!loading?.[b.id]}>Từ chối</Button>
-                      )}
-                      {canComplete(role, b.status) && (
-                        <Button size="sm" variant="secondary" onClick={() => onComplete?.(b.id)} disabled={!!loading?.[b.id]}>Hoàn tất</Button>
-                      )}
-                      {canCancel(role, b.status) && (
-                        <Button size="sm" variant="outline" onClick={() => onCancel?.(b.id)} disabled={!!loading?.[b.id]}>Hủy</Button>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-              <Separator />
-            </CardContent>
-          </Card>
-        )
-      })}
-    </div>
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent className="max-w-lg w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>Đánh giá booking</DialogTitle>
+            <DialogDescription>Gửi đánh giá của bạn cho creator</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Chấm điểm</Label>
+              <div className="flex items-center gap-1 mt-1">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const value = i + 1
+                  const active = (hoverRating || rating) >= value
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onMouseEnter={() => setHoverRating(value)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setRating(value)}
+                      className="p-1"
+                      aria-label={`Chấm ${value} sao`}
+                    >
+                      <Star className={cn('h-6 w-6', active ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400')} />
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div>
+              <Label>Bình luận (tùy chọn)</Label>
+              <Textarea value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} placeholder="Chia sẻ trải nghiệm của bạn..." />
+              <div className="text-xs text-right text-muted-foreground">{comment.length}/1000</div>
+            </div>
+            <div>
+              <Label>Ảnh minh họa (tối đa 5)</Label>
+              <ImageUploader
+                compact
+                maxFiles={5}
+                onUploadComplete={(results) => setImages(results.map(r => r.secure_url))}
+              />
+              {images.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {images.map((url) => (
+                    <img key={url} src={url} alt="uploaded" className="w-full h-20 object-cover rounded" />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Switch id="anon" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+                <Label htmlFor="anon">Ẩn danh</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch id="public" checked={isPublic} onCheckedChange={setIsPublic} />
+                <Label htmlFor="public">Công khai</Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewOpen(false)}>Hủy</Button>
+            <Button onClick={submitReview} disabled={submitting}>
+              {submitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
