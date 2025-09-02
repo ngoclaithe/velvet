@@ -45,8 +45,10 @@ export default function BookingsPage() {
       const opts = status === 'all' ? undefined : { status }
       const res = role === 'creator' || role === 'admin' ? await bookingApi.getCreatorBookings(opts) : await bookingApi.getUserBookings(opts)
       if (res.success && res.data) {
-        const list = res.data.bookings || []
-        setBookings(type === 'all' ? list : list.filter(b => b.type === type))
+        const raw: any = res.data as any
+        const list: any[] = Array.isArray(raw) ? raw : (Array.isArray(raw.bookings) ? raw.bookings : [])
+        const filtered = type === 'all' ? list : list.filter((b: any) => b.type === type)
+        setBookings(filtered as any)
       } else {
         setBookings([])
         if (res.error) toast({ title: 'Lỗi', description: res.error, variant: 'destructive' })
