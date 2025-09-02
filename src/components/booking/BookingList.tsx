@@ -66,7 +66,7 @@ const statusClass: Record<BookingStatus, string> = {
 const canAccept = (role: RoleKind, status: BookingStatus) => (role !== 'user') && status === 'pending'
 const canReject = (role: RoleKind, status: BookingStatus) => (role !== 'user') && status === 'pending'
 const canComplete = (role: RoleKind, status: BookingStatus) => (role !== 'user') && (status === 'in_progress' || status === 'confirmed')
-const canCancel = (role: RoleKind, status: BookingStatus) => (status === 'pending' || status === 'confirmed')
+const canCancel = (role: RoleKind, status: BookingStatus) => role !== 'creator' && status === 'pending'
 
 function initials(name?: string) {
   if (!name) return 'A'
