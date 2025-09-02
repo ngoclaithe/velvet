@@ -16,6 +16,7 @@ interface ImageUploaderProps {
   className?: string;
   acceptedTypes?: string;
   disabled?: boolean;
+  autoUpload?: boolean; // Auto start upload after selecting files
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({
@@ -29,7 +30,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   hideResults = false,
   className = '',
   acceptedTypes = 'image/jpeg,image/png,image/webp,image/gif',
-  disabled = false
+  disabled = false,
+  autoUpload = false
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -58,7 +60,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [error, onUploadError]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || disabled) return;
 
@@ -74,6 +76,23 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       prev.forEach(url => URL.revokeObjectURL(url));
       return previews;
     });
+
+    if (autoUpload && fileArray.length > 0) {
+      try {
+        if (onUploadStart) onUploadStart();
+        const uploadResults = await uploadMultiple(fileArray, uploadOptions);
+        if (onUploadComplete) onUploadComplete(uploadResults);
+        // cleanup previews and selection after auto upload
+        setSelectedFiles([]);
+        setPreviewUrls(prev => {
+          prev.forEach(url => URL.revokeObjectURL(url));
+          return [];
+        });
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } catch (e) {
+        // error is handled by hook + effect to onUploadError
+      }
+    }
   };
 
   const handleUpload = async () => {
@@ -155,6 +174,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                     alt={`Preview ${index + 1}`}
                     className="w-full h-20 object-cover rounded border"
                   />
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => removeFile(index)}
@@ -167,7 +191,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             </div>
           )}
 
-          {selectedFiles.length > 0 && (
+          {!autoUpload && selectedFiles.length > 0 && (
             <button
               type="button"
               onClick={handleUpload}
@@ -218,6 +242,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                   alt={`Preview ${index + 1}`}
                   className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
                 />
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-lg">
+                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
                 <button
                   onClick={() => removeFile(index)}
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
@@ -230,14 +259,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               </div>
             ))}
           </div>
-          
-          <button
-            onClick={handleUpload}
-            disabled={uploading || selectedFiles.length === 0 || disabled}
-            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
-            {uploading ? 'Đang tải lên...' : `Tải lên ${selectedFiles.length} ảnh`}
-          </button>
+
+          {!autoUpload && (
+            <button
+              onClick={handleUpload}
+              disabled={uploading || selectedFiles.length === 0 || disabled}
+              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+            >
+              {uploading ? 'Đang tải lên...' : `Tải lên ${selectedFiles.length} ảnh`}
+            </button>
+          )}
         </div>
       )}
 
