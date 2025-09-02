@@ -181,6 +181,7 @@ export default function CreatorDetailPage() {
   const [rvAnon, setRvAnon] = useState(false)
   const [rvPublic, setRvPublic] = useState(true)
   const [rvSubmitting, setRvSubmitting] = useState(false)
+  const [reviewOpen, setReviewOpen] = useState(false)
 
   const languageLabel = (code: string) =>
     ({ vi: 'Tiếng Việt', en: 'Tiếng Anh', ja: 'Tiếng Nhật', ko: 'Tiếng Hàn', zh: 'Tiếng Trung' } as Record<string, string>)[code] || code
@@ -243,6 +244,7 @@ export default function CreatorDetailPage() {
       })
       if (!res.success) throw new Error(res.error || res.message || 'Gửi đánh giá thất bại')
       toast({ title: 'Đã gửi đánh giá' })
+      setReviewOpen(false)
       // reset form
       setRvRating(5); setRvHover(0); setRvComment(''); setRvImages([]); setRvAnon(false); setRvPublic(true)
       // refresh list
@@ -840,63 +842,13 @@ export default function CreatorDetailPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                {isAuthenticated && creator.userId.toString() !== user?.id && (
+                  <Button className="bg-pink-600 hover:bg-pink-700 ml-2" onClick={() => setReviewOpen(true)}>
+                    Thêm đánh giá
+                  </Button>
+                )}
               </div>
             </div>
-
-            {isAuthenticated && creator.userId.toString() !== user?.id && (
-              <div className="rounded-md border border-gray-700 p-3 sm:p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-gray-300 text-sm">Chấm điểm:</span>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => {
-                      const value = i + 1
-                      const active = (rvHover || rvRating) >= value
-                      return (
-                        <button
-                          key={value}
-                          type="button"
-                          onMouseEnter={() => setRvHover(value)}
-                          onMouseLeave={() => setRvHover(0)}
-                          onClick={() => setRvRating(value)}
-                          className="p-0.5"
-                          aria-label={`Chấm ${value} sao`}
-                        >
-                          <Star className={cn('h-5 w-5', active ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400')} />
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-                <Textarea value={rvComment} onChange={(e) => setRvComment(e.target.value)} maxLength={1000} placeholder="Viết cảm nhận của bạn (tối đa 1000 ký tự)" />
-                <div className="text-xs text-right text-gray-400">{rvComment.length}/1000</div>
-                <div className="mt-2">
-                  <Label className="text-gray-300">Ảnh minh họa (tối đa 5)</Label>
-                  <ImageUploader compact maxFiles={5} onUploadComplete={(res) => setRvImages(res.map(r => r.secure_url))} />
-                  {rvImages.length > 0 && (
-                    <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
-                      {rvImages.map(u => (
-                        <img key={u} src={u} alt="uploaded" className="w-full h-20 object-cover rounded" />
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="mt-2 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <Switch id="rv-anon" checked={rvAnon} onCheckedChange={setRvAnon} />
-                    <Label htmlFor="rv-anon" className="text-gray-300">Ẩn danh</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch id="rv-public" checked={rvPublic} onCheckedChange={setRvPublic} />
-                    <Label htmlFor="rv-public" className="text-gray-300">Công khai</Label>
-                  </div>
-                </div>
-                <div className="mt-3 text-right">
-                  <Button className="bg-pink-600 hover:bg-pink-700" onClick={submitNewReview} disabled={rvSubmitting}>
-                    {rvSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
-                  </Button>
-                </div>
-              </div>
-            )}
 
             {/* Reviews List */}
             {loadingReviews ? (
@@ -948,6 +900,77 @@ export default function CreatorDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Review Dialog */}
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent className="max-w-lg w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>Thêm đánh giá</DialogTitle>
+            <DialogDescription>Chia sẻ trải nghiệm của bạn về creator</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Chấm điểm</Label>
+              <div className="flex items-center gap-1 mt-1">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const value = i + 1
+                  const active = (rvHover || rvRating) >= value
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onMouseEnter={() => setRvHover(value)}
+                      onMouseLeave={() => setRvHover(0)}
+                      onClick={() => setRvRating(value)}
+                      className="p-1"
+                      aria-label={`Chấm ${value} sao`}
+                    >
+                      <Star className={cn('h-6 w-6', active ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400')} />
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div>
+              <Label>Bình luận (tùy chọn)</Label>
+              <Textarea value={rvComment} onChange={(e) => setRvComment(e.target.value)} maxLength={1000} placeholder="Chia sẻ trải nghiệm của bạn..." />
+              <div className="text-xs text-right text-muted-foreground">{rvComment.length}/1000</div>
+            </div>
+            <div>
+              <Label>Ảnh minh họa (tối đa 5)</Label>
+              <ImageUploader compact autoUpload maxFiles={5} onUploadComplete={(res) => setRvImages(res.map(r => r.secure_url))} />
+              {rvImages.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {rvImages.map((u) => (
+                    <div key={u} className="relative">
+                      <img src={u} alt="uploaded" className="w-full h-20 object-cover rounded" />
+                      {rvSubmitting && (
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Switch id="rv-anon" checked={rvAnon} onCheckedChange={setRvAnon} />
+                <Label htmlFor="rv-anon">Ẩn danh</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch id="rv-public" checked={rvPublic} onCheckedChange={setRvPublic} />
+                <Label htmlFor="rv-public">Công khai</Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewOpen(false)}>Hủy</Button>
+            <Button onClick={submitNewReview} disabled={rvSubmitting}>{rvSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={openBooking} onOpenChange={setOpenBooking}>
         <DialogContent className="bg-gray-900 border border-gray-700 text-gray-100">

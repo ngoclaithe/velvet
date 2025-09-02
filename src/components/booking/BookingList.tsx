@@ -320,13 +320,21 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
               <Label>Ảnh minh họa (tối đa 5)</Label>
               <ImageUploader
                 compact
+                autoUpload
                 maxFiles={5}
                 onUploadComplete={(results) => setImages(results.map(r => r.secure_url))}
               />
               {images.length > 0 && (
                 <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {images.map((url) => (
-                    <img key={url} src={url} alt="uploaded" className="w-full h-20 object-cover rounded" />
+                    <div key={url} className="relative">
+                      <img src={url} alt="uploaded" className="w-full h-20 object-cover rounded" />
+                      {submitting && (
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
