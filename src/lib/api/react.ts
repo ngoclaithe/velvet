@@ -5,18 +5,18 @@ export type ReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
 
 // Define request interfaces
 export interface ToggleReactionRequest {
-  targetType: 'post' | 'comment'
-  targetId: string
+  postId?: string
+  commentId?: string
   reactionType: ReactionType
 }
 
 export interface ToggleReactionPostRequest {
-  targetId: string
+  postId: string
   reactionType: ReactionType
 }
 
 export interface ToggleReactionCommentRequest {
-  targetId: string
+  commentId: string
   reactionType: ReactionType
 }
 
@@ -37,9 +37,9 @@ export const reactApi = {
 
   // Helper cho Post
   toggleReactionPost: (data: ToggleReactionPostRequest) =>
-    reactApi.toggleReaction({ targetType: 'post', targetId: data.targetId, reactionType: data.reactionType }),
+    reactApi.toggleReaction({ postId: data.postId, reactionType: data.reactionType }),
 
   // Helper cho Comment
   toggleReactionComment: (data: ToggleReactionCommentRequest) =>
-    reactApi.toggleReaction({ targetType: 'comment', targetId: data.targetId, reactionType: data.reactionType }),
+    reactApi.toggleReaction({ commentId: data.commentId, reactionType: data.reactionType }),
 }

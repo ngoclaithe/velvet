@@ -342,7 +342,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       }
 
       const res = await reactApi.toggleReactionPost({
-        targetId: postId,
+        postId,
         reactionType,
       })
 
@@ -897,7 +897,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? (!isAuthenticated ? 'Ch����a đăng nhập' : 'Chưa theo dõi ai') :
+                {activeTab === 'following' ? (!isAuthenticated ? 'Ch��a đăng nhập' : 'Chưa theo dõi ai') :
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
                  'Chưa có bài viết'}
               </h3>
@@ -934,7 +934,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                       <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
                         Đăng nhập
                       </Button>
-                      {' '}để tạo bài viết
+                      {' '}để t���o bài viết
                     </p>
                   )}
                 </div>
