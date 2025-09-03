@@ -4,10 +4,10 @@ import type { CreateCommentData, PostComment } from '@/types/posts'
 export const commentApi = {
   // Post-level comments
   getPostComments: (postId: string, params?: Record<string, string>) =>
-    api.get<PostComment[]>(`/posts/${postId}/comments`, params),
+    api.get<PostComment[]>(`/comments/posts/${postId}/comments`, params),
 
   createComment: (postId: string, data: CreateCommentData) =>
-    api.post<PostComment>(`/posts/${postId}/comments`, data),
+    api.post<PostComment>(`/comments/posts/${postId}/comments`, data),
 
   // Single comment by id
   getCommentById: (commentId: string) =>
