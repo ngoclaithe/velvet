@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { bookingApi, type BookingType } from '@/lib/api/booking'
 import { reviewApi, type Review } from '@/lib/api/review'
-import ImageUploader from '@/components/ImageUploader'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import {
@@ -177,11 +177,24 @@ export default function CreatorDetailPage() {
   const [rvRating, setRvRating] = useState(5)
   const [rvHover, setRvHover] = useState(0)
   const [rvComment, setRvComment] = useState('')
-  const [rvImages, setRvImages] = useState<string[]>([])
+  const [rvFiles, setRvFiles] = useState<File[]>([])
+  const [rvPreviews, setRvPreviews] = useState<string[]>([])
   const [rvAnon, setRvAnon] = useState(false)
   const [rvPublic, setRvPublic] = useState(true)
   const [rvSubmitting, setRvSubmitting] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
+  const { uploadMultiple, uploading } = useCloudinaryUpload()
+  const removeRvFile = (index: number) => {
+    setRvFiles(prev => prev.filter((_, i) => i !== index))
+    setRvPreviews(prev => {
+      if (prev[index]) URL.revokeObjectURL(prev[index])
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+  const clearRvMedia = () => {
+    setRvFiles([])
+    setRvPreviews(prev => { prev.forEach(u => URL.revokeObjectURL(u)); return [] })
+  }
 
   const languageLabel = (code: string) =>
     ({ vi: 'Tiếng Việt', en: 'Tiếng Anh', ja: 'Tiếng Nhật', ko: 'Tiếng Hàn', zh: 'Tiếng Trung' } as Record<string, string>)[code] || code
@@ -234,11 +247,16 @@ export default function CreatorDetailPage() {
     }
     try {
       setRvSubmitting(true)
+      let uploadedUrls: string[] = []
+      if (rvFiles.length) {
+        const uploadRes = await uploadMultiple(rvFiles, { resource_type: 'image' })
+        uploadedUrls = uploadRes.map(r => r.secure_url)
+      }
       const res = await reviewApi.postReview({
         creatorId: creator.id,
         rating: rvRating,
         comment: rvComment || undefined,
-        images: rvImages.length ? rvImages.slice(0, 5) : undefined,
+        images: uploadedUrls.length ? uploadedUrls.slice(0, 5) : undefined,
         isAnonymous: rvAnon,
         isPublic: rvPublic,
       })
@@ -246,7 +264,7 @@ export default function CreatorDetailPage() {
       toast({ title: 'Đã gửi đánh giá' })
       setReviewOpen(false)
       // reset form
-      setRvRating(5); setRvHover(0); setRvComment(''); setRvImages([]); setRvAnon(false); setRvPublic(true)
+      setRvRating(5); setRvHover(0); setRvComment(''); clearRvMedia(); setRvAnon(false); setRvPublic(true)
       // refresh list
       setPage(1)
       const refreshed = await reviewApi.getReviews(creator.id, { page: 1, limit, sortBy: 'createdAt', order: 'desc' })
@@ -324,7 +342,7 @@ export default function CreatorDetailPage() {
         }
       } catch (error) {
         console.error('Error fetching creator details:', error)
-        toast({ title: 'Lỗi', description: 'Không thể tải thông tin creator', variant: 'destructive' })
+        toast({ title: 'L��i', description: 'Không thể tải thông tin creator', variant: 'destructive' })
       } finally {
         setLoading(false)
       }
@@ -879,7 +897,7 @@ export default function CreatorDetailPage() {
         </div>
       </div>
 
-      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+      <Dialog open={reviewOpen} onOpenChange={(open) => { if (!open) clearRvMedia(); setReviewOpen(open) }}>
         <DialogContent className="max-w-lg w-[95vw]">
           <DialogHeader>
             <DialogTitle>Thêm đánh giá</DialogTitle>
@@ -915,17 +933,35 @@ export default function CreatorDetailPage() {
             </div>
             <div>
               <Label>Ảnh minh họa (tối đa 5)</Label>
-              <ImageUploader compact autoUpload maxFiles={5} onUploadComplete={(res) => setRvImages(res.map(r => r.secure_url))} />
-              {rvImages.length > 0 && (
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []).slice(0, 5)
+                  setRvFiles(files)
+                  setRvPreviews(prev => { prev.forEach(u => URL.revokeObjectURL(u)); return files.map(f => URL.createObjectURL(f)) })
+                }}
+                className="mt-2 block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600"
+              />
+              {rvPreviews.length > 0 && (
                 <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {rvImages.map((u) => (
+                  {rvPreviews.map((u, idx) => (
                     <div key={u} className="relative">
-                      <img src={u} alt="uploaded" className="w-full h-20 object-cover rounded" />
-                      {rvSubmitting && (
+                      <img src={u} alt={`preview-${idx}`} className="w-full h-20 object-cover rounded" />
+                      {(rvSubmitting || uploading) && (
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">
                           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => removeRvFile(idx)}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        aria-label="Xóa ảnh"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -944,7 +980,7 @@ export default function CreatorDetailPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReviewOpen(false)}>Hủy</Button>
-            <Button onClick={submitNewReview} disabled={rvSubmitting}>{rvSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}</Button>
+            <Button onClick={submitNewReview} disabled={rvSubmitting || uploading}>{rvSubmitting || uploading ? 'Đang gửi...' : 'Gửi đánh giá'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
