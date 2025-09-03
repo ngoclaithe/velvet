@@ -1,7 +1,7 @@
 import { api } from './core'
 
 export const userApi = {
-  getProfile: (userId: string) => api.get(`/users/${userId}`),
+  getProfile: (userId: string) => api.get(`/user-follows/${userId}/public-info`),
   
   updateProfile: (data: any) => api.patch('/users/me', data),
   
