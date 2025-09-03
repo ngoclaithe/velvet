@@ -14,6 +14,7 @@ import { ImageGallery } from '@/components/ui/image-gallery'
 import type { Post, FeedParams } from '@/types/posts'
 import { postsApi, GetFeed, GetAllPosts } from '@/lib/api/posts'
 import { commentApi } from '@/lib/api'
+import { reactApi } from '@/lib/api/react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -285,55 +286,93 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     return 'Vừa xong'
   }, [])
 
+  const VALID_REACTION_TYPES = useMemo(() => ['like', 'love', 'haha', 'wow', 'sad', 'angry'] as const, [])
+
   // Handle post interactions
-  const handleLike = useCallback(async (postId: string) => {
+  const toggleReaction = useCallback(async (postId: string, reactionType: (typeof VALID_REACTION_TYPES)[number]) => {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
-        description: "Vui lòng đăng nhập để thích bài viết",
+        description: "Vui lòng đăng nhập để t��ơng tác bài viết",
         variant: "destructive"
       })
       return
     }
 
-    try {
-      // Optimistic update
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? {
-                  ...post,
-                  isLiked: !post.isLiked,
-                  likes: post.isLiked ? post.likes - 1 : post.likes + 1
-                }
-              : post
-          )
-        }
-      }))
+    if (!VALID_REACTION_TYPES.includes(reactionType)) {
+      toast({
+        title: 'Validation error',
+        description: `Invalid reaction type. Must be one of: ${VALID_REACTION_TYPES.join(', ')}`,
+        variant: 'destructive'
+      })
+      return
+    }
 
-      // TODO: Call API to like/unlike post
-      // await postsApi.likePost(postId)
-      
-    } catch (error) {
-      // Revert optimistic update on error
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? {
-                  ...post,
-                  isLiked: !post.isLiked,
-                  likes: post.isLiked ? post.likes + 1 : post.likes - 1
-                }
-              : post
-          )
+    try {
+      // Optimistic update for 'like' reaction affecting like counter/UI state
+      if (reactionType === 'like') {
+        setFeeds(prev => ({
+          ...prev,
+          [activeTab]: {
+            ...prev[activeTab],
+            posts: prev[activeTab].posts.map(post =>
+              post.id === postId
+                ? {
+                    ...post,
+                    isLiked: !post.isLiked,
+                    likes: post.isLiked ? Math.max(post.likes - 1, 0) : post.likes + 1
+                  }
+                : post
+            )
+          }
+        }))
+      }
+
+      const res = await reactApi.toggleReactionPost({
+        targetType: 'post',
+        targetId: postId,
+        reactionType,
+      })
+
+      if (!res.success) {
+        // revert optimistic update on failure
+        if (reactionType === 'like') {
+          setFeeds(prev => ({
+            ...prev,
+            [activeTab]: {
+              ...prev[activeTab],
+              posts: prev[activeTab].posts.map(post =>
+                post.id === postId
+                  ? {
+                      ...post,
+                      isLiked: !post.isLiked,
+                      likes: post.isLiked ? post.likes + 1 : Math.max(post.likes - 1, 0)
+                    }
+                  : post
+              )
+            }
+          }))
         }
-      }))
+        toast({ title: 'Lỗi', description: res.error || 'Không thể thực hiện thao tác. Vui lòng thử lại.', variant: 'destructive' })
+      }
+    } catch (error) {
+      if (reactionType === 'like') {
+        setFeeds(prev => ({
+          ...prev,
+          [activeTab]: {
+            ...prev[activeTab],
+            posts: prev[activeTab].posts.map(post =>
+              post.id === postId
+                ? {
+                    ...post,
+                    isLiked: !post.isLiked,
+                    likes: post.isLiked ? post.likes + 1 : Math.max(post.likes - 1, 0)
+                  }
+                : post
+            )
+          }
+        }))
+      }
 
       toast({
         title: "Lỗi",
@@ -341,7 +380,11 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         variant: "destructive"
       })
     }
-  }, [isAuthenticated, activeTab, toast])
+  }, [isAuthenticated, activeTab, toast, VALID_REACTION_TYPES])
+
+  const handleLike = useCallback(async (postId: string) => {
+    return toggleReaction(postId, 'like')
+  }, [toggleReaction])
 
   const handleBookmark = useCallback(async (postId: string) => {
     if (!isAuthenticated) {
