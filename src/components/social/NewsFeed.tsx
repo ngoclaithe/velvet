@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
+import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { ImageGallery } from '@/components/ui/image-gallery'
@@ -519,19 +520,21 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Avatar className="w-12 h-12">
-                <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
-                <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
-                  {post.author.displayName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <Link href={`/user/${post.author.id}`}>
+                <Avatar className="w-12 h-12 cursor-pointer hover:opacity-90">
+                  <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
+                  <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                    {post.author.displayName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
               {post.author.isOnline && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
               )}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold">{post.author.displayName}</h4>
+                <Link href={`/user/${post.author.id}`} className="font-semibold hover:underline">{post.author.displayName}</Link>
                 {post.author.isVerified && (
                   <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
@@ -814,7 +817,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') :
+                {activeTab === 'following' ? (!isAuthenticated ? 'Ch��a đăng nhập' : 'Chưa theo dõi ai') :
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
                  'Chưa có bài viết'}
               </h3>

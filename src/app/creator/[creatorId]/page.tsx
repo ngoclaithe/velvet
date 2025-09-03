@@ -45,7 +45,8 @@ import {
   Users,
   Award,
   Palette,
-  Scissors
+  Scissors,
+  ArrowRight
 } from 'lucide-react'
 
 interface Creator {
@@ -180,9 +181,9 @@ export default function CreatorDetailPage() {
   const [rvFiles, setRvFiles] = useState<File[]>([])
   const [rvPreviews, setRvPreviews] = useState<string[]>([])
   const [rvAnon, setRvAnon] = useState(false)
-  const [rvPublic, setRvPublic] = useState(true)
   const [rvSubmitting, setRvSubmitting] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
   const { uploadMultiple, uploading } = useCloudinaryUpload()
   const removeRvFile = (index: number) => {
     setRvFiles(prev => prev.filter((_, i) => i !== index))
@@ -258,13 +259,12 @@ export default function CreatorDetailPage() {
         comment: rvComment || undefined,
         images: uploadedUrls.length ? uploadedUrls.slice(0, 5) : undefined,
         isAnonymous: rvAnon,
-        isPublic: rvPublic,
       })
       if (!res.success) throw new Error(res.error || res.message || 'Gửi đánh giá thất bại')
       toast({ title: 'Đã gửi đánh giá' })
       setReviewOpen(false)
       // reset form
-      setRvRating(5); setRvHover(0); setRvComment(''); clearRvMedia(); setRvAnon(false); setRvPublic(true)
+      setRvRating(5); setRvHover(0); setRvComment(''); clearRvMedia(); setRvAnon(false)
       // refresh list
       setPage(1)
       const refreshed = await reviewApi.getReviews(creator.id, { page: 1, limit, sortBy: 'createdAt', order: 'desc' })
@@ -874,9 +874,9 @@ export default function CreatorDetailPage() {
                             {r.images && r.images.length > 0 && (
                               <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
                             {r.images.map((u, idx) => (
-                              <a key={`${r.id}-${idx}`} href={u} target="_blank" rel="noopener noreferrer" className="block">
+                              <button key={`${r.id}-${idx}`} type="button" onClick={() => setLightbox({ images: r.images || [], index: idx })} className="block focus:outline-none">
                                 <img src={u} alt={`rv-${idx}`} className="w-full h-16 sm:h-20 object-cover rounded cursor-zoom-in" />
-                              </a>
+                              </button>
                             ))}
                           </div>
                             )}
@@ -969,21 +969,42 @@ export default function CreatorDetailPage() {
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Switch id="rv-anon" checked={rvAnon} onCheckedChange={setRvAnon} />
-                <Label htmlFor="rv-anon">Ẩn danh</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch id="rv-public" checked={rvPublic} onCheckedChange={setRvPublic} />
-                <Label htmlFor="rv-public">Công khai</Label>
-              </div>
+            <div className="flex items-center gap-2">
+              <Switch id="rv-anon" checked={rvAnon} onCheckedChange={setRvAnon} />
+              <Label htmlFor="rv-anon">Ẩn danh</Label>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReviewOpen(false)}>Hủy</Button>
             <Button onClick={submitNewReview} disabled={rvSubmitting || uploading}>{rvSubmitting || uploading ? 'Đang gửi...' : 'Gửi đánh giá'}</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review images lightbox */}
+      <Dialog open={!!lightbox} onOpenChange={(open) => { if (!open) setLightbox(null) }}>
+        <DialogContent className="max-w-3xl w-[95vw] p-0 bg-black/90">
+          {lightbox && (
+            <div className="relative">
+              <img src={lightbox.images[lightbox.index]} alt="review" className="max-h-[80vh] w-full object-contain" />
+              <button
+                type="button"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2"
+                onClick={() => setLightbox(({ images, index }) => ({ images, index: (index - 1 + images.length) % images.length }))}
+                aria-label="Ảnh trước"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2"
+                onClick={() => setLightbox(({ images, index }) => ({ images, index: (index + 1) % images.length }))}
+                aria-label="Ảnh sau"
+              >
+                <ArrowRight className="w-6 h-6" />
+              </button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

@@ -89,12 +89,14 @@ export default function BlogPost({ post, variant = 'card', showExcerpt = true }:
         
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3 mb-3">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
-              <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
-                {post.author.displayName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <Link href={`/user/${post.author.id}`}>
+              <Avatar className="w-12 h-12 cursor-pointer hover:opacity-90">
+                <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
+                <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                  {post.author.displayName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h4 className="font-semibold text-sm">{post.author.displayName}</h4>
@@ -277,13 +279,15 @@ export default function BlogPost({ post, variant = 'card', showExcerpt = true }:
       
       <CardContent className="pt-0">
         <div className="flex items-center gap-2 mb-3">
-          <Avatar className="w-6 h-6">
-            <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
-            <AvatarFallback className="text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white">
-              {post.author.displayName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium">{post.author.displayName}</span>
+          <Link href={`/user/${post.author.id}`}>
+            <Avatar className="w-6 h-6 cursor-pointer hover:opacity-90">
+              <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
+              <AvatarFallback className="text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                {post.author.displayName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+          <Link href={`/user/${post.author.id}`} className="text-sm font-medium hover:underline">{post.author.displayName}</Link>
           {post.author.isVerified && (
             <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
               <span className="text-white text-xs">✓</span>
