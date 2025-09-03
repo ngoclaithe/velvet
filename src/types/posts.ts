@@ -1,3 +1,5 @@
+import type { ReactionType } from '@/lib/api/react'
+
 export interface Post {
   id: string
   type: 'text' | 'image' | 'video' | 'poll' | 'live'
@@ -22,6 +24,10 @@ export interface Post {
   isPremium: boolean
   isLiked?: boolean
   isBookmarked?: boolean
+  // Reactions
+  reactionCounts?: Partial<Record<ReactionType, number>>
+  totalReactions?: number
+  currentUserReaction?: ReactionType | null
   tags?: string[]
   location?: string
   visibility: 'public' | 'followers' | 'premium' | 'private'
