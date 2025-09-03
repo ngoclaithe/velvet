@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ImageGallery } from '@/components/ui/image-gallery'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { postsApi } from '@/lib/api/posts'
 import { reviewApi, type Review } from '@/lib/api/review'
 import { userApi } from '@/lib/api/user'
@@ -22,6 +23,17 @@ interface PublicUser {
   lastName?: string
   avatar?: string | null
   isVerified?: boolean
+}
+
+interface FollowingCreator {
+  creatorId: number
+  stageName?: string
+  userId: number
+  username: string
+  firstName?: string
+  lastName?: string
+  avatar?: string | null
+  followedAt?: string
 }
 
 interface PostItem {
@@ -46,6 +58,10 @@ export default function PublicUserPage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [loadingReviews, setLoadingReviews] = useState(true)
 
+  const [followingCount, setFollowingCount] = useState<number>(0)
+  const [following, setFollowing] = useState<FollowingCreator[]>([])
+  const [showFollowing, setShowFollowing] = useState(false)
+
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
 
   useEffect(() => {
@@ -65,6 +81,8 @@ export default function PublicUserPage() {
             avatar: u.avatar ?? null,
             isVerified: Boolean(u.isVerified),
           })
+          setFollowingCount(Number(payload.followingCount || (Array.isArray(payload.following) ? payload.following.length : 0) || 0))
+          setFollowing(Array.isArray(payload.following) ? payload.following : [])
         }
       } finally {
         setLoadingUser(false)
@@ -142,6 +160,11 @@ export default function PublicUserPage() {
               <div>
                 <h1 className="text-xl font-semibold">{displayName}</h1>
                 <p className="text-sm text-muted-foreground">@{user.username}</p>
+                <div className="mt-1">
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-sm" onClick={() => setShowFollowing(true)}>
+                    Đang theo dõi {followingCount}
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
@@ -243,6 +266,35 @@ export default function PublicUserPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <Dialog open={showFollowing} onOpenChange={setShowFollowing}>
+        <DialogContent className="max-w-lg w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>Danh sách đang theo dõi ({followingCount})</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto space-y-2">
+            {following.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Chưa theo dõi creator nào</div>
+            ) : (
+              following.map((f) => {
+                const name = f.stageName || `${f.firstName || ''} ${f.lastName || ''}`.trim() || f.username
+                return (
+                  <Link key={`${f.creatorId}-${f.userId}`} href={`/creator/${f.creatorId}`} onClick={() => setShowFollowing(false)} className="flex items-center gap-3 p-2 rounded hover:bg-muted">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={f.avatar || undefined} alt={name} />
+                      <AvatarFallback>{(name || 'U').slice(0,1).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <div className="font-medium leading-tight truncate">{name}</div>
+                      <div className="text-xs text-muted-foreground truncate">@{f.username}</div>
+                    </div>
+                  </Link>
+                )
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Simple lightbox overlay using portal-less approach */}
       {lightbox && (
