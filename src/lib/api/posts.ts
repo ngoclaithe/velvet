@@ -66,24 +66,6 @@ export const postsApi = {
   reportPost: (postId: string, data: any) =>
     api.post(`/posts/${postId}/report`, data),
 
-  getComments: (postId: string, params?: Record<string, string>) =>
-    api.get(`/posts/${postId}/comments`, params),
-
-  createComment: (postId: string, data: any) =>
-    api.post(`/posts/${postId}/comments`, data),
-
-  updateComment: (commentId: string, data: any) =>
-    api.patch(`/comments/${commentId}`, data),
-
-  deleteComment: (commentId: string) =>
-    api.delete(`/comments/${commentId}`),
-
-  likeComment: (commentId: string) =>
-    api.post(`/comments/${commentId}/like`),
-
-  unlikeComment: (commentId: string) =>
-    api.delete(`/comments/${commentId}/like`),
-
   uploadMedia: (file: File) =>
     api.upload('/media/upload', file),
 
