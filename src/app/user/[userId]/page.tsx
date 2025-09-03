@@ -114,7 +114,7 @@ export default function PublicUserPage() {
     const loadReviews = async () => {
       try {
         setLoadingReviews(true)
-        const res = await reviewApi.getUserReviews(userId, { page: 1, limit: 10, sortBy: 'createdAt', order: 'desc' })
+        const res = await reviewApi.getUserPublicReviews({ userId})
         const data: any = res?.success ? res.data : null
         const list: Review[] = Array.isArray(data?.reviews) ? data.reviews : (Array.isArray(data) ? data as any : [])
         setReviews(list)
