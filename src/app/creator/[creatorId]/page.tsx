@@ -428,7 +428,7 @@ export default function CreatorDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <Skeleton className="w-8 h-8 rounded-full" />
             <Skeleton className="h-5 w-28" />
@@ -472,7 +472,7 @@ export default function CreatorDetailPage() {
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="border-b border-gray-800 p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <Button variant="ghost" onClick={() => window.history.back()} className="text-gray-400 hover:text-white mb-3">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
@@ -481,427 +481,404 @@ export default function CreatorDetailPage() {
       </div>
 
       <div className="max-w-6xl mx-auto p-4">
-        <Card className="bg-gray-800 border-gray-700 mb-4">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-              <div className="relative">
-                <Avatar className="w-24 h-24 sm:w-28 sm:h-28">
-                  <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
-                  <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-3xl">
-                    {getDisplayName(creator).charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {creator.isOnline && <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-green-500 border-4 border-gray-800 rounded-full" />}
-                {creator.isLive && (
-                  <div className="absolute -top-2 -right-2">
-                    <Badge className="bg-red-500 hover:bg-red-600 text-white">LIVE</Badge>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h1 className="text-2xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
-                  {creator.isVerified && <Verified className="w-6 h-6 text-blue-500" />}
-                </div>
-                <p className="text-gray-400 text-sm mb-1 break-all">@{creator.username}</p>
-                
-                {creator.titleBio && (
-                  <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-2.5 mb-3">
-                    <p className="text-pink-300 font-semibold text-sm leading-relaxed">{creator.titleBio}</p>
-                  </div>
-                )}
-
-                {creator.location && (
-                  <div className="flex items-center gap-2 text-gray-400 text-xs mb-3">
-                    <MapPin className="w-4 h-4" />
-                    {creator.location}
-                  </div>
-                )}
-                {creator.bio && <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-4 whitespace-pre-line break-words">{creator.bio}</p>}
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="text-center">
-                    <p className="text-white font-bold text-lg">{formatCount(creator.followersCount)}</p>
-                    <p className="text-gray-400 text-xs">Followers</p>
-                  </div>
-                  {creator.rating && Number(creator.rating) > 0 && (
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        <span className="text-white font-bold text-lg">{Number(creator.rating).toFixed(1)}</span>
-                      </div>
-                      <p className="text-gray-400 text-xs">{creator.totalRatings} đánh giá</p>
-                    </div>
-                  )}
-                  {creator.hourlyRate && Number(creator.hourlyRate) > 0 && (
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <DollarSign className="w-5 h-5 text-green-400" />
-                        <span className="text-white font-bold text-lg">{creator.hourlyRate}</span>
-                      </div>
-                      <p className="text-gray-400 text-xs">Per hour</p>
-                    </div>
-                  )}
-                  {creator.totalEarnings && Number(creator.totalEarnings) > 0 && (
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Award className="w-5 h-5 text-yellow-400" />
-                        <span className="text-white font-bold text-lg">{formatMoney(creator.totalEarnings)}</span>
-                      </div>
-                      <p className="text-gray-400 text-xs">Total Earnings</p>
-                    </div>
-                  )}
-                </div>
-
-                {isAuthenticated && creator.userId.toString() !== user?.id ? (
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                    <Button onClick={handleFollow} disabled={actionLoading} className={`flex-1 ${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'}`}>
-                      {actionLoading ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : creator.isFollowing ? (
-                        <>
-                          <UserMinus className="w-4 h-4 mr-2" />
-                          Bỏ theo dõi
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          Theo dõi
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                      disabled={chatLoading}
-                      onClick={async () => {
-                        if (!isAuthenticated) {
-                          toast({ title: 'Yêu cầu đăng nhập', description: 'Vui lòng đăng nhập để nhắn tin', variant: 'destructive' })
-                          return
-                        }
-                        try {
-                          setChatLoading(true)
-                          const resp = await createConversation({ receiverId: creator.userId })
-                          if (!resp.success || !resp.data || !(resp.data as any).conversation) {
-                            throw new Error(resp.error || 'Không tạo được cuộc trò chuyện')
-                          }
-                          const { conversation, mqttTopic } = resp.data as any
-                          const topic = mqttTopic || conversation?.topic
-                          if (topic) { try { await subscribeTopic(topic) } catch {} }
-                          router.push(`/messages?conversationId=${conversation.id}`)
-                        } catch (e: any) {
-                          toast({ title: 'Lỗi', description: e?.message || 'Không thể nhắn tin', variant: 'destructive' })
-                        } finally {
-                          setChatLoading(false)
-                        }
-                      }}
-                    >
-                      {chatLoading ? (
-                        <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2" />
-                      ) : (
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                      )}
-                      Nhắn tin
-                    </Button>
-                    {creator.isAvailableForBooking && (
-                      <Button className="bg-green-600 hover:bg-green-700" onClick={openBookingModal}>
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Đặt lịch
-                      </Button>
-                    )}
-                    <Button variant="outline" disabled title="Sắp có" className="border-gray-600 text-gray-300">
-                      <Star className="w-4 h-4 mr-2" />
-                      Đánh giá
-                    </Button>
-                  </div>
-                ) : !isAuthenticated ? (
-                  <div className="text-center">
-                    <p className="text-gray-400 mb-3">Đăng nhập để theo dõi creator</p>
-                    <Button onClick={() => (window.location.href = '/login')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
-                      Đăng nhập
-                    </Button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {galleryMedia.length > 0 && (
-          <Card className="bg-gray-800 border-gray-700 mb-4">
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-white mb-3">Hình ảnh</h3>
-              <ImageGallery media={galleryMedia} />
-            </CardContent>
-          </Card>
-        )}
-
-        {creator.service && (
-          <Card className="bg-gray-800 border-gray-700 mb-4">
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <Award className="w-5 h-5 text-pink-400" />
-                Dịch vụ
-              </h3>
-              <div className="bg-gray-700/50 rounded-lg p-3">
-                <p className="text-gray-300 whitespace-pre-line leading-relaxed">{creator.service}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {(creator.category || (creator.tags && creator.tags.length > 0)) && (
-          <Card className="bg-gray-800 border-gray-700 mb-4">
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-white mb-3">Phân loại & Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {creator.category && (
-                  <Badge variant="outline" className="border-gray-600 text-gray-300 px-3 py-1.5">{creator.category}</Badge>
-                )}
-                {creator.tags?.map((t) => (
-                  <Badge key={t} variant="secondary" className="bg-gray-700 text-gray-200">#{t}</Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card className="bg-gray-800 border-gray-700 mb-4">
-          <CardContent className="p-4">
-            <h3 className="text-lg font-semibold text-white mb-3">Thông tin chi tiết</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
-              {/* Pricing Information */}
-              <div className="space-y-3">
-                <h4 className="text-base font-semibold text-pink-300 mb-2.5 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Thông tin giá
-                </h4>
-                <div className="space-y-2.5">
-                  <div>
-                    <div className="text-sm text-gray-400">Giá theo giờ</div>
-                    <div className="font-semibold">{formatMoney(creator.hourlyRate)}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Giá đặt lịch</div>
-                    <div className="font-semibold">{formatMoney(creator.bookingPrice)}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Giá subscription</div>
-                    <div className="font-semibold">{formatMoney(creator.subscriptionPrice)}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Booking Information */}
-              <div className="space-y-3">
-                <h4 className="text-base font-semibold text-blue-300 mb-2.5 flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  Thông tin booking
-                </h4>
-                <div className="space-y-2.5">
-                  <div>
-                    <div className="text-sm text-gray-400">Thời gian tối thiểu (phút)</div>
-                    <div className="font-semibold">{creator.minBookingDuration || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Số booking tối đa</div>
-                    <div className="font-semibold">{creator.maxConcurrentBookings || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Booking hiện tại</div>
-                    <div className="font-semibold">{creator.currentBookingsCount || 0}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Có thể booking</div>
-                    <div className={`font-semibold ${creator.isAvailableForBooking ? 'text-green-400' : 'text-red-400'}`}>
-                      {creator.isAvailableForBooking ? 'Có' : 'Không'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Languages and Specialties */}
-              {((creator.languages && creator.languages.length > 0) || (creator.specialties && creator.specialties.length > 0)) && (
-                <div className="md:col-span-2 space-y-3">
-                  {creator.languages && creator.languages.length > 0 && (
-                    <div>
-                      <div className="text-sm text-gray-400 mb-2">Ngôn ngữ</div>
-                      <div className="flex flex-wrap gap-2">
-                        {creator.languages.map((l) => (
-                          <Badge key={l} variant="outline" className="border-gray-600 text-gray-300">{languageLabel(l)}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {creator.specialties && creator.specialties.length > 0 && (
-                    <div>
-                      <div className="text-sm text-gray-400 mb-2">Loại creator</div>
-                      <div className="flex flex-wrap gap-2">
-                        {creator.specialties.map((s) => (
-                          <Badge key={s} className="bg-purple-600/20 text-purple-300">{s}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Physical Information */}
-              <div className="md:col-span-2">
-                <h4 className="text-base font-semibold text-green-300 mb-2.5 flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Thông tin hình thể
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <div className="text-sm text-gray-400">Chiều cao</div>
-                    <div className="font-semibold">{creator.height ? `${creator.height} cm` : '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Cân nặng</div>
-                    <div className="font-semibold">{creator.weight ? `${creator.weight} kg` : '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Dáng người</div>
-                    <div className="font-semibold">{creator.bodyType || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Số đo</div>
-                    <div className="font-semibold">{creator.measurement || '-'}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Appearance Information */}
-              <div className="md:col-span-2">
-                <h4 className="text-base font-semibold text-purple-300 mb-2.5 flex items-center gap-2">
-                  <Palette className="w-5 h-5" />
-                  Thông tin ngoại hình
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <div className="text-sm text-gray-400">Màu mắt</div>
-                    <div className="font-semibold">{creator.eyeColor || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Màu tóc</div>
-                    <div className="font-semibold">{creator.hairColor || '-'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Có hình xăm</div>
-                    <div className={`font-semibold ${creator.isTatto ? 'text-pink-400' : 'text-gray-400'}`}>
-                      {creator.isTatto ? 'Có' : 'Không'}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Phẫu thuật thẩm mỹ</div>
-                    <div className={`font-semibold ${creator.cosmeticSurgery === 'true' ? 'text-blue-400' : 'text-gray-400'}`}>
-                      {creator.cosmeticSurgery === 'true' ? 'Có' : creator.cosmeticSurgery === 'false' ? 'Không' : '-'}
-                    </div>
-                  </div>
-                </div>
-                {creator.signature && (
-                  <div className="mt-3 p-3 bg-gray-700/50 rounded-lg">
-                    <div className="text-sm text-gray-400 mb-1.5 flex items-center gap-2">
-                      <Scissors className="w-4 h-4" />
-                      Đặc điểm nổi bật
-                    </div>
-                    <div className="font-semibold text-pink-300">{creator.signature}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {creator.streamTitle && (
-          <Card className="bg-gray-800 border-gray-700 mb-4">
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-white mb-3">Stream hiện tại</h3>
-              <p className="text-gray-300">{creator.streamTitle}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Reviews Section */}
-        <Card className="bg-gray-800 border-gray-700 mb-4">
-          <CardContent className="p-4 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h3 className="text-lg font-semibold text-white">Đánh giá</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400 text-sm">Lọc:</span>
-                <Select value={String(filterRating)} onValueChange={(v) => { setFilterRating(v === 'all' ? 'all' : Number(v) as any); setPage(1) }}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Tất cả" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả</SelectItem>
-                    {[5,4,3,2,1].map(v => (
-                      <SelectItem key={v} value={String(v)}>{v} sao</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isAuthenticated && creator.userId.toString() !== user?.id && (
-                  <Button className="bg-pink-600 hover:bg-pink-700 ml-2" onClick={() => setReviewOpen(true)}>
-                    Thêm đánh giá
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Reviews List */}
-            {loadingReviews ? (
-              <div className="py-6 text-center text-gray-400">Đang tải đánh giá...</div>
-            ) : reviews.length === 0 ? (
-              <div className="py-6 text-center text-gray-400">Chưa có đánh giá</div>
-            ) : (
-              <div className="space-y-3">
-                {reviews.map((r) => (
-                  <div key={r.id} className="border border-gray-700 rounded-md p-3">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={r.user?.avatar || undefined} alt={r.user?.username || 'User'} />
-                        <AvatarFallback>{(r.user?.username || 'U').slice(0,2).toUpperCase()}</AvatarFallback>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-4 space-y-4">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="relative shrink-0">
+                      <Avatar className="w-24 h-24 sm:w-28 sm:h-28">
+                        <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
+                        <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-3xl">
+                          {getDisplayName(creator).charAt(0).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex items-center gap-1 text-yellow-400">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star key={i} className={cn('h-4 w-4', i < r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600')} />
-                            ))}
-                          </div>
-                          <span className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString('vi-VN')}</span>
+                      {creator.isOnline && <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-green-500 border-4 border-gray-800 rounded-full" />}
+                      {creator.isLive && (
+                        <div className="absolute -top-2 -right-2">
+                          <Badge className="bg-red-500 hover:bg-red-600 text-white">LIVE</Badge>
                         </div>
-                        <div className="mt-1 text-sm text-gray-200 whitespace-pre-line break-words">
-                          {r.comment || ''}
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h1 className="text-2xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
+                        {creator.isVerified && <Verified className="w-6 h-6 text-blue-500" />}
+                      </div>
+                      <p className="text-gray-400 text-sm mb-1 break-all">@{creator.username}</p>
+
+                      {creator.titleBio && (
+                        <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-2.5 mb-3">
+                          <p className="text-pink-300 font-semibold text-sm leading-relaxed">{creator.titleBio}</p>
                         </div>
-                        {r.images && r.images.length > 0 && (
-                          <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
-                            {r.images.map((u, idx) => (
-                              <img key={`${r.id}-${idx}`} src={u} alt={`rv-${idx}`} className="w-full h-20 object-cover rounded" />
-                            ))}
+                      )}
+
+                      {creator.location && (
+                        <div className="flex items-center gap-2 text-gray-400 text-xs mb-3">
+                          <MapPin className="w-4 h-4" />
+                          {creator.location}
+                        </div>
+                      )}
+                      {creator.bio && <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-4 whitespace-pre-line break-words">{creator.bio}</p>}
+
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="text-center">
+                          <p className="text-white font-bold text-lg">{formatCount(creator.followersCount)}</p>
+                          <p className="text-gray-400 text-xs">Followers</p>
+                        </div>
+                        {creator.rating && Number(creator.rating) > 0 && (
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                              <span className="text-white font-bold text-lg">{Number(creator.rating).toFixed(1)}</span>
+                            </div>
+                            <p className="text-gray-400 text-xs">{creator.totalRatings} đánh giá</p>
                           </div>
                         )}
                       </div>
+
+                      {isAuthenticated && creator.userId.toString() !== user?.id ? (
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                          <Button onClick={handleFollow} disabled={actionLoading} className={`flex-1 ${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'}`}>
+                            {actionLoading ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : creator.isFollowing ? (
+                              <>
+                                <UserMinus className="w-4 h-4 mr-2" />
+                                Bỏ theo dõi
+                              </>
+                            ) : (
+                              <>
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Theo dõi
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                            disabled={chatLoading}
+                            onClick={async () => {
+                              if (!isAuthenticated) {
+                                toast({ title: 'Yêu cầu đăng nhập', description: 'Vui lòng đăng nhập để nhắn tin', variant: 'destructive' })
+                                return
+                              }
+                              try {
+                                setChatLoading(true)
+                                const resp = await createConversation({ receiverId: creator.userId })
+                                if (!resp.success || !resp.data || !(resp.data as any).conversation) {
+                                  throw new Error(resp.error || 'Không tạo được cuộc trò chuyện')
+                                }
+                                const { conversation, mqttTopic } = resp.data as any
+                                const topic = mqttTopic || conversation?.topic
+                                if (topic) { try { await subscribeTopic(topic) } catch {} }
+                                router.push(`/messages?conversationId=${conversation.id}`)
+                              } catch (e: any) {
+                                toast({ title: 'Lỗi', description: e?.message || 'Không thể nhắn tin', variant: 'destructive' })
+                              } finally {
+                                setChatLoading(false)
+                              }
+                            }}
+                          >
+                            {chatLoading ? (
+                              <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2" />
+                            ) : (
+                              <MessageCircle className="w-4 h-4 mr-2" />
+                            )}
+                            Nhắn tin
+                          </Button>
+                          {creator.isAvailableForBooking && (
+                            <Button className="bg-green-600 hover:bg-green-700" onClick={openBookingModal}>
+                              <Calendar className="w-4 h-4 mr-2" />
+                              Đặt lịch
+                            </Button>
+                          )}
+                        </div>
+                      ) : !isAuthenticated ? (
+                        <div className="text-center">
+                          <p className="text-gray-400 mb-3">Đăng nhập để theo dõi creator</p>
+                          <Button onClick={() => (window.location.href = '/login')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
+                            Đăng nhập
+                          </Button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
-                ))}
-                {/* Simple pagination */}
-                {total > limit && (
-                  <div className="pt-2 flex items-center justify-between">
-                    <Button variant="outline" className="border-gray-600" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p-1))}>Trước</Button>
-                    <span className="text-sm text-gray-400">Trang {page}</span>
-                    <Button variant="outline" className="border-gray-600" disabled={page * limit >= total} onClick={() => setPage(p => p+1)}>Sau</Button>
+                </CardContent>
+              </Card>
+
+              {creator.service && (
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <Award className="w-5 h-5 text-pink-400" />
+                      Dịch vụ
+                    </h3>
+                    <div className="bg-gray-700/50 rounded-lg p-3">
+                      <p className="text-gray-300 whitespace-pre-line leading-relaxed">{creator.service}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {(creator.category || (creator.tags && creator.tags.length > 0)) && (
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3">Phân loại & Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {creator.category && (
+                        <Badge variant="outline" className="border-gray-600 text-gray-300 px-3 py-1.5">{creator.category}</Badge>
+                      )}
+                      {creator.tags?.map((t) => (
+                        <Badge key={t} variant="secondary" className="bg-gray-700 text-gray-200">#{t}</Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          <div className="lg:col-span-8 space-y-4">
+            {galleryMedia.length > 0 && (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Hình ảnh</h3>
+                  <ImageGallery media={galleryMedia} />
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-4">
+                <h3 className="text-lg font-semibold text-white mb-3">Thông tin chi tiết</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
+                  <div className="space-y-3">
+                    <h4 className="text-base font-semibold text-pink-300 mb-2.5 flex items-center gap-2">
+                      <DollarSign className="w-5 h-5" />
+                      Thông tin giá
+                    </h4>
+                    <div className="space-y-2.5">
+                      <div>
+                        <div className="text-sm text-gray-400">Giá theo giờ</div>
+                        <div className="font-semibold">{formatMoney(creator.hourlyRate)}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Giá đặt lịch</div>
+                        <div className="font-semibold">{formatMoney(creator.bookingPrice)}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Giá subscription</div>
+                        <div className="font-semibold">{formatMoney(creator.subscriptionPrice)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-base font-semibold text-blue-300 mb-2.5 flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      Thông tin booking
+                    </h4>
+                    <div className="space-y-2.5">
+                      <div>
+                        <div className="text-sm text-gray-400">Thời gian tối thiểu (phút)</div>
+                        <div className="font-semibold">{creator.minBookingDuration || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Số booking tối đa</div>
+                        <div className="font-semibold">{creator.maxConcurrentBookings || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Booking hiện tại</div>
+                        <div className="font-semibold">{creator.currentBookingsCount || 0}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Có thể booking</div>
+                        <div className={`font-semibold ${creator.isAvailableForBooking ? 'text-green-400' : 'text-red-400'}`}>
+                          {creator.isAvailableForBooking ? 'Có' : 'Không'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {((creator.languages && creator.languages.length > 0) || (creator.specialties && creator.specialties.length > 0)) && (
+                    <div className="md:col-span-2 space-y-3">
+                      {creator.languages && creator.languages.length > 0 && (
+                        <div>
+                          <div className="text-sm text-gray-400 mb-2">Ngôn ngữ</div>
+                          <div className="flex flex-wrap gap-2">
+                            {creator.languages.map((l) => (
+                              <Badge key={l} variant="outline" className="border-gray-600 text-gray-300">{languageLabel(l)}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {creator.specialties && creator.specialties.length > 0 && (
+                        <div>
+                          <div className="text-sm text-gray-400 mb-2">Loại creator</div>
+                          <div className="flex flex-wrap gap-2">
+                            {creator.specialties.map((s) => (
+                              <Badge key={s} className="bg-purple-600/20 text-purple-300">{s}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="md:col-span-2">
+                    <h4 className="text-base font-semibold text-green-300 mb-2.5 flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Thông tin hình thể
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <div className="text-sm text-gray-400">Chiều cao</div>
+                        <div className="font-semibold">{creator.height ? `${creator.height} cm` : '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Cân nặng</div>
+                        <div className="font-semibold">{creator.weight ? `${creator.weight} kg` : '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Dáng người</div>
+                        <div className="font-semibold">{creator.bodyType || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Số đo</div>
+                        <div className="font-semibold">{creator.measurement || '-'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <h4 className="text-base font-semibold text-purple-300 mb-2.5 flex items-center gap-2">
+                      <Palette className="w-5 h-5" />
+                      Thông tin ngoại hình
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <div className="text-sm text-gray-400">Màu mắt</div>
+                        <div className="font-semibold">{creator.eyeColor || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Màu tóc</div>
+                        <div className="font-semibold">{creator.hairColor || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Có hình xăm</div>
+                        <div className={`font-semibold ${creator.isTatto ? 'text-pink-400' : 'text-gray-400'}`}>
+                          {creator.isTatto ? 'Có' : 'Không'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-400">Phẫu thuật thẩm mỹ</div>
+                        <div className={`font-semibold ${creator.cosmeticSurgery === 'true' ? 'text-blue-400' : 'text-gray-400'}`}>
+                          {creator.cosmeticSurgery === 'true' ? 'Có' : creator.cosmeticSurgery === 'false' ? 'Không' : '-'}
+                        </div>
+                      </div>
+                    </div>
+                    {creator.signature && (
+                      <div className="mt-3 p-3 bg-gray-700/50 rounded-lg">
+                        <div className="text-sm text-gray-400 mb-1.5 flex items-center gap-2">
+                          <Scissors className="w-4 h-4" />
+                          Đặc điểm nổi bật
+                        </div>
+                        <div className="font-semibold text-pink-300">{creator.signature}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {creator.streamTitle && (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Stream hiện tại</h3>
+                  <p className="text-gray-300">{creator.streamTitle}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <h3 className="text-lg font-semibold text-white">Đánh giá</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 text-sm">Lọc:</span>
+                    <Select value={String(filterRating)} onValueChange={(v) => { setFilterRating(v === 'all' ? 'all' : Number(v) as any); setPage(1) }}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Tất cả" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        {[5,4,3,2,1].map(v => (
+                          <SelectItem key={v} value={String(v)}>{v} sao</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isAuthenticated && creator.userId.toString() !== user?.id && (
+                      <Button className="bg-pink-600 hover:bg-pink-700 ml-2" onClick={() => setReviewOpen(true)}>
+                        Thêm đánh giá
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {loadingReviews ? (
+                  <div className="py-6 text-center text-gray-400">Đang tải đánh giá...</div>
+                ) : reviews.length === 0 ? (
+                  <div className="py-6 text-center text-gray-400">Chưa có đánh giá</div>
+                ) : (
+                  <div className="space-y-3">
+                    {reviews.map((r) => (
+                      <div key={r.id} className="border border-gray-700 rounded-md p-3">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarImage src={r.user?.avatar || undefined} alt={r.user?.username || 'User'} />
+                            <AvatarFallback>{(r.user?.username || 'U').slice(0,2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="flex items-center gap-1 text-yellow-400">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star key={i} className={cn('h-4 w-4', i < r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600')} />
+                                ))}
+                              </div>
+                              <span className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString('vi-VN')}</span>
+                            </div>
+                            <div className="mt-1 text-sm text-gray-200 whitespace-pre-line break-words">
+                              {r.comment || ''}
+                            </div>
+                            {r.images && r.images.length > 0 && (
+                              <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                {r.images.map((u, idx) => (
+                                  <img key={`${r.id}-${idx}`} src={u} alt={`rv-${idx}`} className="w-full h-20 object-cover rounded" />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {total > limit && (
+                      <div className="pt-2 flex items-center justify-between">
+                        <Button variant="outline" className="border-gray-600" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p-1))}>Trước</Button>
+                        <span className="text-sm text-gray-400">Trang {page}</span>
+                        <Button variant="outline" className="border-gray-600" disabled={page * limit >= total} onClick={() => setPage(p => p+1)}>Sau</Button>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Add Review Dialog */}
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
         <DialogContent className="max-w-lg w-[95vw]">
           <DialogHeader>
