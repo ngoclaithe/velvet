@@ -243,45 +243,6 @@ export default function PublicUserPage() {
         </Tabs>
       </div>
 
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      {/* Lightbox for review images */}
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      {/* Review images lightbox */}
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      <div>
-        <Card className="hidden" />
-      </div>
-
-      {/* Lightbox Dialog */}
-      <div>
-        <Card className="hidden" />
-      </div>
-
       {/* Simple lightbox overlay using portal-less approach */}
       {lightbox && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
