@@ -116,7 +116,6 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
   const [comment, setComment] = React.useState('')
   const [images, setImages] = React.useState<string[]>([])
   const [isAnonymous, setIsAnonymous] = React.useState(false)
-  const [isPublic, setIsPublic] = React.useState(true)
   const [submitting, setSubmitting] = React.useState(false)
 
   const grouped = React.useMemo(() => {
@@ -137,7 +136,6 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
     setComment('')
     setImages([])
     setIsAnonymous(false)
-    setIsPublic(true)
     setReviewOpen(true)
   }
 
@@ -160,7 +158,6 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
         comment: comment ? comment : undefined,
         images: images.length ? images.slice(0, 5) : undefined,
         isAnonymous,
-        isPublic,
       })
       if (!res.success) throw new Error(res.error || res.message || 'Gửi đánh giá thất bại')
       toast({ title: 'Đã gửi đánh giá' })
@@ -339,15 +336,9 @@ export default function BookingList({ bookings, role, onAccept, onReject, onCanc
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Switch id="anon" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
-                <Label htmlFor="anon">Ẩn danh</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch id="public" checked={isPublic} onCheckedChange={setIsPublic} />
-                <Label htmlFor="public">Công khai</Label>
-              </div>
+            <div className="flex items-center gap-2">
+              <Switch id="anon" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+              <Label htmlFor="anon">Ẩn danh</Label>
             </div>
           </div>
           <DialogFooter>

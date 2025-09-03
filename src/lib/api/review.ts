@@ -77,7 +77,7 @@ function assertUpdatePayloadValid(p: UpdateReviewPayload) {
     throw new Error('Điểm đánh giá phải từ 1-5')
   }
   if (p.comment !== undefined && (typeof p.comment !== 'string' || p.comment.length > 1000)) {
-    throw new Error('Bình luận tối đa 1000 ký tự')
+    throw new Error('Bình luận t��i đa 1000 ký tự')
   }
   if (p.images !== undefined) {
     if (!Array.isArray(p.images) || p.images.length > 5) throw new Error('Tối đa 5 ảnh')
@@ -113,6 +113,19 @@ export const reviewApi = {
 
   getMyReviews: (): Promise<ApiResponse<{ reviews: Review[] }>> =>
     api.get('/reviews/my/reviews'),
+
+  getUserReviews: (
+    userId: string,
+    query?: GetReviewsQuery
+  ): Promise<ApiResponse<{ reviews: Review[]; total?: number; page?: number; totalPages?: number }>> => {
+    const params: Record<string, string> = {}
+    if (query?.page) params.page = String(query.page)
+    if (query?.limit) params.limit = String(query.limit)
+    if (query?.rating) params.rating = String(query.rating)
+    if (query?.sortBy) params.sortBy = query.sortBy
+    if (query?.order) params.order = query.order
+    return api.get(`/reviews/user/${userId}`, Object.keys(params).length ? params : undefined)
+  },
 
   updateReview: (id: number, payload: UpdateReviewPayload): Promise<ApiResponse<Review>> => {
     assertUpdatePayloadValid(payload)
