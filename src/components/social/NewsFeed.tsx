@@ -80,6 +80,23 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         ? `${apiPost.user.firstName || ''} ${apiPost.user.lastName || ''}`.trim() || apiPost.user.username
         : 'Unknown User'
 
+    // Map reaction counts (API may use 'laugh' instead of 'haha')
+    const rawCounts = apiPost.reactionCounts || {}
+    const mappedCounts: Partial<Record<ReactionType, number>> = {
+      like: rawCounts.like || 0,
+      love: rawCounts.love || 0,
+      haha: (rawCounts.haha ?? rawCounts.laugh) || 0,
+      wow: rawCounts.wow || 0,
+      sad: rawCounts.sad || 0,
+      angry: rawCounts.angry || 0,
+    }
+    const currentReactionRaw: string | null = apiPost.currentUserReaction ?? null
+    const currentReaction: ReactionType | null = currentReactionRaw === 'laugh' ? 'haha' : (currentReactionRaw as ReactionType | null)
+    const totalReactions: number | undefined =
+      apiPost.totalReactions != null
+        ? Number(apiPost.totalReactions)
+        : (apiPost.reactionCounts ? Object.values(mappedCounts).reduce((a, b) => a + (b || 0), 0) : undefined)
+
     return {
       id: apiPost.id.toString(),
       type: apiPost.mediaType === 'text' ? 'text' : apiPost.mediaType === 'video' ? 'video' : 'text',
@@ -100,8 +117,11 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       views: apiPost.viewCount || 0,
       isAdult: !apiPost.isPublic || false,
       isPremium: apiPost.isPremium || false,
-      isLiked: false,
+      isLiked: currentReaction === 'like',
       isBookmarked: false,
+      reactionCounts: mappedCounts,
+      totalReactions: totalReactions ?? (apiPost.likeCount || 0),
+      currentUserReaction: currentReaction,
       visibility: apiPost.isPublic ? 'public' : 'private',
       media: apiPost.mediaUrls && apiPost.mediaUrls.length > 0 ?
         apiPost.mediaUrls.map((url: string, index: number) => ({
@@ -218,6 +238,13 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
             total: total
           }
         }))
+
+        // Initialize user reaction map from posts
+        const initMap: Record<string, ReactionType | undefined> = {}
+        for (const p of posts) {
+          if (p.currentUserReaction) initMap[p.id] = p.currentUserReaction
+        }
+        setUserReactions(initMap)
       } else {
         throw new Error('Invalid response format')
       }
@@ -624,6 +651,21 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
         {renderMediaContent(post)}
 
+        {isAuthenticated && post.reactionCounts && Object.values(post.reactionCounts).some(c => (c || 0) > 0) && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            {REACTION_OPTIONS.map(opt => {
+              const c = post.reactionCounts?.[opt.type] || 0
+              if (c <= 0) return null
+              return (
+                <span key={opt.type} className={`flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted ${userReactions[post.id] === opt.type ? 'ring-1 ring-primary' : ''}`}>
+                  <span className="leading-none">{opt.emoji}</span>
+                  <span>{c}</span>
+                </span>
+              )
+            })}
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
             <DropdownMenu>
@@ -631,14 +673,14 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`${post.isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}
+                  className={`${(userReactions[post.id] || post.isLiked) ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}
                 >
                   {userReactions[post.id] && userReactions[post.id] !== 'like' ? (
                     <span className="w-5 h-5 mr-1 text-lg leading-none">{REACTION_OPTIONS.find(r => r.type === userReactions[post.id])?.emoji}</span>
                   ) : (
-                    <Heart className={`w-5 h-5 mr-1 ${post.isLiked ? 'fill-current' : ''}`} />
+                    <Heart className={`w-5 h-5 mr-1 ${(userReactions[post.id] === 'like' || post.isLiked) ? 'fill-current' : ''}`} />
                   )}
-                  {post.likes.toLocaleString()}
+                  {(post.totalReactions ?? (post.reactionCounts ? Object.values(post.reactionCounts).reduce((a, b) => a + (b || 0), 0) : post.likes)).toLocaleString()}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" side="top" className="px-2 py-1">
