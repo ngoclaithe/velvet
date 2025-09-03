@@ -55,14 +55,15 @@ export default function PublicUserPage() {
         setLoadingUser(true)
         const res = await userApi.getProfile(userId)
         if (mounted && res?.success && res?.data) {
-          const d: any = res.data
+          const payload: any = res.data
+          const u = payload.user || payload
           setUser({
-            id: Number(d.id || d.userId || userId),
-            username: d.username || d.user?.username || 'user',
-            firstName: d.firstName || d.user?.firstName,
-            lastName: d.lastName || d.user?.lastName,
-            avatar: d.avatar || d.user?.avatar || null,
-            isVerified: Boolean(d.isVerified || d.user?.isVerified),
+            id: Number(u.id || userId),
+            username: u.username || 'user',
+            firstName: u.firstName,
+            lastName: u.lastName,
+            avatar: u.avatar ?? null,
+            isVerified: Boolean(u.isVerified),
           })
         }
       } finally {
@@ -252,16 +253,24 @@ export default function PublicUserPage() {
           <button
             type="button"
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2"
-            onClick={() => setLightbox(({ images, index }) => ({ images, index: (index - 1 + images.length) % images.length }))}
+            onClick={() =>
+              setLightbox((prev) =>
+                prev ? { images: prev.images, index: (prev.index - 1 + prev.images.length) % prev.images.length } : prev
+              )
+            }
             aria-label="Ảnh trước"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <img src={lightbox.images[lightbox.index]} alt="review" className="max-h-[85vh] w-auto object-contain" />
+          <img src={lightbox?.images[lightbox?.index ?? 0]} alt="review" className="max-h-[85vh] w-auto object-contain" />
           <button
             type="button"
             className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2"
-            onClick={() => setLightbox(({ images, index }) => ({ images, index: (index + 1) % images.length }))}
+            onClick={() =>
+              setLightbox((prev) =>
+                prev ? { images: prev.images, index: (prev.index + 1) % prev.images.length } : prev
+              )
+            }
             aria-label="Ảnh sau"
           >
             <ArrowRight className="w-6 h-6" />
