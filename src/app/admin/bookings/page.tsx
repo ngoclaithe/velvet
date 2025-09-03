@@ -100,7 +100,7 @@ export default function AdminBookingsPage() {
             <CardTitle className="text-xl">Quản lý Booking (Admin)</CardTitle>
             <CardDescription className="flex items-start gap-2 text-amber-600">
               <AlertTriangle className="h-4 w-4 mt-0.5" />
-              <span>Hiện chưa có API dành cho Admin để xem tất cả booking trong lib/api/booking.ts. Cần bổ sung endpoint backend (ví dụ: /bookings/admin) và hàm getAllBookings(). Trang hiện hiển th�� dữ liệu nếu tài khoản admin đồng thời là creator.</span>
+              <span>Hiện chưa có API dành cho Admin để xem tất cả booking trong lib/api/booking.ts. Cần bổ sung endpoint backend (ví dụ: /bookings/admin) và hàm getAllBookings(). Trang hiện hiển thị dữ liệu nếu tài khoản admin đồng thời là creator.</span>
             </CardDescription>
           </CardHeader>
           <CardContent>

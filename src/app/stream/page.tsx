@@ -154,7 +154,7 @@ export default function StreamPage() {
         console.log('📺 Setting currentStream:', newCurrentStream)
         setCurrentStream(newCurrentStream)
 
-        toast.success('Stream đã được bắt đầu th��nh công!')
+        toast.success('Stream đã được bắt đầu thành công!')
       } else {
         console.log('❌ Stream API failed:', response.error)
         toast.error(response.error || 'Không thể bắt đầu stream')

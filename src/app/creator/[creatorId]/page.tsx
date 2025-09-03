@@ -477,7 +477,7 @@ export default function CreatorDetailPage() {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <Card className="bg-gray-800 border-gray-700 p-6 text-center">
           <h2 className="text-xl font-bold text-white mb-3">Không tìm thấy creator</h2>
-          <p className="text-gray-400 mb-4">Creator này không tồn t���i hoặc đã bị xóa</p>
+          <p className="text-gray-400 mb-4">Creator này không tồn tại hoặc đã bị xóa</p>
           <Button onClick={() => window.history.back()}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại

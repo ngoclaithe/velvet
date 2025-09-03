@@ -93,7 +93,7 @@ function assertCreatePayloadValid(payload: CreateBookingPayload): void {
 
   if (notes !== undefined) {
     if (typeof notes !== 'string' || notes.length > 500) {
-      throw new Error('Ghi chú không được vượt quá 500 ký t��')
+      throw new Error('Ghi chú không được vượt quá 500 ký tự')
     }
   }
 
@@ -163,7 +163,7 @@ export const rejectBooking = async (
   cancellationReason: string
 ): Promise<ApiResponse<Booking>> => {
   if (!cancellationReason || cancellationReason.length < 10 || cancellationReason.length > 500) {
-    throw new Error('Lý do từ chối phải từ 10-500 ký t��')
+    throw new Error('Lý do từ chối phải từ 10-500 ký tự')
   }
   return api.put<Booking>(`/bookings/${bookingId}/reject`, { cancellationReason })
 }

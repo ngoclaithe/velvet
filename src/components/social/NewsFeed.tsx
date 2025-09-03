@@ -306,7 +306,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     if (!isAuthenticated) {
       toast({
         title: "Yêu cầu đăng nhập",
-        description: "Vui lòng đăng nhập để t��ơng tác bài viết",
+        description: "Vui lòng đăng nhập để tương tác bài viết",
         variant: "destructive"
       })
       return
@@ -897,7 +897,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? (!isAuthenticated ? 'Ch��a đăng nhập' : 'Chưa theo dõi ai') :
+                {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') :
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
                  'Chưa có bài viết'}
               </h3>
@@ -934,7 +934,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                       <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
                         Đăng nhập
                       </Button>
-                      {' '}để t���o bài viết
+                      {' '}để tạo bài viết
                     </p>
                   )}
                 </div>

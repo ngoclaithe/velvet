@@ -77,7 +77,7 @@ function assertUpdatePayloadValid(p: UpdateReviewPayload) {
     throw new Error('Điểm đánh giá phải từ 1-5')
   }
   if (p.comment !== undefined && (typeof p.comment !== 'string' || p.comment.length > 1000)) {
-    throw new Error('Bình luận t��i đa 1000 ký tự')
+    throw new Error('Bình luận tối đa 1000 ký tự')
   }
   if (p.images !== undefined) {
     if (!Array.isArray(p.images) || p.images.length > 5) throw new Error('Tối đa 5 ảnh')
