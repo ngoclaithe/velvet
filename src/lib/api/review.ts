@@ -111,8 +111,8 @@ export const reviewApi = {
     return api.post('/reviews', payload)
   },
 
-  getMyReviews: (): Promise<ApiResponse<{ reviews: Review[] }>> =>
-    api.get('/reviews/my/reviews'),
+  getUserPublicReviews: (): Promise<ApiResponse<{ reviews: Review[] }>> =>
+    api.get('/reviews/user-public/reviews'),
 
   getUserReviews: (
     userId: string,
