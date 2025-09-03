@@ -5,6 +5,7 @@ export { streamApi } from './stream'
 export { chatApi } from './chat'
 export { walletAPI } from './wallet'
 export { postsApi } from './posts'
+export { commentApi } from './comment'
 export { cloudinaryApi } from './cloudinary'
 export { requestDeposit } from './requestDeposit'
 export {
