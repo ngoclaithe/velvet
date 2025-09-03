@@ -15,6 +15,7 @@ import { postsApi, GetFeed, GetAllPosts } from '@/lib/api/posts'
 import { commentApi } from '@/lib/api'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Heart,
   MessageCircle,
@@ -64,6 +65,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   const [newComment, setNewComment] = useState<Record<string, string>>({})
   const [editingContent, setEditingContent] = useState<Record<string, string>>({})
   const [working, setWorking] = useState<Record<string, boolean>>({})
+  const [visibleComments, setVisibleComments] = useState<Record<string, number>>({})
 
   // Transform API response to Post format
   const transformApiPostToPost = useCallback((apiPost: any): Post => {
@@ -434,9 +436,12 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       const res = await commentApi.getPostComments(postId)
       const data = res && res.success ? (Array.isArray(res.data) ? res.data : (res.data as any)?.comments || []) : []
       setCommentsByPost(prev => ({ ...prev, [postId]: data }))
+      setVisibleComments(prev => ({ ...prev, [postId]: 10 }))
       setCommentsLoading(prev => ({ ...prev, [postId]: false }))
+    } else if (willOpen && visibleComments[postId] == null) {
+      setVisibleComments(prev => ({ ...prev, [postId]: 10 }))
     }
-  }, [openComments, commentsByPost])
+  }, [openComments, commentsByPost, visibleComments])
 
   const submitNew = useCallback(async (postId: string) => {
     if (!isAuthenticated) {
@@ -600,7 +605,8 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               </Avatar>
               <div className="flex-1">
                 <Textarea
-                  rows={2}
+                  rows={1}
+                  className="min-h-[40px] focus:min-h-[100px] transition-[min-height] duration-200 resize-none"
                   placeholder="Viết bình luận..."
                   value={newComment[post.id] || ''}
                   onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
@@ -617,37 +623,62 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               <div className="text-sm text-muted-foreground">Đang tải bình luận...</div>
             ) : (
               <div className="space-y-3">
-                {(commentsByPost[post.id] || []).map((c: any) => (
-                  <div key={c.id} className="flex items-start gap-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={c.user?.avatar || c.author?.avatar || ''} alt={c.user?.username || c.author?.username || 'User'} />
-                      <AvatarFallback>{(c.user?.username || c.author?.username || 'U').slice(0,1).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 bg-muted/30 rounded-md p-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{c.user?.username || c.author?.displayName || c.author?.username || 'User'}</span>
-                        <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString('vi-VN')}</span>
-                      </div>
-                      {editingContent[c.id] !== undefined ? (
-                        <div className="mt-1">
-                          <Textarea rows={2} value={editingContent[c.id]} onChange={(e) => setEditingContent(prev => ({ ...prev, [c.id]: e.target.value }))} />
-                          <div className="flex gap-2 justify-end mt-1">
-                            <Button size="sm" variant="outline" onClick={() => setEditingContent(prev => { const n = { ...prev }; delete n[c.id]; return n })}>Hủy</Button>
-                            <Button size="sm" onClick={() => saveEdit(post.id, c.id)} disabled={working[c.id] || !(editingContent[c.id] || '').trim()}>Lưu</Button>
+                {(() => {
+                  const all = (commentsByPost[post.id] || [])
+                  const count = visibleComments[post.id] ?? 10
+                  const list = all.slice(0, count)
+                  return (
+                    <>
+                      {list.map((c: any) => (
+                        <div key={c.id} className="flex items-start gap-2">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={c.user?.avatar || c.author?.avatar || ''} alt={c.user?.username || c.author?.username || 'User'} />
+                            <AvatarFallback>{(c.user?.username || c.author?.username || 'U').slice(0,1).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 bg-muted/30 rounded-md p-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold">{c.user?.username || c.author?.displayName || c.author?.username || 'User'}</span>
+                                <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString('vi-VN')}</span>
+                              </div>
+                              {(isAuthenticated && (c.userId?.toString?.() === user?.id?.toString?.() || c.user?.id?.toString?.() === user?.id?.toString?.() || c.author?.id?.toString?.() === user?.id?.toString?.())) && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setEditingContent(prev => ({ ...prev, [c.id]: c.content }))}>Sửa</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => removeComment(post.id, c.id)}>Xóa</DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                            </div>
+                            {editingContent[c.id] !== undefined ? (
+                              <div className="mt-1">
+                                <Textarea rows={2} value={editingContent[c.id]} onChange={(e) => setEditingContent(prev => ({ ...prev, [c.id]: e.target.value }))} />
+                                <div className="flex gap-2 justify-end mt-1">
+                                  <Button size="sm" variant="outline" onClick={() => setEditingContent(prev => { const n = { ...prev }; delete n[c.id]; return n })}>Hủy</Button>
+                                  <Button size="sm" onClick={() => saveEdit(post.id, c.id)} disabled={working[c.id] || !(editingContent[c.id] || '').trim()}>Lưu</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-sm mt-1 whitespace-pre-line">{c.content}</p>
+                            )}
                           </div>
                         </div>
-                      ) : (
-                        <p className="text-sm mt-1 whitespace-pre-line">{c.content}</p>
-                      )}
-                      {(isAuthenticated && (c.userId?.toString?.() === user?.id?.toString?.() || c.user?.id?.toString?.() === user?.id?.toString?.() || c.author?.id?.toString?.() === user?.id?.toString?.())) && (
-                        <div className="flex gap-3 text-xs text-muted-foreground mt-1">
-                          <button className="hover:underline" onClick={() => setEditingContent(prev => ({ ...prev, [c.id]: c.content }))}>Sửa</button>
-                          <button className="hover:underline" onClick={() => removeComment(post.id, c.id)}>Xóa</button>
+                      ))}
+                      {all.length > count && (
+                        <div className="pt-1">
+                          <Button variant="ghost" size="sm" onClick={() => setVisibleComments(prev => ({ ...prev, [post.id]: count + 10 }))}>
+                            Xem thêm bình luận
+                          </Button>
                         </div>
                       )}
-                    </div>
-                  </div>
-                ))}
+                    </>
+                  )
+                })()}
               </div>
             )}
           </div>
