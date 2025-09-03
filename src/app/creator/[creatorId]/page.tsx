@@ -342,7 +342,7 @@ export default function CreatorDetailPage() {
         }
       } catch (error) {
         console.error('Error fetching creator details:', error)
-        toast({ title: 'L��i', description: 'Không thể tải thông tin creator', variant: 'destructive' })
+        toast({ title: 'Lỗi', description: 'Không thể tải thông tin creator', variant: 'destructive' })
       } finally {
         setLoading(false)
       }
@@ -504,8 +504,8 @@ export default function CreatorDetailPage() {
             <div className="lg:sticky lg:top-4 space-y-4">
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="relative shrink-0">
+                  <div className="flex flex-col items-center text-center gap-3">
+                    <div className="relative">
                       <Avatar className="w-24 h-24 sm:w-28 sm:h-28">
                         <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
                         <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-3xl">
@@ -520,28 +520,28 @@ export default function CreatorDetailPage() {
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-full min-w-0">
+                      <div className="flex items-center justify-center gap-2 mb-1.5">
                         <h1 className="text-2xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
                         {creator.isVerified && <Verified className="w-6 h-6 text-blue-500" />}
                       </div>
                       <p className="text-gray-400 text-sm mb-1 break-all">@{creator.username}</p>
 
                       {creator.titleBio && (
-                        <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-2.5 mb-3">
+                        <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-2.5 mb-2">
                           <p className="text-pink-300 font-semibold text-sm leading-relaxed">{creator.titleBio}</p>
                         </div>
                       )}
 
                       {creator.location && (
-                        <div className="flex items-center gap-2 text-gray-400 text-xs mb-3">
+                        <div className="flex items-center justify-center gap-2 text-gray-400 text-xs mb-2">
                           <MapPin className="w-4 h-4" />
                           {creator.location}
                         </div>
                       )}
-                      {creator.bio && <p className="text-gray-300 text-sm md:text-base leading-relaxed mb-4 whitespace-pre-line break-words">{creator.bio}</p>}
+                      {creator.bio && <p className="text-gray-300 text-sm leading-relaxed mb-3 whitespace-pre-line break-words">{creator.bio}</p>}
 
-                      <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-2 gap-3 mb-3">
                         <div className="text-center">
                           <p className="text-white font-bold text-lg">{formatCount(creator.followersCount)}</p>
                           <p className="text-gray-400 text-xs">Followers</p>
@@ -558,8 +558,8 @@ export default function CreatorDetailPage() {
                       </div>
 
                       {isAuthenticated && creator.userId.toString() !== user?.id ? (
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                          <Button onClick={handleFollow} disabled={actionLoading} className={`flex-1 ${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'}`}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                          <Button onClick={handleFollow} disabled={actionLoading} className={`${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'} w-full`}>
                             {actionLoading ? (
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             ) : creator.isFollowing ? (
@@ -576,7 +576,7 @@ export default function CreatorDetailPage() {
                           </Button>
                           <Button
                             variant="outline"
-                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                            className="border-gray-600 text-gray-300 hover:bg-gray-700 w-full"
                             disabled={chatLoading}
                             onClick={async () => {
                               if (!isAuthenticated) {
@@ -608,7 +608,7 @@ export default function CreatorDetailPage() {
                             Nhắn tin
                           </Button>
                           {creator.isAvailableForBooking && (
-                            <Button className="bg-green-600 hover:bg-green-700" onClick={openBookingModal}>
+                            <Button className="bg-green-600 hover:bg-green-700 w-full" onClick={openBookingModal}>
                               <Calendar className="w-4 h-4 mr-2" />
                               Đặt lịch
                             </Button>
@@ -873,10 +873,12 @@ export default function CreatorDetailPage() {
                             </div>
                             {r.images && r.images.length > 0 && (
                               <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                {r.images.map((u, idx) => (
-                                  <img key={`${r.id}-${idx}`} src={u} alt={`rv-${idx}`} className="w-full h-20 object-cover rounded" />
-                                ))}
-                              </div>
+                            {r.images.map((u, idx) => (
+                              <a key={`${r.id}-${idx}`} href={u} target="_blank" rel="noopener noreferrer" className="block">
+                                <img src={u} alt={`rv-${idx}`} className="w-full h-16 sm:h-20 object-cover rounded cursor-zoom-in" />
+                              </a>
+                            ))}
+                          </div>
                             )}
                           </div>
                         </div>
@@ -948,7 +950,7 @@ export default function CreatorDetailPage() {
                 <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {rvPreviews.map((u, idx) => (
                     <div key={u} className="relative">
-                      <img src={u} alt={`preview-${idx}`} className="w-full h-20 object-cover rounded" />
+                      <img src={u} alt={`preview-${idx}`} className="w-full h-16 object-cover rounded" />
                       {(rvSubmitting || uploading) && (
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">
                           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
