@@ -477,7 +477,7 @@ export default function CreatorDetailPage() {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <Card className="bg-gray-800 border-gray-700 p-6 text-center">
           <h2 className="text-xl font-bold text-white mb-3">Không tìm thấy creator</h2>
-          <p className="text-gray-400 mb-4">Creator này không tồn tại hoặc đã bị xóa</p>
+          <p className="text-gray-400 mb-4">Creator này không tồn t���i hoặc đã bị xóa</p>
           <Button onClick={() => window.history.back()}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
@@ -986,11 +986,15 @@ export default function CreatorDetailPage() {
         <DialogContent className="max-w-3xl w-[95vw] p-0 bg-black/90">
           {lightbox && (
             <div className="relative">
-              <img src={lightbox.images[lightbox.index]} alt="review" className="max-h-[80vh] w-full object-contain" />
+              <img src={lightbox?.images[lightbox?.index ?? 0]} alt="review" className="max-h-[80vh] w-full object-contain" />
               <button
                 type="button"
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2"
-                onClick={() => setLightbox(({ images, index }) => ({ images, index: (index - 1 + images.length) % images.length }))}
+                onClick={() =>
+                  setLightbox((prev) =>
+                    prev ? { images: prev.images, index: (prev.index - 1 + prev.images.length) % prev.images.length } : prev
+                  )
+                }
                 aria-label="Ảnh trước"
               >
                 <ArrowLeft className="w-6 h-6" />
@@ -998,7 +1002,11 @@ export default function CreatorDetailPage() {
               <button
                 type="button"
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2"
-                onClick={() => setLightbox(({ images, index }) => ({ images, index: (index + 1) % images.length }))}
+                onClick={() =>
+                  setLightbox((prev) =>
+                    prev ? { images: prev.images, index: (prev.index + 1) % prev.images.length } : prev
+                  )
+                }
                 aria-label="Ảnh sau"
               >
                 <ArrowRight className="w-6 h-6" />
