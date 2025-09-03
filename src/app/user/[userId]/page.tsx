@@ -111,10 +111,11 @@ export default function PublicUserPage() {
         setLoadingPosts(false)
       }
     }
+
     const loadReviews = async () => {
       try {
         setLoadingReviews(true)
-        const res = await reviewApi.getUserPublicReviews({ userId})
+        const res = await reviewApi.getUserPublicReviews(Number(userId))
         const data: any = res?.success ? res.data : null
         const list: Review[] = Array.isArray(data?.reviews) ? data.reviews : (Array.isArray(data) ? data as any : [])
         setReviews(list)
