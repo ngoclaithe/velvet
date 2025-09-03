@@ -15,6 +15,7 @@ import type { Post, FeedParams } from '@/types/posts'
 import { postsApi, GetFeed, GetAllPosts } from '@/lib/api/posts'
 import { commentApi } from '@/lib/api'
 import { reactApi } from '@/lib/api/react'
+import type { ReactionType } from '@/lib/api/react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -57,6 +58,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
   const { isAuthenticated, user } = useAuth()
+  const [userReactions, setUserReactions] = useState<Record<string, ReactionType | undefined>>({})
 
   const currentFeed = feeds[activeTab]
 
@@ -287,6 +289,17 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   }, [])
 
   const VALID_REACTION_TYPES = useMemo(() => ['like', 'love', 'haha', 'wow', 'sad', 'angry'] as const, [])
+  const REACTION_OPTIONS = useMemo(
+    () => [
+      { type: 'like' as ReactionType, emoji: '👍', label: 'Thích' },
+      { type: 'love' as ReactionType, emoji: '❤️', label: 'Yêu thích' },
+      { type: 'haha' as ReactionType, emoji: '😂', label: 'Haha' },
+      { type: 'wow' as ReactionType, emoji: '😮', label: 'Wow' },
+      { type: 'sad' as ReactionType, emoji: '😢', label: 'Buồn' },
+      { type: 'angry' as ReactionType, emoji: '😡', label: 'Tức giận' },
+    ],
+    []
+  )
 
   // Handle post interactions
   const toggleReaction = useCallback(async (postId: string, reactionType: (typeof VALID_REACTION_TYPES)[number]) => {
@@ -329,7 +342,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       }
 
       const res = await reactApi.toggleReactionPost({
-        targetType: 'post',
         targetId: postId,
         reactionType,
       })
@@ -614,15 +626,40 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleLike(post.id)}
-              className={`${post.isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}
-            >
-              <Heart className={`w-5 h-5 mr-1 ${post.isLiked ? 'fill-current' : ''}`} />
-              {post.likes.toLocaleString()}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`${post.isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}
+                >
+                  {userReactions[post.id] && userReactions[post.id] !== 'like' ? (
+                    <span className="w-5 h-5 mr-1 text-lg leading-none">{REACTION_OPTIONS.find(r => r.type === userReactions[post.id])?.emoji}</span>
+                  ) : (
+                    <Heart className={`w-5 h-5 mr-1 ${post.isLiked ? 'fill-current' : ''}`} />
+                  )}
+                  {post.likes.toLocaleString()}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="top" className="px-2 py-1">
+                <div className="flex items-center gap-2">
+                  {REACTION_OPTIONS.map(opt => (
+                    <button
+                      key={opt.type}
+                      onClick={() => {
+                        setUserReactions(prev => ({ ...prev, [post.id]: opt.type }))
+                        toggleReaction(post.id, opt.type)
+                      }}
+                      className="text-2xl leading-none hover:scale-110 transition-transform"
+                      title={opt.label}
+                      aria-label={opt.label}
+                    >
+                      {opt.emoji}
+                    </button>
+                  ))}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-blue-500" onClick={() => toggleComments(post.id)}>
               <MessageCircle className="w-5 h-5 mr-1" />
               {post.comments}
@@ -731,7 +768,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         )}
       </CardContent>
     </Card>
-  ), [formatTimeAgo, renderMediaContent, handleLike, handleBookmark, openComments, commentsByPost, commentsLoading, newComment, working, isAuthenticated, user, toggleComments, submitNew, saveEdit, removeComment])
+  ), [formatTimeAgo, renderMediaContent, handleLike, handleBookmark, openComments, commentsByPost, commentsLoading, newComment, working, isAuthenticated, user, toggleComments, submitNew, saveEdit, removeComment, userReactions, toggleReaction])
 
   // Render loading skeleton
   const renderSkeletons = useCallback(() => (
@@ -860,7 +897,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                  activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? (!isAuthenticated ? 'Ch��a đăng nhập' : 'Chưa theo dõi ai') :
+                {activeTab === 'following' ? (!isAuthenticated ? 'Ch����a đăng nhập' : 'Chưa theo dõi ai') :
                  activeTab === 'my-posts' ? 'Chưa có bài viết' :
                  'Chưa có bài viết'}
               </h3>
