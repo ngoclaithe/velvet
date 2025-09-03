@@ -12,6 +12,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { ImageGallery } from '@/components/ui/image-gallery'
 import type { Post, FeedParams } from '@/types/posts'
 import { postsApi, GetFeed, GetAllPosts } from '@/lib/api/posts'
+import { commentApi } from '@/lib/api'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Heart,
   MessageCircle,
@@ -53,6 +56,14 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   const { isAuthenticated, user } = useAuth()
 
   const currentFeed = feeds[activeTab]
+
+  // Comments state
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({})
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, any[]>>({})
+  const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({})
+  const [newComment, setNewComment] = useState<Record<string, string>>({})
+  const [editingContent, setEditingContent] = useState<Record<string, string>>({})
+  const [working, setWorking] = useState<Record<string, boolean>>({})
 
   // Transform API response to Post format
   const transformApiPostToPost = useCallback((apiPost: any): Post => {
@@ -414,6 +425,88 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     )
   }, [isAuthenticated])
 
+  // Toggle comments
+  const toggleComments = useCallback(async (postId: string) => {
+    setOpenComments(prev => ({ ...prev, [postId]: !prev[postId] }))
+    const willOpen = !openComments[postId]
+    if (willOpen && !commentsByPost[postId]) {
+      setCommentsLoading(prev => ({ ...prev, [postId]: true }))
+      const res = await commentApi.getPostComments(postId)
+      const data = res && res.success ? (Array.isArray(res.data) ? res.data : (res.data as any)?.comments || []) : []
+      setCommentsByPost(prev => ({ ...prev, [postId]: data }))
+      setCommentsLoading(prev => ({ ...prev, [postId]: false }))
+    }
+  }, [openComments, commentsByPost])
+
+  const submitNew = useCallback(async (postId: string) => {
+    if (!isAuthenticated) {
+      toast({ title: 'Yêu cầu đăng nhập', description: 'Vui lòng đăng nhập để bình luận', variant: 'destructive' })
+      return
+    }
+    const content = (newComment[postId] || '').trim()
+    if (!content) return
+    setWorking(prev => ({ ...prev, [postId]: true }))
+    const res = await commentApi.createComment(postId, { content })
+    if (res.success && res.data) {
+      const created = (res.data as any)
+      setCommentsByPost(prev => ({ ...prev, [postId]: [created, ...(prev[postId] || [])] }))
+      setNewComment(prev => ({ ...prev, [postId]: '' }))
+      // bump post comment count
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(p => p.id === postId ? { ...p, comments: (p.comments || 0) + 1 } : p)
+        }
+      }))
+    } else {
+      toast({ title: 'Lỗi', description: res.error || 'Không thể tạo bình luận', variant: 'destructive' })
+    }
+    setWorking(prev => ({ ...prev, [postId]: false }))
+  }, [isAuthenticated, toast, newComment, activeTab])
+
+  const saveEdit = useCallback(async (postId: string, commentId: string) => {
+    const content = (editingContent[commentId] || '').trim()
+    if (!content) return
+    setWorking(prev => ({ ...prev, [commentId]: true }))
+    const res = await commentApi.updateComment(commentId, { content })
+    if (res.success) {
+      setCommentsByPost(prev => ({
+        ...prev,
+        [postId]: (prev[postId] || []).map(c => c.id === commentId ? { ...c, content } : c)
+      }))
+      setEditingContent(prev => {
+        const n = { ...prev }
+        delete n[commentId]
+        return n
+      })
+    } else {
+      toast({ title: 'Lỗi', description: res.error || 'Không thể cập nhật bình luận', variant: 'destructive' })
+    }
+    setWorking(prev => ({ ...prev, [commentId]: false }))
+  }, [editingContent, toast])
+
+  const removeComment = useCallback(async (postId: string, commentId: string) => {
+    setWorking(prev => ({ ...prev, [commentId]: true }))
+    const res = await commentApi.deleteComment(commentId)
+    if (res.success) {
+      setCommentsByPost(prev => ({
+        ...prev,
+        [postId]: (prev[postId] || []).filter(c => c.id !== commentId)
+      }))
+      setFeeds(prev => ({
+        ...prev,
+        [activeTab]: {
+          ...prev[activeTab],
+          posts: prev[activeTab].posts.map(p => p.id === postId ? { ...p, comments: Math.max((p.comments || 1) - 1, 0) } : p)
+        }
+      }))
+    } else {
+      toast({ title: 'Lỗi', description: res.error || 'Không thể xóa bình luận', variant: 'destructive' })
+    }
+    setWorking(prev => ({ ...prev, [commentId]: false }))
+  }, [activeTab, toast])
+
   // Render single post
   const renderPost = useCallback((post: Post) => (
     <Card key={post.id} className="overflow-hidden">
@@ -470,16 +563,16 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => handleLike(post.id)}
               className={`${post.isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}
             >
               <Heart className={`w-5 h-5 mr-1 ${post.isLiked ? 'fill-current' : ''}`} />
               {post.likes.toLocaleString()}
             </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-blue-500">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-blue-500" onClick={() => toggleComments(post.id)}>
               <MessageCircle className="w-5 h-5 mr-1" />
               {post.comments}
             </Button>
@@ -488,18 +581,80 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               {post.shares}
             </Button>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => handleBookmark(post.id)}
             className={`${post.isBookmarked ? 'text-yellow-500' : 'text-muted-foreground'} hover:text-yellow-500`}
           >
             <Bookmark className={`w-5 h-5 ${post.isBookmarked ? 'fill-current' : ''}`} />
           </Button>
         </div>
+
+        {openComments[post.id] && (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-start gap-2">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={user?.avatar || ''} alt={user?.username || 'You'} />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <Textarea
+                  rows={2}
+                  placeholder="Viết bình luận..."
+                  value={newComment[post.id] || ''}
+                  onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
+                />
+                <div className="flex justify-end mt-2">
+                  <Button size="sm" onClick={() => submitNew(post.id)} disabled={working[post.id] || !(newComment[post.id] || '').trim()}>
+                    Gửi
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {commentsLoading[post.id] ? (
+              <div className="text-sm text-muted-foreground">Đang tải bình luận...</div>
+            ) : (
+              <div className="space-y-3">
+                {(commentsByPost[post.id] || []).map((c: any) => (
+                  <div key={c.id} className="flex items-start gap-2">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={c.user?.avatar || c.author?.avatar || ''} alt={c.user?.username || c.author?.username || 'User'} />
+                      <AvatarFallback>{(c.user?.username || c.author?.username || 'U').slice(0,1).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 bg-muted/30 rounded-md p-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{c.user?.username || c.author?.displayName || c.author?.username || 'User'}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString('vi-VN')}</span>
+                      </div>
+                      {editingContent[c.id] !== undefined ? (
+                        <div className="mt-1">
+                          <Textarea rows={2} value={editingContent[c.id]} onChange={(e) => setEditingContent(prev => ({ ...prev, [c.id]: e.target.value }))} />
+                          <div className="flex gap-2 justify-end mt-1">
+                            <Button size="sm" variant="outline" onClick={() => setEditingContent(prev => { const n = { ...prev }; delete n[c.id]; return n })}>Hủy</Button>
+                            <Button size="sm" onClick={() => saveEdit(post.id, c.id)} disabled={working[c.id] || !(editingContent[c.id] || '').trim()}>Lưu</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm mt-1 whitespace-pre-line">{c.content}</p>
+                      )}
+                      {(isAuthenticated && (c.userId?.toString?.() === user?.id?.toString?.() || c.user?.id?.toString?.() === user?.id?.toString?.() || c.author?.id?.toString?.() === user?.id?.toString?.())) && (
+                        <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                          <button className="hover:underline" onClick={() => setEditingContent(prev => ({ ...prev, [c.id]: c.content }))}>Sửa</button>
+                          <button className="hover:underline" onClick={() => removeComment(post.id, c.id)}>Xóa</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
-  ), [formatTimeAgo, renderMediaContent, handleLike, handleBookmark])
+  ), [formatTimeAgo, renderMediaContent, handleLike, handleBookmark, openComments, commentsByPost, commentsLoading, newComment, working, isAuthenticated, user, toggleComments, submitNew, saveEdit, removeComment])
 
   // Render loading skeleton
   const renderSkeletons = useCallback(() => (
