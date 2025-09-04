@@ -651,21 +651,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
         {renderMediaContent(post)}
 
-        {isAuthenticated && post.reactionCounts && Object.values(post.reactionCounts).some(c => (c || 0) > 0) && (
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            {REACTION_OPTIONS.map(opt => {
-              const c = post.reactionCounts?.[opt.type] || 0
-              if (c <= 0) return null
-              return (
-                <span key={opt.type} className={`flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted ${userReactions[post.id] === opt.type ? 'ring-1 ring-primary' : ''}`}>
-                  <span className="leading-none">{opt.emoji}</span>
-                  <span>{c}</span>
-                </span>
-              )
-            })}
-          </div>
-        )}
-
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
             <DropdownMenu>
