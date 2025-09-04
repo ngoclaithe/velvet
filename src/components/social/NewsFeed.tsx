@@ -348,69 +348,122 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       return
     }
 
-    try {
-      // Optimistic update for 'like' reaction affecting like counter/UI state
-      if (reactionType === 'like') {
-        setFeeds(prev => ({
-          ...prev,
-          [activeTab]: {
-            ...prev[activeTab],
-            posts: prev[activeTab].posts.map(post =>
-              post.id === postId
-                ? {
-                    ...post,
-                    isLiked: !post.isLiked,
-                    likes: post.isLiked ? Math.max(post.likes - 1, 0) : post.likes + 1
-                  }
-                : post
-            )
+    // Capture previous state for revert
+    const prevPost = feeds[activeTab].posts.find(p => p.id === postId)
+    const prevSnapshot = prevPost ? {
+      currentUserReaction: prevPost.currentUserReaction ?? null,
+      reactionCounts: { ...(prevPost.reactionCounts || {}) },
+      totalReactions: prevPost.totalReactions ?? (prevPost.reactionCounts ? Object.values(prevPost.reactionCounts).reduce((a,b)=>a+(b||0),0) : prevPost.likes || 0),
+      likes: prevPost.likes,
+      isLiked: !!prevPost.isLiked,
+    } : null
+
+    // Optimistic update: adjust counts, total, and current user's reaction
+    setFeeds(prev => {
+      const feed = prev[activeTab]
+      const posts = feed.posts.map(post => {
+        if (post.id !== postId) return post
+        const counts: Partial<Record<ReactionType, number>> = {
+          like: post.reactionCounts?.like || 0,
+          love: post.reactionCounts?.love || 0,
+          haha: post.reactionCounts?.haha || 0,
+          wow: post.reactionCounts?.wow || 0,
+          sad: post.reactionCounts?.sad || 0,
+          angry: post.reactionCounts?.angry || 0,
+        }
+        const prevReaction = post.currentUserReaction || userReactions[postId]
+        let total = post.totalReactions ?? Object.values(counts).reduce((a,b)=>a+(b||0),0)
+
+        if (prevReaction === reactionType) {
+          // remove reaction
+          counts[reactionType] = Math.max((counts[reactionType] || 0) - 1, 0)
+          total = Math.max(total - 1, 0)
+          return {
+            ...post,
+            reactionCounts: counts,
+            totalReactions: total,
+            currentUserReaction: null,
+            isLiked: false,
+            likes: counts.like || 0,
           }
-        }))
-      }
-
-      const res = await reactApi.toggleReactionPost({
-        postId,
-        reactionType,
+        } else {
+          // switch or add new reaction
+          if (prevReaction) {
+            counts[prevReaction] = Math.max((counts[prevReaction] || 0) - 1, 0)
+          } else {
+            total = total + 1
+          }
+          counts[reactionType] = (counts[reactionType] || 0) + 1
+          return {
+            ...post,
+            reactionCounts: counts,
+            totalReactions: total,
+            currentUserReaction: reactionType,
+            isLiked: reactionType === 'like',
+            likes: counts.like || 0,
+          }
+        }
       })
+      return { ...prev, [activeTab]: { ...feed, posts } }
+    })
 
+    // reflect in quick map for icon
+    setUserReactions(prev => {
+      const prevReaction = (feeds[activeTab].posts.find(p => p.id === postId)?.currentUserReaction) || prev[postId]
+      if (prevReaction === reactionType) {
+        const clone = { ...prev }
+        delete clone[postId]
+        return clone
+      }
+      return { ...prev, [postId]: reactionType }
+    })
+
+    try {
+      const res = await reactApi.toggleReactionPost({ postId, reactionType })
       if (!res.success) {
-        // revert optimistic update on failure
-        if (reactionType === 'like') {
-          setFeeds(prev => ({
-            ...prev,
-            [activeTab]: {
-              ...prev[activeTab],
-              posts: prev[activeTab].posts.map(post =>
-                post.id === postId
-                  ? {
-                      ...post,
-                      isLiked: !post.isLiked,
-                      likes: post.isLiked ? post.likes + 1 : Math.max(post.likes - 1, 0)
-                    }
-                  : post
-              )
-            }
-          }))
+        // revert on failure
+        if (prevSnapshot) {
+          setFeeds(prev => {
+            const feed = prev[activeTab]
+            const posts = feed.posts.map(post => post.id === postId ? {
+              ...post,
+              reactionCounts: { ...prevSnapshot.reactionCounts },
+              totalReactions: prevSnapshot.totalReactions,
+              currentUserReaction: prevSnapshot.currentUserReaction,
+              isLiked: prevSnapshot.isLiked,
+              likes: prevSnapshot.likes,
+            } : post)
+            return { ...prev, [activeTab]: { ...feed, posts } }
+          })
+          setUserReactions(prev => {
+            const clone = { ...prev }
+            if (prevSnapshot.currentUserReaction) clone[postId] = prevSnapshot.currentUserReaction
+            else delete clone[postId]
+            return clone
+          })
         }
         toast({ title: 'Lỗi', description: res.error || 'Không thể thực hiện thao tác. Vui lòng thử lại.', variant: 'destructive' })
       }
     } catch (error) {
-      if (reactionType === 'like') {
-        setFeeds(prev => ({
-          ...prev,
-          [activeTab]: {
-            ...prev[activeTab],
-            posts: prev[activeTab].posts.map(post =>
-              post.id === postId
-                ? {
-                    ...post,
-                    isLiked: !post.isLiked,
-                    likes: post.isLiked ? post.likes + 1 : Math.max(post.likes - 1, 0)
-                  }
-                : post
-            )
-          }
-        }))
+      if (prevSnapshot) {
+        setFeeds(prev => {
+          const feed = prev[activeTab]
+          const posts = feed.posts.map(post => post.id === postId ? {
+            ...post,
+            reactionCounts: { ...prevSnapshot.reactionCounts },
+            totalReactions: prevSnapshot.totalReactions,
+            currentUserReaction: prevSnapshot.currentUserReaction,
+            isLiked: prevSnapshot.isLiked,
+            likes: prevSnapshot.likes,
+          } : post)
+          return { ...prev, [activeTab]: { ...feed, posts } }
+        })
+        setUserReactions(prev => {
+          const clone = { ...prev }
+          if (prevSnapshot.currentUserReaction) clone[postId] = prevSnapshot.currentUserReaction
+          else delete clone[postId]
+          return clone
+        })
       }
 
       toast({
@@ -419,7 +472,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         variant: "destructive"
       })
     }
-  }, [isAuthenticated, activeTab, toast, VALID_REACTION_TYPES])
+  }, [isAuthenticated, activeTab, toast, VALID_REACTION_TYPES, feeds, userReactions])
 
   const handleLike = useCallback(async (postId: string) => {
     return toggleReaction(postId, 'like')
