@@ -728,6 +728,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                       onClick={() => {
                         setUserReactions(prev => ({ ...prev, [post.id]: opt.type }))
                         toggleReaction(post.id, opt.type)
+                        setReactionMenuOpen(prev => ({ ...prev, [post.id]: false }))
                       }}
                       className="text-2xl leading-none hover:scale-110 transition-transform"
                       title={opt.label}
