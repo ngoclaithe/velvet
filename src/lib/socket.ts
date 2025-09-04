@@ -50,8 +50,8 @@ export class SocketService {
     this.disconnect()
     this.currentConfig = config
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-    const socketUrl = baseUrl.replace('/api/v1', '').replace('http://', 'ws://').replace('https://', 'wss://')
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api2.scoliv2.com'
+    const socketUrl = baseUrl.replace('/api/v2', '').replace('http://', 'ws://').replace('https://', 'wss://')
 
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(socketUrl, {
