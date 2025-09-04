@@ -22,8 +22,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import {
   Heart,
   MessageCircle,
-  Share2,
-  Bookmark,
   Eye,
   MoreHorizontal,
   Play,
@@ -70,6 +68,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   const [editingContent, setEditingContent] = useState<Record<string, string>>({})
   const [working, setWorking] = useState<Record<string, boolean>>({})
   const [visibleComments, setVisibleComments] = useState<Record<string, number>>({})
+  const [reactionMenuOpen, setReactionMenuOpen] = useState<Record<string, boolean>>({})
 
   // Transform API response to Post format
   const transformApiPostToPost = useCallback((apiPost: any): Post => {
@@ -267,7 +266,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
       toast({
         title: "Lỗi tải bài viết",
-        description: error instanceof Error ? error.message : "Không thể tải bài viết. Vui lòng thử lại sau.",
+        description: error instanceof Error ? error.message : "Không th��� tải bài viết. Vui lòng thử lại sau.",
         variant: "destructive"
       })
     }
@@ -478,54 +477,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     return toggleReaction(postId, 'like')
   }, [toggleReaction])
 
-  const handleBookmark = useCallback(async (postId: string) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Yêu cầu đăng nhập",
-        description: "Vui lòng đăng nhập để lưu bài viết",
-        variant: "destructive"
-      })
-      return
-    }
-
-    try {
-      // Optimistic update
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? { ...post, isBookmarked: !post.isBookmarked }
-              : post
-          )
-        }
-      }))
-
-      // TODO: Call API to bookmark/unbookmark post
-      // await postsApi.bookmarkPost(postId)
-
-    } catch (error) {
-      // Revert optimistic update on error
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? { ...post, isBookmarked: !post.isBookmarked }
-              : post
-          )
-        }
-      }))
-
-      toast({
-        title: "Lỗi",
-        description: "Không thể thực hiện thao tác. Vui lòng thử lại.",
-        variant: "destructive"
-      })
-    }
-  }, [isAuthenticated, activeTab, toast])
 
   // Render media content with ImageGallery
   const renderMediaContent = useCallback((post: Post) => {
@@ -706,7 +657,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
-            <DropdownMenu>
+            <DropdownMenu open={!!reactionMenuOpen[post.id]} onOpenChange={(o) => setReactionMenuOpen(prev => ({ ...prev, [post.id]: o }))}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -729,6 +680,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                       onClick={() => {
                         setUserReactions(prev => ({ ...prev, [post.id]: opt.type }))
                         toggleReaction(post.id, opt.type)
+                        setReactionMenuOpen(prev => ({ ...prev, [post.id]: false }))
                       }}
                       className="text-2xl leading-none hover:scale-110 transition-transform"
                       title={opt.label}
@@ -744,19 +696,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               <MessageCircle className="w-5 h-5 mr-1" />
               {post.comments}
             </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-green-500">
-              <Share2 className="w-5 h-5 mr-1" />
-              {post.shares}
-            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleBookmark(post.id)}
-            className={`${post.isBookmarked ? 'text-yellow-500' : 'text-muted-foreground'} hover:text-yellow-500`}
-          >
-            <Bookmark className={`w-5 h-5 ${post.isBookmarked ? 'fill-current' : ''}`} />
-          </Button>
         </div>
 
         {openComments[post.id] && (
@@ -848,7 +788,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         )}
       </CardContent>
     </Card>
-  ), [formatTimeAgo, renderMediaContent, handleLike, handleBookmark, openComments, commentsByPost, commentsLoading, newComment, working, isAuthenticated, user, toggleComments, submitNew, saveEdit, removeComment, userReactions, toggleReaction])
+  ), [formatTimeAgo, renderMediaContent, handleLike, openComments, commentsByPost, commentsLoading, newComment, working, isAuthenticated, user, toggleComments, submitNew, saveEdit, removeComment, userReactions, toggleReaction])
 
   // Render loading skeleton
   const renderSkeletons = useCallback(() => (
