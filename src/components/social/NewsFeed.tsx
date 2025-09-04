@@ -705,7 +705,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <div className="flex items-center gap-6">
-            <DropdownMenu>
+            <DropdownMenu open={!!reactionMenuOpen[post.id]} onOpenChange={(o) => setReactionMenuOpen(prev => ({ ...prev, [post.id]: o }))}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
