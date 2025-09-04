@@ -22,8 +22,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import {
   Heart,
   MessageCircle,
-  Share2,
-  Bookmark,
   Eye,
   MoreHorizontal,
   Play,
@@ -983,7 +981,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               </h3>
               <p className="text-muted-foreground">
                 {activeTab === 'following'
-                  ? (!isAuthenticated ? 'Hãy đăng nhập để xem các bài viết của creator đã follow' : 'Hãy theo dõi một số người để xem bài viết của họ tại đây')
+                  ? (!isAuthenticated ? 'Hãy đăng nhập để xem các bài vi��t của creator đã follow' : 'Hãy theo dõi một số người để xem bài viết của họ tại đây')
                   : activeTab === 'my-posts'
                   ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
                   : 'Hiện tại chưa có bài viết nào. Hãy quay lại sau!'
