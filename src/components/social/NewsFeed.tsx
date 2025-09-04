@@ -266,7 +266,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
       toast({
         title: "Lỗi tải bài viết",
-        description: error instanceof Error ? error.message : "Không thể tải bài viết. Vui lòng thử lại sau.",
+        description: error instanceof Error ? error.message : "Không th��� tải bài viết. Vui lòng thử lại sau.",
         variant: "destructive"
       })
     }
@@ -477,54 +477,6 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     return toggleReaction(postId, 'like')
   }, [toggleReaction])
 
-  const handleBookmark = useCallback(async (postId: string) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Yêu cầu đăng nhập",
-        description: "Vui lòng đăng nhập để lưu bài viết",
-        variant: "destructive"
-      })
-      return
-    }
-
-    try {
-      // Optimistic update
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? { ...post, isBookmarked: !post.isBookmarked }
-              : post
-          )
-        }
-      }))
-
-      // TODO: Call API to bookmark/unbookmark post
-      // await postsApi.bookmarkPost(postId)
-
-    } catch (error) {
-      // Revert optimistic update on error
-      setFeeds(prev => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
-          posts: prev[activeTab].posts.map(post =>
-            post.id === postId
-              ? { ...post, isBookmarked: !post.isBookmarked }
-              : post
-          )
-        }
-      }))
-
-      toast({
-        title: "Lỗi",
-        description: "Không thể thực hiện thao tác. Vui lòng thử lại.",
-        variant: "destructive"
-      })
-    }
-  }, [isAuthenticated, activeTab, toast])
 
   // Render media content with ImageGallery
   const renderMediaContent = useCallback((post: Post) => {
@@ -962,7 +914,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
             <div className="space-y-4">
               <div className="text-6xl mb-4">
                 {activeTab === 'following' ? '👥' :
-                 activeTab === 'my-posts' ? '��️' : '📝'}
+                 activeTab === 'my-posts' ? '✍️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
                 {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') :
