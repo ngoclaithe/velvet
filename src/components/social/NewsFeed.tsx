@@ -788,7 +788,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         )}
       </CardContent>
     </Card>
-  ), [formatTimeAgo, renderMediaContent, handleLike, handleBookmark, openComments, commentsByPost, commentsLoading, newComment, working, isAuthenticated, user, toggleComments, submitNew, saveEdit, removeComment, userReactions, toggleReaction])
+  ), [formatTimeAgo, renderMediaContent, handleLike, openComments, commentsByPost, commentsLoading, newComment, working, isAuthenticated, user, toggleComments, submitNew, saveEdit, removeComment, userReactions, toggleReaction])
 
   // Render loading skeleton
   const renderSkeletons = useCallback(() => (
