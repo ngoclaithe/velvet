@@ -100,9 +100,6 @@ export default function StreamChatBox({
     return () => { mounted = false }
   }, [])
 
-  // Chat messages will be populated through API on join and real-time via WebSocket events
-
-  // Setup WebSocket for real-time chat
   useEffect(() => {
     if (!streamId || streamId === 'undefined' || streamId === 'null' || streamId.trim() === '' || !chatEnabled) return
 
@@ -144,7 +141,6 @@ export default function StreamChatBox({
           // ignore fetch error
         }
 
-        // Listen for new chat messages from backend 'stream_chat_message' event
         const handleNewMessage = (data: any) => {
           console.log('Received stream_chat_message:', data)
           // Backend sends: { messageId, streamId, userId, username, displayName, avatar, message, timestamp }

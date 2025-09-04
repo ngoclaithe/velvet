@@ -102,7 +102,6 @@ export class WebSocketClient {
         this.emitEvent('reconnect_failed', {})
       })
 
-      // Setup all existing listeners on the new socket
       this.listeners.forEach((callbacks, event) => {
         callbacks.forEach(callback => {
           this.socket!.on(event, callback as any)
@@ -189,7 +188,6 @@ export class WebSocketClient {
   }
 }
 
-// Global WebSocket instance
 let globalWs: WebSocketClient | null = null
 
 export function getWebSocket(): WebSocketClient {
@@ -199,12 +197,10 @@ export function getWebSocket(): WebSocketClient {
   return globalWs
 }
 
-// WebSocket hooks for React components
 export function useWebSocket() {
   return getWebSocket()
 }
 
-// Specific WebSocket handlers for chat functionality following the user's required flow
 export const chatWebSocket = {
   // Tham gia phòng chat - Client gửi lên: { streamId: 'ID_CUA_STREAM' }
   joinStreamChat: (streamId: string) => {
