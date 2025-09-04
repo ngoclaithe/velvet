@@ -51,10 +51,18 @@ export class SocketService {
     this.currentConfig = config
 
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api2.scoliv2.com'
-    const socketUrl = baseUrl.replace('/api/v2', '').replace('http://', 'ws://').replace('https://', 'wss://')
+    // Use origin only to avoid accidental namespace/path inclusion
+    let socketOrigin = baseUrl
+    try {
+      socketOrigin = new URL(baseUrl).origin
+    } catch (e) {
+      socketOrigin = baseUrl.replace(/\/\/+$/, '')
+    }
+    const socketUrl = socketOrigin.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:')
 
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(socketUrl, {
+        path: '/socket.io',
         transports: ['websocket', 'polling'],
         upgrade: true,
         forceNew: true,
