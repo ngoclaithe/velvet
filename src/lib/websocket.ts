@@ -49,10 +49,18 @@ export class WebSocketClient {
     this.currentUserId = userId || null
 
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-    const socketUrl = baseUrl.replace('/api/v1', '').replace('http://', 'ws://').replace('https://', 'wss://')
+    // Use the origin only (no path) to avoid accidentally sending a namespace in the URL
+    let socketOrigin = baseUrl
+    try {
+      socketOrigin = new URL(baseUrl).origin
+    } catch (e) {
+      socketOrigin = baseUrl.replace(/\/\/+$/, '')
+    }
+    const socketUrl = socketOrigin.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:')
 
     this.connectionPromise = new Promise((resolve, reject) => {
       this.socket = io(socketUrl, {
+        path: '/socket.io',
         transports: ['websocket', 'polling'],
         upgrade: true,
         forceNew: true,
