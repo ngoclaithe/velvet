@@ -744,19 +744,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               <MessageCircle className="w-5 h-5 mr-1" />
               {post.comments}
             </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-green-500">
-              <Share2 className="w-5 h-5 mr-1" />
-              {post.shares}
-            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleBookmark(post.id)}
-            className={`${post.isBookmarked ? 'text-yellow-500' : 'text-muted-foreground'} hover:text-yellow-500`}
-          >
-            <Bookmark className={`w-5 h-5 ${post.isBookmarked ? 'fill-current' : ''}`} />
-          </Button>
         </div>
 
         {openComments[post.id] && (
@@ -974,7 +962,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
             <div className="space-y-4">
               <div className="text-6xl mb-4">
                 {activeTab === 'following' ? '👥' :
-                 activeTab === 'my-posts' ? '✍️' : '📝'}
+                 activeTab === 'my-posts' ? '��️' : '📝'}
               </div>
               <h3 className="text-lg font-semibold">
                 {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') :
