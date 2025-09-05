@@ -23,6 +23,7 @@ export const streamApi = {
     category?: string;
     tags?: string[];
     isPrivate?: boolean;
+    thumbnail?: string;
     thumbnailUrl?: string;
   }) => api.post<{
     id?: string | number;
