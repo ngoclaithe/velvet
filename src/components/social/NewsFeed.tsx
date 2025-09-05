@@ -578,7 +578,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         return n
       })
     } else {
-      toast({ title: 'Lỗi', description: res.error || 'Không thể cập nhật bình lu���n', variant: 'destructive' })
+      toast({ title: 'Lỗi', description: res.error || 'Không thể cập nhật bình luận', variant: 'destructive' })
     }
     setWorking(prev => ({ ...prev, [commentId]: false }))
   }, [editingContent, toast])
@@ -923,7 +923,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               </div>
               <h3 className="text-lg font-semibold">
                 {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') :
-                 activeTab === 'my-posts' ? 'Chưa có bài viết' :
+                 activeTab === 'my-posts' ? 'Chưa đăng bài viết' :
                  'Chưa có bài viết'}
               </h3>
               <p className="text-muted-foreground">
