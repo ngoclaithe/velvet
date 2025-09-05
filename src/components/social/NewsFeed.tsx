@@ -324,11 +324,15 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   // Load initial data khi tab thay đổi
   useEffect(() => {
+    if (activeTab === 'reviews-new') {
+      if (!reviewsFeed.initialized && !reviewsFeed.loading) loadReviews(1)
+      return
+    }
     if (!currentFeed.initialized && !currentFeed.loading) {
       if ((activeTab === 'my-posts' || activeTab === 'following') && !isAuthenticated) return
       loadPosts(activeTab, 1, true)
     }
-  }, [activeTab, currentFeed.initialized, currentFeed.loading, loadPosts, isAuthenticated])
+  }, [activeTab, currentFeed.initialized, currentFeed.loading, loadPosts, isAuthenticated, reviewsFeed.initialized, reviewsFeed.loading, loadReviews])
 
   // Format time ago
   const formatTimeAgo = useCallback((date: Date) => {
@@ -977,7 +981,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               {activeTab === 'my-posts' && (
                 <div className="space-y-2">
                   <Button onClick={() => window.location.href = '/create-post'}>
-                    Tạo bài viết đ��u tiên
+                    Tạo bài viết đầu tiên
                   </Button>
                   {!isAuthenticated && (
                     <p className="text-sm text-muted-foreground">
