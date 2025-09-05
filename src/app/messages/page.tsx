@@ -262,7 +262,7 @@ function MessagesInner() {
     }
   }
 
-  const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = async (e: any) => {
     const el = e.currentTarget
     if (el.scrollTop <= 80 && !loadingOlder && hasMoreOlder && selectedConversationId) {
       // load older messages
@@ -503,7 +503,7 @@ function MessagesInner() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Tin nhắn mới</DialogTitle>
+                    <DialogTitle>Tin nhắn m���i</DialogTitle>
                     <DialogDescription>
                       Tìm và nhắn tin cho người dùng khác
                     </DialogDescription>
