@@ -333,10 +333,30 @@ function MessagesInner() {
 
   const currentMessages = useMemo(() => selectedConversationId ? (messagesByConv[selectedConversationId] || []) : [], [messagesByConv, selectedConversationId])
 
+  // helper: group messages with date separators
+  const groupedItems = useMemo(() => {
+    const items: any[] = []
+    let lastDateKey: string | null = null
+    for (const m of currentMessages) {
+      const d = new Date(m.timestamp)
+      const key = d.toDateString()
+      if (lastDateKey !== key) {
+        // push date separator
+        let label = ''
+        if (isToday(d)) label = 'Hôm nay'
+        else if (isYesterday(d)) label = 'Hôm qua'
+        else label = format(d, 'dd/MM/yyyy')
+        items.push({ type: 'date', id: `date-${key}`, label, date: d })
+        lastDateKey = key
+      }
+      items.push({ type: 'msg', id: m.id, message: m })
+    }
+    return items
+  }, [currentMessages])
+
   // scroll to bottom when switching conversations
   useEffect(() => {
     if (!selectedConversationId) return
-    // ensure we scroll after messages render
     requestAnimationFrame(() => scrollToBottom(true))
     lastConvRef.current = selectedConversationId
     lastCountRef.current = (messagesByConv[selectedConversationId] || []).length
@@ -503,7 +523,7 @@ function MessagesInner() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Tin nhắn m���i</DialogTitle>
+                    <DialogTitle>Tin nhắn mới</DialogTitle>
                     <DialogDescription>
                       Tìm và nhắn tin cho người dùng khác
                     </DialogDescription>
