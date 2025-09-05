@@ -33,7 +33,7 @@ export default function IncomingCallModal() {
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
   const call = useCall()
-  const { clearIncomingCall } = useNotification()
+  const { clearIncomingCall, latestIncomingCall } = useNotification()
 
   const userTopic = useMemo(() => (user?.id ? [`notifications/${user.id}`, `noti/${user.id}`] : []), [user?.id])
 
