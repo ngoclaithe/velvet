@@ -153,7 +153,16 @@ export default function IncomingCallModal() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button size="icon" variant="destructive" onClick={async () => { endPreview(); setOpen(false); setInfo(null); }} className="rounded-full h-12 w-12">
+            <Button size="icon" variant="destructive" onClick={async () => {
+              const room = info.callRoomId
+              if (room) {
+                try { call.rejectCall(room) } catch (e) { console.log('[INCOMING] reject error', e) }
+              }
+              clearIncomingCall()
+              endPreview()
+              setOpen(false)
+              setInfo(null)
+            }} className="rounded-full h-12 w-12">
               <X className="h-5 w-5" />
             </Button>
             <Button size="icon" variant="default" onClick={async () => {
