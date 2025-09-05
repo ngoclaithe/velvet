@@ -575,7 +575,7 @@ function MessagesInner() {
                             {!isOwnMessage && (
                               <p className="text-xs text-muted-foreground mb-1">{otherName}</p>
                             )}
-                            <div className={`px-4 py-2 rounded-lg ${isOwnMessage ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                            <div className={`px-4 py-2 rounded-lg ${isOwnMessage ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`} style={isOwnMessage ? { backgroundColor: '#2563eb', color: '#fff' } : undefined}>
                               {isImageUrl(String(message.content)) || message.type === 'image' ? (
                                 <img src={message.content} alt="image" className="max-w-full rounded" />
                               ) : (

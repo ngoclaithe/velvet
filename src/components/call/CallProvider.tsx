@@ -210,24 +210,41 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (ev.track.kind === 'video') {
           if (remoteVideoRef.current) {
             try {
+              // attach stream
               (remoteVideoRef.current as any).srcObject = stream
               remoteVideoRef.current.playsInline = true
-              // Try autoplay; may be blocked by browser policies
-              await remoteVideoRef.current.play()
-              console.log('[CALL] remote video play ok')
+              // only attempt play if element is still in document
+              if (document.contains(remoteVideoRef.current)) {
+                try {
+                  await remoteVideoRef.current.play()
+                  console.log('[CALL] remote video play ok')
+                } catch (err) {
+                  // play may be blocked or aborted if element removed; log and ignore
+                  console.log('[CALL] remote video play blocked', err)
+                }
+              } else {
+                console.log('[CALL] remote video element not in document, skipping play')
+              }
             } catch (err) {
-              console.log('[CALL] remote video play blocked', err)
-              // leave srcObject set; user gesture may be required to start
+              console.log('[CALL] remote video attach error', err)
             }
           }
         } else if (ev.track.kind === 'audio') {
           if (remoteAudioRef.current) {
             try {
               (remoteAudioRef.current as any).srcObject = stream
-              await remoteAudioRef.current.play()
-              console.log('[CALL] remote audio play ok')
+              if (document.contains(remoteAudioRef.current)) {
+                try {
+                  await remoteAudioRef.current.play()
+                  console.log('[CALL] remote audio play ok')
+                } catch (err) {
+                  console.log('[CALL] remote audio play blocked', err)
+                }
+              } else {
+                console.log('[CALL] remote audio element not in document, skipping play')
+              }
             } catch (err) {
-              console.log('[CALL] remote audio play blocked', err)
+              console.log('[CALL] remote audio attach error', err)
             }
           }
         }
@@ -248,10 +265,18 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
           (localVideoRef.current as any).srcObject = stream
           localVideoRef.current.muted = true
           localVideoRef.current.playsInline = true
-          await localVideoRef.current.play()
-          console.log('[CALL] local video attached')
+          if (document.contains(localVideoRef.current)) {
+            try {
+              await localVideoRef.current.play()
+              console.log('[CALL] local video attached')
+            } catch (err) {
+              console.log('[CALL] local video play blocked', err)
+            }
+          } else {
+            console.log('[CALL] local video element not in document, skipping play')
+          }
         } catch (err) {
-          console.log('[CALL] local video play blocked', err)
+          console.log('[CALL] local video attach error', err)
         }
       }
       stream.getTracks().forEach(t => pcRef.current?.addTrack(t, stream))
