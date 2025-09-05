@@ -76,6 +76,32 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {}
     }
 
+    const onCallRejected = (payload: any) => {
+      console.log('[CALL][EVT] call_rejected', payload)
+      if (!mounted) return
+      const roomId = payload?.callRoomId || payload?.roomId
+      if (!roomId || roomId !== state.callRoomId) { console.log('[CALL][EVT] call_rejected ignored', roomId); return }
+      try {
+        // Clean up local call state when a call is rejected
+        endCall()
+      } catch (e) {
+        console.log('[CALL][ERR] handling call_rejected', e)
+      }
+    }
+
+    const onCallEnded = (payload: any) => {
+      console.log('[CALL][EVT] call_ended', payload)
+      if (!mounted) return
+      const roomId = payload?.callRoomId || payload?.roomId
+      if (!roomId || roomId !== state.callRoomId) { console.log('[CALL][EVT] call_ended ignored', roomId); return }
+      try {
+        // Ensure we clean up peer connection and media when call ends
+        endCall()
+      } catch (e) {
+        console.log('[CALL][ERR] handling call_ended', e)
+      }
+    }
+
     const onWebrtcOffered = async (payload: any) => {
       console.log('[CALL][EVT] webrtc_offerd', payload)
       const roomId = payload?.callRoomId || payload?.roomId
@@ -134,6 +160,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     socket.on('webrtc_answerd', onWebrtcAnswered)
     socket.on('ice_candidated', onIceCandidated)
     socket.on('ice_candidate_received', onIceCandidated)
+    socket.on('call_rejected', onCallRejected)
+    socket.on('call_ended', onCallEnded)
 
     return () => {
       mounted = false
@@ -148,6 +176,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off('webrtc_answerd', onWebrtcAnswered)
       socket.off('ice_candidated', onIceCandidated)
       socket.off('ice_candidate_received', onIceCandidated)
+      socket.off('call_rejected', onCallRejected)
+      socket.off('call_ended', onCallEnded)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, state.callRoomId, state.callType, session?.accessToken, socket])
