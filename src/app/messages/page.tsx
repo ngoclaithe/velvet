@@ -94,6 +94,10 @@ function MessagesInner() {
   const lastConvRef = useRef<string | null>(null)
   const lastCountRef = useRef<number>(0)
 
+  // scroll / pagination state for messages view
+  const [loadingOlder, setLoadingOlder] = useState(false)
+  const [hasMoreOlder, setHasMoreOlder] = useState(true)
+
   useEffect(() => {
     if (!isAuthenticated) return
     chatApi.getConversations()
@@ -244,13 +248,100 @@ function MessagesInner() {
     } catch { return false }
   }
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (instant = true) => {
     const el = messagesContainerRef.current
-    if (el) el.scrollTop = el.scrollHeight
-    else messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (el) {
+      try {
+        if (instant) el.scrollTop = el.scrollHeight
+        else el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+      } catch {
+        el.scrollTop = el.scrollHeight
+      }
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: instant ? 'auto' : 'smooth' })
+    }
+  }
+
+  const handleScroll = async (e: any) => {
+    const el = e.currentTarget
+    if (el.scrollTop <= 80 && !loadingOlder && hasMoreOlder && selectedConversationId) {
+      // load older messages
+      await loadOlderMessages()
+    }
+  }
+
+  const loadOlderMessages = async () => {
+    if (!selectedConversationId) return
+    if (loadingOlder) return
+    setLoadingOlder(true)
+    try {
+      const convId = String(selectedConversationId)
+      const resp: any = await chatApi.getConversation(convId)
+      if (resp?.success && resp.data) {
+        const list = Array.isArray(resp.data.messages) ? resp.data.messages : (Array.isArray(resp.data) ? resp.data : [])
+        const normalized = list.map((m: any) => ({
+          id: String(m.id),
+          clientMessageId: undefined,
+          senderId: String(m.sender?.id || m.senderId || ''),
+          receiverId: String(m.receiver?.id || m.receiverId || ''),
+          content: m.content || '',
+          type: (m.messageType || 'text'),
+          timestamp: new Date(m.createdAt || m.timestamp || Date.now()),
+          isRead: false,
+          isDelivered: true,
+        }))
+
+        setMessagesByConv(prev => {
+          const existing = prev[convId] || []
+          // determine earliest timestamp we already have
+          const earliestTs = existing.length > 0 ? new Date(existing[0].timestamp).getTime() : Infinity
+          // keep only messages older than earliestTs
+          const older = normalized.filter((m: any) => new Date(m.timestamp).getTime() < earliestTs)
+          if (older.length === 0) {
+            // if no older messages found, assume no more
+            setHasMoreOlder(false)
+            return prev
+          }
+          // sort older ascending
+          older.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
+          const container = messagesContainerRef.current
+          const prevScrollHeight = container?.scrollHeight || 0
+
+          const merged = [...older, ...existing]
+
+          // after DOM update, adjust scroll so user's viewport stays at the same message
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (container) {
+                const newScrollHeight = container.scrollHeight
+                // keep view stable
+                container.scrollTop = newScrollHeight - prevScrollHeight
+              }
+            })
+          })
+
+          return { ...prev, [convId]: merged }
+        })
+      }
+    } catch (e) {
+      console.log('[MESSAGES] loadOlderMessages error', e)
+    } finally {
+      setLoadingOlder(false)
+    }
   }
 
   const currentMessages = useMemo(() => selectedConversationId ? (messagesByConv[selectedConversationId] || []) : [], [messagesByConv, selectedConversationId])
+
+  // scroll to bottom when switching conversations
+  useEffect(() => {
+    if (!selectedConversationId) return
+    // ensure we scroll after messages render
+    requestAnimationFrame(() => scrollToBottom(true))
+    lastConvRef.current = selectedConversationId
+    lastCountRef.current = (messagesByConv[selectedConversationId] || []).length
+  }, [selectedConversationId])
+
   useEffect(() => {
     if (selectedConversationId !== lastConvRef.current) {
       lastConvRef.current = selectedConversationId
@@ -412,7 +503,7 @@ function MessagesInner() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Tin nhắn mới</DialogTitle>
+                    <DialogTitle>Tin nhắn m���i</DialogTitle>
                     <DialogDescription>
                       Tìm và nhắn tin cho người dùng khác
                     </DialogDescription>
@@ -548,7 +639,7 @@ function MessagesInner() {
                   </div>
                 )}
 
-                <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4">
+                <div ref={messagesContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
                     {selectedConversationId && getMessagesForConversation(selectedConversationId).map((message: any) => {
                       const isOwnMessage = String(message.senderId) === String(user?.id)
@@ -703,7 +794,7 @@ function MessagesInner() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc tr�� chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
               </div>
             </div>
           )}
