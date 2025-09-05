@@ -515,8 +515,8 @@ function MessagesInner() {
 
   return (
     <div className="container mx-auto p-4 max-w-7xl">
-      <Card className="h-[80vh] flex">
-        <div className="hidden md:block md:w-1/3 border-r">
+      <Card className="h-[80vh] flex flex-col md:flex-row">
+        <div className="w-full md:block md:w-1/3 border-b md:border-b-0 md:border-r">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Tin nhắn</h2>
@@ -530,7 +530,7 @@ function MessagesInner() {
                   <DialogHeader>
                     <DialogTitle>Tin nhắn mới</DialogTitle>
                     <DialogDescription>
-                      Tìm và nhắn tin cho người dùng khác
+                      Tìm và nhắn tin cho người dùng kh��c
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
