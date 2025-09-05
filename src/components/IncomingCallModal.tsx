@@ -56,11 +56,14 @@ export default function IncomingCallModal() {
           const media: string = (payload.mediaType || payload.callType || pData.mediaType || pData.callType || '').toString().toLowerCase()
           const isCall = payload.type === 'call_request' || (media === 'audio' || media === 'video')
           if (!isCall) return
+          // Ignore notifications that we ourselves initiated
+          const callerId = pData.callerId || pData.callerID || pData.fromUserId || pData.senderId
+          if (callerId && String(callerId) === String(user?.id)) return
           const mediaType: 'audio' | 'video' = media === 'audio' ? 'audio' : 'video'
           const callerName = pData.callerUsername || pData.callerName || pData.username || payload.title || 'Người gọi'
           const callerAvatar = pData.callerAvatar || pData.avatar || ''
           const callRoomId = pData.callRoomId || pData.roomId || ''
-          setInfo({ callerId: pData.callerId, callerName, callerAvatar, callRoomId, mediaType })
+          setInfo({ callerId, callerName, callerAvatar, callRoomId, mediaType })
           setOpen(true)
           if (mediaType === 'video') {
             try {
@@ -150,7 +153,16 @@ export default function IncomingCallModal() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button size="icon" variant="destructive" onClick={async () => { endPreview(); setOpen(false); setInfo(null); }} className="rounded-full h-12 w-12">
+            <Button size="icon" variant="destructive" onClick={async () => {
+              const room = info.callRoomId
+              if (room) {
+                try { call.rejectCall(room) } catch (e) { console.log('[INCOMING] reject error', e) }
+              }
+              clearIncomingCall()
+              endPreview()
+              setOpen(false)
+              setInfo(null)
+            }} className="rounded-full h-12 w-12">
               <X className="h-5 w-5" />
             </Button>
             <Button size="icon" variant="default" onClick={async () => {
