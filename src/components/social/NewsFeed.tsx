@@ -19,6 +19,7 @@ import type { ReactionType } from '@/lib/api/react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { reviewApi, type Review } from '@/lib/api/review'
 import {
   Heart,
   MessageCircle,
@@ -28,7 +29,8 @@ import {
   TrendingUp,
   Users,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Star
 } from 'lucide-react'
 
 interface FeedState {
