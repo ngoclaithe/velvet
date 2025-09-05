@@ -139,7 +139,7 @@ function MessagesInner() {
             const msgsResp: any = await chatApi.getConversation(convId)
             if (msgsResp?.success && msgsResp.data) {
               const list = Array.isArray(msgsResp.data.messages) ? msgsResp.data.messages : (Array.isArray(msgsResp.data) ? msgsResp.data : [])
-              const normalized = list.map((m: any) => ({
+              let normalized = list.map((m: any) => ({
                 id: String(m.id),
                 clientMessageId: undefined,
                 senderId: String(m.sender?.id || m.senderId || ''),
@@ -150,6 +150,8 @@ function MessagesInner() {
                 isRead: false,
                 isDelivered: true,
               }))
+              // ensure messages are sorted oldest -> newest
+              normalized.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
               setMessagesByConv(prev => ({ ...prev, [convId]: normalized }))
             }
           } catch (e) {
