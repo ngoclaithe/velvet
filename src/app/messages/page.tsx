@@ -39,6 +39,7 @@ import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { CallProvider, useCall } from '@/components/call/CallProvider'
 import { useNotification } from '@/components/notification/NotificationProvider'
+import IncomingCallModal from '@/components/IncomingCallModal'
 
 interface User {
   id: string
@@ -505,51 +506,44 @@ function MessagesInner() {
               <Separator />
 
               <CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
-                {shouldShowIncoming && (
-                  <div className="p-3 border-b bg-yellow-50 flex items-center justify-between">
-                    <div className="text-sm">Có cuộc gọi đến</div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={acceptIncoming}>Đồng ý</Button>
-                      <Button size="sm" variant="destructive" onClick={rejectIncoming}>Từ chối</Button>
-                    </div>
-                  </div>
-                )}
+                {/* Incoming calls are handled by the overlay modal */}
+                <IncomingCallModal />
 
                 {call.state.status !== 'idle' && (
-                  <div className="relative border-b">
-                    <div className="h-72 md:h-96 bg-black rounded-md overflow-hidden flex items-center justify-center">
+                  <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    <div className="w-full max-w-4xl h-[80vh] bg-black rounded-md overflow-hidden relative">
                       {call.state.callType === 'video' ? (
-                        <div className="relative w-full h-full">
+                        <div className="w-full h-full relative">
                           <video ref={call.remoteVideoRef} className="absolute inset-0 w-full h-full object-cover" playsInline />
-                          <div className="absolute bottom-3 right-3 w-36 h-24 bg-black/60 rounded-md overflow-hidden shadow">
+                          <div className="absolute top-4 right-4 w-40 h-28 bg-black/60 rounded-md overflow-hidden shadow">
                             <video ref={call.localVideoRef} className="w-full h-full object-cover" playsInline muted />
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center text-white gap-3">
+                        <div className="w-full h-full flex flex-col items-center justify-center text-white gap-3">
                           <div className="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center text-3xl">📞</div>
                           <div className="text-sm text-white/80">{call.state.status === 'waiting' ? 'Đang gọi...' : 'Đã kết nối'}</div>
                           <audio ref={call.remoteAudioRef} className="hidden" />
                         </div>
                       )}
-                    </div>
 
-                    <div className="absolute inset-x-0 bottom-2 flex items-center justify-center gap-3">
-                      <Button size="icon" variant={call.isMicOn ? 'default' : 'secondary'} onClick={call.toggleMic} className="rounded-full h-10 w-10">
-                        {call.isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-                      </Button>
-                      {call.state.callType === 'video' && (
-                        <Button size="icon" variant={call.isCamOn ? 'default' : 'secondary'} onClick={call.toggleCam} className="rounded-full h-10 w-10">
-                          {call.isCamOn ? <Video className="h-5 w-5" /> : <Video className="h-5 w-5 opacity-40" />}
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-3">
+                        <Button size="icon" variant={call.isMicOn ? 'default' : 'secondary'} onClick={call.toggleMic} className="rounded-full h-12 w-12">
+                          {call.isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
                         </Button>
-                      )}
-                      <Button size="icon" variant="destructive" onClick={call.endCall} className="rounded-full h-10 w-10">
-                        <PhoneOff className="h-5 w-5" />
-                      </Button>
-                    </div>
+                        {call.state.callType === 'video' && (
+                          <Button size="icon" variant={call.isCamOn ? 'default' : 'secondary'} onClick={call.toggleCam} className="rounded-full h-12 w-12">
+                            {call.isCamOn ? <Video className="h-5 w-5" /> : <Video className="h-5 w-5 opacity-40" />}
+                          </Button>
+                        )}
+                        <Button size="icon" variant="destructive" onClick={call.endCall} className="rounded-full h-12 w-12">
+                          <PhoneOff className="h-5 w-5" />
+                        </Button>
+                      </div>
 
-                    <div className="absolute top-2 left-2 text-xs text-muted-foreground bg-background/80 rounded px-2 py-1">
-                      {call.state.callType === 'audio' ? 'Gọi thoại' : 'Gọi video'} · {call.state.status}
+                      <div className="absolute top-3 left-3 text-xs text-muted-foreground bg-background/60 rounded px-2 py-1">
+                        {call.state.callType === 'audio' ? 'Gọi thoại' : 'Gọi video'} · {call.state.status}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -575,7 +569,7 @@ function MessagesInner() {
                             {!isOwnMessage && (
                               <p className="text-xs text-muted-foreground mb-1">{otherName}</p>
                             )}
-                            <div className={`px-4 py-2 rounded-lg ${isOwnMessage ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`} style={isOwnMessage ? { backgroundColor: '#2563eb', color: '#fff' } : undefined}>
+                            <div className="px-4 py-2 rounded-lg" style={isOwnMessage ? { backgroundColor: '#2563eb', color: '#ffffff' } : { backgroundColor: '#f3f4f6', color: '#111827' }}>
                               {isImageUrl(String(message.content)) || message.type === 'image' ? (
                                 <img src={message.content} alt="image" className="max-w-full rounded" />
                               ) : (
@@ -709,7 +703,7 @@ function MessagesInner() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc tr�� chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
               </div>
             </div>
           )}
