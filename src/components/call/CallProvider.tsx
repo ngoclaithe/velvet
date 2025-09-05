@@ -354,21 +354,36 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const rejectCall = useCallback((callRoomId: string) => {
     if (!callRoomId) return
-    console.log('[CALL][EMIT] call_reject', { callRoomId })
-    socket.emit('call_reject', { token: session?.accessToken, callRoomId })
+    const payload = { token: session?.accessToken, callRoomId, timestamp: Date.now() }
+    // Print payload so we can verify what is sent to the backend
+    console.log('[CALL][EMIT] call_reject payload', payload)
+    try { socket.emit('call_reject', payload) } catch (e) { console.log('[CALL][ERR] emit call_reject failed', e) }
     endCall()
-  }, [session?.accessToken, socket])
+  }, [session?.accessToken, socket, endCall])
+
 
   const endCall = useCallback(() => {
+    try {
+      // If we have an active callRoomId, notify backend before local cleanup
+      const currentRoom = state.callRoomId
+      if (currentRoom) {
+        const payload = { token: session?.accessToken, callRoomId: currentRoom, timestamp: Date.now() }
+        console.log('[CALL][EMIT] call_end payload', payload)
+        try { socket.emit('call_end', payload) } catch (e) { console.log('[CALL][ERR] emit call_end failed', e) }
+      }
+    } catch (e) {
+      console.log('[CALL][ERR] preparing call_end emit', e)
+    }
+
     try { pcRef.current?.getSenders?.().forEach(s => { try { s.track?.stop() } catch {} }) } catch {}
     try { pcRef.current?.close() } catch {}
     pcRef.current = null
     try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
     mediaStreamRef.current = null
     initiatorRef.current = false
-    console.log('[CALL] endCall()')
+    // console.log('[CALL] endCall()')
     setState({ callRoomId: null, callType: null, status: 'idle' })
-  }, [])
+  }, [session?.accessToken, socket, state.callRoomId])
 
   const toggleMic = useCallback(() => {
     setIsMicOn(prev => {
