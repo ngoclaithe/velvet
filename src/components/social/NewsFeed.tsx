@@ -136,6 +136,28 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     }
   }, [])
 
+  // Load new reviews
+  const loadReviews = useCallback(async (page: number = 1) => {
+    setReviewsFeed(prev => ({ ...prev, loading: true, error: null }))
+    try {
+      const res = await reviewApi.getAllReviews(page, POSTS_PER_PAGE)
+      if (res.success) {
+        const d: any = res.data
+        const list: Review[] = Array.isArray(d) ? d : (Array.isArray(d?.reviews) ? d.reviews : [])
+        const pag = (d && d.pagination) || res.pagination || {}
+        const currentPage = Number(pag.currentPage ?? pag.page ?? page)
+        const totalPages = Number(pag.totalPages ?? 0)
+        const totalItems = Number(pag.totalItems ?? pag.total ?? list.length ?? 0)
+        setReviewsFeed({ items: list, loading: false, error: null, page: currentPage, totalPages, totalItems, initialized: true })
+      } else {
+        throw new Error(res.error || 'Tải đánh giá thất bại')
+      }
+    } catch (e: any) {
+      setReviewsFeed(prev => ({ ...prev, items: [], loading: false, error: e?.message || 'Không thể tải đánh giá', initialized: true }))
+      toast({ title: 'Lỗi', description: e?.message || 'Không thể tải đánh giá', variant: 'destructive' })
+    }
+  }, [toast])
+
   // Load posts cho tab hiện tại
   const loadPosts = useCallback(async (
     tab: string,
@@ -947,7 +969,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                       <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
                         Đăng nhập
                       </Button>
-                      {' '}��ể theo dõi người khác
+                      {' '}để theo dõi người khác
                     </p>
                   )}
                 </div>
@@ -955,7 +977,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               {activeTab === 'my-posts' && (
                 <div className="space-y-2">
                   <Button onClick={() => window.location.href = '/create-post'}>
-                    Tạo bài viết đầu tiên
+                    Tạo bài viết đ��u tiên
                   </Button>
                   {!isAuthenticated && (
                     <p className="text-sm text-muted-foreground">
