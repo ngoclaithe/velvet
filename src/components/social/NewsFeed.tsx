@@ -38,6 +38,7 @@ interface FeedState {
   hasMore: boolean
   page: number
   total: number
+  initialized: boolean
 }
 
 const POSTS_PER_PAGE = 10
@@ -49,9 +50,9 @@ interface NewsFeedProps {
 export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {}) {
   const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'my-posts'>(propActiveTab || 'for-you')
   const [feeds, setFeeds] = useState<Record<string, FeedState>>({
-    'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
-    'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 },
-    'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0 }
+    'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false },
+    'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false },
+    'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false }
   })
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
@@ -176,7 +177,8 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               hasMore: false,
               page: page,
               total: 0,
-              error: null
+              error: null,
+              initialized: true
             }
           }))
           return
@@ -234,7 +236,8 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
             loading: false,
             hasMore: hasMore,
             page: page,
-            total: total
+            total: total,
+            initialized: true
           }
         }))
 
@@ -260,7 +263,8 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           hasMore: false,
           page: page,
           total: 0,
-          error: error instanceof Error ? error.message : 'Không thể tải bài viết. Vui lòng thử lại sau.'
+          error: error instanceof Error ? error.message : 'Không thể tải bài viết. Vui lòng thử lại sau.',
+          initialized: true
         }
       }))
 
@@ -295,11 +299,11 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   // Load initial data khi tab thay đổi
   useEffect(() => {
-    if (currentFeed.posts.length === 0 && !currentFeed.loading) {
+    if (!currentFeed.initialized && !currentFeed.loading) {
       if ((activeTab === 'my-posts' || activeTab === 'following') && !isAuthenticated) return
       loadPosts(activeTab, 1, true)
     }
-  }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts, isAuthenticated])
+  }, [activeTab, currentFeed.initialized, currentFeed.loading, loadPosts, isAuthenticated])
 
   // Format time ago
   const formatTimeAgo = useCallback((date: Date) => {
@@ -574,7 +578,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         return n
       })
     } else {
-      toast({ title: 'Lỗi', description: res.error || 'Không thể cập nhật bình luận', variant: 'destructive' })
+      toast({ title: 'Lỗi', description: res.error || 'Không thể cập nhật bình lu���n', variant: 'destructive' })
     }
     setWorking(prev => ({ ...prev, [commentId]: false }))
   }, [editingContent, toast])
