@@ -71,7 +71,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             read: false,
             receivedAt: Date.now(),
           }
-          setNotifications(prev => [note, ...prev].slice(0, 50))
+
+          // Do not create notifications for messages sent by this user (outgoing),
+          // unless the payload explicitly indicates a conversation creation.
+          const senderId = (data?.senderId ?? data?.data?.senderId ?? data?.data?.from)?.toString?.()
+          const isOutgoingMessage = senderId && user?.id && senderId === user.id?.toString?.()
+          const isConversationCreation = Boolean(data?.action === 'conversation_created' || data?.data?.conversationCreated || data?.data?.isNewConversation)
+          if (type === 'message' && isOutgoingMessage && !isConversationCreation) {
+            // skip adding this notification
+          } else {
+            // keep only the latest 10 notifications
+            setNotifications(prev => [note, ...prev].slice(0, 10))
+          }
 
           const media = (data?.mediaType || data?.callType || data?.data?.mediaType || data?.data?.callType || '').toString().toLowerCase()
           const isCall = type === 'call' || media === 'audio' || media === 'video'
