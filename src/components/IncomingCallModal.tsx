@@ -91,6 +91,36 @@ export default function IncomingCallModal() {
     return () => { mounted = false; (async () => { await cleanupPromise })() }
   }, [isAuthenticated, user?.id, userTopic, micOn, camOn])
 
+  // Also react to latestIncomingCall from NotificationProvider so that
+  // if a call arrived on another page (e.g. newsfeed) the modal will show
+  useEffect(() => {
+    const inc = latestIncomingCall
+    if (!inc || !inc.callRoomId) return
+    // avoid self notifications
+    const callerId = (inc as any).callerId
+    if (callerId && String(callerId) === String(user?.id)) return
+    // If already open for same room, ignore
+    if (info?.callRoomId && info.callRoomId === inc.callRoomId && open) return
+    const mediaType = (inc.callType === 'audio') ? 'audio' : 'video'
+    setInfo({ callerId: (inc as any).callerId, callerName: undefined, callerAvatar: undefined, callRoomId: inc.callRoomId, mediaType })
+    setOpen(true)
+    if (mediaType === 'video') {
+      ;(async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+          stream.getAudioTracks().forEach(t => (t.enabled = micOn))
+          stream.getVideoTracks().forEach(t => (t.enabled = camOn))
+          mediaRef.current = stream
+          if (localVideoRef.current) {
+            ;(localVideoRef.current as any).srcObject = stream
+            localVideoRef.current.muted = true
+            try { await localVideoRef.current.play() } catch {}
+          }
+        } catch (e) { console.log('[INCOMING] preview from latestIncomingCall failed', e) }
+      })()
+    }
+  }, [latestIncomingCall])
+
   const toggleMic = () => {
     setMicOn(prev => {
       const next = !prev
