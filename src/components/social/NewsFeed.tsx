@@ -56,6 +56,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
     'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false },
     'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false }
   })
+  const [reviewsFeed, setReviewsFeed] = useState<{ items: Review[]; loading: boolean; error: string | null; page: number; totalPages: number; totalItems: number; initialized: boolean }>({ items: [], loading: false, error: null, page: 1, totalPages: 0, totalItems: 0, initialized: false })
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
   const { isAuthenticated, user } = useAuth()
@@ -946,7 +947,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                       <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
                         Đăng nhập
                       </Button>
-                      {' '}để theo dõi người khác
+                      {' '}��ể theo dõi người khác
                     </p>
                   )}
                 </div>
