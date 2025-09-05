@@ -32,6 +32,8 @@ export default function IncomingCallModal() {
   const mediaRef = useRef<MediaStream | null>(null)
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
+  const call = useCall()
+  const { clearIncomingCall } = useNotification()
 
   const userTopic = useMemo(() => (user?.id ? [`notifications/${user.id}`, `noti/${user.id}`] : []), [user?.id])
 
