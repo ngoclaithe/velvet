@@ -50,8 +50,9 @@ interface NewsFeedProps {
 }
 
 export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {}) {
-  const [activeTab, setActiveTab] = useState<'reviews-new' | 'for-you' | 'following' | 'my-posts'>(propActiveTab || 'for-you')
+  const [activeTab, setActiveTab] = useState<'reviews-new' | 'for-you' | 'following' | 'my-posts'>(propActiveTab || 'reviews-new')
   const [feeds, setFeeds] = useState<Record<string, FeedState>>({
+    'reviews-new': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false },
     'for-you': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false },
     'following': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false },
     'my-posts': { posts: [], loading: false, error: null, hasMore: true, page: 1, total: 0, initialized: false }
@@ -303,17 +304,27 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
   // Load more posts (infinite scroll)
   const loadMore = useCallback(() => {
+    if (activeTab === 'reviews-new') {
+      if (reviewsFeed.loading || (reviewsFeed.totalPages ? reviewsFeed.page >= reviewsFeed.totalPages : reviewsFeed.items.length < POSTS_PER_PAGE)) return
+      loadReviews(reviewsFeed.page + 1)
+      return
+    }
+
     if (currentFeed.loading || !currentFeed.hasMore) return
-    
+
     loadPosts(activeTab, currentFeed.page + 1, false)
-  }, [activeTab, currentFeed.loading, currentFeed.hasMore, currentFeed.page, loadPosts])
+  }, [activeTab, currentFeed.loading, currentFeed.hasMore, currentFeed.page, loadPosts, reviewsFeed, loadReviews])
 
   // Refresh feed
   const refreshFeed = useCallback(async () => {
     setRefreshing(true)
-    await loadPosts(activeTab, 1, true)
+    if (activeTab === 'reviews-new') {
+      await loadReviews(1)
+    } else {
+      await loadPosts(activeTab, 1, true)
+    }
     setRefreshing(false)
-  }, [activeTab, loadPosts])
+  }, [activeTab, loadPosts, loadReviews])
 
   // Sync activeTab with prop
   useEffect(() => {
