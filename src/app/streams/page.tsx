@@ -84,85 +84,6 @@ export default function StreamsPage() {
     { value: 'popular', label: 'Phổ biến' }
   ]
 
-  // Mock data - thay thế bằng API call thực tế
-  const mockStreams: StreamCard[] = [
-    {
-      id: '1',
-      title: 'Epic Gaming Session - Boss Battles!',
-      description: 'Join me for some intense gaming action as we take on the toughest bosses!',
-      category: 'Gaming',
-      tags: ['gaming', 'action', 'boss-fights'],
-      creator: {
-        id: '1',
-        username: 'gamer123',
-        stageName: 'ProGamer',
-        avatar: '/avatars/gamer.jpg',
-        isVerified: true
-      },
-      thumbnail: '/thumbnails/gaming1.jpg',
-      isLive: true,
-      viewerCount: 1247,
-      totalViews: 15420,
-      startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: '2',
-      title: 'Cooking Traditional Vietnamese Food',
-      description: 'Learning to cook authentic Vietnamese dishes from my grandmother\'s recipes',
-      category: 'Cooking',
-      tags: ['cooking', 'vietnamese', 'traditional'],
-      creator: {
-        id: '2',
-        username: 'chef_anna',
-        stageName: 'Chef Anna',
-        avatar: '/avatars/chef.jpg',
-        isVerified: false
-      },
-      thumbnail: '/thumbnails/cooking1.jpg',
-      isLive: true,
-      viewerCount: 856,
-      totalViews: 8930,
-      startedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: '3',
-      title: 'Live Music Performance - Acoustic Session',
-      description: 'Performing my latest songs and taking requests from the audience',
-      category: 'Music',
-      tags: ['music', 'acoustic', 'live'],
-      creator: {
-        id: '3',
-        username: 'musician_mike',
-        stageName: 'Mike Melodies',
-        avatar: '/avatars/musician.jpg',
-        isVerified: true
-      },
-      thumbnail: '/thumbnails/music1.jpg',
-      isLive: true,
-      viewerCount: 2105,
-      totalViews: 25670,
-      startedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString()
-    },
-    {
-      id: '4',
-      title: 'Digital Art Tutorial - Character Design',
-      description: 'Step by step tutorial on creating fantasy character designs',
-      category: 'Art',
-      tags: ['art', 'tutorial', 'digital'],
-      creator: {
-        id: '4',
-        username: 'artist_lily',
-        stageName: 'ArtByLily',
-        avatar: '/avatars/artist.jpg',
-        isVerified: false
-      },
-      thumbnail: '/thumbnails/art1.jpg',
-      isLive: false,
-      viewerCount: 0,
-      totalViews: 3450,
-      startedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    }
-  ]
 
   // Fetch streams
   useEffect(() => {
@@ -213,28 +134,15 @@ export default function StreamsPage() {
           })
           setStreams(transformedStreams)
         } else {
-          // Fallback to mock data if API response is invalid
+          // API did not return expected payload — clear streams and show warning
           console.warn('API response does not contain streams array:', response)
-          setStreams(mockStreams.filter(stream => {
-            const matchesCategory = selectedCategory === 'all' || stream.category === selectedCategory
-            const matchesSearch = !searchQuery ||
-              stream.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              stream.creator.stageName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              stream.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-            return matchesCategory && matchesSearch
-          }))
+          setStreams([])
+          toast.error('Không thể tải danh sách streams')
         }
       } catch (error) {
         console.error('Error fetching streams:', error)
-        // Use mock data on error
-        setStreams(mockStreams.filter(stream => {
-          const matchesCategory = selectedCategory === 'all' || stream.category === selectedCategory
-          const matchesSearch = !searchQuery ||
-            stream.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            stream.creator.stageName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            stream.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-          return matchesCategory && matchesSearch
-        }))
+        setStreams([])
+        toast.error('Lỗi khi tải streams')
       } finally {
         setIsLoading(false)
       }
@@ -358,10 +266,19 @@ export default function StreamsPage() {
               >
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
                   {/* Thumbnail */}
-                  <div className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-600 flex items-center justify-center">
+                  {stream.thumbnail ? (
+                    <img src={stream.thumbnail} alt={stream.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-600 flex items-center justify-center">
+                      <Play className="w-12 h-12 text-white opacity-70 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  )}
+
+                  {/* Center Play Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <Play className="w-12 h-12 text-white opacity-70 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  
+
                   {/* Live Badge */}
                   {stream.isLive && (
                     <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
