@@ -58,13 +58,13 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-2 sm:px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 flex items-center justify-center">
+          <div className="hidden sm:flex h-8 w-8 rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 items-center justify-center">
             <Heart className="h-5 w-5 text-white" />
           </div>
-          <span className="font-bold text-xl bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="font-bold text-base md:text-xl bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
             VelvetSocial
           </span>
-          <Badge className="text-xs bg-red-100 text-red-700 ml-2">18+</Badge>
+          <Badge className="hidden sm:inline-flex text-xs bg-red-100 text-red-700 ml-2">18+</Badge>
         </Link>
 
         <div className="hidden md:flex flex-1 max-w-md mx-2 md:mx-8">
