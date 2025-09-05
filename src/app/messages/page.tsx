@@ -139,7 +139,7 @@ function MessagesInner() {
             const msgsResp: any = await chatApi.getConversation(convId)
             if (msgsResp?.success && msgsResp.data) {
               const list = Array.isArray(msgsResp.data.messages) ? msgsResp.data.messages : (Array.isArray(msgsResp.data) ? msgsResp.data : [])
-              const normalized = list.map((m: any) => ({
+              let normalized = list.map((m: any) => ({
                 id: String(m.id),
                 clientMessageId: undefined,
                 senderId: String(m.sender?.id || m.senderId || ''),
@@ -150,6 +150,8 @@ function MessagesInner() {
                 isRead: false,
                 isDelivered: true,
               }))
+              // ensure messages are sorted oldest -> newest
+              normalized.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
               setMessagesByConv(prev => ({ ...prev, [convId]: normalized }))
             }
           } catch (e) {
@@ -333,10 +335,30 @@ function MessagesInner() {
 
   const currentMessages = useMemo(() => selectedConversationId ? (messagesByConv[selectedConversationId] || []) : [], [messagesByConv, selectedConversationId])
 
+  // helper: group messages with date separators
+  const groupedItems = useMemo(() => {
+    const items: any[] = []
+    let lastDateKey: string | null = null
+    for (const m of currentMessages) {
+      const d = new Date(m.timestamp)
+      const key = d.toDateString()
+      if (lastDateKey !== key) {
+        // push date separator
+        let label = ''
+        if (isToday(d)) label = 'Hôm nay'
+        else if (isYesterday(d)) label = 'Hôm qua'
+        else label = format(d, 'dd/MM/yyyy')
+        items.push({ type: 'date', id: `date-${key}`, label, date: d })
+        lastDateKey = key
+      }
+      items.push({ type: 'msg', id: m.id, message: m })
+    }
+    return items
+  }, [currentMessages])
+
   // scroll to bottom when switching conversations
   useEffect(() => {
     if (!selectedConversationId) return
-    // ensure we scroll after messages render
     requestAnimationFrame(() => scrollToBottom(true))
     lastConvRef.current = selectedConversationId
     lastCountRef.current = (messagesByConv[selectedConversationId] || []).length
@@ -388,6 +410,9 @@ function MessagesInner() {
       arr.push(optimisticMsg)
       return { ...prev, [conversationId]: arr }
     })
+
+    // scroll to bottom for optimistic message
+    requestAnimationFrame(() => scrollToBottom(false))
 
     setMessageInput('')
     setIsSending(true)
@@ -503,7 +528,7 @@ function MessagesInner() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Tin nhắn m���i</DialogTitle>
+                    <DialogTitle>Tin nhắn mới</DialogTitle>
                     <DialogDescription>
                       Tìm và nhắn tin cho người dùng khác
                     </DialogDescription>
@@ -641,7 +666,15 @@ function MessagesInner() {
 
                 <div ref={messagesContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
-                    {selectedConversationId && getMessagesForConversation(selectedConversationId).map((message: any) => {
+                    {selectedConversationId && groupedItems.map((item: any) => {
+                      if (item.type === 'date') {
+                        return (
+                          <div key={item.id} className="w-full flex justify-center">
+                            <div className="text-xs px-3 py-1 rounded-full bg-background/60 text-muted-foreground">{item.label}</div>
+                          </div>
+                        )
+                      }
+                      const message = item.message
                       const isOwnMessage = String(message.senderId) === String(user?.id)
                       const other = (getSelectedConversationData() as any)?.otherUser || (getSelectedConversationData() as any)?.participants?.[0]
                       const otherName = other?.displayName || other?.username || 'Người dùng'
@@ -649,7 +682,7 @@ function MessagesInner() {
                       const selfAvatar = user?.avatar
 
                       return (
-                        <div key={message.id} className={`flex items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                        <div key={item.id} className={`flex items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                           {!isOwnMessage && (
                             <Avatar className="h-8 w-8 mr-2">
                               <AvatarImage src={otherAvatar} />
