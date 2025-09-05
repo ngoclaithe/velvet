@@ -87,6 +87,8 @@ export default function StreamPage() {
     donationsEnabled: true
   })
 
+  const [newTag, setNewTag] = useState('')
+
   const categories = ['stream public', 'stream private']
   const suggestedTags = ['hanoi', 'saigon', '2002', 'danang', 'travel', 'food', 'music', 'vlog', 'gaming']
 
@@ -117,11 +119,11 @@ export default function StreamPage() {
 
     setIsStartingStream(true)
     try {
-      let thumbnailUrl: string | undefined
+      let thumbnail: string | undefined
       const filesCount = thumbnailUploaderRef.current?.getSelectedFiles().length || 0
       if (filesCount > 0) {
         const results = await thumbnailUploaderRef.current!.upload()
-        thumbnailUrl = results[0]?.secure_url
+        thumbnail = results[0]?.secure_url
       }
 
       const response = await streamApi.startStream({
@@ -130,7 +132,7 @@ export default function StreamPage() {
         category: streamData.category,
         tags: streamData.tags,
         isPrivate: streamData.isPrivate,
-        thumbnailUrl
+        thumbnail
       })
 
       if (response.success && response.data) {
@@ -518,8 +520,42 @@ export default function StreamPage() {
               {streamData.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {streamData.tags.map(tag => (
-                    <span key={tag} className="px-2 py-0.5 bg-gray-200 rounded text-sm">#{tag}</span>
+                    <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 rounded text-sm">#{tag}
+                      {!currentStream && (
+                        <button
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                          className="ml-1 text-gray-600 hover:text-red-600"
+                          aria-label={`Remove ${tag}`}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </span>
                   ))}
+                </div>
+              )}
+
+              {!currentStream && (
+                <div className="mt-2">
+                  <Label htmlFor="customTag">Nhập từ khóa</Label>
+                  <Input
+                    id="customTag"
+                    placeholder="Nhập từ khóa và nhấn Enter"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault()
+                        const t = newTag.trim().replace(/^#/, '')
+                        if (t && !streamData.tags.includes(t)) {
+                          setStreamData(prev => ({ ...prev, tags: [...prev.tags, t] }))
+                        }
+                        setNewTag('')
+                      }
+                    }}
+                    disabled={!!currentStream}
+                  />
                 </div>
               )}
             </div>
