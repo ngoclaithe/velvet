@@ -55,8 +55,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!isAuthenticated) return
     let mounted = true
-    console.log('[CALL] connecting socket as client')
-    socket.connect({ clientType: 'client' }).then(() => console.log('[CALL] socket connected')).catch((e) => console.log('[CALL] socket connect error', e))
+    // console.log('[CALL] connecting socket as client')
+    socket.connect({ clientType: 'client' }).then(() => {}).catch(() => {})
 
     const onCallAnswered = async (payload: any) => {
       console.log('[CALL][EVT] call_answerd', payload)
@@ -77,26 +77,31 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const onCallRejected = (payload: any) => {
-      console.log('[CALL][EVT] call_rejected', payload)
+      console.log('[CALL][EVT] call_rejected handled', payload)
       if (!mounted) return
       const roomId = payload?.callRoomId || payload?.roomId
-      if (!roomId || roomId !== state.callRoomId) { console.log('[CALL][EVT] call_rejected ignored', roomId); return }
+      // Accept if roomId matches current callRoomId (loose string compare) or if we are waiting
+      if (!roomId) { console.log('[CALL][EVT] call_rejected ignored - no roomId'); return }
+      if (state.callRoomId && String(roomId) !== String(state.callRoomId) && state.status !== 'waiting') { console.log('[CALL][EVT] call_rejected ignored - room mismatch', roomId, state.callRoomId); return }
       try {
         // Clean up local call state when a call is rejected
         endCall()
+        try { socket.disconnect() } catch {}
       } catch (e) {
         console.log('[CALL][ERR] handling call_rejected', e)
       }
     }
 
     const onCallEnded = (payload: any) => {
-      console.log('[CALL][EVT] call_ended', payload)
+      console.log('[CALL][EVT] call_ended handled', payload)
       if (!mounted) return
       const roomId = payload?.callRoomId || payload?.roomId
-      if (!roomId || roomId !== state.callRoomId) { console.log('[CALL][EVT] call_ended ignored', roomId); return }
+      if (!roomId) { console.log('[CALL][EVT] call_ended ignored - no roomId'); return }
+      if (state.callRoomId && String(roomId) !== String(state.callRoomId)) { console.log('[CALL][EVT] call_ended ignored - room mismatch', roomId, state.callRoomId); return }
       try {
         // Ensure we clean up peer connection and media when call ends
         endCall()
+        try { socket.disconnect() } catch {}
       } catch (e) {
         console.log('[CALL][ERR] handling call_ended', e)
       }
