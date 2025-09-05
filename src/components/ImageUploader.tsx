@@ -1,38 +1,48 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload';
 import type { UploadOptions, CloudinaryUploadResponse } from '@/types/cloudinary';
+
+export type ImageUploaderHandle = {
+  upload: () => Promise<CloudinaryUploadResponse[]>;
+  getSelectedFiles: () => File[];
+  clear: () => void;
+};
 
 interface ImageUploaderProps {
   onUploadComplete?: (results: CloudinaryUploadResponse[]) => void;
   onUploadStart?: () => void;
   onUploadProgress?: (progress: Record<number, number>) => void;
   onUploadError?: (error: string) => void;
+  onFilesSelected?: (files: File[]) => void;
   maxFiles?: number;
   uploadOptions?: UploadOptions;
-  compact?: boolean; // For embedded usage like in create-post
-  hideResults?: boolean; // Hide upload results display
+  compact?: boolean;
+  hideResults?: boolean;
+  hideUploadButton?: boolean;
   className?: string;
   acceptedTypes?: string;
   disabled?: boolean;
-  autoUpload?: boolean; // Auto start upload after selecting files
+  autoUpload?: boolean;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({
+const ImageUploader = forwardRef<ImageUploaderHandle, ImageUploaderProps>(({
   onUploadComplete,
   onUploadStart,
   onUploadProgress,
   onUploadError,
+  onFilesSelected,
   maxFiles = 5,
   uploadOptions,
   compact = false,
   hideResults = false,
+  hideUploadButton = false,
   className = '',
   acceptedTypes = 'image/jpeg,image/png,image/webp,image/gif',
   disabled = false,
   autoUpload = false
-}) => {
+}, ref) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +57,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     clearResults
   } = useCloudinaryUpload();
 
-  // Call parent callbacks
   React.useEffect(() => {
     if (onUploadProgress && Object.keys(progress).length > 0) {
       onUploadProgress(progress);
@@ -66,13 +75,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     const fileArray = Array.from(files).slice(0, maxFiles);
     setSelectedFiles(fileArray);
+    onFilesSelected?.(fileArray);
     clearError();
     clearResults();
 
-    // Create preview URLs
     const previews = fileArray.map(file => URL.createObjectURL(file));
     setPreviewUrls(prev => {
-      // Clean up previous URLs
       prev.forEach(url => URL.revokeObjectURL(url));
       return previews;
     });
@@ -81,54 +89,55 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       try {
         if (onUploadStart) onUploadStart();
         const uploadResults = await uploadMultiple(fileArray, uploadOptions);
-        if (onUploadComplete) onUploadComplete(uploadResults);
-        // cleanup previews and selection after auto upload
+        onUploadComplete?.(uploadResults);
         setSelectedFiles([]);
         setPreviewUrls(prev => {
           prev.forEach(url => URL.revokeObjectURL(url));
           return [];
         });
         if (fileInputRef.current) fileInputRef.current.value = '';
-      } catch (e) {
-        // error is handled by hook + effect to onUploadError
+      } catch {
+        // handled by hook + effect
       }
     }
   };
 
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0 || disabled) return;
+  const handleUpload = async (): Promise<CloudinaryUploadResponse[]> => {
+    if (selectedFiles.length === 0 || disabled) return [];
 
     try {
-      if (onUploadStart) {
-        onUploadStart();
-      }
-
+      onUploadStart?.();
       const uploadResults = await uploadMultiple(selectedFiles, uploadOptions);
+      onUploadComplete?.(uploadResults);
 
-      if (onUploadComplete) {
-        onUploadComplete(uploadResults);
-      }
-
-      // Clean up
+      // Do not auto-clear after programmatic upload; parent may want to keep previews
+      // But we clear to free memory once uploaded
       setSelectedFiles([]);
       previewUrls.forEach(url => URL.revokeObjectURL(url));
       setPreviewUrls([]);
-      
-      // Reset input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
 
-    } catch (error) {
-      console.error('Upload failed:', error);
+      return uploadResults;
+    } catch (e) {
+      return [];
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    upload: handleUpload,
+    getSelectedFiles: () => selectedFiles,
+    clear: () => {
+      setSelectedFiles([]);
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      setPreviewUrls([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }), [selectedFiles, previewUrls]);
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     setPreviewUrls(prev => {
       const newPreviews = prev.filter((_, i) => i !== index);
-      // Clean up removed URL
       URL.revokeObjectURL(prev[index]);
       return newPreviews;
     });
@@ -137,7 +146,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   if (compact) {
     return (
       <div className={`w-full ${className}`}>
-        {/* Compact File Input */}
         <div className="space-y-4">
           <input
             type="file"
@@ -164,7 +172,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             </div>
           </button>
 
-          {/* Selected Files Preview */}
           {selectedFiles.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {selectedFiles.map((file, index) => (
@@ -191,7 +198,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             </div>
           )}
 
-          {!autoUpload && selectedFiles.length > 0 && (
+          {!autoUpload && !hideUploadButton && selectedFiles.length > 0 && (
             <button
               type="button"
               onClick={handleUpload}
@@ -210,7 +217,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     <div className={`w-full max-w-4xl mx-auto p-6 ${className}`}>
       <h2 className="text-2xl font-bold mb-6">Image Uploader</h2>
       
-      {/* File Input */}
       <div className="mb-6">
         <input
           type="file"
@@ -230,7 +236,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </button>
       </div>
 
-      {/* Selected Files Preview */}
       {selectedFiles.length > 0 && (
         <div className="mb-6">
           <h3 className="font-semibold mb-3">Selected Files ({selectedFiles.length}):</h3>
@@ -260,7 +265,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             ))}
           </div>
 
-          {!autoUpload && (
+          {!autoUpload && !hideUploadButton && (
             <button
               onClick={handleUpload}
               disabled={uploading || selectedFiles.length === 0 || disabled}
@@ -272,7 +277,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </div>
       )}
 
-      {/* Upload Progress */}
       {Object.keys(progress).length > 0 && (
         <div className="mb-6">
           <h3 className="font-semibold mb-3">Upload Progress:</h3>
@@ -295,7 +299,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </div>
       )}
 
-      {/* Error Display */}
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           <div className="flex justify-between items-center">
@@ -310,7 +313,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </div>
       )}
 
-      {/* Upload Results */}
       {!hideResults && results.length > 0 && (
         <div>
           <h3 className="font-semibold mb-3">Uploaded Images ({results.length}):</h3>
@@ -355,6 +357,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       )}
     </div>
   );
-};
+});
+
+ImageUploader.displayName = 'ImageUploader';
 
 export default ImageUploader;
