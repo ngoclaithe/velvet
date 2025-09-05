@@ -5,7 +5,9 @@ import { connectMqtt, subscribeTopic } from '@/lib/mqttClient'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { PhoneOff, Video, Mic, MicOff } from 'lucide-react'
+import { PhoneOff, Video, Mic, MicOff, Check, X } from 'lucide-react'
+import { useCall } from '@/components/call/CallProvider'
+import { useNotification } from '@/components/notification/NotificationProvider'
 
 interface IncomingPayload {
   type?: string
