@@ -861,7 +861,11 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
       {!propActiveTab && (
         <div className="flex items-center justify-between mb-6">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="reviews-new" className="flex items-center gap-2">
+                <Star className="w-4 h-4" />
+                Review mới
+              </TabsTrigger>
               <TabsTrigger value="for-you" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Dành cho bạn
@@ -876,7 +880,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
           <Button
             variant="ghost"
             size="sm"
-            onClick={refreshFeed}
+            onClick={activeTab === 'reviews-new' ? () => loadReviews(reviewsFeed.page) : refreshFeed}
             disabled={refreshing}
             className="ml-4"
           >
