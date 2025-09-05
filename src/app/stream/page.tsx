@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'react-hot-toast'
 import {
@@ -34,6 +33,7 @@ import { streamApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import type { StreamResponse } from '@/types/streaming'
 import StreamingManager from '@/components/streaming/StreamingManager'
+import ImageUploader, { ImageUploaderHandle } from '@/components/ImageUploader'
 
 interface StreamData {
   title: string
@@ -64,11 +64,10 @@ interface CurrentStream {
   socketEndpoint?: string
 }
 
-// Không cần StreamingManagerData riêng - dùng StreamResponse từ types
-
 export default function StreamPage() {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  const thumbnailUploaderRef = useRef<ImageUploaderHandle>(null)
   
   const [currentStream, setCurrentStream] = useState<CurrentStream | null>(null)
   const [isStartingStream, setIsStartingStream] = useState(false)
@@ -81,18 +80,16 @@ export default function StreamPage() {
   const [streamData, setStreamData] = useState<StreamData>({
     title: '',
     description: '',
-    category: 'Gaming',
+    category: 'stream public',
     tags: [],
     isPrivate: false,
     chatEnabled: true,
     donationsEnabled: true
   })
 
-  const categories = [
-    'Gaming', 'Music', 'Art', 'Cooking', 'Technology', 'Fitness', 'Education', 'Entertainment'
-  ]
+  const categories = ['stream public', 'stream private']
+  const suggestedTags = ['hanoi', 'saigon', '2002', 'danang', 'travel', 'food', 'music', 'vlog', 'gaming']
 
-  // Kiểm tra quyền truy cập
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'creator')) {
       toast.error('Bạn cần đăng nhập với tài khoản creator để truy cập trang này')
@@ -104,67 +101,64 @@ export default function StreamPage() {
     setStreamData(prev => ({ ...prev, [key]: value }))
   }
 
-  const handleTagsChange = (value: string) => {
-    const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-    setStreamData(prev => ({ ...prev, tags }))
+  const toggleTag = (tag: string) => {
+    setStreamData(prev => {
+      const exists = prev.tags.includes(tag)
+      const tags = exists ? prev.tags.filter(t => t !== tag) : [...prev.tags, tag]
+      return { ...prev, tags }
+    })
   }
 
   const handleStartStream = async () => {
-    console.log('🚀 handleStartStream called')
-
     if (!streamData.title.trim()) {
-      console.log('❌ No stream title provided')
       toast.error('Vui lòng nhập tiêu đề stream')
       return
     }
 
-    console.log('Stream data to send:', streamData)
-
     setIsStartingStream(true)
     try {
-      console.log('🌐 Calling streamApi.startStream...')
+      let thumbnailUrl: string | undefined
+      const filesCount = thumbnailUploaderRef.current?.getSelectedFiles().length || 0
+      if (filesCount > 0) {
+        const results = await thumbnailUploaderRef.current!.upload()
+        thumbnailUrl = results[0]?.secure_url
+      }
+
       const response = await streamApi.startStream({
         title: streamData.title,
         description: streamData.description,
         category: streamData.category,
         tags: streamData.tags,
-        isPrivate: streamData.isPrivate
+        isPrivate: streamData.isPrivate,
+        thumbnailUrl
       })
-
-      console.log('📨 API Response:', response)
 
       if (response.success && response.data) {
         const apiStreamData = response.data as StartStreamResponse
-        console.log('✅ Stream API data:', apiStreamData)
-
         const streamId = String((apiStreamData.id ?? apiStreamData.streamId) as string | number)
         const streamKey = apiStreamData.streamKey
-        console.log('🆔 Extracted streamId:', streamId, 'streamKey:', streamKey)
 
         const newCurrentStream: CurrentStream = {
-          id: streamId,  
+          id: streamId,
           title: apiStreamData.title || streamData.title,
           isLive: apiStreamData.isLive || true,
           viewerCount: 0,
           startedAt: new Date(),
-          streamKey: streamKey, 
+          streamKey: streamKey,
           socketEndpoint: apiStreamData.socketEndpoint
         }
 
-        console.log('📺 Setting currentStream:', newCurrentStream)
         setCurrentStream(newCurrentStream)
-
+        thumbnailUploaderRef.current?.clear()
         toast.success('Stream đã được bắt đầu thành công!')
       } else {
-        console.log('❌ Stream API failed:', response.error)
         toast.error(response.error || 'Không thể bắt đầu stream')
       }
     } catch (error) {
-      console.error('💥 Error starting stream:', error)
+      console.error('Error starting stream:', error)
       toast.error('Có lỗi xảy ra khi bắt đầu stream')
     } finally {
       setIsStartingStream(false)
-      console.log('🏁 handleStartStream completed')
     }
   }
 
@@ -183,7 +177,6 @@ export default function StreamPage() {
 
     setIsStoppingStream(true)
     try {
-      // Use streamKey for stopping stream as per user requirement
       const response = await streamApi.stopStream(currentStream.streamKey || currentStream.id)
 
       if (response.success) {
@@ -229,7 +222,6 @@ export default function StreamPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Stream Dashboard</h1>
@@ -238,12 +230,11 @@ export default function StreamPage() {
           {currentStream && (
             <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
-              STREAMING (DELAY)
+              STREAMING
             </Badge>
           )}
         </div>
 
-        {/* Stream Controls */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -258,7 +249,7 @@ export default function StreamPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Button
-                  variant={cameraEnabled ? "default" : "outline"}
+                  variant={cameraEnabled ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setCameraEnabled(!cameraEnabled)}
                   disabled={!!currentStream}
@@ -267,7 +258,7 @@ export default function StreamPage() {
                   Camera
                 </Button>
                 <Button
-                  variant={micEnabled ? "default" : "outline"}
+                  variant={micEnabled ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setMicEnabled(!micEnabled)}
                   disabled={!!currentStream}
@@ -277,7 +268,7 @@ export default function StreamPage() {
                 </Button>
                 {isConnected && (
                   <Badge variant="default" className="bg-green-500">
-                    Recording (Delay ~7s)
+                    Recording
                   </Badge>
                 )}
                 {currentStream && (
@@ -330,7 +321,6 @@ export default function StreamPage() {
           </CardContent>
         </Card>
 
-        {/* Stream Stats */}
         {currentStream && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
@@ -385,13 +375,12 @@ export default function StreamPage() {
           </div>
         )}
 
-        {/* Streaming Preview & Manager */}
         {currentStream && (
           <Card>
             <CardHeader>
               <CardTitle>Stream Preview</CardTitle>
               <CardDescription>
-                Xem trước stream của bạn (viewers sẽ thấy sau ~7 giây)
+                Xem trước stream của bạn
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -402,7 +391,7 @@ export default function StreamPage() {
                   title: currentStream.title,
                   description: streamData.description,
                   streamKey: currentStream.streamKey || '',
-                  hlsUrl: '', // Will be generated by streaming service
+                  hlsUrl: '',
                   isLive: currentStream.isLive,
                   isPrivate: streamData.isPrivate,
                   viewerCount: currentStream.viewerCount,
@@ -441,7 +430,6 @@ export default function StreamPage() {
           </Card>
         )}
 
-        {/* Stream Settings - Hidden during live stream unless toggled */}
         {(!currentStream || showSettings) && (
           <Card>
             <CardHeader>
@@ -480,7 +468,10 @@ export default function StreamPage() {
                 <Label htmlFor="category">Danh mục</Label>
                 <Select 
                   value={streamData.category} 
-                  onValueChange={(value) => handleInputChange('category', value)}
+                  onValueChange={(value) => {
+                    handleInputChange('category', value)
+                    handleInputChange('isPrivate', value === 'stream private')
+                  }}
                   disabled={!!currentStream}
                 >
                   <SelectTrigger>
@@ -508,28 +499,41 @@ export default function StreamPage() {
                 disabled={!!currentStream}
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
-              <Input
-                id="tags"
-                value={streamData.tags.join(', ')}
-                onChange={(e) => handleTagsChange(e.target.value)}
-                placeholder="gaming, live, entertainment"
-                disabled={!!currentStream}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Stream riêng tư</Label>
-                <p className="text-sm text-muted-foreground">
-                  Chỉ những người được mời mới có thể xem
-                </p>
+              <Label>Từ khóa gợi ý</Label>
+              <div className="flex flex-wrap gap-2">
+                {suggestedTags.map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    disabled={!!currentStream}
+                    className={`px-3 py-1 rounded-full text-sm border ${streamData.tags.includes(tag) ? 'bg-blue-600 text-white border-blue-600' : 'bg-transparent text-foreground border-gray-300 hover:bg-gray-100'}`}
+                  >
+                    #{tag}
+                  </button>
+                ))}
               </div>
-              <Switch
-                checked={streamData.isPrivate}
-                onCheckedChange={(checked) => handleInputChange('isPrivate', checked)}
+              {streamData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {streamData.tags.map(tag => (
+                    <span key={tag} className="px-2 py-0.5 bg-gray-200 rounded text-sm">#{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Ảnh thumbnail</Label>
+              <ImageUploader
+                ref={thumbnailUploaderRef}
+                compact
+                maxFiles={1}
+                autoUpload={false}
+                hideResults
+                hideUploadButton
+                acceptedTypes="image/jpeg,image/png,image/webp"
                 disabled={!!currentStream}
               />
             </div>
@@ -546,7 +550,6 @@ export default function StreamPage() {
         </Card>
         )}
 
-        {/* Settings Toggle Button - Only show when live and settings are hidden */}
         {currentStream && !showSettings && (
           <Card className="border-dashed border-2 border-gray-300">
             <CardContent className="p-6">
