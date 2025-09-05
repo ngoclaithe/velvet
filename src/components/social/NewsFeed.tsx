@@ -889,124 +889,179 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         </div>
       )}
 
-      <div className="space-y-6">
-        {currentFeed.posts.map(renderPost)}
-        
-        {currentFeed.loading && renderSkeletons()}
-        
-        {currentFeed.error && (
-          <Card className="p-6 text-center">
-            <div className="space-y-4">
-              <div className="text-6xl mb-4">😞</div>
-              <h3 className="text-lg font-semibold text-red-600">Có lỗi xảy ra</h3>
-              <p className="text-muted-foreground">{currentFeed.error}</p>
-              <Button onClick={refreshFeed} variant="outline">
-                Thử lại
-              </Button>
-            </div>
-          </Card>
-        )}
-        
-        {/* Page navigation for Facebook-style pagination */}
-        {currentFeed.posts.length > 0 && (
-          <Card className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => loadPosts(activeTab, Math.max(1, currentFeed.page - 1), true)}
-                  disabled={currentFeed.page <= 1 || currentFeed.loading}
-                >
-                  Trang trước
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Trang {currentFeed.page}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => loadPosts(activeTab, currentFeed.page + 1, true)}
-                  disabled={!currentFeed.hasMore || currentFeed.loading}
-                >
-                  Trang tiếp
-                </Button>
+      {activeTab === 'reviews-new' ? (
+        <div className="space-y-4">
+          {reviewsFeed.loading && renderSkeletons()}
+          {!reviewsFeed.loading && reviewsFeed.error && (
+            <Card className="p-6 text-center">
+              <div className="space-y-2">
+                <h3 className="font-semibold text-red-600">Không thể tải đánh giá</h3>
+                <p className="text-muted-foreground">{reviewsFeed.error}</p>
+                <Button variant="outline" onClick={() => loadReviews(1)}>Thử lại</Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {currentFeed.posts.length} bài viết
-              </p>
-            </div>
-          </Card>
-        )}
-
-        {!currentFeed.loading && !currentFeed.hasMore && currentFeed.posts.length > 0 && (
-          <Card className="p-6 text-center">
-            <p className="text-muted-foreground">
-              Đây là trang cuối cùng!
-            </p>
-          </Card>
-        )}
-        
-        {!currentFeed.loading && currentFeed.posts.length === 0 && !currentFeed.error && (
-          <Card className="p-6 text-center">
-            <div className="space-y-4">
-              <div className="text-6xl mb-4">
-                {activeTab === 'following' ? '👥' :
-                 activeTab === 'my-posts' ? '✍️' : '📝'}
+            </Card>
+          )}
+          {!reviewsFeed.loading && !reviewsFeed.error && reviewsFeed.items.length === 0 && (
+            <Card className="p-6 text-center">
+              <p className="text-muted-foreground">Chưa có đánh giá công khai</p>
+            </Card>
+          )}
+          {reviewsFeed.items.map(rv => (
+            <Card key={rv.id} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={rv.isAnonymous ? '' : (rv.user?.avatar || '')} alt={rv.isAnonymous ? 'Ẩn danh' : (rv.user?.username || 'User')} />
+                      <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                        {(rv.isAnonymous ? 'A' : (rv.user?.username || 'U')).slice(0,1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{rv.isAnonymous ? 'Ẩn danh' : (rv.user?.firstName || rv.user?.lastName ? `${rv.user?.firstName || ''} ${rv.user?.lastName || ''}`.trim() : rv.user?.username)}</span>
+                        <span className="text-xs text-muted-foreground">• {new Date(rv.createdAt).toLocaleString('vi-VN')}</span>
+                      </div>
+                      {rv.creator && (
+                        <Link href={`/creator/${rv.creator.id}`} className="text-sm text-blue-600 hover:underline">
+                          Đánh giá về: {rv.creator.stageName || `Creator #${rv.creator.id}`}
+                        </Link>
+                      )}
+                      {rv.trustLevel && (
+                        <div className="mt-1">
+                          <Badge variant="secondary" className="text-xs">{rv.trustLevel === 'verified' ? 'Đã xác minh' : rv.trustLevel}</Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex items-center gap-1 mb-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={`w-4 h-4 ${i < (rv.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                  ))}
+                <span className="ml-2 text-sm text-muted-foreground">{rv.rating}/5</span>
+                </div>
+                {rv.comment && <p className="mb-3 whitespace-pre-line">{rv.comment}</p>}
+                {rv.images && rv.images.length > 0 && (
+                  <ImageGallery media={rv.images.map((u, idx) => ({ id: `${rv.id}-img-${idx}`, type: 'image' as const, url: u }))} />
+                )}
+              </CardContent>
+            </Card>
+          ))}
+          {reviewsFeed.items.length > 0 && (
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => loadReviews(Math.max(1, reviewsFeed.page - 1))}
+                    disabled={reviewsFeed.page <= 1 || reviewsFeed.loading}
+                  >
+                    Trang trước
+                  </Button>
+                  <span className="text-sm text-muted-foreground">Trang {reviewsFeed.page}{reviewsFeed.totalPages ? ` / ${reviewsFeed.totalPages}` : ''}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => loadReviews(reviewsFeed.page + 1)}
+                    disabled={(reviewsFeed.totalPages ? reviewsFeed.page >= reviewsFeed.totalPages : reviewsFeed.items.length < POSTS_PER_PAGE) || reviewsFeed.loading}
+                  >
+                    Trang tiếp
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">{reviewsFeed.totalItems || reviewsFeed.items.length} đánh giá</p>
               </div>
-              <h3 className="text-lg font-semibold">
-                {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') :
-                 activeTab === 'my-posts' ? 'Chưa đăng bài viết' :
-                 'Chưa có bài viết'}
-              </h3>
-              <p className="text-muted-foreground">
-                {activeTab === 'following'
-                  ? (!isAuthenticated ? 'Hãy đăng nhập để xem các bài viết của creator đã follow' : 'Hãy theo dõi một số người để xem bài viết của họ tại đây')
-                  : activeTab === 'my-posts'
-                  ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
-                  : 'Hiện tại chưa có bài viết nào. Hãy quay lại sau!'
-                }
-              </p>
-              {activeTab === 'following' && (
-                <div className="space-y-2">
-                  <Button onClick={() => setActiveTab('for-you')}>
-                    Khám phá bài viết
+            </Card>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {currentFeed.posts.map(renderPost)}
+          {currentFeed.loading && renderSkeletons()}
+          {currentFeed.error && (
+            <Card className="p-6 text-center">
+              <div className="space-y-4">
+                <div className="text-6xl mb-4">😞</div>
+                <h3 className="text-lg font-semibold text-red-600">Có lỗi xảy ra</h3>
+                <p className="text-muted-foreground">{currentFeed.error}</p>
+                <Button onClick={refreshFeed} variant="outline">Thử lại</Button>
+              </div>
+            </Card>
+          )}
+          {currentFeed.posts.length > 0 && (
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => loadPosts(activeTab, Math.max(1, currentFeed.page - 1), true)}
+                    disabled={currentFeed.page <= 1 || currentFeed.loading}
+                  >
+                    Trang trước
                   </Button>
-                  {!isAuthenticated && (
-                    <p className="text-sm text-muted-foreground">
-                      <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
-                        Đăng nhập
-                      </Button>
-                      {' '}để theo dõi người khác
-                    </p>
-                  )}
-                </div>
-              )}
-              {activeTab === 'my-posts' && (
-                <div className="space-y-2">
-                  <Button onClick={() => window.location.href = '/create-post'}>
-                    Tạo bài viết đầu tiên
+                  <span className="text-sm text-muted-foreground">Trang {currentFeed.page}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => loadPosts(activeTab, currentFeed.page + 1, true)}
+                    disabled={!currentFeed.hasMore || currentFeed.loading}
+                  >
+                    Trang tiếp
                   </Button>
-                  {!isAuthenticated && (
-                    <p className="text-sm text-muted-foreground">
-                      <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>
-                        Đăng nhập
-                      </Button>
-                      {' '}để tạo bài viết
-                    </p>
-                  )}
                 </div>
-              )}
-            </div>
-          </Card>
-        )}
-        
-        {currentFeed.loading && currentFeed.hasMore && currentFeed.posts.length > 0 && (
-          <div className="flex justify-center p-4">
-            <Loader2 className="w-6 h-6 animate-spin" />
-          </div>
-        )}
-      </div>
+                <p className="text-sm text-muted-foreground">{currentFeed.posts.length} bài viết</p>
+              </div>
+            </Card>
+          )}
+          {!currentFeed.loading && !currentFeed.hasMore && currentFeed.posts.length > 0 && (
+            <Card className="p-6 text-center"><p className="text-muted-foreground">Đây là trang cuối cùng!</p></Card>
+          )}
+          {!currentFeed.loading && currentFeed.posts.length === 0 && !currentFeed.error && (
+            <Card className="p-6 text-center">
+              <div className="space-y-4">
+                <div className="text-6xl mb-4">{activeTab === 'following' ? '👥' : activeTab === 'my-posts' ? '✍️' : '📝'}</div>
+                <h3 className="text-lg font-semibold">
+                  {activeTab === 'following' ? (!isAuthenticated ? 'Chưa đăng nhập' : 'Chưa theo dõi ai') : activeTab === 'my-posts' ? 'Chưa đăng bài viết' : 'Chưa có bài viết'}
+                </h3>
+                <p className="text-muted-foreground">
+                  {activeTab === 'following'
+                    ? (!isAuthenticated ? 'Hãy đăng nhập để xem các bài viết của creator đã follow' : 'Hãy theo dõi một số người để xem bài viết của họ tại đây')
+                    : activeTab === 'my-posts'
+                    ? 'Bắt đầu tạo bài viết đầu tiên của bạn!'
+                    : 'Hiện tại chưa có bài viết nào. Hãy quay lại sau!'}
+                </p>
+                {activeTab === 'following' && (
+                  <div className="space-y-2">
+                    <Button onClick={() => setActiveTab('for-you')}>Khám phá bài viết</Button>
+                    {!isAuthenticated && (
+                      <p className="text-sm text-muted-foreground">
+                        <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>Đăng nhập</Button>{' '}để theo dõi người khác
+                      </p>
+                    )}
+                  </div>
+                )}
+                {activeTab === 'my-posts' && (
+                  <div className="space-y-2">
+                    <Button onClick={() => window.location.href = '/create-post'}>Tạo bài viết đầu tiên</Button>
+                    {!isAuthenticated && (
+                      <p className="text-sm text-muted-foreground">
+                        <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>��ăng nhập</Button>{' '}để tạo bài viết
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+          {currentFeed.loading && currentFeed.hasMore && currentFeed.posts.length > 0 && (
+            <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin" /></div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
