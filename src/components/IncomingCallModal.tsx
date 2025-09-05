@@ -5,7 +5,9 @@ import { connectMqtt, subscribeTopic } from '@/lib/mqttClient'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { PhoneOff, Video, Mic, MicOff } from 'lucide-react'
+import { PhoneOff, Video, Mic, MicOff, Check, X } from 'lucide-react'
+import { useCall } from '@/components/call/CallProvider'
+import { useNotification } from '@/components/notification/NotificationProvider'
 
 interface IncomingPayload {
   type?: string
@@ -30,6 +32,8 @@ export default function IncomingCallModal() {
   const mediaRef = useRef<MediaStream | null>(null)
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
+  const call = useCall()
+  const { clearIncomingCall } = useNotification()
 
   const userTopic = useMemo(() => (user?.id ? [`notifications/${user.id}`, `noti/${user.id}`] : []), [user?.id])
 
@@ -133,18 +137,37 @@ export default function IncomingCallModal() {
           <div className="h-24 flex items-center justify-center mb-4 text-4xl">📞</div>
         )}
 
-        <div className="flex items-center justify-center gap-3">
-          <Button size="icon" variant={micOn ? 'default' : 'secondary'} onClick={toggleMic} className="rounded-full h-10 w-10">
-            {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-          </Button>
-          {info.mediaType === 'video' && (
-            <Button size="icon" variant={camOn ? 'default' : 'secondary'} onClick={toggleCam} className="rounded-full h-10 w-10">
-              <Video className={`h-5 w-5 ${camOn ? '' : 'opacity-40'}`} />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button size="icon" variant={micOn ? 'default' : 'secondary'} onClick={toggleMic} className="rounded-full h-12 w-12">
+              {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
             </Button>
-          )}
-          <Button size="icon" variant="destructive" onClick={onClose} className="rounded-full h-10 w-10">
-            <PhoneOff className="h-5 w-5" />
-          </Button>
+            {info.mediaType === 'video' && (
+              <Button size="icon" variant={camOn ? 'default' : 'secondary'} onClick={toggleCam} className="rounded-full h-12 w-12">
+                <Video className={`h-5 w-5 ${camOn ? '' : 'opacity-40'}`} />
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button size="icon" variant="destructive" onClick={async () => { endPreview(); setOpen(false); setInfo(null); }} className="rounded-full h-12 w-12">
+              <X className="h-5 w-5" />
+            </Button>
+            <Button size="icon" variant="default" onClick={async () => {
+              const room = info.callRoomId
+              if (room) {
+                try {
+                  await call.acceptCall(room, info.mediaType)
+                } catch (e) { console.log('[INCOMING] accept error', e) }
+              }
+              clearIncomingCall()
+              endPreview()
+              setOpen(false)
+              setInfo(null)
+            }} className="rounded-full h-12 w-12 bg-green-600 text-white hover:bg-green-700">
+              <Check className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

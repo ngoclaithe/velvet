@@ -156,11 +156,27 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!pcRef.current) {
       console.log('[CALL] create RTCPeerConnection')
       let pc: RTCPeerConnection
-      const cfg: RTCConfiguration = {
-        iceServers: [
+      // Build ICE servers dynamically. Use TURN in production if provided via env vars
+      const cfg: RTCConfiguration = { iceServers: [] }
+      try {
+        const defaultStuns = [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-        ],
+        ]
+        cfg.iceServers = [...defaultStuns]
+        // Optional TURN config via env
+        const turnUrl = process.env.NEXT_PUBLIC_TURN_URL
+        const turnUser = process.env.NEXT_PUBLIC_TURN_USER
+        const turnPass = process.env.NEXT_PUBLIC_TURN_PASS
+        if (turnUrl) {
+          const turnEntry: any = { urls: turnUrl }
+          if (turnUser) turnEntry.username = turnUser
+          if (turnPass) turnEntry.credential = turnPass
+          cfg.iceServers.push(turnEntry)
+          console.log('[CALL] added TURN server from env')
+        }
+      } catch (e) {
+        console.log('[CALL][ERROR] building iceServers', e)
       }
       try {
         pc = new RTCPeerConnection(cfg)
@@ -171,7 +187,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       pc.onicecandidate = (event) => {
         if (event.candidate && state.callRoomId) {
-          console.log('[CALL][EMIT] ice_candidate')
+          console.log('[CALL][EMIT] ice_candidate', event.candidate)
           socket.emit('ice_candidate', {
             callRoomId: state.callRoomId,
             candidate: event.candidate,
@@ -180,18 +196,39 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      pc.onconnectionstatechange = () => {
+        console.log('[CALL] pc.connectionState', pc.connectionState)
+      }
+      pc.oniceconnectionstatechange = () => {
+        console.log('[CALL] pc.iceConnectionState', pc.iceConnectionState)
+      }
+
       pc.ontrack = async (ev) => {
         const stream = ev.streams[0]
         if (!stream) return
+        console.log('[CALL] ontrack, tracks:', ev.streams[0]?.getTracks().map(t=>t.kind))
         if (ev.track.kind === 'video') {
           if (remoteVideoRef.current) {
-            ;(remoteVideoRef.current as any).srcObject = stream
-            try { await remoteVideoRef.current.play() } catch {}
+            try {
+              (remoteVideoRef.current as any).srcObject = stream
+              remoteVideoRef.current.playsInline = true
+              // Try autoplay; may be blocked by browser policies
+              await remoteVideoRef.current.play()
+              console.log('[CALL] remote video play ok')
+            } catch (err) {
+              console.log('[CALL] remote video play blocked', err)
+              // leave srcObject set; user gesture may be required to start
+            }
           }
         } else if (ev.track.kind === 'audio') {
           if (remoteAudioRef.current) {
-            ;(remoteAudioRef.current as any).srcObject = stream
-            try { await remoteAudioRef.current.play() } catch {}
+            try {
+              (remoteAudioRef.current as any).srcObject = stream
+              await remoteAudioRef.current.play()
+              console.log('[CALL] remote audio play ok')
+            } catch (err) {
+              console.log('[CALL] remote audio play blocked', err)
+            }
           }
         }
       }
@@ -207,10 +244,15 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       stream.getVideoTracks().forEach(t => (t.enabled = type === 'video' ? isCamOn : false))
       mediaStreamRef.current = stream
       if (type === 'video' && localVideoRef.current) {
-        ;(localVideoRef.current as any).srcObject = stream
-        localVideoRef.current.muted = true
-        try { await localVideoRef.current.play() } catch {}
-        console.log('[CALL] local video attached')
+        try {
+          (localVideoRef.current as any).srcObject = stream
+          localVideoRef.current.muted = true
+          localVideoRef.current.playsInline = true
+          await localVideoRef.current.play()
+          console.log('[CALL] local video attached')
+        } catch (err) {
+          console.log('[CALL] local video play blocked', err)
+        }
       }
       stream.getTracks().forEach(t => pcRef.current?.addTrack(t, stream))
       console.log('[CALL] local tracks added to PC')

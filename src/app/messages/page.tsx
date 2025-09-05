@@ -127,6 +127,30 @@ function MessagesInner() {
           if (!topic && urlTopic) topic = urlTopic
           const merged = topic ? { ...conv, topic } : conv
           setSelectedConversation(merged)
+
+          // Fetch historical messages for this conversation
+          try {
+            const convId = String(selectedConversationId || merged.id)
+            const msgsResp: any = await chatApi.getConversation(convId)
+            if (msgsResp?.success && msgsResp.data) {
+              const list = Array.isArray(msgsResp.data.messages) ? msgsResp.data.messages : (Array.isArray(msgsResp.data) ? msgsResp.data : [])
+              const normalized = list.map((m: any) => ({
+                id: String(m.id),
+                clientMessageId: undefined,
+                senderId: String(m.sender?.id || m.senderId || ''),
+                receiverId: String(m.receiver?.id || m.receiverId || ''),
+                content: m.content || '',
+                type: (m.messageType || 'text'),
+                timestamp: new Date(m.createdAt || m.timestamp || Date.now()),
+                isRead: false,
+                isDelivered: true,
+              }))
+              setMessagesByConv(prev => ({ ...prev, [convId]: normalized }))
+            }
+          } catch (e) {
+            console.log('[MESSAGES] fetch conv messages error', e)
+          }
+
           if (topic) {
             try {
               await subscribeTopic(topic)
