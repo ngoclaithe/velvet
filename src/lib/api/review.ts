@@ -12,6 +12,7 @@ export interface Review {
   isAnonymous?: boolean
   isPublic?: boolean
   adminResponse?: string | null
+  trustLevel?: string
   createdAt: string
   updatedAt: string
   user?: {
@@ -20,6 +21,10 @@ export interface Review {
     firstName?: string
     lastName?: string
     avatar?: string | null
+  }
+  creator?: {
+    id: number
+    stageName?: string
   }
 }
 
@@ -100,6 +105,17 @@ export const reviewApi = {
     if (query?.sortBy) params.sortBy = query.sortBy
     if (query?.order) params.order = query.order
     return api.get(`/reviews/creator/${creatorId}`, Object.keys(params).length ? params : undefined)
+  },
+
+  // New: get all public reviews with pagination
+  getAllReviews: (
+    page?: number,
+    limit?: number
+  ): Promise<ApiResponse<{ reviews: Review[]; pagination?: { currentPage?: number; totalPages?: number; totalItems?: number; limit?: number } }>> => {
+    const params: Record<string, string> = {}
+    if (page != null) params.page = String(page)
+    if (limit != null) params.limit = String(limit)
+    return api.get('/reviews/all', Object.keys(params).length ? params : undefined)
   },
 
   getReviewById: (id: number): Promise<ApiResponse<Review>> =>
