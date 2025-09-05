@@ -332,6 +332,16 @@ function MessagesInner() {
   }
 
   const currentMessages = useMemo(() => selectedConversationId ? (messagesByConv[selectedConversationId] || []) : [], [messagesByConv, selectedConversationId])
+
+  // scroll to bottom when switching conversations
+  useEffect(() => {
+    if (!selectedConversationId) return
+    // ensure we scroll after messages render
+    requestAnimationFrame(() => scrollToBottom(true))
+    lastConvRef.current = selectedConversationId
+    lastCountRef.current = (messagesByConv[selectedConversationId] || []).length
+  }, [selectedConversationId])
+
   useEffect(() => {
     if (selectedConversationId !== lastConvRef.current) {
       lastConvRef.current = selectedConversationId
