@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { MqttClient } from 'mqtt'
-import { connectMqtt, subscribeTopic } from '@/lib/mqttClient'
+import { connectMqtt, subscribeTopic, unsubscribeTopic } from '@/lib/mqttClient'
 import { useAuth } from '@/hooks/useAuth'
 
 export interface AppNotification {
@@ -55,8 +55,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       mqttRef.current = client
       const topics = [`notifications/${user.id}`, `noti/${user.id}`]
       await Promise.all(topics.map(t => subscribeTopic(t)))
+      const isAllowedTopic = (t: string) => topics.some(p => t === p || t.startsWith(`${p}/`))
+
       const onMsg = (topic: string, payload: Buffer) => {
         if (!mounted) return
+        // Ignore any messages that are not on the user's notification topics
+        if (!isAllowedTopic(topic)) return
         try {
           const raw = payload.toString('utf-8')
           const data = JSON.parse(raw)
@@ -98,7 +102,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         } catch {}
       }
       client.on('message', onMsg)
-      return () => { try { client.off('message', onMsg as any) } catch {} }
+      return () => {
+        try { client.off('message', onMsg as any) } catch {}
+        ;(async () => { try { await Promise.all(topics.map(t => unsubscribeTopic(t))) } catch {} })()
+      }
     }
     const cleanup = setup()
     return () => { (async () => { await cleanup })(); mounted = false }
