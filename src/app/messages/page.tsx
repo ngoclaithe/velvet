@@ -33,7 +33,8 @@ import {
   AlertCircle,
   PhoneOff,
   Mic,
-  MicOff
+  MicOff,
+  ArrowLeft
 } from 'lucide-react'
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -516,7 +517,7 @@ function MessagesInner() {
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <Card className="h-[80vh] flex flex-col md:flex-row">
-        <div className="w-full md:block md:w-1/3 border-b md:border-b-0 md:border-r">
+        <div className={`w-full md:block md:w-1/3 border-b md:border-b-0 md:border-r ${selectedConversationId ? 'hidden' : 'block'}`}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Tin nhắn</h2>
@@ -589,12 +590,15 @@ function MessagesInner() {
           </CardContent>
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className={`flex-1 flex flex-col min-h-0 ${selectedConversationId ? 'block' : 'hidden md:block'}`}>
           {selectedConversationId ? (
             <>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
+                    <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={() => setSelectedConversationId(null)}>
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={(getSelectedConversationData() as any)?.otherUser?.avatar || (getSelectedConversationData() as any)?.participants?.[0]?.avatar} />
                       <AvatarFallback>
@@ -827,7 +831,7 @@ function MessagesInner() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh s��ch bên trái để bắt đầu nhắn tin</p>
               </div>
             </div>
           )}
