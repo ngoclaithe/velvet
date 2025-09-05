@@ -296,9 +296,10 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
   // Load initial data khi tab thay đổi
   useEffect(() => {
     if (currentFeed.posts.length === 0 && !currentFeed.loading) {
+      if (activeTab === 'my-posts' && !isAuthenticated) return
       loadPosts(activeTab, 1, true)
     }
-  }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts])
+  }, [activeTab, currentFeed.posts.length, currentFeed.loading, loadPosts, isAuthenticated])
 
   // Format time ago
   const formatTimeAgo = useCallback((date: Date) => {
