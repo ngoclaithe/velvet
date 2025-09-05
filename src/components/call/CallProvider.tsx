@@ -352,16 +352,6 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await ensurePeerAndMedia(type)
   }, [ensurePeerAndMedia, session?.accessToken, socket])
 
-  const rejectCall = useCallback((callRoomId: string) => {
-    if (!callRoomId) return
-    const payload = { token: session?.accessToken, callRoomId, timestamp: Date.now() }
-    // Print payload so we can verify what is sent to the backend
-    console.log('[CALL][EMIT] call_reject payload', payload)
-    try { socket.emit('call_reject', payload) } catch (e) { console.log('[CALL][ERR] emit call_reject failed', e) }
-    endCall()
-  }, [session?.accessToken, socket, endCall])
-
-
   const endCall = useCallback(() => {
     try {
       // If we have an active callRoomId, notify backend before local cleanup
@@ -384,6 +374,15 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // console.log('[CALL] endCall()')
     setState({ callRoomId: null, callType: null, status: 'idle' })
   }, [session?.accessToken, socket, state.callRoomId])
+
+  const rejectCall = useCallback((callRoomId: string) => {
+    if (!callRoomId) return
+    const payload = { token: session?.accessToken, callRoomId, timestamp: Date.now() }
+    // Print payload so we can verify what is sent to the backend
+    console.log('[CALL][EMIT] call_reject payload', payload)
+    try { socket.emit('call_reject', payload) } catch (e) { console.log('[CALL][ERR] emit call_reject failed', e) }
+    endCall()
+  }, [session?.accessToken, socket])
 
   const toggleMic = useCallback(() => {
     setIsMicOn(prev => {
