@@ -409,6 +409,9 @@ function MessagesInner() {
       return { ...prev, [conversationId]: arr }
     })
 
+    // scroll to bottom for optimistic message
+    requestAnimationFrame(() => scrollToBottom(false))
+
     setMessageInput('')
     setIsSending(true)
     try {
@@ -661,7 +664,15 @@ function MessagesInner() {
 
                 <div ref={messagesContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
-                    {selectedConversationId && getMessagesForConversation(selectedConversationId).map((message: any) => {
+                    {selectedConversationId && groupedItems.map((item: any) => {
+                      if (item.type === 'date') {
+                        return (
+                          <div key={item.id} className="w-full flex justify-center">
+                            <div className="text-xs px-3 py-1 rounded-full bg-background/60 text-muted-foreground">{item.label}</div>
+                          </div>
+                        )
+                      }
+                      const message = item.message
                       const isOwnMessage = String(message.senderId) === String(user?.id)
                       const other = (getSelectedConversationData() as any)?.otherUser || (getSelectedConversationData() as any)?.participants?.[0]
                       const otherName = other?.displayName || other?.username || 'Người dùng'
@@ -669,7 +680,7 @@ function MessagesInner() {
                       const selfAvatar = user?.avatar
 
                       return (
-                        <div key={message.id} className={`flex items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                        <div key={item.id} className={`flex items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                           {!isOwnMessage && (
                             <Avatar className="h-8 w-8 mr-2">
                               <AvatarImage src={otherAvatar} />
