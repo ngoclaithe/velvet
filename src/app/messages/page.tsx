@@ -831,7 +831,7 @@ function MessagesInner() {
               <div className="text-center">
                 <MessageCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn một cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh s��ch bên trái để bắt đầu nhắn tin</p>
+                <p className="text-muted-foreground">Chọn cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin</p>
               </div>
             </div>
           )}
