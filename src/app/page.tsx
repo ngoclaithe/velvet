@@ -331,7 +331,7 @@ export default function HomePage() {
                       </div>
                       <h3 className="text-base sm:text-lg font-semibold mb-2 text-white">Trở thành Creator!</h3>
                       <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4">
-                        Bắt đầu streaming, kiếm tiền tiền nội dung và xây dựng cộng đồng riêng
+                        Bắt đầu streaming, ki���m tiền tiền nội dung và xây dựng cộng đồng riêng
                       </p>
                       <Link href="/become-creator">
                         <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-sm">

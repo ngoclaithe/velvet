@@ -33,7 +33,7 @@ export default function IncomingCallModal() {
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
   const call = useCall()
-  const { clearIncomingCall } = useNotification()
+  const { clearIncomingCall, latestIncomingCall } = useNotification()
 
   const userTopic = useMemo(() => (user?.id ? [`notifications/${user.id}`, `noti/${user.id}`] : []), [user?.id])
 
@@ -56,11 +56,14 @@ export default function IncomingCallModal() {
           const media: string = (payload.mediaType || payload.callType || pData.mediaType || pData.callType || '').toString().toLowerCase()
           const isCall = payload.type === 'call_request' || (media === 'audio' || media === 'video')
           if (!isCall) return
+          // Ignore notifications that we ourselves initiated
+          const callerId = pData.callerId || pData.callerID || pData.fromUserId || pData.senderId
+          if (callerId && String(callerId) === String(user?.id)) return
           const mediaType: 'audio' | 'video' = media === 'audio' ? 'audio' : 'video'
           const callerName = pData.callerUsername || pData.callerName || pData.username || payload.title || 'Người gọi'
           const callerAvatar = pData.callerAvatar || pData.avatar || ''
           const callRoomId = pData.callRoomId || pData.roomId || ''
-          setInfo({ callerId: pData.callerId, callerName, callerAvatar, callRoomId, mediaType })
+          setInfo({ callerId, callerName, callerAvatar, callRoomId, mediaType })
           setOpen(true)
           if (mediaType === 'video') {
             try {
@@ -87,6 +90,36 @@ export default function IncomingCallModal() {
     const cleanupPromise = setup()
     return () => { mounted = false; (async () => { await cleanupPromise })() }
   }, [isAuthenticated, user?.id, userTopic, micOn, camOn])
+
+  // Also react to latestIncomingCall from NotificationProvider so that
+  // if a call arrived on another page (e.g. newsfeed) the modal will show
+  useEffect(() => {
+    const inc = latestIncomingCall
+    if (!inc || !inc.callRoomId) return
+    // avoid self notifications
+    const callerId = (inc as any).callerId
+    if (callerId && String(callerId) === String(user?.id)) return
+    // If already open for same room, ignore
+    if (info?.callRoomId && info.callRoomId === inc.callRoomId && open) return
+    const mediaType = (inc.callType === 'audio') ? 'audio' : 'video'
+    setInfo({ callerId: (inc as any).callerId, callerName: undefined, callerAvatar: undefined, callRoomId: inc.callRoomId, mediaType })
+    setOpen(true)
+    if (mediaType === 'video') {
+      ;(async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+          stream.getAudioTracks().forEach(t => (t.enabled = micOn))
+          stream.getVideoTracks().forEach(t => (t.enabled = camOn))
+          mediaRef.current = stream
+          if (localVideoRef.current) {
+            ;(localVideoRef.current as any).srcObject = stream
+            localVideoRef.current.muted = true
+            try { await localVideoRef.current.play() } catch {}
+          }
+        } catch (e) { console.log('[INCOMING] preview from latestIncomingCall failed', e) }
+      })()
+    }
+  }, [latestIncomingCall])
 
   const toggleMic = () => {
     setMicOn(prev => {
@@ -150,7 +183,16 @@ export default function IncomingCallModal() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button size="icon" variant="destructive" onClick={async () => { endPreview(); setOpen(false); setInfo(null); }} className="rounded-full h-12 w-12">
+            <Button size="icon" variant="destructive" onClick={async () => {
+              const room = info.callRoomId
+              if (room) {
+                try { call.rejectCall(room) } catch (e) { console.log('[INCOMING] reject error', e) }
+              }
+              clearIncomingCall()
+              endPreview()
+              setOpen(false)
+              setInfo(null)
+            }} className="rounded-full h-12 w-12">
               <X className="h-5 w-5" />
             </Button>
             <Button size="icon" variant="default" onClick={async () => {

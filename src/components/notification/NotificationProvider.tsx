@@ -65,11 +65,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const raw = payload.toString('utf-8')
           const data = JSON.parse(raw)
           const type = String(data?.type || 'info')
+          const media = (data?.mediaType || data?.callType || data?.data?.mediaType || data?.data?.callType || '').toString().toLowerCase()
+          const isCall = type === 'call' || media === 'audio' || media === 'video'
+
+          // Prepare notification content
+          const p = data?.data || {}
+          const callerName = p.callerUsername || p.callerName || p.username || p?.fromName || ''
           const note: AppNotification = {
             id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-            type,
-            title: data?.title,
-            message: data?.message,
+            type: isCall ? 'call' : type,
+            title: isCall ? (media === 'video' ? 'Cuộc gọi video' : 'Cuộc gọi thoại') : (data?.title || undefined),
+            message: isCall ? (callerName ? `Bạn có một cuộc gọi ${media === 'video' ? 'video' : 'thoại'} từ ${callerName}` : `Bạn có một cuộc gọi ${media === 'video' ? 'video' : 'thoại'}`) : (data?.message || undefined),
             data: data?.data,
             topic,
             read: false,
@@ -88,10 +94,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setNotifications(prev => [note, ...prev].slice(0, 10))
           }
 
-          const media = (data?.mediaType || data?.callType || data?.data?.mediaType || data?.data?.callType || '').toString().toLowerCase()
-          const isCall = type === 'call' || media === 'audio' || media === 'video'
           if (isCall) {
-            const p = data?.data || {}
             setIncoming({
               conversationId: (p.conversationId || p.conversation?.id)?.toString?.(),
               callRoomId: p.callRoomId || p.roomId,
