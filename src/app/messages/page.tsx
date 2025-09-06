@@ -531,7 +531,7 @@ function MessagesInner() {
                   <DialogHeader>
                     <DialogTitle>Tin nhắn mới</DialogTitle>
                     <DialogDescription>
-                      Tìm và nhắn tin cho người dùng kh��c
+                      Tìm và nhắn tin cho người dùng khác
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">

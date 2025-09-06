@@ -296,7 +296,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
 
       toast({
         title: "Lỗi tải bài viết",
-        description: error instanceof Error ? error.message : "Không th��� tải bài viết. Vui lòng thử lại sau.",
+        description: error instanceof Error ? error.message : "Không thể tải bài viết. Vui lòng thử lại sau.",
         variant: "destructive"
       })
     }
@@ -1060,7 +1060,7 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
                     <Button onClick={() => window.location.href = '/create-post'}>Tạo bài viết đầu tiên</Button>
                     {!isAuthenticated && (
                       <p className="text-sm text-muted-foreground">
-                        <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>��ăng nhập</Button>{' '}để tạo bài viết
+                        <Button variant="link" className="p-0 h-auto" onClick={() => window.location.href = '/login'}>Đăng nhập</Button>{' '}để tạo bài viết
                       </p>
                     )}
                   </div>
