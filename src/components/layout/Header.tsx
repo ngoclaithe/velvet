@@ -26,7 +26,7 @@ import {
   Shield,
   Calendar,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useNotification } from '@/components/notification/NotificationProvider'
 
@@ -34,6 +34,7 @@ export default function Header() {
   const { user, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
   const { notifications, unreadCount } = useNotification()
+  const [searchText, setSearchText] = useState('')
 
   const openNotification = (n: any) => {
     const isCall = ['audio', 'video', 'call'].includes(String(n.type))
@@ -74,6 +75,14 @@ export default function Header() {
               type="text"
               placeholder="Tìm kiếm bài viết, người dùng, nội dung..."
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const q = searchText.trim()
+                  if (q) router.push(`/search?query=${encodeURIComponent(q)}&limit=5`)
+                }
+              }}
             />
           </div>
         </div>
