@@ -92,6 +92,8 @@ export default function WalletPage() {
   const [accountHolderName, setAccountHolderName] = useState('')
   const [generatedCodePay, setGeneratedCodePay] = useState('')
   const [showDepositInstructions, setShowDepositInstructions] = useState(false)
+  // Snapshot of last created deposit to ensure dialog can show QR even after form is reset
+  const [lastDepositData, setLastDepositData] = useState<{ payment?: InfoPayment; amount: number; codePay: string } | null>(null)
 
   // Generate unique codepay
   const generateCodePay = () => {
