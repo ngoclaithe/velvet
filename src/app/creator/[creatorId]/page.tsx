@@ -543,6 +543,14 @@ export default function CreatorDetailPage() {
                       )}
                       {creator.bio && <p className="text-gray-300 text-sm leading-relaxed mb-3 whitespace-pre-line break-words">{creator.bio}</p>}
 
+                      {creator.tags && creator.tags.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-2 mb-3">
+                          {creator.tags.map((t) => (
+                            <Badge key={t} variant="secondary" className="bg-gray-700 text-gray-200">#{t}</Badge>
+                          ))}
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-2 gap-3 mb-3">
                         <div className="text-center">
                           <p className="text-white font-bold text-lg">{formatCount(creator.followersCount)}</p>
@@ -644,21 +652,6 @@ export default function CreatorDetailPage() {
                 </Card>
               )}
 
-              {(creator.category || (creator.tags && creator.tags.length > 0)) && (
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-4">
-                    <h3 className="text-lg font-semibold text-white mb-3">Phân loại & Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {creator.category && (
-                        <Badge variant="outline" className="border-gray-600 text-gray-300 px-3 py-1.5">{creator.category}</Badge>
-                      )}
-                      {creator.tags?.map((t) => (
-                        <Badge key={t} variant="secondary" className="bg-gray-700 text-gray-200">#{t}</Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           </div>
 
@@ -832,7 +825,7 @@ export default function CreatorDetailPage() {
                     <span className="text-gray-400 text-sm">Lọc:</span>
                     <Select value={String(filterRating)} onValueChange={(v) => { setFilterRating(v === 'all' ? 'all' : Number(v) as any); setPage(1) }}>
                       <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Tất cả" />
+                        <SelectValue placeholder="Tất c���" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả</SelectItem>
