@@ -14,7 +14,7 @@ type DepositStatus = "pending" | "approved" | "rejected"
 interface AdminRequestDeposit {
   id: string
   amount: number
-  infoPaymentId: number
+  infoPaymentId?: number
   transactionCode?: string
   note?: string
   status: DepositStatus
@@ -22,6 +22,8 @@ interface AdminRequestDeposit {
   createdAt: string | Date
   user?: { id: string; username?: string; email?: string }
   infoPayment?: { bankName?: string; accountNumber?: string; accountName?: string; provider?: string; type?: string }
+  bankInfo?: { accountNumber?: string; accountName?: string; bankCode?: string }
+  txType?: 'deposit' | 'withdraw'
 }
 
 export default function AdminDepositsPage() {
@@ -30,6 +32,7 @@ export default function AdminDepositsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [requests, setRequests] = useState<AdminRequestDeposit[]>([])
   const [filter, setFilter] = useState<DepositStatus | "all">("pending")
+  const [typeFilter, setTypeFilter] = useState<'all'|'deposit'|'withdraw'>('all')
 
   const filtered = useMemo(() => {
     if (filter === "all") return requests
@@ -39,20 +42,23 @@ export default function AdminDepositsPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await transactionAPI.getDeposits()
+      const res = await transactionAPI.getTransactions()
       if (res.success && Array.isArray(res.data)) {
         setRequests(
-          res.data.map((rd: any) => {
-            const raw = String(rd.status || '').toLowerCase()
-            const status: DepositStatus = raw === 'completed' || raw === 'approved' || raw === 'paid'
-              ? 'approved'
-              : (raw === 'failed' || raw === 'cancelled' || raw === 'rejected' ? 'rejected' : 'pending')
-            return {
-              ...rd,
-              status,
-              createdAt: rd.createdAt ?? new Date().toISOString(),
-            }
-          })
+          res.data
+            .filter((t: any) => (t.type === 'deposit' || t.type === 'withdraw' || t.type === 'withdrawal'))
+            .map((rd: any) => {
+              const raw = String(rd.status || '').toLowerCase()
+              const status: DepositStatus = raw === 'completed' || raw === 'approved' || raw === 'paid'
+                ? 'approved'
+                : (raw === 'failed' || raw === 'cancelled' || raw === 'rejected' ? 'rejected' : 'pending')
+              return {
+                ...rd,
+                status,
+                txType: rd.type === 'deposit' ? 'deposit' : 'withdraw',
+                createdAt: rd.createdAt ?? new Date().toISOString(),
+              }
+            })
         )
       } else {
         toast({
@@ -123,8 +129,8 @@ export default function AdminDepositsPage() {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-black">Quản lý yêu cầu nạp tiền</h1>
-          <p className="text-sm text-gray-600">Xem và phê duyệt các yêu cầu nạp tiền của người dùng</p>
+          <h1 className="text-2xl font-bold text-black">Quản lý giao dịch nạp/rút</h1>
+          <p className="text-sm text-gray-600">Xem và phê duyệt các yêu cầu nạp và rút tiền của người dùng</p>
         </div>
         <Button variant="ghost" onClick={loadData} disabled={loading}>
           {loading ? <Icons.spinner className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -149,6 +155,12 @@ export default function AdminDepositsPage() {
             <Button variant={filter === "rejected" ? "default" : "secondary"} size="sm" onClick={() => setFilter("rejected")}>
               <XCircle className="mr-1 h-4 w-4" /> Từ chối ({counts.rejected})
             </Button>
+
+            <div className="ml-2 flex items-center gap-2">
+              <Button variant={typeFilter === 'all' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('all')}>Tất cả loại</Button>
+              <Button variant={typeFilter === 'deposit' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('deposit')}>Nạp</Button>
+              <Button variant={typeFilter === 'withdraw' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('withdraw')}>Rút</Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -169,6 +181,7 @@ export default function AdminDepositsPage() {
                     <th className="px-3 py-2 font-medium text-gray-800">Mã</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Người dùng</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Số tiền</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Loại</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Phương thức</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Trạng thái</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Thời gian</th>
@@ -200,9 +213,17 @@ export default function AdminDepositsPage() {
                       </td>
                       <td className="px-3 py-2 align-top">
                         <div>
-                          <div className="font-medium">{r.infoPayment?.bankName || r.infoPayment?.provider || "Chuyển khoản"}</div>
-                          {r.infoPayment?.accountNumber && (
-                            <div className="text-xs text-gray-600">{r.infoPayment.accountNumber}</div>
+                          <span className="px-2 py-1 text-xs rounded bg-slate-100 text-slate-800">{r.txType === 'withdraw' ? 'Rút' : 'Nạp'}</span>
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-2 align-top">
+                        <div>
+                          <div className="font-medium">
+                            {r.txType === 'withdraw' ? (r.bankInfo?.bankCode || r.bankInfo?.accountName || 'Tài khoản rút') : (r.infoPayment?.bankName || r.infoPayment?.provider || 'Chuyển khoản')}
+                          </div>
+                          {(r.txType === 'withdraw' ? r.bankInfo?.accountNumber : r.infoPayment?.accountNumber) && (
+                            <div className="text-xs text-gray-600">{r.txType === 'withdraw' ? r.bankInfo?.accountNumber : r.infoPayment?.accountNumber}</div>
                           )}
                         </div>
                       </td>

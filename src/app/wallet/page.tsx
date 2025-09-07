@@ -92,6 +92,7 @@ export default function WalletPage() {
 
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [bankName, setBankName] = useState('')
+  const [bankNameOther, setBankNameOther] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [accountHolderName, setAccountHolderName] = useState('')
   const [generatedCodePay, setGeneratedCodePay] = useState('')
@@ -397,8 +398,9 @@ export default function WalletPage() {
       }
 
       const normalize = (s: string) => (s || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
-      const normalizedBankName = normalize(bankName)
-      const bankCode = rawBankMap[normalizedBankName] || bankName || ''
+      const effectiveBankNameForLookup = bankName === 'Khác' ? bankNameOther : bankName
+      const normalizedBankName = normalize(effectiveBankNameForLookup)
+      const bankCode = rawBankMap[normalizedBankName] || effectiveBankNameForLookup || ''
 
       const withdrawPayload = {
         amount: amount,
@@ -429,6 +431,7 @@ export default function WalletPage() {
 
         setWithdrawAmount('')
         setBankName('')
+        setBankNameOther('')
         setAccountNumber('')
         setAccountHolderName('')
       } else {
@@ -933,13 +936,28 @@ export default function WalletPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="bankName">Tên ngân hàng</Label>
-                  <Input
-                    id="bankName"
-                    type="text"
-                    placeholder="VD: Vietcombank, BIDV, Techcombank..."
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                  />
+                  <Select value={bankName || ''} onValueChange={(v) => setBankName(v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn ngân hàng" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        'Vietcombank','Vietinbank','BIDV','Techcombank','Mbbank','ACB','Sacombank','TPBank','VPBank','Agribank','Khác'
+                      ].map((b) => (
+                        <SelectItem key={b} value={b}>{b}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {bankName === 'Khác' && (
+                    <Input
+                      id="bankName_other"
+                      type="text"
+                      placeholder="Nhập tên ngân hàng"
+                      value={bankNameOther}
+                      onChange={(e) => setBankNameOther(e.target.value)}
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -976,7 +994,7 @@ export default function WalletPage() {
 
                 <Button
                   onClick={handleWithdraw}
-                  disabled={isWithdrawing || !withdrawAmount || !bankName || !accountNumber || !accountHolderName}
+                  disabled={isWithdrawing || !withdrawAmount || !(bankName && (bankName !== 'Khác' ? true : !!bankNameOther)) || !accountNumber || !accountHolderName}
                   className="w-full"
                   variant="outline"
                 >
@@ -1016,7 +1034,7 @@ export default function WalletPage() {
                     <h4 className="font-medium text-yellow-900 mb-2">Chú ý bảo mật:</h4>
                     <ul className="text-sm text-yellow-800 space-y-1">
                       <li>• Không chia sẻ thông tin tài khoản với người khác</li>
-                      <li>• Kiểm tra email xác nhận sau khi gửi yêu cầu</li>
+                      <li>• Kiểm tra email xác nhận sau khi gửi yêu c��u</li>
                       <li>• Liên hệ hỗ trợ nếu có vấn đề</li>
                     </ul>
                   </div>
