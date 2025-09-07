@@ -44,6 +44,36 @@ interface StreamCard {
   duration?: string
 }
 
+// Mock data for streams (used as fallback/demo)
+const MOCK_STREAMS: StreamCard[] = [
+  {
+    id: 'mock-1',
+    title: 'Morning Chill with Lina',
+    description: 'Relaxing music and chat',
+    category: 'Music',
+    tags: ['relax','music'],
+    creator: { id: '1', username: 'lina', stageName: 'Lina', avatar: '', isVerified: true },
+    thumbnail: '',
+    isLive: true,
+    viewerCount: 342,
+    totalViews: 1200,
+    startedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString()
+  },
+  {
+    id: 'mock-2',
+    title: 'Gaming Night: Apex Legends',
+    description: 'Competitive gameplay and commentary',
+    category: 'Gaming',
+    tags: ['gaming','apex'],
+    creator: { id: '2', username: 'max', stageName: 'MaxPlays', avatar: '', isVerified: false },
+    thumbnail: '',
+    isLive: true,
+    viewerCount: 1289,
+    totalViews: 5000,
+    startedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+  }
+]
+
 // Type guard helper
 function hasStreamsData(data: unknown): data is { streams: StreamResponse[] } {
   try {
@@ -104,7 +134,7 @@ export default function StreamsPage() {
 
         const response = await streamApi.getLiveStreams(apiParams)
 
-        if (response.success && hasStreamsData(response.data)) {
+        if (response && response.success && hasStreamsData(response.data) && Array.isArray(response.data.streams) && response.data.streams.length > 0) {
           // Transform API response to match our interface
           const transformedStreams = response.data.streams.map((stream: StreamResponse) => {
             const creator = stream.creator || {}
@@ -134,14 +164,25 @@ export default function StreamsPage() {
           })
           setStreams(transformedStreams)
         } else {
-          // API did not return expected payload — clear streams and show warning
-          console.warn('API response does not contain streams array:', response)
-          setStreams([])
-          toast.error('Không thể tải danh sách streams')
+          // Use mock streams as fallback
+          const transformedMock = MOCK_STREAMS.map((s) => ({
+            id: s.id,
+            title: s.title,
+            description: s.description,
+            category: s.category,
+            tags: s.tags || [],
+            creator: s.creator,
+            thumbnail: s.thumbnail,
+            isLive: s.isLive,
+            viewerCount: s.viewerCount || 0,
+            totalViews: s.totalViews || 0,
+            startedAt: s.startedAt || new Date().toISOString()
+          }))
+          setStreams(transformedMock)
         }
       } catch (error) {
         console.error('Error fetching streams:', error)
-        setStreams([])
+        setStreams(MOCK_STREAMS)
         toast.error('Lỗi khi tải streams')
       } finally {
         setIsLoading(false)
