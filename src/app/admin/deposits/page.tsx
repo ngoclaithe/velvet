@@ -40,7 +40,7 @@ export default function AdminDepositsPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await requestDeposit.getRequestDeposit()
+      const res = await transactionAPI.getDeposits()
       if (res.success && Array.isArray(res.data)) {
         setRequests(
           res.data.map((rd: any) => ({
@@ -78,7 +78,7 @@ export default function AdminDepositsPage() {
         // reflect frontend status names for UI consistency
         setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
         toast({
-          title: status === "approved" ? "Đã phê duyệt" : "Đã từ ch��i",
+          title: status === "approved" ? "Đã phê duyệt" : "Đã từ chối",
           description: `Yêu cầu ${status === "approved" ? "được phê duyệt" : "bị từ chối"}.`,
           variant: "default",
         })
