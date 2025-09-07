@@ -244,7 +244,7 @@ export default function CreatorsAdminPage() {
         }
       }
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
-      if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
+      if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật th��t bại')
       toast.success('Cập nhật creator thành công')
       // refresh list
       const all: any = await creatorAPI.getAllCreators()
@@ -360,7 +360,7 @@ export default function CreatorsAdminPage() {
                         <SelectValue placeholder="Chọn" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Chưa chọn</SelectItem>
+                        <SelectItem value="none">Chưa chọn</SelectItem>
                         <SelectItem value="male">Nam</SelectItem>
                         <SelectItem value="female">Nữ</SelectItem>
                         <SelectItem value="other">Khác</SelectItem>
@@ -620,7 +620,7 @@ export default function CreatorsAdminPage() {
                     <SelectValue placeholder="Ch��n" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Chưa chọn</SelectItem>
+                    <SelectItem value="none">Chưa chọn</SelectItem>
                     <SelectItem value="male">Nam</SelectItem>
                     <SelectItem value="female">Nữ</SelectItem>
                     <SelectItem value="other">Khác</SelectItem>
