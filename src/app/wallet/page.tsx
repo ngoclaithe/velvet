@@ -83,9 +83,13 @@ export default function WalletPage() {
   
   // New deposit flow state
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<InfoPayment[]>([])
-  const [selectedInfoPaymentId, setSelectedInfoPaymentId] = useState<string>('')
+  // default to infoPayment id 1 for quicker deposits
+  const [selectedInfoPaymentId, setSelectedInfoPaymentId] = useState<string>('1')
   const [depositAmount, setDepositAmount] = useState('')
-  
+
+  // Transaction filter state: all | deposit | withdraw | tip | gift
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<string>('all')
+
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [bankName, setBankName] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
@@ -95,11 +99,10 @@ export default function WalletPage() {
   // Snapshot of last created deposit to ensure dialog can show QR even after form is reset
   const [lastDepositData, setLastDepositData] = useState<{ payment?: InfoPayment; amount: number; codePay: string } | null>(null)
 
-  // Generate unique codepay
+  // Generate unique codepay (shorter, 6 chars suffix)
   const generateCodePay = () => {
-    const timestamp = Date.now().toString()
     const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-    return `PAY${timestamp.slice(-6)}${random}`
+    return `PAY${random}`
   }
 
   // Copy to clipboard function
@@ -161,19 +164,6 @@ export default function WalletPage() {
         setMonthlyIncome(Number(walletResponse.data.monthlyIncome) || 0)
         }
 
-        // Fetch transactions
-        const transactionsResponse = await transactionAPI.getTransactions()
-        if (transactionsResponse.success && Array.isArray(transactionsResponse.data)) {
-          setTransactions(transactionsResponse.data.map((t: any) => ({
-            id: String(t.id ?? ''),
-            type: t.type === 'withdraw' ? 'withdrawal' : t.type,
-            amount: typeof t.amount === 'string' ? parseFloat(t.amount) : Number(t.amount ?? t.tokenAmount ?? 0),
-            description: t.description ?? '',
-            date: new Date(t.createdAt ?? t.date ?? Date.now()),
-            status: (t.status === 'processing' ? 'pending' : t.status) ?? 'pending',
-            transactionId: t.referenceId ?? t.reference ?? (t.metadata && t.metadata.codePay) ?? undefined,
-          })))
-        }
 
         // Fetch request deposits
         const requestDepositsResponse = await transactionAPI.getDeposits()
@@ -198,6 +188,49 @@ export default function WalletPage() {
     fetchWalletData()
   }, [user, toast])
 
+  // Fetch transactions separately and support filtering by type
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!user) return
+      try {
+        const params: Record<string, string> | undefined = (transactionTypeFilter && transactionTypeFilter !== 'all')
+          ? { type: transactionTypeFilter === 'withdrawal' ? 'withdraw' : transactionTypeFilter }
+          : undefined
+
+        const response = await transactionAPI.getTransactions(params)
+        if (response.success && Array.isArray(response.data)) {
+          setTransactions(response.data.map((t: any) => {
+            const mappedType = (() => {
+              if (t.type === 'deposit') return 'deposit'
+              if (t.type === 'withdraw' || t.type === 'withdrawal') return 'withdrawal'
+              if (t.type === 'tip') return 'spending'
+              if (t.type === 'gift') {
+                const fromId = t.fromUserId ?? (t.fromUser && (t.fromUser.id))
+                if (fromId && user?.id && String(fromId) === String(user.id)) return 'gift_sent'
+                return 'gift_received'
+              }
+              return (t.type as Transaction['type']) || 'spending'
+            })()
+
+            return {
+              id: String(t.id ?? ''),
+              type: mappedType as Transaction['type'],
+              amount: typeof t.amount === 'string' ? parseFloat(t.amount) : Number(t.amount ?? t.tokenAmount ?? 0),
+              description: t.description ?? '',
+              date: new Date(t.createdAt ?? t.date ?? Date.now()),
+              status: (t.status === 'processing' ? 'pending' : t.status) ?? 'pending',
+              transactionId: t.referenceId ?? t.reference ?? (t.metadata && t.metadata.codePay) ?? undefined,
+            }
+          }))
+        }
+      } catch (error) {
+        console.error('Failed to fetch transactions', error)
+      }
+    }
+
+    fetchTransactions()
+  }, [user, transactionTypeFilter])
+
   const handleCreateDepositRequest = async () => {
     if (!depositAmount || !selectedInfoPaymentId) {
       toast({
@@ -213,6 +246,16 @@ export default function WalletPage() {
       toast({
         title: "Lỗi",
         description: "Số tiền nạp tối thiểu là 1,000 VND",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Ensure amount is multiple of 1000
+    if (amount % 1000 !== 0) {
+      toast({
+        title: "Lỗi",
+        description: "Số tiền phải là bội của 1,000 VND",
         variant: "destructive"
       })
       return
@@ -251,7 +294,8 @@ export default function WalletPage() {
 
         // Reset form
         setDepositAmount('')
-        setSelectedInfoPaymentId('')
+        // keep default infopayment as 1 for convenience
+        setSelectedInfoPaymentId('1')
 
         // Refresh request deposits
         const requestDepositsResponse = await transactionAPI.getDeposits()
@@ -270,8 +314,8 @@ export default function WalletPage() {
       }
     } catch (error) {
       toast({
-        title: "L��i tạo yêu cầu",
-        description: "Không thể tạo yêu cầu nạp tiền. Vui lòng thử lại.",
+        title: "Lỗi tạo yêu cầu",
+        description: "Không thể tạo yêu cầu nạp tiền. Vui l��ng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -294,6 +338,16 @@ export default function WalletPage() {
       toast({
         title: "Số dư không đủ",
         description: "Số tiền rút vượt quá số dư hiện tại",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Ensure withdrawal is multiple of 1000
+    if (amount % 1000 !== 0) {
+      toast({
+        title: "Lỗi",
+        description: "Số tiền phải là bội của 1,000 VND",
         variant: "destructive"
       })
       return
@@ -515,10 +569,24 @@ export default function WalletPage() {
                   <CardTitle>Lịch sử giao dịch</CardTitle>
                   <CardDescription>Tất cả các giao dịch gần đây</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Xuất file
-                </Button>
+                <div className="flex items-center space-x-3">
+                  <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter}>
+                    <SelectTrigger className="w-44">
+                      <SelectValue placeholder="Lọc loại giao dịch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả</SelectItem>
+                      <SelectItem value="deposit">Nạp</SelectItem>
+                      <SelectItem value="withdrawal">Rút</SelectItem>
+                      <SelectItem value="tip">Donate/Tip</SelectItem>
+                      <SelectItem value="gift">Quà tặng</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Xuất file
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -631,7 +699,7 @@ export default function WalletPage() {
                   ) : (
                     <>
                       <Plus className="mr-2 h-4 w-4" />
-                      Tạo yêu cầu nạp tiền
+                      T���o yêu cầu nạp tiền
                     </>
                   )}
                 </Button>
@@ -645,11 +713,11 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {[10000, 50000, 100000, 200000, 500000, 1000000].map((amount) => (
+                  {[10000, 50000, 100000, 200000, 500000, 1000000, 2000000, 3000000, 5000000, 10000000].map((amount) => (
                     <Button
                       key={amount}
                       variant="outline"
-                      onClick={() => setDepositAmount(amount.toString())}
+                      onClick={() => { setDepositAmount(amount.toString()); setSelectedInfoPaymentId('1') }}
                       className="h-16 flex flex-col"
                     >
                       <span className="text-lg font-bold">{amount.toLocaleString('vi-VN')} VND</span>
@@ -669,7 +737,7 @@ export default function WalletPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center space-x-2">
                   <CheckCircle className="h-6 w-6 text-green-600" />
-                  <span className="text-lg font-semibold text-gray-900">Yêu cầu đã được tạo</span>
+                  <span className="text-lg font-semibold text-white">Yêu cầu đã được tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
                   Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
@@ -761,7 +829,7 @@ export default function WalletPage() {
                   </div>
 
                   <div className="p-3 rounded bg-gray-50 border">
-                    <p className="text-sm text-gray-700">Nếu cần trợ giúp, liên hệ bộ phận hỗ trợ.</p>
+                    <p className="text-sm text-gray-700">Nếu cần trợ giúp, liên hệ bộ phận h�� trợ.</p>
                   </div>
                 </div>
               </div>
