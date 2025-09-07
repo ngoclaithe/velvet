@@ -440,12 +440,13 @@ export default function CreatorsAdminPage() {
 
       {/* Edit Creator modal */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-4xl w-[95vw]">
+        <DialogContent className="max-w-4xl w-[95vw] p-0">
           <DialogHeader>
             <DialogTitle>Chi tiết Creator</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Họ</Label>
                 <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
@@ -480,7 +481,7 @@ export default function CreatorsAdminPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <Label>Bio</Label>
                 <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} />
               </div>
@@ -519,7 +520,7 @@ export default function CreatorsAdminPage() {
                 }} hideResults />
                 {form.avatar && <div className="mt-2"><img src={form.avatar} className="w-20 h-20 rounded-full object-cover" /></div>}
               </div>
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <Label>Ảnh Bio (nhiều ảnh)</Label>
                 <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
                   const urls = results.map((r:any) => r.secure_url).filter(Boolean)
@@ -531,7 +532,10 @@ export default function CreatorsAdminPage() {
                 <Label htmlFor="isVerified">Đã xác thực</Label>
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-4">
+          </div>
+
+          <div className="sticky bottom-0 bg-background/80 backdrop-blur/10 py-3 px-4 sm:px-6 border-t">
+            <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditOpen(false)}>Hủy</Button>
               <Button onClick={onEditSubmit} disabled={submitting}>{submitting ? 'Đang lưu...' : 'Lưu'}</Button>
             </div>
