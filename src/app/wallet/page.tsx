@@ -315,7 +315,7 @@ export default function WalletPage() {
     } catch (error) {
       toast({
         title: "Lỗi tạo yêu cầu",
-        description: "Không thể tạo yêu cầu nạp tiền. Vui l��ng thử lại.",
+        description: "Không thể tạo yêu cầu nạp tiền. Vui lòng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -682,7 +682,7 @@ export default function WalletPage() {
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
                     <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
-                    <li>• Liên hệ h�� trợ nếu không nhận được tiền sau 30 phút</li>
+                    <li>• Liên hệ hệ trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>
                 </div>
 
@@ -699,7 +699,7 @@ export default function WalletPage() {
                   ) : (
                     <>
                       <Plus className="mr-2 h-4 w-4" />
-                      T���o yêu cầu nạp tiền
+                      Tạo yêu cầu nạp tiền
                     </>
                   )}
                 </Button>
@@ -829,7 +829,7 @@ export default function WalletPage() {
                   </div>
 
                   <div className="p-3 rounded bg-gray-50 border">
-                    <p className="text-sm text-gray-700">Nếu cần trợ giúp, liên hệ bộ phận h�� trợ.</p>
+                    <p className="text-sm text-gray-700">Nếu cần trợ giúp, liên hệ bộ phận hỗ trợ.</p>
                   </div>
                 </div>
               </div>
@@ -847,7 +847,7 @@ export default function WalletPage() {
                   <span>Rút tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Rút ti��n từ ví về tài khoản của bạn
+                  Rút tiền từ ví về tài khoản của bạn
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
