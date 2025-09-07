@@ -402,7 +402,7 @@ export default function WalletPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Ví của tôi</h1>
-          <p className="text-muted-foreground">Qu���n lý tài chính và giao dịch</p>
+          <p className="text-muted-foreground">Quản lý tài chính và giao dịch</p>
         </div>
         <Button variant="outline" size="icon">
           <RefreshCw className="h-4 w-4" />
@@ -660,102 +660,104 @@ export default function WalletPage() {
 
           {/* Deposit Instructions Dialog */}
           <Dialog open={showDepositInstructions} onOpenChange={setShowDepositInstructions}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-lg w-full md:max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="flex items-center space-x-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span>Yêu cầu đã được tạo</span>
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <span className="text-lg font-semibold text-gray-900">Yêu cầu đã được tạo</span>
                 </DialogTitle>
-                <DialogDescription>
-                  Vui lòng thực hiện chuyển khoản theo thông tin bên dưới với số tiền chính xác
+                <DialogDescription className="text-sm text-gray-700">
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                {(selectedInfoPaymentId || lastDepositData?.payment) && (
-                  <div className="space-y-3">
-                    {(() => {
-                      const selectedPayment = lastDepositData?.payment ?? availablePaymentMethods.find(
-                        p => p.id.toString() === selectedInfoPaymentId
-                      )
-                      if (!selectedPayment) return null
 
-                      const amountToShow = lastDepositData?.amount ?? Number(depositAmount || 0)
-                      const codePayToShow = lastDepositData?.codePay ?? generatedCodePay
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 max-h-[65vh] overflow-y-auto pr-2 pb-2">
+                {/* Left: Payment details */}
+                <div className="space-y-3">
+                  {(() => {
+                    const selectedPayment = lastDepositData?.payment ?? availablePaymentMethods.find(
+                      p => p.id.toString() === selectedInfoPaymentId
+                    )
+                    if (!selectedPayment) return (
+                      <div className="p-3 rounded bg-gray-50 text-sm text-gray-700">Không có thông tin phương thức thanh toán.</div>
+                    )
 
-                      return (
-                        <>
-                          <div className="bg-gray-50 p-3 rounded">
-                            <p className="text-sm font-medium">Ngân hàng</p>
-                            <p className="text-lg">{selectedPayment.bankName}</p>
-                          </div>
-                          <div className="bg-gray-50 p-3 rounded">
-                            <p className="text-sm font-medium">Số tài khoản</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-lg font-mono">{selectedPayment.bankNumber}</span>
-                              <Button size="sm" variant="ghost" onClick={() => copyToClipboard(selectedPayment.bankNumber)}>
-                                <Copy className="h-4 w-4" />
-                              </Button>
+                    const amountToShow = lastDepositData?.amount ?? Number(depositAmount || 0)
+                    const codePayToShow = lastDepositData?.codePay ?? generatedCodePay
+
+                    return (
+                      <div className="space-y-3">
+                        <div className="p-3 rounded bg-white border">
+                          <p className="text-xs text-gray-500">Ngân hàng</p>
+                          <p className="text-base font-medium text-gray-900 truncate">{selectedPayment.bankName}</p>
+                        </div>
+
+                        <div className="p-3 rounded bg-white border">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-gray-500">Số tài khoản</p>
+                              <p className="text-base font-mono text-gray-900">{selectedPayment.bankNumber}</p>
                             </div>
+                            <Button size="sm" variant="ghost" onClick={() => copyToClipboard(selectedPayment.bankNumber)}>Sao chép</Button>
                           </div>
-                          <div className="bg-gray-50 p-3 rounded">
-                            <p className="text-sm font-medium">Tên tài khoản</p>
-                            <p className="text-lg">{selectedPayment.accountName}</p>
-                          </div>
+                        </div>
 
-                          {/* QR Code Section */}
-                          <div className="bg-white p-4 rounded border text-center">
-                            <p className="text-sm font-medium mb-3">Mã QR thanh toán</p>
-                            <div className="flex justify-center">
-                              <img
-                                src={generateSepayQRUrl({
-                                  accountNumber: selectedPayment.bankNumber,
-                                  name: selectedPayment.accountName,
-                                  bank: selectedPayment.bankName,
-                                  amount: amountToShow,
-                                  code_pay: codePayToShow
-                                })}
-                                alt="QR Code thanh toán"
-                                className="w-48 h-48 border rounded"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none'
-                                }}
-                              />
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Quét mã QR để thanh toán nhanh
-                            </p>
+                        <div className="p-3 rounded bg-white border">
+                          <p className="text-xs text-gray-500">Tên tài khoản</p>
+                          <p className="text-base text-gray-900 truncate">{selectedPayment.accountName}</p>
+                        </div>
+
+                        <div className="p-3 rounded bg-white border text-center">
+                          <p className="text-xs text-gray-500 mb-2">Mã giao dịch</p>
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="px-3 py-1 rounded bg-blue-50 text-blue-900 font-mono">{codePayToShow}</span>
+                            <Button size="sm" variant="outline" onClick={() => copyToClipboard(codePayToShow)}>Copy</Button>
                           </div>
-                        </>
-                      )
-                    })()}
-                    
-                    <div className="bg-blue-50 p-3 rounded">
-                      <p className="text-sm font-medium text-blue-900">Mã giao dịch</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-mono text-blue-900">{lastDepositData?.codePay ?? generatedCodePay}</span>
-                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(lastDepositData?.codePay ?? generatedCodePay)}>
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                          <p className="text-xs text-gray-600 mt-2">Ghi mã vào nội dung chuyển khoản</p>
+                        </div>
+
+                        <div className="p-3 rounded bg-white border text-center">
+                          <p className="text-xs text-gray-500">Số tiền</p>
+                          <p className="text-lg font-bold text-green-800">{Number(amountToShow).toLocaleString('vi-VN')} VND</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-blue-800 mt-1">
-                        Vui lòng ghi mã này vào nội dung chuyển khoản
-                      </p>
-                    </div>
-                    
-                    <div className="bg-green-50 p-3 rounded">
-                      <p className="text-sm font-medium text-green-900">Số tiền</p>
-                      <p className="text-xl font-bold text-green-900">{Number(lastDepositData?.amount ?? Number(depositAmount || 0)).toLocaleString('vi-VN')} VND</p>
-                    </div>
+                    )
+                  })()}
+                </div>
+
+                {/* Right: QR and notes */}
+                <div className="space-y-3">
+                  <div className="p-3 rounded bg-white border flex items-center justify-center">
+                    {lastDepositData?.payment || selectedInfoPaymentId ? (
+                      <img
+                        src={generateSepayQRUrl({
+                          accountNumber: lastDepositData?.payment?.bankNumber ?? availablePaymentMethods.find(p => p.id.toString() === selectedInfoPaymentId)?.bankNumber ?? '',
+                          name: lastDepositData?.payment?.accountName ?? availablePaymentMethods.find(p => p.id.toString() === selectedInfoPaymentId)?.accountName ?? '',
+                          bank: lastDepositData?.payment?.bankName ?? availablePaymentMethods.find(p => p.id.toString() === selectedInfoPaymentId)?.bankName ?? '',
+                          amount: lastDepositData?.amount ?? Number(depositAmount || 0),
+                          code_pay: lastDepositData?.codePay ?? generatedCodePay
+                        })}
+                        alt="QR Code thanh toán"
+                        className="max-w-full max-h-[260px] object-contain"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    ) : (
+                      <div className="text-sm text-gray-600">Không có mã QR để hiển thị</div>
+                    )}
                   </div>
-                )}
-                
-                <div className="bg-yellow-50 p-3 rounded">
-                  <p className="text-sm font-medium text-yellow-900">Lưu ý quan trọng:</p>
-                  <ul className="text-xs text-yellow-800 mt-1 space-y-1">
-                    <li>• Bắt buộc ghi mã giao dịch vào nội dung chuyển khoản</li>
-                    <li>• Chuyển đúng số tiền như hiển thị</li>
-                    <li>• Tiền sẽ được cộng vào ví trong 5-15 phút</li>
-                  </ul>
+
+                  <div className="p-3 rounded bg-yellow-50 border">
+                    <p className="text-sm font-medium text-yellow-800">Lưu ý</p>
+                    <ul className="text-xs text-gray-700 mt-2 space-y-1">
+                      <li>• Nhập chính xác mã giao dịch khi chuyển khoản.</li>
+                      <li>• Chuyển đúng số tiền như yêu cầu.</li>
+                      <li>• Quá trình duyệt có thể mất 5-15 phút.</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-3 rounded bg-gray-50 border">
+                    <p className="text-sm text-gray-700">Nếu cần trợ giúp, liên hệ bộ phận hỗ trợ.</p>
+                  </div>
                 </div>
               </div>
             </DialogContent>
@@ -877,7 +879,7 @@ export default function WalletPage() {
                   <div className="bg-yellow-50 p-4 rounded-lg">
                     <h4 className="font-medium text-yellow-900 mb-2">Chú ý bảo mật:</h4>
                     <ul className="text-sm text-yellow-800 space-y-1">
-                      <li>• Không chia sẻ thông tin tài khoản với người khác</li>
+                      <li>• Không chia sẻ thông tin tài khoản v���i người khác</li>
                       <li>• Kiểm tra email xác nhận sau khi gửi yêu cầu</li>
                       <li>• Liên hệ hỗ trợ nếu có vấn đề</li>
                     </ul>
