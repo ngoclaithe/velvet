@@ -152,12 +152,12 @@ export default function AdminDepositsPage() {
               <table className="min-w-full table-auto text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40 text-left">
-                    <th className="px-3 py-2 font-medium">Mã</th>
-                    <th className="px-3 py-2 font-medium">Người dùng</th>
-                    <th className="px-3 py-2 font-medium">Số tiền</th>
-                    <th className="px-3 py-2 font-medium">Phương thức</th>
-                    <th className="px-3 py-2 font-medium">Trạng thái</th>
-                    <th className="px-3 py-2 font-medium">Thời gian</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Mã</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Người dùng</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Số tiền</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Phương thức</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Trạng thái</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Thời gian</th>
                     <th className="px-3 py-2 font-medium text-right">Thao tác</th>
                   </tr>
                 </thead>
