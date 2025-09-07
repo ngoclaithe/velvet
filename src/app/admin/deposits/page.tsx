@@ -81,7 +81,7 @@ export default function AdminDepositsPage() {
         toast({ title: "Thao tác thất bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
       }
     } catch (e) {
-      toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
+      toast({ title: "Thao tác thất b��i", description: "Không thể cập nhật trạng thái", variant: "destructive" })
     } finally {
       setUpdatingId(null)
     }
@@ -172,7 +172,7 @@ export default function AdminDepositsPage() {
                       </td>
                       <td className="px-3 py-2 align-top">
                         <div className="flex items-center gap-2">
-                          <UserIcon className="h-4 w-4 text-muted-foreground" />
+                          <UserIcon className="h-4 w-4 text-gray-500" />
                           <div>
                             <div className="font-medium">{r.user?.username || r.user?.email || r.user?.id || "—"}</div>
                             {r.user?.email && (
