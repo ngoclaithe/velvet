@@ -11,6 +11,8 @@ import { Flag } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { reportApi, type ReportType } from '@/lib/api/report'
+import ImageUploader, { type ImageUploaderHandle } from '@/components/ImageUploader'
+import { useRef } from 'react'
 
 interface ReportButtonProps {
   reportedUserId: number
@@ -93,7 +95,7 @@ export default function ReportButton({ reportedUserId, className, size = 'icon' 
 
           <div className="space-y-4">
             <div>
-              <Label>Loại báo cáo</Label>
+              <Label>Loại b��o cáo</Label>
               <Select value={type} onValueChange={(v) => setType(v as ReportType)}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Chọn loại" />
