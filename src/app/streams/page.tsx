@@ -308,7 +308,7 @@ export default function StreamsPage() {
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
                   {/* Thumbnail */}
                   {stream.thumbnail ? (
-                    <img src={stream.thumbnail} alt={stream.title} className="w-full h-full object-cover" />
+                    <img src={stream.thumbnail} alt={stream.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-600 flex items-center justify-center">
                       <Play className="w-12 h-12 text-white opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -358,7 +358,7 @@ export default function StreamsPage() {
                     {/* Creator */}
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-6 h-6">
-                        <AvatarImage src={stream.creator.avatar || ''} />
+                        <AvatarImage src={stream.creator.avatar || ''} loading="lazy" decoding="async" />
                         <AvatarFallback className="text-xs">
                           {stream.creator.stageName.charAt(0).toUpperCase()}
                         </AvatarFallback>
