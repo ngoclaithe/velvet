@@ -150,6 +150,8 @@ export default function CreatorsAdminPage() {
         languages: Array.isArray(form.languages) ? form.languages : String(form.languages || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
         bioUrls: Array.isArray(form.bioUrls) ? form.bioUrls : [],
       }
+      // Normalize city: 'all' means not selected
+      if (payload.city === 'all') delete payload.city
 
       const res: any = await adminAPI.createCreator(payload)
       if (res?.success === false) throw new Error(res?.message || res?.error || 'Tạo creator thất bại')
@@ -359,7 +361,7 @@ export default function CreatorsAdminPage() {
               <Input type="number" value={form.subscriptionPrice} onChange={(e) => setField('subscriptionPrice', e.target.value)} />
             </div>
             <div>
-              <Label>Dáng người</Label>
+              <Label>Dáng ngư��i</Label>
               <Select value={form.bodyType} onValueChange={(v) => setField('bodyType', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn dáng người" />
