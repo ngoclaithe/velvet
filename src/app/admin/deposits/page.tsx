@@ -99,7 +99,7 @@ export default function AdminDepositsPage() {
     } catch (e) {
       console.error('updateStatus error', e)
       try { console.debug('error detail:', (e as any)?.response || (e as any)) } catch {}
-      toast({ title: "Thao tác th���t bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
+      toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
     } finally {
       setUpdatingId(null)
     }
@@ -153,6 +153,12 @@ export default function AdminDepositsPage() {
             <Button variant={filter === "rejected" ? "default" : "secondary"} size="sm" onClick={() => setFilter("rejected")}>
               <XCircle className="mr-1 h-4 w-4" /> Từ chối ({counts.rejected})
             </Button>
+
+            <div className="ml-2 flex items-center gap-2">
+              <Button variant={typeFilter === 'all' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('all')}>Tất cả loại</Button>
+              <Button variant={typeFilter === 'deposit' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('deposit')}>Nạp</Button>
+              <Button variant={typeFilter === 'withdraw' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('withdraw')}>Rút</Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
