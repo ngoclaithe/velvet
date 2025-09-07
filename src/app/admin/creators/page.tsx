@@ -213,7 +213,17 @@ export default function CreatorsAdminPage() {
             </div>
             <div>
               <Label>Thành phố</Label>
-              <Input value={form.city} onChange={(e) => setField('city', e.target.value)} />
+              <Select value={form.city} onValueChange={(v) => setField('city', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn thành phố" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Chưa chọn</SelectItem>
+                  {VIETNAM_CITIES.map(c => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Múi giờ</Label>
