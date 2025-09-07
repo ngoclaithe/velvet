@@ -72,7 +72,7 @@ export default function AdminDepositsPage() {
       // Map frontend status to backend expected values
       const mappedStatus = status === 'approved' ? 'completed' : 'failed'
       console.debug('updateStatus request payload', { id, status, mappedStatus })
-      const res = await requestDeposit.updateRequestStatus(id, { status: mappedStatus })
+      const res = await transactionAPI.updateTransactionStatus(id, { status: mappedStatus })
       console.debug('updateStatus response', res)
       if (res.success) {
         // reflect frontend status names for UI consistency
