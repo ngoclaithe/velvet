@@ -685,22 +685,6 @@ export default function CreatePostPage() {
                     onCheckedChange={(checked) => handleInputChange('allowComments', checked)}
                   />
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <Label>Cho phép thích</Label>
-                  <Switch
-                    checked={postData.allowLikes}
-                    onCheckedChange={(checked) => handleInputChange('allowLikes', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label>Cho phép chia sẻ</Label>
-                  <Switch
-                    checked={postData.allowSharing}
-                    onCheckedChange={(checked) => handleInputChange('allowSharing', checked)}
-                  />
-                </div>
               </div>
 
               <Separator />
@@ -730,15 +714,6 @@ export default function CreatePostPage() {
               </div>
 
               <Separator />
-
-              <div className="space-y-2">
-                <Label>Hẹn giờ đăng</Label>
-                <Input
-                  type="datetime-local"
-                  value={postData.scheduledAt}
-                  onChange={(e) => handleInputChange('scheduledAt', e.target.value)}
-                />
-              </div>
             </CardContent>
           </Card>
 
