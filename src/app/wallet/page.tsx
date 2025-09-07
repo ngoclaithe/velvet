@@ -271,7 +271,7 @@ export default function WalletPage() {
     // Ensure amount is multiple of 1000
     if (amount % 1000 !== 0) {
       toast({
-        title: "Lỗi",
+        title: "L��i",
         description: "Số tiền phải là bội của 1,000 VND",
         variant: "destructive"
       })
@@ -352,7 +352,7 @@ export default function WalletPage() {
     if (amount > balance) {
       toast({
         title: "Số dư không đủ",
-        description: "Số tiền rút vượt quá số dư hiện tại",
+        description: "S�� tiền rút vượt quá số dư hiện tại",
         variant: "destructive"
       })
       return
@@ -371,17 +371,34 @@ export default function WalletPage() {
     setIsWithdrawing(true)
     try {
       // Build payload matching backend validation: amount, paymentMethod, bankInfo, description(optional)
-      const bankCodeMap: Record<string,string> = {
+      // Basic mapping for 10 common banks (normalize keys by removing spaces/non-alphanum)
+      const rawBankMap: Record<string,string> = {
         'vietcombank': 'VCB',
         'vcb': 'VCB',
+        'vietinbank': 'CTG',
+        'ctg': 'CTG',
+        'bidv': 'BIDV',
+        'techcombank': 'TCB',
+        'tcb': 'TCB',
         'mbbank': 'MBB',
-        'mbbank': 'MBB',
+        'mbb': 'MBB',
+        'acb': 'ACB',
+        'sacombank': 'STB',
+        'stb': 'STB',
+        'tpbank': 'TPB',
+        'tpb': 'TPB',
+        'vpbank': 'VPB',
+        'vpb': 'VPB',
+        'agribank': 'AGR',
+        'agri': 'AGR',
+        // non-bank payment providers
         'momo': 'MOMO',
         'zalopay': 'ZALO'
       }
 
-      const normalizedBankName = (bankName || '').toLowerCase()
-      const bankCode = bankCodeMap[normalizedBankName] || bankName || ''
+      const normalize = (s: string) => (s || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
+      const normalizedBankName = normalize(bankName)
+      const bankCode = rawBankMap[normalizedBankName] || bankName || ''
 
       const withdrawPayload = {
         amount: amount,
