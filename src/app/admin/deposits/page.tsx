@@ -211,6 +211,12 @@ export default function AdminDepositsPage() {
                       </td>
                       <td className="px-3 py-2 align-top">
                         <div>
+                          <span className="px-2 py-1 text-xs rounded bg-slate-100 text-slate-800">{r.txType === 'withdraw' ? 'Rút' : 'Nạp'}</span>
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-2 align-top">
+                        <div>
                           <div className="font-medium">{r.infoPayment?.bankName || r.infoPayment?.provider || "Chuyển khoản"}</div>
                           {r.infoPayment?.accountNumber && (
                             <div className="text-xs text-gray-600">{r.infoPayment.accountNumber}</div>
