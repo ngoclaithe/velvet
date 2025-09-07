@@ -27,6 +27,7 @@ export default function ReportButton({ reportedUserId, className, size = 'icon' 
   const [evidence, setEvidence] = useState<string[]>([])
   const [newEvidence, setNewEvidence] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const uploaderRef = useRef<ImageUploaderHandle | null>(null)
   const { toast } = useToast()
   const { isAuthenticated, user } = useAuth()
 
@@ -54,13 +55,21 @@ export default function ReportButton({ reportedUserId, className, size = 'icon' 
     }
     try {
       setSubmitting(true)
-      const res = await reportApi.create({ reportedUserId, reason: reason.trim(), type, evidence: evidence.length ? evidence : undefined })
+      // Upload selected evidence images first (if any)
+      let uploadedUrls: string[] = []
+      if (uploaderRef.current && uploaderRef.current.getSelectedFiles().length > 0) {
+        const results = await uploaderRef.current.upload()
+        uploadedUrls = results.map(r => r.secure_url).filter(Boolean)
+      }
+      const payloadEvidence = [...evidence, ...uploadedUrls]
+      const res = await reportApi.create({ reportedUserId, reason: reason.trim(), type, evidence: payloadEvidence.length ? payloadEvidence : undefined })
       if (!res.success) throw new Error(res.error || res.message || 'Gửi báo cáo thất bại')
       toast({ title: 'Đã gửi báo cáo', description: 'Cảm ơn bạn đã phản hồi' })
       setOpen(false)
       setReason('')
       setEvidence([])
       setNewEvidence('')
+      uploaderRef.current?.clear()
     } catch (e: any) {
       toast({ title: 'Lỗi', description: e?.message || 'Không thể gửi báo cáo', variant: 'destructive' })
     } finally {
@@ -95,7 +104,7 @@ export default function ReportButton({ reportedUserId, className, size = 'icon' 
 
           <div className="space-y-4">
             <div>
-              <Label>Loại b��o cáo</Label>
+              <Label>Loại báo cáo</Label>
               <Select value={type} onValueChange={(v) => setType(v as ReportType)}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Chọn loại" />
