@@ -333,12 +333,14 @@ export default function Header() {
                       <span>Tin nhắn</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/bookings" className="cursor-pointer">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      <span>Booking</span>
-                    </Link>
-                  </DropdownMenuItem>
+                  {user?.role !== 'creator' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/bookings" className="cursor-pointer">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        <span>Booking</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   {user?.role === 'admin' && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="cursor-pointer">
