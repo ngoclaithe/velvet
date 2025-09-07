@@ -41,7 +41,7 @@ const BODY_TYPES = [
 ]
 
 const LANGUAGE_OPTIONS = [
-  { value: 'vi', label: 'Tiếng Vi���t' },
+  { value: 'vi', label: 'Tiếng Việt' },
   { value: 'en', label: 'Tiếng Anh' },
   { value: 'ja', label: 'Tiếng Nh��t' },
   { value: 'ko', label: 'Tiếng Hàn' },
@@ -192,6 +192,14 @@ export default function CreatorsAdminPage() {
       // Normalize city: 'all' means not selected
       if (payload.city === 'all') delete payload.city
 
+      // Parse availabilitySchedule if admin entered JSON string
+      if (typeof payload.availabilitySchedule === 'string') {
+        try {
+          payload.availabilitySchedule = JSON.parse(payload.availabilitySchedule)
+        } catch (e) {
+          payload.availabilitySchedule = {}
+        }
+      }
       const res: any = await adminAPI.createCreator(payload)
       if (res?.success === false) throw new Error(res?.message || res?.error || 'Tạo creator thất bại')
 
@@ -399,7 +407,7 @@ export default function CreatorsAdminPage() {
                   </div>
 
                   <div>
-                    <Label>Loại thân hình</Label>
+                    <Label>Loại thân h��nh</Label>
                     <Select value={form.bodyType} onValueChange={(v) => setField('bodyType', v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn" />
