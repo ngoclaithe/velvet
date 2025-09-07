@@ -135,7 +135,7 @@ function LiveStreamsTab() {
         <div className="text-center py-8 sm:py-12">
           <Video className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Chưa có stream nào đang live</h3>
-          <p className="text-gray-400 text-sm sm:text-base">Hãy quay lại sau để xem các creator yêu thích!</p>
+          <p className="text-gray-400 text-sm sm:text-base">Hãy quay lại sau để xem các creator y��u thích!</p>
         </div>
       ) : (
         <>
@@ -233,7 +233,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-900">
       {/* Main Content */}
       <section className="py-3 sm:py-6 bg-gray-900">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-3">
           <Tabs defaultValue="livestream" className="w-full">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
               {/* Sidebar */}
