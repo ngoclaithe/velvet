@@ -69,7 +69,9 @@ export default function AdminDepositsPage() {
   const updateStatus = async (id: string, status: Exclude<DepositStatus, "pending">) => {
     setUpdatingId(id)
     try {
+      console.debug('updateStatus request payload', { id, status })
       const res = await requestDeposit.updateRequestStatus(id, { status })
+      console.debug('updateStatus response', res)
       if (res.success) {
         setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
         toast({
