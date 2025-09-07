@@ -274,10 +274,10 @@ export default function HomePage() {
                                     <img
                                       src={creator.user.avatar}
                                       alt={creator.stageName}
-                                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover"
                                     />
                                   ) : (
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center">
+                                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center">
                                       <span className="text-white text-xs sm:text-sm font-bold">
                                         {creator.stageName.charAt(0).toUpperCase()}
                                       </span>
