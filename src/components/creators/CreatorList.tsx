@@ -441,10 +441,10 @@ export default function CreatorList() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className={`grid w-full ${isAuthenticated && (user?.role === 'user' || user?.role === 'admin') ? 'grid-cols-2' : 'grid-cols-1'} bg-gray-800 border-gray-700`}>
+        <TabsList className={`grid w-full ${isAuthenticated && (user?.role === 'user' || user?.role === 'admin') ? 'grid-cols-3' : 'grid-cols-2'} bg-gray-800 border-gray-700`}>
           <TabsTrigger value="all" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
-            Tất cả
+            Tất c��
           </TabsTrigger>
           {isAuthenticated && (user?.role === 'user' || user?.role === 'admin') && (
             <TabsTrigger
@@ -455,6 +455,10 @@ export default function CreatorList() {
               Đang theo dõi
             </TabsTrigger>
           )}
+          <TabsTrigger value="callgirl" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
+            <Heart className="w-4 h-4" />
+            Callgirl
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
