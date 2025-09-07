@@ -145,7 +145,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-2 sm:px-4">
+      <div className="container flex h-14 items-center justify-between px-2 sm:px-4">
         <Link href="/" className="flex items-center space-x-2">
           <div className="hidden sm:flex h-8 w-8 rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 items-center justify-center">
             <Heart className="h-5 w-5 text-white" />
@@ -197,7 +197,7 @@ export default function Header() {
               <Link href="/wallet?tab=deposit">
                 <Button variant="ghost" size="sm" className="text-pink-600 px-2 md:px-3">
                   <DollarSign className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">N��p tiền</span>
+                  <span className="hidden md:inline">Nạp tiền</span>
                 </Button>
               </Link>
 
@@ -357,21 +357,16 @@ export default function Header() {
             </>
           ) : (
             <>
-              {isGuest && (
-                <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
-                  <span>Đang xem dưới dạng khách</span>
-                </div>
-              )}
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="px-2 md:px-3">
-                  <LogIn className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">Đăng nhập</span>
+              <Link href="/bookings">
+                <Button variant="ghost" size="sm" className="text-yellow-400 px-2 md:px-3">
+                  <Calendar className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Booking</span>
                 </Button>
               </Link>
-              <Link href="/register">
+              <Link href="/login">
                 <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-2 md:px-3">
-                  <UserPlus className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">Đăng ký</span>
+                  <LogIn className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Đăng nhập / Đăng ký</span>
                 </Button>
               </Link>
             </>

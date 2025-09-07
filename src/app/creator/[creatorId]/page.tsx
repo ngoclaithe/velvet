@@ -478,7 +478,7 @@ export default function CreatorDetailPage() {
         <Card className="bg-gray-800 border-gray-700 p-6 text-center">
           <h2 className="text-xl font-bold text-white mb-3">Không tìm thấy creator</h2>
           <p className="text-gray-400 mb-4">Creator này không tồn tại hoặc đã bị xóa</p>
-          <Button onClick={() => window.history.back()}>
+          <Button onClick={() => router.push('/?tab=creators')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
           </Button>
@@ -491,7 +491,7 @@ export default function CreatorDetailPage() {
     <div className="min-h-screen bg-gray-900">
       <div className="border-b border-gray-800 p-4">
         <div className="max-w-6xl mx-auto">
-          <Button variant="ghost" onClick={() => window.history.back()} className="text-gray-400 hover:text-white mb-3">
+          <Button variant="ghost" onClick={() => router.push('/?tab=creators')} className="text-gray-400 hover:text-white mb-3">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Quay lại
           </Button>
