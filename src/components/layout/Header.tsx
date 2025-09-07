@@ -86,7 +86,7 @@ export default function Header() {
           <Badge className="hidden sm:inline-flex text-xs bg-red-100 text-red-700 ml-2">18+</Badge>
         </Link>
 
-        <div className="hidden md:flex flex-1 max-w-md mx-2 md:mx-8">
+        <div className="hidden md:flex flex-1 max-w-sm mx-1 md:mx-4">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
