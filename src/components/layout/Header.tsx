@@ -89,8 +89,8 @@ export default function Header() {
           <Badge className="hidden sm:inline-flex text-xs bg-red-100 text-red-700 ml-2">18+</Badge>
         </Link>
 
-        <div className="hidden md:flex flex-1 max-w-sm mx-1 md:mx-4">
-          <div className="relative w-full">
+        <div className="hidden md:flex items-center space-x-2 max-w-[520px] mx-1 md:mx-4">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type="text"
@@ -106,6 +106,12 @@ export default function Header() {
               }}
             />
           </div>
+
+          {/* Creators modal trigger */}
+          <Button variant="ghost" size="sm" className="px-2 md:px-3" onClick={() => setShowCreators(true)}>
+            <Users className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Creators</span>
+          </Button>
         </div>
 
         <nav className="flex items-center space-x-2 md:space-x-4">
