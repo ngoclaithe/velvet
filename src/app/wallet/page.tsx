@@ -229,7 +229,7 @@ export default function WalletPage() {
 
     setIsDepositing(true)
     try {
-      const response = await requestDeposit.createRequestDeposit(depositData)
+      const response = await transactionAPI.createDeposit(depositData)
 
       if (response.success) {
         setGeneratedCodePay(codePay)
@@ -557,7 +557,7 @@ export default function WalletPage() {
                   <span>Nạp tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Tạo y��u cầu nạp tiền vào ví
+                  Tạo yêu cầu nạp tiền vào ví
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -774,7 +774,7 @@ export default function WalletPage() {
                   <span>Rút tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Rút tiền từ ví về tài khoản của bạn
+                  Rút ti��n từ ví về tài khoản của bạn
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
