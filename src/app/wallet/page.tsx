@@ -171,7 +171,7 @@ export default function WalletPage() {
         }
 
         // Fetch request deposits
-        const requestDepositsResponse = await requestDeposit.getRequestDeposit()
+        const requestDepositsResponse = await transactionAPI.getDeposits()
         if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
@@ -249,7 +249,7 @@ export default function WalletPage() {
         setSelectedInfoPaymentId('')
 
         // Refresh request deposits
-        const requestDepositsResponse = await requestDeposit.getRequestDeposit()
+        const requestDepositsResponse = await transactionAPI.getDeposits()
         if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
@@ -557,7 +557,7 @@ export default function WalletPage() {
                   <span>Nạp tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Tạo yêu cầu nạp tiền vào ví
+                  Tạo y��u cầu nạp tiền vào ví
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
