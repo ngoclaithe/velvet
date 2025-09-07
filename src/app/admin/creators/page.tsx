@@ -225,7 +225,7 @@ export default function CreatorsAdminPage() {
       }
       if (payload.city === 'all') delete payload.city
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
-      if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
+      if (res?.success === false) throw new Error(res?.message || res?.error || 'C��p nhật thất bại')
       toast.success('Cập nhật creator thành công')
       // refresh list
       const all: any = await creatorAPI.getAllCreators()
@@ -263,18 +263,43 @@ export default function CreatorsAdminPage() {
           ) : creators.length === 0 ? (
             <div className="text-gray-600">Chưa có creators</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {creators.map((c: any) => (
-                <a key={c.id} href={`/creator/${c.id}`} className="block p-4 bg-white rounded border hover:shadow">
-                  <div className="flex items-center gap-3">
-                    <img src={c.avatar || c.user?.avatar} alt={c.stageName || c.user?.username || c.username} className="w-12 h-12 rounded-full object-cover" />
-                    <div>
-                      <div className="font-semibold text-sm">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
-                      <div className="text-xs text-gray-500">{c.user?.city || c.city || ''}</div>
-                    </div>
-                  </div>
-                </a>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead>
+                  <tr className="text-left bg-gray-50">
+                    <th className="px-4 py-2">Avatar</th>
+                    <th className="px-4 py-2">Name / Username</th>
+                    <th className="px-4 py-2">City</th>
+                    <th className="px-4 py-2">Specialties</th>
+                    <th className="px-4 py-2">Booking Price</th>
+                    <th className="px-4 py-2">Followers</th>
+                    <th className="px-4 py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {creators.map((c: any) => (
+                    <tr key={c.id} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-3 align-top">
+                        <img src={c.avatar || c.user?.avatar} alt={c.stageName || c.user?.username || c.username} className="w-10 h-10 rounded-full object-cover" />
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <div className="font-semibold">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
+                        <div className="text-xs text-gray-500">@{c.user?.username || c.username}</div>
+                      </td>
+                      <td className="px-4 py-3 align-top">{c.user?.city || c.city || '-'}</td>
+                      <td className="px-4 py-3 align-top">{Array.isArray(c.specialties) ? c.specialties.join(', ') : c.specialties || '-'}</td>
+                      <td className="px-4 py-3 align-top">{c.bookingPrice ?? '-'}</td>
+                      <td className="px-4 py-3 align-top">{c.followersCount ?? '-'}</td>
+                      <td className="px-4 py-3 align-top">
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => fetchCreatorAndOpen(Number(c.id))}>Chi tiết</Button>
+                          <Button variant="outline" size="sm" onClick={() => fetchCreatorAndOpen(Number(c.id))}>Sửa</Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
