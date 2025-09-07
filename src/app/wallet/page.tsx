@@ -671,7 +671,7 @@ export default function WalletPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                {selectedInfoPaymentId && (
+                {(selectedInfoPaymentId || lastDepositData?.payment) && (
                   <div className="space-y-3">
                     {(() => {
                       const selectedPayment = lastDepositData?.payment ?? availablePaymentMethods.find(
@@ -722,7 +722,7 @@ export default function WalletPage() {
                               />
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">
-                              Quét mã QR đ�� thanh toán nhanh
+                              Quét mã QR để thanh toán nhanh
                             </p>
                           </div>
                         </>
