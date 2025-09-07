@@ -271,7 +271,7 @@ export default function WalletPage() {
     // Ensure amount is multiple of 1000
     if (amount % 1000 !== 0) {
       toast({
-        title: "Lỗi",
+        title: "L��i",
         description: "Số tiền phải là bội của 1,000 VND",
         variant: "destructive"
       })
@@ -352,7 +352,7 @@ export default function WalletPage() {
     if (amount > balance) {
       toast({
         title: "Số dư không đủ",
-        description: "Số tiền rút vượt quá số dư hiện tại",
+        description: "S�� tiền rút vượt quá số dư hiện tại",
         variant: "destructive"
       })
       return
@@ -370,12 +370,48 @@ export default function WalletPage() {
 
     setIsWithdrawing(true)
     try {
-      const response = await transactionAPI.createWithdraw({
+      // Build payload matching backend validation: amount, paymentMethod, bankInfo, description(optional)
+      // Basic mapping for 10 common banks (normalize keys by removing spaces/non-alphanum)
+      const rawBankMap: Record<string,string> = {
+        'vietcombank': 'VCB',
+        'vcb': 'VCB',
+        'vietinbank': 'CTG',
+        'ctg': 'CTG',
+        'bidv': 'BIDV',
+        'techcombank': 'TCB',
+        'tcb': 'TCB',
+        'mbbank': 'MBB',
+        'mbb': 'MBB',
+        'acb': 'ACB',
+        'sacombank': 'STB',
+        'stb': 'STB',
+        'tpbank': 'TPB',
+        'tpb': 'TPB',
+        'vpbank': 'VPB',
+        'vpb': 'VPB',
+        'agribank': 'AGR',
+        'agri': 'AGR',
+        // non-bank payment providers
+        'momo': 'MOMO',
+        'zalopay': 'ZALO'
+      }
+
+      const normalize = (s: string) => (s || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
+      const normalizedBankName = normalize(bankName)
+      const bankCode = rawBankMap[normalizedBankName] || bankName || ''
+
+      const withdrawPayload = {
         amount: amount,
-        bankName: bankName,
-        accountNumber: accountNumber,
-        accountHolderName: accountHolderName
-      })
+        paymentMethod: 'bank_transfer',
+        bankInfo: {
+          accountNumber: accountNumber,
+          accountName: accountHolderName,
+          bankCode: bankCode
+        },
+        description: `Rút tiền bởi ${user?.username || user?.id || 'user'}`
+      }
+
+      const response = await transactionAPI.createWithdraw(withdrawPayload)
 
       if (response.success) {
         toast({
@@ -398,7 +434,7 @@ export default function WalletPage() {
       } else {
         toast({
           title: "Lỗi rút tiền",
-          description: response.error || "Không thể tạo yêu cầu rút tiền",
+          description: response.error || "Không thể t���o yêu cầu rút tiền",
           variant: "destructive"
         })
       }
@@ -461,7 +497,7 @@ export default function WalletPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
           <Icons.spinner className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Đang tải dữ liệu ví...</span>
+          <span className="ml-2">Đang tải dữ li��u ví...</span>
         </div>
       </div>
     )
@@ -779,7 +815,7 @@ export default function WalletPage() {
                       p => p.id.toString() === selectedInfoPaymentId
                     )
                     if (!selectedPayment) return (
-                      <div className="p-3 rounded bg-gray-50 text-sm text-gray-700">Không có thông tin phương thức thanh toán.</div>
+                      <div className="p-3 rounded bg-gray-50 text-sm text-gray-700">Không có thông tin phương th���c thanh toán.</div>
                     )
 
                     const amountToShow = lastDepositData?.amount ?? Number(depositAmount || 0)
