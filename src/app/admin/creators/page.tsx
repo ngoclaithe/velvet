@@ -41,7 +41,7 @@ const BODY_TYPES = [
 ]
 
 const LANGUAGE_OPTIONS = [
-  { value: 'vi', label: 'Tiếng Việt' },
+  { value: 'vi', label: 'Tiếng Vi���t' },
   { value: 'en', label: 'Tiếng Anh' },
   { value: 'ja', label: 'Tiếng Nh��t' },
   { value: 'ko', label: 'Tiếng Hàn' },
@@ -643,6 +643,10 @@ export default function CreatorsAdminPage() {
               <div className="flex items-center gap-2">
                 <input id="cosmeticSurgery" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
                 <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Lịch khả dụng (JSON)</Label>
+                <Textarea value={typeof form.availabilitySchedule === 'string' ? form.availabilitySchedule : JSON.stringify(form.availabilitySchedule || {}, null, 2)} onChange={(e) => setField('availabilitySchedule', e.target.value)} />
               </div>
             </div>
           </div>
