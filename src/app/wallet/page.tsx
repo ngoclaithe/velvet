@@ -99,11 +99,10 @@ export default function WalletPage() {
   // Snapshot of last created deposit to ensure dialog can show QR even after form is reset
   const [lastDepositData, setLastDepositData] = useState<{ payment?: InfoPayment; amount: number; codePay: string } | null>(null)
 
-  // Generate unique codepay
+  // Generate unique codepay (shorter, 6 chars suffix)
   const generateCodePay = () => {
-    const timestamp = Date.now().toString()
     const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-    return `PAY${timestamp.slice(-6)}${random}`
+    return `PAY${random}`
   }
 
   // Copy to clipboard function
@@ -296,7 +295,7 @@ export default function WalletPage() {
     const amount = parseFloat(withdrawAmount)
     if (amount > balance) {
       toast({
-        title: "Số dư không đủ",
+        title: "S��� dư không đủ",
         description: "Số tiền rút vượt quá số dư hiện tại",
         variant: "destructive"
       })
@@ -879,7 +878,7 @@ export default function WalletPage() {
                     <h4 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h4>
                     <ul className="text-sm text-blue-800 space-y-1">
                       <li>• Kiểm tra kỹ thông tin ngân hàng trước khi gửi</li>
-                      <li>• T��n chủ tài khoản phải trùng với tên đăng ký</li>
+                      <li>• Tên chủ tài khoản phải trùng với tên đăng ký</li>
                       <li>• Số tài khoản phải chính xác và hoạt động</li>
                       <li>• Yêu cầu rút tiền sẽ được xử lý trong 1-3 ngày làm việc</li>
                     </ul>
