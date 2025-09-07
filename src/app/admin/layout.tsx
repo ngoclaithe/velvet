@@ -72,6 +72,12 @@ const sidebarItems = [
     description: 'Quản lý thanh toán'
   },
   {
+    title: 'Yêu cầu nạp tiền',
+    href: '/admin/deposits',
+    icon: DollarSign,
+    description: 'Quản lý yêu cầu nạp tiền'
+  },
+  {
     title: 'Quản lý Gifts',
     href: '/admin/gifts',
     icon: Gift,
