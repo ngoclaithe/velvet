@@ -166,7 +166,7 @@ export default function AdminDepositsPage() {
                     <tr key={r.id} className="border-b">
                       <td className="px-3 py-2 align-top">
                         <div className="flex items-center gap-2">
-                          <Hash className="h-3 w-3 text-muted-foreground" />
+                          <Hash className="h-3 w-3 text-gray-500" />
                           <div className="font-medium">{r.codePay || r.transactionCode || r.id}</div>
                         </div>
                       </td>
