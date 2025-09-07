@@ -99,9 +99,10 @@ export default function WalletPage() {
   // Snapshot of last created deposit to ensure dialog can show QR even after form is reset
   const [lastDepositData, setLastDepositData] = useState<{ payment?: InfoPayment; amount: number; codePay: string } | null>(null)
 
-  // Generate unique codepay (shorter, 6 chars suffix)
+  // Generate unique codepay with total length 6-8 (keep 'PAY' prefix, random 3-5 suffix)
   const generateCodePay = () => {
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const suffixLength = 3 + Math.floor(Math.random() * 3) // 3..5
+    const random = Math.random().toString(36).substring(2, 2 + suffixLength).toUpperCase()
     return `PAY${random}`
   }
 
@@ -232,10 +233,26 @@ export default function WalletPage() {
   }, [user, transactionTypeFilter])
 
   const handleCreateDepositRequest = async () => {
-    if (!depositAmount || !selectedInfoPaymentId) {
+    if (!depositAmount) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng nhập số tiền và chọn phương thức thanh toán",
+        description: "Vui lòng nhập số tiền",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Auto-pick a random payment method if none selected
+    const effectiveInfoPaymentId = (selectedInfoPaymentId && availablePaymentMethods.some(p => p.id.toString() === selectedInfoPaymentId))
+      ? selectedInfoPaymentId
+      : (availablePaymentMethods.length > 0
+          ? availablePaymentMethods[Math.floor(Math.random() * availablePaymentMethods.length)].id.toString()
+          : '')
+
+    if (!effectiveInfoPaymentId) {
+      toast({
+        title: "Không có phương thức thanh toán",
+        description: "Vui lòng thêm hoặc kích hoạt ít nhất một phương thức thanh toán",
         variant: "destructive"
       })
       return
@@ -266,7 +283,7 @@ export default function WalletPage() {
     // Prepare data according to backend validator
     const depositData = {
       amount: amount,
-      infoPaymentId: parseInt(selectedInfoPaymentId),
+      infoPaymentId: parseInt(effectiveInfoPaymentId),
       codePay: codePay,
       metadata: {
         userAgent: navigator.userAgent,
@@ -282,7 +299,7 @@ export default function WalletPage() {
       if (response.success) {
         setGeneratedCodePay(codePay)
         // Capture snapshot of selected payment so dialog can render even after we reset the form
-        const selectedPaymentSnapshot = availablePaymentMethods.find(p => p.id.toString() === selectedInfoPaymentId)
+        const selectedPaymentSnapshot = availablePaymentMethods.find(p => p.id.toString() === effectiveInfoPaymentId)
         setLastDepositData({ payment: selectedPaymentSnapshot, amount, codePay })
         setShowDepositInstructions(true)
 
@@ -294,8 +311,6 @@ export default function WalletPage() {
 
         // Reset form
         setDepositAmount('')
-        // keep default infopayment as 1 for convenience
-        setSelectedInfoPaymentId('1')
 
         // Refresh request deposits
         const requestDepositsResponse = await transactionAPI.getDeposits()
@@ -308,7 +323,7 @@ export default function WalletPage() {
       } else {
         toast({
           title: "Lỗi tạo yêu cầu",
-          description: response.error || "Không thể tạo yêu cầu nạp tiền",
+          description: response.error || "Không thể tạo yêu c��u nạp tiền",
           variant: "destructive"
         })
       }
@@ -355,7 +370,7 @@ export default function WalletPage() {
 
     setIsWithdrawing(true)
     try {
-      const response = await walletAPI.withdraw({
+      const response = await transactionAPI.createWithdraw({
         amount: amount,
         bankName: bankName,
         accountNumber: accountNumber,
@@ -495,7 +510,7 @@ export default function WalletPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tổng thu nhập</CardTitle>
+              <CardTitle className="text-sm font-medium">T���ng thu nhập</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -546,7 +561,7 @@ export default function WalletPage() {
               </p>
               {(balance || 0) === 0 && (
                 <p className="text-xs text-orange-600 mt-1">
-                  Chưa có token. Nạp tiền để bắt đầu sử dụng.
+                  Chưa có token. Nạp tiền đ�� bắt đầu sử dụng.
                 </p>
               )}
             </CardContent>
@@ -688,7 +703,7 @@ export default function WalletPage() {
 
                 <Button
                   onClick={handleCreateDepositRequest}
-                  disabled={isDepositing || !depositAmount || !selectedInfoPaymentId}
+                  disabled={isDepositing || !depositAmount}
                   className="w-full"
                 >
                   {isDepositing ? (
@@ -717,7 +732,19 @@ export default function WalletPage() {
                     <Button
                       key={amount}
                       variant="outline"
-                      onClick={() => { setDepositAmount(amount.toString()); setSelectedInfoPaymentId('1') }}
+                      onClick={() => {
+                        setDepositAmount(amount.toString());
+                        if (availablePaymentMethods.length > 0) {
+                          const pick = availablePaymentMethods[Math.floor(Math.random() * availablePaymentMethods.length)]
+                          setSelectedInfoPaymentId(pick.id.toString())
+                        } else {
+                          toast({
+                            title: "Không có phương thức thanh toán",
+                            description: "Vui lòng thêm hoặc kích hoạt phương thức thanh toán",
+                            variant: "destructive"
+                          })
+                        }
+                      }}
                       className="h-16 flex flex-col"
                     >
                       <span className="text-lg font-bold">{amount.toLocaleString('vi-VN')} VND</span>
@@ -737,10 +764,10 @@ export default function WalletPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center space-x-2">
                   <CheckCircle className="h-6 w-6 text-green-600" />
-                  <span className="text-lg font-semibold text-white">Yêu cầu đã được tạo</span>
+                  <span className="text-lg font-semibold text-white">Yêu cầu đã ���ược tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
-                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Ki��m tra kỹ mã giao dịch và số tiền.
                 </DialogDescription>
               </DialogHeader>
 
@@ -944,7 +971,7 @@ export default function WalletPage() {
                     <ul className="text-sm text-blue-800 space-y-1">
                       <li>• Kiểm tra kỹ thông tin ngân hàng trước khi gửi</li>
                       <li>• Tên chủ tài khoản phải trùng với tên đăng ký</li>
-                      <li>• Số tài khoản phải chính xác và hoạt động</li>
+                      <li>• Số tài khoản phải chính xác và ho��t động</li>
                       <li>• Yêu cầu rút tiền sẽ được xử lý trong 1-3 ngày làm việc</li>
                     </ul>
                   </div>

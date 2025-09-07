@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { transactionAPI } from "@/lib/api/transaction"
 import { useToast } from "@/hooks/use-toast"
 import { Icons } from "@/components/common/Icons"
@@ -43,10 +42,17 @@ export default function AdminDepositsPage() {
       const res = await transactionAPI.getDeposits()
       if (res.success && Array.isArray(res.data)) {
         setRequests(
-          res.data.map((rd: any) => ({
-            ...rd,
-            createdAt: rd.createdAt ?? new Date().toISOString(),
-          }))
+          res.data.map((rd: any) => {
+            const raw = String(rd.status || '').toLowerCase()
+            const status: DepositStatus = raw === 'completed' || raw === 'approved' || raw === 'paid'
+              ? 'approved'
+              : (raw === 'failed' || raw === 'cancelled' || raw === 'rejected' ? 'rejected' : 'pending')
+            return {
+              ...rd,
+              status,
+              createdAt: rd.createdAt ?? new Date().toISOString(),
+            }
+          })
         )
       } else {
         toast({
@@ -117,7 +123,7 @@ export default function AdminDepositsPage() {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Quản lý yêu cầu nạp tiền</h1>
+          <h1 className="text-2xl font-bold text-black">Quản lý yêu cầu nạp tiền</h1>
           <p className="text-sm text-gray-600">Xem và phê duyệt các yêu cầu nạp tiền của người dùng</p>
         </div>
         <Button variant="ghost" onClick={loadData} disabled={loading}>
@@ -251,13 +257,6 @@ export default function AdminDepositsPage() {
         </CardContent>
       </Card>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs">
-        <StatBadge label="Tổng" value={counts.all} color="bg-slate-400" />
-        <Separator orientation="vertical" className="h-4" />
-        <StatBadge label="Chờ duyệt" value={counts.pending} color="bg-yellow-500" />
-        <StatBadge label="Đã duyệt" value={counts.approved} color="bg-green-600" />
-        <StatBadge label="Từ chối" value={counts.rejected} color="bg-red-600" />
-      </div>
     </div>
   )
 }
