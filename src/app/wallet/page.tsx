@@ -862,7 +862,7 @@ export default function WalletPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Lưu ý quan trọng</CardTitle>
-                <CardDescription>Thông tin cần lưu ý khi r��t tiền</CardDescription>
+                <CardDescription>Thông tin cần lưu ý khi rút tiền</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -879,7 +879,7 @@ export default function WalletPage() {
                   <div className="bg-yellow-50 p-4 rounded-lg">
                     <h4 className="font-medium text-yellow-900 mb-2">Chú ý bảo mật:</h4>
                     <ul className="text-sm text-yellow-800 space-y-1">
-                      <li>• Không chia sẻ thông tin tài khoản v���i người khác</li>
+                      <li>• Không chia sẻ thông tin tài khoản với người khác</li>
                       <li>• Kiểm tra email xác nhận sau khi gửi yêu cầu</li>
                       <li>• Liên hệ hỗ trợ nếu có vấn đề</li>
                     </ul>
