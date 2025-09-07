@@ -69,10 +69,13 @@ export default function AdminDepositsPage() {
   const updateStatus = async (id: string, status: Exclude<DepositStatus, "pending">) => {
     setUpdatingId(id)
     try {
-      console.debug('updateStatus request payload', { id, status })
-      const res = await requestDeposit.updateRequestStatus(id, { status })
+      // Map frontend status to backend expected values
+      const mappedStatus = status === 'approved' ? 'completed' : 'failed'
+      console.debug('updateStatus request payload', { id, status, mappedStatus })
+      const res = await requestDeposit.updateRequestStatus(id, { status: mappedStatus })
       console.debug('updateStatus response', res)
       if (res.success) {
+        // reflect frontend status names for UI consistency
         setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
         toast({
           title: status === "approved" ? "Đã phê duyệt" : "Đã từ chối",
