@@ -1,14 +1,18 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import ImageUploader from '@/components/ImageUploader'
 import { adminAPI } from '@/lib/api/admin'
+import { creatorAPI } from '@/lib/api/creator'
+import { VIETNAM_CITIES } from '@/lib/constants'
 import { toast } from 'react-hot-toast'
 
 interface Credentials {
@@ -47,6 +51,40 @@ const LANGUAGE_OPTIONS = [
 export default function CreatorsAdminPage() {
   const [submitting, setSubmitting] = useState(false)
   const [credentials, setCredentials] = useState<Credentials | null>(null)
+  const [open, setOpen] = useState(false)
+
+  const [creators, setCreators] = useState<any[]>([])
+  const [loadingCreators, setLoadingCreators] = useState(false)
+
+  const downloadCredentials = () => {
+    if (!credentials) return
+    const content = `Email: ${credentials.email}\nUsername: ${credentials.username}\nPassword: ${credentials.password}\n`
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `creator_credentials_${credentials.username}.txt`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        setLoadingCreators(true)
+        const res: any = await creatorAPI.getAllCreators()
+        const list = Array.isArray(res?.data) ? res.data : []
+        setCreators(list)
+      } catch (e) {
+        setCreators([])
+      } finally {
+        setLoadingCreators(false)
+      }
+    }
+    fetch()
+  }, [])
 
   const [form, setForm] = useState<any>({
     firstName: '',
@@ -175,7 +213,17 @@ export default function CreatorsAdminPage() {
             </div>
             <div>
               <Label>Thành phố</Label>
-              <Input value={form.city} onChange={(e) => setField('city', e.target.value)} />
+              <Select value={form.city} onValueChange={(v) => setField('city', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn thành phố" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Chưa chọn</SelectItem>
+                  {VIETNAM_CITIES.map(c => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Múi giờ</Label>
@@ -374,24 +422,66 @@ export default function CreatorsAdminPage() {
 
       <div className="flex items-center justify-end gap-3">
         <Button variant="outline" onClick={() => window.history.back()}>Hủy</Button>
-        <Button onClick={onSubmit} disabled={submitting}>
-          {submitting ? 'Đang tạo...' : 'Tạo Creator'}
-        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button>Thêm Creator</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl w-[95vw]">
+            <DialogHeader>
+              <DialogTitle>Thêm Creator mới</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Reuse form fields - simplify by showing summary */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Họ</Label>
+                  <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Tên</Label>
+                  <Input value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input value={form.email} onChange={(e) => setField('email', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Số điện thoại</Label>
+                  <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
+              <Button onClick={async () => { await onSubmit(); setOpen(false) }} disabled={submitting}>{submitting ? 'Đang tạo...' : 'Tạo'}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {credentials && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Thông tin đăng nhập của Creator</CardTitle>
-          </CardHeader>
+      {/* Credentials modal */}
+      <Dialog open={Boolean(credentials)} onOpenChange={() => setCredentials(null)}>
+        <DialogContent className="max-w-md w-[90vw]">
+          <DialogHeader>
+            <DialogTitle>Thông tin đăng nhập của Creator</DialogTitle>
+          </DialogHeader>
           <CardContent className="space-y-2 text-sm">
-            <div>Email: <b>{credentials.email}</b></div>
-            <div>Username: <b>{credentials.username}</b></div>
-            <div>Password: <b>{credentials.password}</b></div>
-            {credentials.note && <div className="text-gray-600">{credentials.note}</div>}
+            {credentials && (
+              <>
+                <div>Email: <b>{credentials.email}</b></div>
+                <div>Username: <b>{credentials.username}</b></div>
+                <div>Password: <b>{credentials.password}</b></div>
+                {credentials.note && <div className="text-gray-600">{credentials.note}</div>}
+                <div className="mt-3 flex gap-2">
+                  <Button onClick={downloadCredentials}>Tải .txt</Button>
+                  <Button variant="outline" onClick={() => { setCredentials(null) }}>Đóng</Button>
+                </div>
+              </>
+            )}
           </CardContent>
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }
