@@ -204,30 +204,6 @@ function LiveStreamsTab() {
 
 export default function HomePage() {
   const { user, isAuthenticated, isGuest } = useAuth()
-  const [featuredCreators, setFeaturedCreators] = useState<Creator[]>([])
-  const [isLoadingCreators, setIsLoadingCreators] = useState(true)
-
-  useEffect(() => {
-    const fetchFeaturedCreators = async () => {
-      try {
-        setIsLoadingCreators(true)
-        const response = await creatorAPI.getFeaturedCreator() as FeaturedCreatorsResponse
-        
-        if (response.success && response.data) {
-          setFeaturedCreators(response.data.slice(0, 6)) // Chỉ lấy 6 creators đầu tiên
-        } else {
-          setFeaturedCreators([])
-        }
-      } catch (error) {
-        console.error('Error fetching featured creators:', error)
-        setFeaturedCreators([])
-      } finally {
-        setIsLoadingCreators(false)
-      }
-    }
-
-    fetchFeaturedCreators()
-  }, [])
 
   return (
     <div className="min-h-screen bg-gray-900">
