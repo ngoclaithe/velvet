@@ -237,7 +237,7 @@ export default function HomePage() {
           <Tabs defaultValue="livestream" className="w-full">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
               {/* Sidebar */}
-              <div className="lg:w-80 space-y-4 sm:space-y-6">
+              <div className="lg:w-80 space-y-3 sm:space-y-4">
                 <Card className="bg-gray-800 border-gray-700">
                   <CardHeader className="pb-3 sm:pb-6">
                     <CardTitle className="flex items-center gap-2 text-white text-lg sm:text-xl">
