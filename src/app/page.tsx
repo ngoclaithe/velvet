@@ -234,7 +234,7 @@ export default function HomePage() {
       {/* Main Content */}
       <section className="py-4 sm:py-8 bg-gray-900">
         <div className="container mx-auto px-4">
-          <Tabs defaultValue="newsfeed" className="w-full">
+          <Tabs defaultValue="livestream" className="w-full">
             <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
               {/* Sidebar */}
               <div className="lg:w-80 space-y-4 sm:space-y-6">
