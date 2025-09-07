@@ -197,7 +197,7 @@ function LiveStreamsTab() {
                     LIVE
                   </Badge>
 
-                  {stream.isAdult && (
+                  {(stream as any).isAdult && (
                     <div className="absolute top-2 right-2 bg-black text-white text-[10px] px-2 py-0.5 rounded">18+</div>
                   )}
 
