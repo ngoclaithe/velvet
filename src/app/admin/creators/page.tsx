@@ -443,11 +443,12 @@ export default function CreatorsAdminPage() {
       {/* Edit Creator modal */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-4xl w-[95vw] p-0">
+        <div className="flex flex-col max-h-[80vh] w-full">
           <DialogHeader>
             <DialogTitle>Chi tiết Creator</DialogTitle>
           </DialogHeader>
 
-          <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 sm:p-6 overflow-auto flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Họ</Label>
@@ -536,13 +537,14 @@ export default function CreatorsAdminPage() {
             </div>
           </div>
 
-          <div className="sticky bottom-0 bg-background/80 backdrop-blur/10 py-3 px-4 sm:px-6 border-t">
+          <div className="flex-shrink-0 bg-card/90 backdrop-blur border-t px-4 py-3 sm:px-6">
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditOpen(false)}>Hủy</Button>
               <Button onClick={onEditSubmit} disabled={submitting}>{submitting ? 'Đang lưu...' : 'Lưu'}</Button>
             </div>
           </div>
-        </DialogContent>
+        </div>
+      </DialogContent>
       </Dialog>
 
     </div>
