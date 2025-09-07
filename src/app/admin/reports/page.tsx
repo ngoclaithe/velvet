@@ -94,7 +94,7 @@ export default function ReportsPage() {
     switch (type) {
       case 'harassment': return '🚫'
       case 'spam': return '🗑️'
-      case 'inappropriate_content': return '⚠️'
+      case 'inappropriate_content': return '⚠���'
       case 'fake_profile': return '🎭'
       default: return '❓'
     }
@@ -318,7 +318,7 @@ export default function ReportsPage() {
       </Card>
 
       <Dialog open={!!detail} onOpenChange={(o) => { if (!o) setDetail(null) }}>
-        <DialogContent className="max-w-2xl w-[95vw]">
+        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[85vh] flex flex-col">
           {detail && (
             <>
               <DialogHeader>
@@ -327,23 +327,32 @@ export default function ReportsPage() {
                   Người báo cáo: {detail.reporter?.username || detail.reporterId} • Người bị báo cáo: {detail.reportedUser?.username || detail.reportedUserId}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="flex-1 overflow-y-auto pr-1 space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Loại</p>
                   <Badge className="mt-1">{detail.type}</Badge>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Lý do</p>
-                  <p className="mt-1 whitespace-pre-line">{detail.reason}</p>
+                  <p className="mt-1 whitespace-pre-line break-words">{detail.reason}</p>
                 </div>
                 {Array.isArray(detail.evidence) && detail.evidence.length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground">Chứng cứ</p>
-                    <ul className="mt-1 list-disc list-inside space-y-1 text-sm">
-                      {detail.evidence.map((u, i) => (
-                        <li key={`${u}-${i}`}><a className="text-blue-600 underline" href={u} target="_blank" rel="noreferrer">{u}</a></li>
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {detail.evidence.filter(u => /\.(jpeg|jpg|png|gif|webp|avif)(\?.*)?$/i.test(u)).map((u, i) => (
+                        <a key={`${u}-${i}`} href={u} target="_blank" rel="noreferrer" className="block">
+                          <img src={u} alt={`evidence-${i + 1}`} className="w-full h-32 sm:h-40 object-cover rounded border" />
+                        </a>
                       ))}
-                    </ul>
+                    </div>
+                    {detail.evidence.some(u => !/\.(jpeg|jpg|png|gif|webp|avif)(\?.*)?$/i.test(u)) && (
+                      <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
+                        {detail.evidence.filter(u => !/\.(jpeg|jpg|png|gif|webp|avif)(\?.*)?$/i.test(u)).map((u, i) => (
+                          <li key={`${u}-${i}`}><a className="text-blue-600 underline break-all" href={u} target="_blank" rel="noreferrer">{u}</a></li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 )}
                 <div>
@@ -356,7 +365,7 @@ export default function ReportsPage() {
                   <span>Cập nhật: {new Date(detail.updatedAt).toLocaleString('vi-VN')}</span>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="pt-2">
                 <Button variant="destructive" onClick={() => deleteReport(detail.id)} disabled={updating}>Xóa</Button>
                 <Button variant="outline" onClick={() => setDetail(null)}>Đóng</Button>
                 {detail.status !== 'resolved' && (
