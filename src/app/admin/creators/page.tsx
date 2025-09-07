@@ -422,24 +422,66 @@ export default function CreatorsAdminPage() {
 
       <div className="flex items-center justify-end gap-3">
         <Button variant="outline" onClick={() => window.history.back()}>Hủy</Button>
-        <Button onClick={onSubmit} disabled={submitting}>
-          {submitting ? 'Đang tạo...' : 'Tạo Creator'}
-        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button>Thêm Creator</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl w-[95vw]">
+            <DialogHeader>
+              <DialogTitle>Thêm Creator mới</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Reuse form fields - simplify by showing summary */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Họ</Label>
+                  <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Tên</Label>
+                  <Input value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input value={form.email} onChange={(e) => setField('email', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Số điện thoại</Label>
+                  <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
+              <Button onClick={async () => { await onSubmit(); setOpen(false) }} disabled={submitting}>{submitting ? 'Đang tạo...' : 'Tạo'}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {credentials && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Thông tin đăng nhập của Creator</CardTitle>
-          </CardHeader>
+      {/* Credentials modal */}
+      <Dialog open={Boolean(credentials)} onOpenChange={() => setCredentials(null)}>
+        <DialogContent className="max-w-md w-[90vw]">
+          <DialogHeader>
+            <DialogTitle>Thông tin đăng nhập của Creator</DialogTitle>
+          </DialogHeader>
           <CardContent className="space-y-2 text-sm">
-            <div>Email: <b>{credentials.email}</b></div>
-            <div>Username: <b>{credentials.username}</b></div>
-            <div>Password: <b>{credentials.password}</b></div>
-            {credentials.note && <div className="text-gray-600">{credentials.note}</div>}
+            {credentials && (
+              <>
+                <div>Email: <b>{credentials.email}</b></div>
+                <div>Username: <b>{credentials.username}</b></div>
+                <div>Password: <b>{credentials.password}</b></div>
+                {credentials.note && <div className="text-gray-600">{credentials.note}</div>}
+                <div className="mt-3 flex gap-2">
+                  <Button onClick={downloadCredentials}>Tải .txt</Button>
+                  <Button variant="outline" onClick={() => { setCredentials(null) }}>Đóng</Button>
+                </div>
+              </>
+            )}
           </CardContent>
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }
