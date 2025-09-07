@@ -341,7 +341,7 @@ export default function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
                     <LogIn className="mr-2 h-4 w-4 rotate-180" />
-                    <span>Đăng xu���t</span>
+                    <span>Đăng xuất</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -373,7 +373,7 @@ export default function Header() {
       <Dialog open={showCreators} onOpenChange={setShowCreators}>
         <DialogContent className="max-w-4xl w-full">
           <DialogHeader>
-            <DialogTitle>Creators nổi</DialogTitle>
+            <DialogTitle>Creators nổi bật</DialogTitle>
           </DialogHeader>
           <div className="mt-2">
             <FeaturedCreatorsList onSelect={(id) => { setShowCreators(false); router.push(`/creator/${id}`) }} />
