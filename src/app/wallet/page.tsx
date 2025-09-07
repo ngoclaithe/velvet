@@ -315,7 +315,7 @@ export default function WalletPage() {
     } catch (error) {
       toast({
         title: "Lỗi tạo yêu cầu",
-        description: "Không thể tạo yêu cầu nạp tiền. Vui lòng thử lại.",
+        description: "Không thể tạo yêu cầu nạp tiền. Vui l��ng thử lại.",
         variant: "destructive"
       })
     } finally {
@@ -338,6 +338,16 @@ export default function WalletPage() {
       toast({
         title: "Số dư không đủ",
         description: "Số tiền rút vượt quá số dư hiện tại",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Ensure withdrawal is multiple of 1000
+    if (amount % 1000 !== 0) {
+      toast({
+        title: "Lỗi",
+        description: "Số tiền phải là bội của 1,000 VND",
         variant: "destructive"
       })
       return
@@ -559,10 +569,24 @@ export default function WalletPage() {
                   <CardTitle>Lịch sử giao dịch</CardTitle>
                   <CardDescription>Tất cả các giao dịch gần đây</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Xuất file
-                </Button>
+                <div className="flex items-center space-x-3">
+                  <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter}>
+                    <SelectTrigger className="w-44">
+                      <SelectValue placeholder="Lọc loại giao dịch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả</SelectItem>
+                      <SelectItem value="deposit">Nạp</SelectItem>
+                      <SelectItem value="withdrawal">Rút</SelectItem>
+                      <SelectItem value="tip">Donate/Tip</SelectItem>
+                      <SelectItem value="gift">Quà tặng</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Xuất file
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -675,7 +699,7 @@ export default function WalletPage() {
                   ) : (
                     <>
                       <Plus className="mr-2 h-4 w-4" />
-                      Tạo yêu cầu nạp tiền
+                      T���o yêu cầu nạp tiền
                     </>
                   )}
                 </Button>
@@ -689,11 +713,11 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {[10000, 50000, 100000, 200000, 500000, 1000000].map((amount) => (
+                  {[10000, 50000, 100000, 200000, 500000, 1000000, 2000000, 3000000, 5000000, 10000000].map((amount) => (
                     <Button
                       key={amount}
                       variant="outline"
-                      onClick={() => setDepositAmount(amount.toString())}
+                      onClick={() => { setDepositAmount(amount.toString()); setSelectedInfoPaymentId('1') }}
                       className="h-16 flex flex-col"
                     >
                       <span className="text-lg font-bold">{amount.toLocaleString('vi-VN')} VND</span>
@@ -713,7 +737,7 @@ export default function WalletPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center space-x-2">
                   <CheckCircle className="h-6 w-6 text-green-600" />
-                  <span className="text-lg font-semibold text-gray-900">Yêu cầu đã được tạo</span>
+                  <span className="text-lg font-semibold text-white">Yêu cầu đã được tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
                   Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
