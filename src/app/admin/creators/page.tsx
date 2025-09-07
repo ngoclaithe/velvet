@@ -501,6 +501,10 @@ export default function CreatorsAdminPage() {
                     <input id="cosmeticSurgery" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
                     <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
                   </div>
+                  <div className="sm:col-span-2">
+                    <Label>Lịch khả dụng (JSON)</Label>
+                    <Textarea value={typeof form.availabilitySchedule === 'string' ? form.availabilitySchedule : JSON.stringify(form.availabilitySchedule || {}, null, 2)} onChange={(e) => setField('availabilitySchedule', e.target.value)} />
+                  </div>
                 </div>
               </div>
 
