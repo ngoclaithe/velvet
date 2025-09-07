@@ -219,6 +219,13 @@ export default function Header() {
                       <span>Ví của tôi</span>
                     </Link>
                   </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/create-post" className="cursor-pointer">
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      <span>Tạo bài viết</span>
+                    </Link>
+                  </DropdownMenuItem>
                   {(user?.role === 'creator' || user?.role === 'admin') && (
                     <DropdownMenuItem asChild>
                       <Link href="/streams" className="cursor-pointer">
