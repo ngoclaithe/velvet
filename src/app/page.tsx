@@ -234,14 +234,6 @@ function LiveStreamsTab() {
             ))}
           </div>
 
-          <div className="text-center">
-            <Link href="/streams">
-              <Button size="lg" className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 w-full sm:w-auto">
-                <Zap className="w-4 h-4 mr-2" />
-                Xem tất cả Live Streams
-              </Button>
-            </Link>
-          </div>
         </>
       )}
     </div>
