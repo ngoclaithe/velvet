@@ -303,6 +303,17 @@ export default function Header() {
           )}
         </nav>
       </div>
+      {/* Creators Dialog */}
+      <Dialog open={showCreators} onOpenChange={setShowCreators}>
+        <DialogContent className="max-w-4xl w-full">
+          <DialogHeader>
+            <DialogTitle>Creators nổi</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2">
+            <CreatorList />
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }
