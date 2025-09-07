@@ -560,7 +560,7 @@ export default function CreatorDetailPage() {
                       </div>
 
                       {isAuthenticated && creator.userId.toString() !== user?.id ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <Button onClick={handleFollow} disabled={actionLoading} className={`${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'} w-full`}>
                             {actionLoading ? (
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
