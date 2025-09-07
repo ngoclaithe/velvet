@@ -144,22 +144,47 @@ export default function AdminDepositsPage() {
             <Banknote className="h-5 w-5 text-green-600" />
             Danh sách yêu cầu
           </CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant={filter === "all" ? "default" : "secondary"} size="sm" onClick={() => setFilter("all")}>Tất cả ({counts.all})</Button>
-            <Button variant={filter === "pending" ? "default" : "secondary"} size="sm" onClick={() => setFilter("pending")}>
-              <Clock className="mr-1 h-4 w-4" /> Chờ duyệt ({counts.pending})
-            </Button>
-            <Button variant={filter === "approved" ? "default" : "secondary"} size="sm" onClick={() => setFilter("approved")}>
-              <CheckCircle2 className="mr-1 h-4 w-4" /> Đã duyệt ({counts.approved})
-            </Button>
-            <Button variant={filter === "rejected" ? "default" : "secondary"} size="sm" onClick={() => setFilter("rejected")}>
-              <XCircle className="mr-1 h-4 w-4" /> Từ chối ({counts.rejected})
-            </Button>
+          <div className="flex items-center justify-between w-full gap-4">
+            {/* Status pills */}
+            <div className="flex items-center gap-2">
+              {[
+                { key: 'all', icon: null, label: `Tất cả (${counts.all})` },
+                { key: 'pending', icon: <Clock className="h-3 w-3" />, label: `Chờ duyệt (${counts.pending})` },
+                { key: 'approved', icon: <CheckCircle2 className="h-3 w-3" />, label: `Đã duyệt (${counts.approved})` },
+                { key: 'rejected', icon: <XCircle className="h-3 w-3" />, label: `Từ chối (${counts.rejected})` },
+              ].map((s) => {
+                const isActive = String(filter) === String(s.key)
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => setFilter(s.key as any)}
+                    className={`${isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-800'} inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring`}
+                  >
+                    {s.icon && <span className="opacity-90">{s.icon}</span>}
+                    <span>{s.label}</span>
+                  </button>
+                )
+              })}
+            </div>
 
-            <div className="ml-2 flex items-center gap-2">
-              <Button variant={typeFilter === 'all' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('all')}>Tất cả loại</Button>
-              <Button variant={typeFilter === 'deposit' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('deposit')}>Nạp</Button>
-              <Button variant={typeFilter === 'withdraw' ? 'default' : 'secondary'} size="sm" onClick={() => setTypeFilter('withdraw')}>Rút</Button>
+            {/* Type segmented control */}
+            <div className="flex items-center gap-2">
+              {[
+                { key: 'all', label: 'Tất cả loại' },
+                { key: 'deposit', label: 'Nạp' },
+                { key: 'withdraw', label: 'Rút' },
+              ].map((t) => {
+                const active = typeFilter === (t.key as any)
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setTypeFilter(t.key as any)}
+                    className={`${active ? 'bg-primary text-white' : 'bg-transparent border border-input text-sm'} px-3 py-1 rounded-md text-sm font-medium`}
+                  >
+                    {t.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </CardHeader>
