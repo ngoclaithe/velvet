@@ -370,12 +370,31 @@ export default function WalletPage() {
 
     setIsWithdrawing(true)
     try {
-      const response = await transactionAPI.createWithdraw({
+      // Build payload matching backend validation: amount, paymentMethod, bankInfo, description(optional)
+      const bankCodeMap: Record<string,string> = {
+        'vietcombank': 'VCB',
+        'vcb': 'VCB',
+        'mbbank': 'MBB',
+        'mbbank': 'MBB',
+        'momo': 'MOMO',
+        'zalopay': 'ZALO'
+      }
+
+      const normalizedBankName = (bankName || '').toLowerCase()
+      const bankCode = bankCodeMap[normalizedBankName] || bankName || ''
+
+      const withdrawPayload = {
         amount: amount,
-        bankName: bankName,
-        accountNumber: accountNumber,
-        accountHolderName: accountHolderName
-      })
+        paymentMethod: 'bank_transfer',
+        bankInfo: {
+          accountNumber: accountNumber,
+          accountName: accountHolderName,
+          bankCode: bankCode
+        },
+        description: `Rút tiền bởi ${user?.username || user?.id || 'user'}`
+      }
+
+      const response = await transactionAPI.createWithdraw(withdrawPayload)
 
       if (response.success) {
         toast({
@@ -398,7 +417,7 @@ export default function WalletPage() {
       } else {
         toast({
           title: "Lỗi rút tiền",
-          description: response.error || "Không thể tạo yêu cầu rút tiền",
+          description: response.error || "Không thể t���o yêu cầu rút tiền",
           variant: "destructive"
         })
       }
@@ -461,7 +480,7 @@ export default function WalletPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
           <Icons.spinner className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Đang tải dữ liệu ví...</span>
+          <span className="ml-2">Đang tải dữ li��u ví...</span>
         </div>
       </div>
     )
@@ -779,7 +798,7 @@ export default function WalletPage() {
                       p => p.id.toString() === selectedInfoPaymentId
                     )
                     if (!selectedPayment) return (
-                      <div className="p-3 rounded bg-gray-50 text-sm text-gray-700">Không có thông tin phương thức thanh toán.</div>
+                      <div className="p-3 rounded bg-gray-50 text-sm text-gray-700">Không có thông tin phương th���c thanh toán.</div>
                     )
 
                     const amountToShow = lastDepositData?.amount ?? Number(depositAmount || 0)
