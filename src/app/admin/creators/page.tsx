@@ -218,7 +218,7 @@ export default function CreatorsAdminPage() {
                   <SelectValue placeholder="Chọn thành phố" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Chưa chọn</SelectItem>
+                  <SelectItem value="all">Chưa chọn</SelectItem>
                   {VIETNAM_CITIES.map(c => (
                     <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                   ))}
