@@ -14,7 +14,7 @@ type DepositStatus = "pending" | "approved" | "rejected"
 interface AdminRequestDeposit {
   id: string
   amount: number
-  infoPaymentId: number
+  infoPaymentId?: number
   transactionCode?: string
   note?: string
   status: DepositStatus
@@ -22,6 +22,8 @@ interface AdminRequestDeposit {
   createdAt: string | Date
   user?: { id: string; username?: string; email?: string }
   infoPayment?: { bankName?: string; accountNumber?: string; accountName?: string; provider?: string; type?: string }
+  bankInfo?: { accountNumber?: string; accountName?: string; bankCode?: string }
+  txType?: 'deposit' | 'withdraw'
 }
 
 export default function AdminDepositsPage() {
