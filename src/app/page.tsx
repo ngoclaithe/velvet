@@ -49,7 +49,9 @@ interface Creator {
     firstName: string
     lastName: string
     avatar: string | null
+    city?: string
   }
+  city?: string
 }
 
 interface FeaturedCreatorsResponse {
