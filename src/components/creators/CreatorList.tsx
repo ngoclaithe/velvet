@@ -249,9 +249,9 @@ export default function CreatorList() {
       if (callgirlCity) params.city = callgirlCity
       if (minPrice) params.minPrice = Number(minPrice)
       if (maxPrice) params.maxPrice = Number(maxPrice)
-      const res = await creatorAPI.getCallgirl(params)
+      const res: any = await creatorAPI.getCallgirl(params)
       if (res?.success) {
-        const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.items) ? res.data.items : []
+        const list = Array.isArray(res.data) ? res.data : Array.isArray((res.data as any)?.items) ? (res.data as any).items : []
         const transformed: Creator[] = list.map((item: any) => ({
           id: Number(item?.id || item?.userId || 0),
           userId: Number(item?.userId || 0),
@@ -270,7 +270,7 @@ export default function CreatorList() {
           isFollowing: Boolean(item?.isFollowing)
         }))
         setCallgirls(transformed)
-        const pag = res.pagination || res.data?.pagination || {}
+        const pag = (res as any).pagination || (res.data as any)?.pagination || {}
         setCgTotal(Number(pag.total || pag.totalItems || transformed.length))
         setCgTotalPages(Number(pag.totalPages || Math.ceil((pag.total || transformed.length) / cgLimit) || 1))
       } else {
