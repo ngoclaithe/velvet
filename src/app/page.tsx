@@ -211,7 +211,7 @@ export default function HomePage() {
       <section className="py-3 sm:py-6 bg-gray-900">
         <div className="container mx-auto px-3">
           <Tabs defaultValue="livestream" className="w-full">
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+            <div className="flex flex-col gap-4 sm:gap-6">
               {/* Sidebar */}
               <div className="lg:w-80 space-y-3 sm:space-y-4">
                 <Card className="bg-gray-800 border-gray-700">
