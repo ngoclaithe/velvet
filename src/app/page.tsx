@@ -30,6 +30,49 @@ import { streamApi } from '@/lib/api'
 import { creatorAPI } from '@/lib/api/creator'
 import type { StreamResponse, StreamsApiResponse } from '@/types/streaming'
 
+// Mock streams used as fallback/demo data
+const MOCK_STREAMS: StreamResponse[] = [
+  {
+    id: 'mock-1',
+    title: 'Morning Chill with Lina',
+    description: 'Relaxing music and chat',
+    category: 'Music',
+    tags: ['relax', 'music'],
+    creator: { id: 1, displayName: 'Lina', stageName: 'Lina', avatar: '', isVerified: true },
+    isLive: true,
+    viewerCount: 342,
+    maxViewers: 1200,
+    startTime: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
+    thumbnail: ''
+  },
+  {
+    id: 'mock-2',
+    title: 'Gaming Night: Apex Legends',
+    description: 'Competitive gameplay and commentary',
+    category: 'Gaming',
+    tags: ['gaming', 'apex'],
+    creator: { id: 2, displayName: 'Max', stageName: 'MaxPlays', avatar: '', isVerified: false },
+    isLive: true,
+    viewerCount: 1289,
+    maxViewers: 5000,
+    startTime: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    thumbnail: ''
+  },
+  {
+    id: 'mock-3',
+    title: 'Cooking with Mai',
+    description: 'Easy recipes and tips',
+    category: 'Cooking',
+    tags: ['cooking', 'food'],
+    creator: { id: 3, displayName: 'Mai', stageName: 'ChefMai', avatar: '', isVerified: false },
+    isLive: false,
+    viewerCount: 56,
+    maxViewers: 120,
+    startTime: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+    thumbnail: ''
+  }
+]
+
 interface Creator {
   id: number
   userId: number
@@ -69,20 +112,20 @@ function LiveStreamsTab() {
         setIsLoading(true)
         const response = await streamApi.getLiveStreams()
 
-        if (response.success && response.data) {
-          // Type cast với proper StreamsApiResponse type
+        // Prefer API data when available, otherwise fall back to mock data
+        if (response && response.success && response.data) {
           const data = response.data as StreamsApiResponse['data']
-          if (data && Array.isArray(data.streams)) {
+          if (data && Array.isArray(data.streams) && data.streams.length > 0) {
             setLiveStreams(data.streams.slice(0, 6))
           } else {
-            setLiveStreams([])
+            setLiveStreams(MOCK_STREAMS.slice(0, 6))
           }
         } else {
-          setLiveStreams([])
+          setLiveStreams(MOCK_STREAMS.slice(0, 6))
         }
       } catch (error) {
         console.error('Error fetching live streams:', error)
-        setLiveStreams([])
+        setLiveStreams(MOCK_STREAMS.slice(0, 6))
       } finally {
         setIsLoading(false)
       }
@@ -215,7 +258,7 @@ export default function HomePage() {
 
               {/* Main Content */}
               <div className="flex-1">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-3 sm:mb-4 bg-gray-800 border-gray-700 gap-1">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 mb-3 sm:mb-4 bg-gray-800 border-gray-700 gap-1">
                   <TabsTrigger value="livestream" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
                     <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>Live</span>
@@ -225,19 +268,9 @@ export default function HomePage() {
                     <span className="hidden sm:inline">Bảng tin</span>
                     <span className="sm:hidden">Tin</span>
                   </TabsTrigger>
-                  <TabsTrigger value="my-posts" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
-                    <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Bài viết của tôi</span>
-                    <span className="sm:hidden">Của tôi</span>
-                  </TabsTrigger>
                   <TabsTrigger value="creators" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
                     <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                     Creator
-                  </TabsTrigger>
-                  <TabsTrigger value="chat" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
-                    <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Chat</span>
-                    <span className="sm:hidden">Chat</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -249,21 +282,11 @@ export default function HomePage() {
                   <NewsFeed />
                 </TabsContent>
 
-                <TabsContent value="my-posts" className="space-y-6">
-                  <NewsFeed activeTab="my-posts" />
-                </TabsContent>
 
                 <TabsContent value="creators">
                   <CreatorList />
                 </TabsContent>
 
-                <TabsContent value="chat" className="space-y-6">
-                  <div className="text-center py-8 sm:py-12">
-                    <MessageCircle className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Chat 18+ đang được phát triển</h3>
-                    <p className="text-gray-400 text-sm sm:text-base">Tính năng chat riêng tư và nhóm chat 18+ sẽ có sớm!</p>
-                  </div>
-                </TabsContent>
 
               </div>
             </div>
