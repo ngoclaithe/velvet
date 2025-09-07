@@ -104,7 +104,6 @@ export default function CreatorsAdminPage() {
     bioUrls: [] as string[],
     tags: [] as string[],
     isVerified: false,
-    hourlyRate: '',
     minBookingDuration: '',
     maxConcurrentBookings: '',
     specialties: [] as string[], // Loại creator
