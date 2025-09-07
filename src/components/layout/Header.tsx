@@ -241,14 +241,7 @@ export default function Header() {
                         <span>Stream Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem asChild>
-                      <Link href="/become-creator" className="cursor-pointer">
-                        <UserPlus className="mr-2 h-4 w-4 text-purple-500" />
-                        <span>Become Creator</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+                  ) : null }
                   <DropdownMenuItem asChild>
                     <Link href="/messages" className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />
