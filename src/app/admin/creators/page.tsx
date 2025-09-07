@@ -235,6 +235,14 @@ export default function CreatorsAdminPage() {
         bioUrls: Array.isArray(form.bioUrls) ? form.bioUrls : [],
       }
       if (payload.city === 'all') delete payload.city
+      // Parse availabilitySchedule if admin entered JSON string
+      if (typeof payload.availabilitySchedule === 'string') {
+        try {
+          payload.availabilitySchedule = JSON.parse(payload.availabilitySchedule)
+        } catch (e) {
+          payload.availabilitySchedule = {}
+        }
+      }
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
       if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
       toast.success('Cập nhật creator thành công')
@@ -407,7 +415,7 @@ export default function CreatorsAdminPage() {
                   </div>
 
                   <div>
-                    <Label>Loại thân h��nh</Label>
+                    <Label>Loại thân hình</Label>
                     <Select value={form.bodyType} onValueChange={(v) => setField('bodyType', v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn" />
