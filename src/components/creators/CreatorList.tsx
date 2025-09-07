@@ -508,7 +508,7 @@ export default function CreatorList() {
                       <SelectValue placeholder="Chọn thành phố" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-gray-700">
-                      <SelectItem value="">Tất cả</SelectItem>
+                      <SelectItem value="all">Tất cả</SelectItem>
                       {VIETNAM_CITIES.map(c => (
                         <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                       ))}
