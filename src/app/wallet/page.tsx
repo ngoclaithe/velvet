@@ -402,7 +402,7 @@ export default function WalletPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Ví của tôi</h1>
-          <p className="text-muted-foreground">Quản lý tài chính và giao dịch</p>
+          <p className="text-muted-foreground">Qu���n lý tài chính và giao dịch</p>
         </div>
         <Button variant="outline" size="icon">
           <RefreshCw className="h-4 w-4" />
@@ -733,7 +733,7 @@ export default function WalletPage() {
                       <p className="text-sm font-medium text-blue-900">Mã giao dịch</p>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-mono text-blue-900">{lastDepositData?.codePay ?? generatedCodePay}</span>
-                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(generatedCodePay)}>
+                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(lastDepositData?.codePay ?? generatedCodePay)}>
                           <Copy className="h-4 w-4" />
                         </Button>
                       </div>
