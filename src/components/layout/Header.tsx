@@ -34,6 +34,72 @@ import { useRouter } from 'next/navigation'
 import { useNotification } from '@/components/notification/NotificationProvider'
 import { walletAPI } from '@/lib/api/wallet'
 
+function FeaturedCreatorsList({ onSelect }: { onSelect?: (id: number) => void }) {
+  const [creators, setCreators] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        setLoading(true)
+        const res = await creatorAPI.getFeaturedCreator()
+        if (res && res.success && res.data && Array.isArray(res.data)) {
+          setCreators(res.data.slice(0, 8))
+        } else {
+          setCreators([])
+        }
+      } catch (e) {
+        console.error('Failed to load featured creators:', e)
+        setCreators([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetch()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex items-center gap-3 p-3 bg-gray-900 border border-gray-700 rounded">
+            <div className="w-10 h-10 bg-gray-700 rounded-full" />
+            <div className="flex-1">
+              <div className="h-4 bg-gray-700 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-gray-700 rounded w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {creators.map((c) => (
+        <div key={c.id} className="flex items-center gap-3 p-3 bg-gray-900 border border-gray-700 rounded hover:bg-gray-800/60 cursor-pointer" onClick={() => onSelect?.(Number(c.id))}>
+          <div className="relative flex-shrink-0">
+            {c?.user?.avatar ? (
+              <img src={c.user.avatar} alt={c.stageName} className="w-12 h-12 rounded-full object-cover" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center text-white font-bold">{(c.stageName || (c.user && c.user.username) || 'U').charAt(0)}</div>
+            )}
+            {c.isLive && <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-red-500 border-2 border-gray-900 rounded-full" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="font-semibold text-sm text-white truncate">{c.stageName || c.user?.displayName || c.user?.username}</div>
+              {c.isVerified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><span className="text-white text-[10px]">✓</span></div>}
+            </div>
+            <div className="text-xs text-gray-400">{Number(c.followersCount || 0).toLocaleString()} followers</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function Header() {
   const { user, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
@@ -310,7 +376,7 @@ export default function Header() {
             <DialogTitle>Creators nổi</DialogTitle>
           </DialogHeader>
           <div className="mt-2">
-            <CreatorList />
+            <FeaturedCreatorsList onSelect={(id) => { setShowCreators(false); router.push(`/creator/${id}`) }} />
           </div>
         </DialogContent>
       </Dialog>
