@@ -186,7 +186,7 @@ export default function Header() {
             <>
     
               {user?.role === 'creator' && (
-                <Link href="/stream">
+                <Link href="/stream" prefetch={false}>
                   <Button variant="ghost" size="sm" className="text-red-600 px-2 md:px-3">
                     <Zap className="h-4 w-4 md:mr-2" />
                     <span className="hidden md:inline">Go Live</span>
@@ -194,7 +194,7 @@ export default function Header() {
                 </Link>
               )}
 
-              <Link href="/wallet?tab=deposit">
+              <Link href="/wallet?tab=deposit" prefetch={false}>
                 <Button variant="ghost" size="sm" className="text-pink-600 px-2 md:px-3">
                   <DollarSign className="h-4 w-4 md:mr-2" />
                   <span className="hidden md:inline">Nạp tiền</span>
@@ -202,7 +202,7 @@ export default function Header() {
               </Link>
 
               {(user?.role === 'user' || user?.role === 'admin') && (
-                <Link href="/bookings">
+                <Link href="/bookings" prefetch={false}>
                   <Button variant="ghost" size="sm" className="text-yellow-400 px-2 md:px-3">
                     <Calendar className="h-4 w-4 md:mr-2" />
                     <span className="hidden md:inline">Booking</span>
@@ -210,7 +210,7 @@ export default function Header() {
                 </Link>
               )}
 
-              <Link href="/search" className="md:hidden">
+              <Link href="/search" prefetch={false} className="md:hidden">
                 <Button variant="ghost" size="icon">
                   <Search className="h-5 w-5" />
                 </Button>
@@ -287,33 +287,33 @@ export default function Header() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile/posts" className="cursor-pointer">
+                    <Link href="/profile/posts" prefetch={false} className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Trang cá nhân</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
+                    <Link href="/profile" prefetch={false} className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Hồ sơ</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/wallet" className="cursor-pointer">
+                    <Link href="/wallet" prefetch={false} className="cursor-pointer">
                       <DollarSign className="mr-2 h-4 w-4" />
                       <span>Ví của tôi</span>
                     </Link>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem asChild>
-                    <Link href="/create-post" className="cursor-pointer">
+                    <Link href="/create-post" prefetch={false} className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />
                       <span>Tạo bài viết</span>
                     </Link>
                   </DropdownMenuItem>
                   {(user?.role === 'creator' || user?.role === 'admin') && (
                     <DropdownMenuItem asChild>
-                      <Link href="/streams" className="cursor-pointer">
+                      <Link href="/streams" prefetch={false} className="cursor-pointer">
                         <Zap className="mr-2 h-4 w-4" />
                         <span>Live Streams</span>
                       </Link>
@@ -321,14 +321,14 @@ export default function Header() {
                   )}
                   {user?.role === 'creator' ? (
                     <DropdownMenuItem asChild>
-                      <Link href="/stream" className="cursor-pointer">
+                      <Link href="/stream" prefetch={false} className="cursor-pointer">
                         <Zap className="mr-2 h-4 w-4 text-red-500" />
                         <span>Stream Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                   ) : null }
                   <DropdownMenuItem asChild>
-                    <Link href="/messages" className="cursor-pointer">
+                    <Link href="/messages" prefetch={false} className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />
                       <span>Tin nhắn</span>
                     </Link>
@@ -343,7 +343,7 @@ export default function Header() {
                   )}
                   {user?.role === 'admin' && (
                     <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer">
+                      <Link href="/admin" prefetch={false} className="cursor-pointer">
                         <Shield className="mr-2 h-4 w-4 text-blue-500" />
                         <span>Admin Dashboard</span>
                       </Link>
@@ -359,13 +359,13 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/bookings">
+              <Link href="/bookings" prefetch={false}>
                 <Button variant="ghost" size="sm" className="text-yellow-400 px-2 md:px-3">
                   <Calendar className="h-4 w-4 md:mr-2" />
                   <span className="hidden md:inline">Booking</span>
                 </Button>
               </Link>
-              <Link href="/login">
+              <Link href="/login" prefetch={false}>
                 <Button size="sm" className="group relative overflow-hidden rounded-full h-9 md:h-10 px-3 md:px-5 text-white font-semibold bg-gradient-to-r from-fuchsia-600 via-pink-600 to-violet-600 hover:from-fuchsia-500 hover:via-pink-500 hover:to-violet-500 shadow-lg shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 ring-1 ring-white/10 hover:ring-white/20 transition-all">
                   <LogIn className="w-4 h-4 mr-1 md:mr-2" />
                   <span className="md:inline hidden">Đăng nhập / Đăng ký</span>
