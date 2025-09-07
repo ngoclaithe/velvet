@@ -615,7 +615,7 @@ export default function CreatorDetailPage() {
                               Đặt lịch
                             </Button>
                           )}
-                          <ReportButton reportedUserId={creator.userId} size="icon" className="w-full" />
+                          <ReportButton reportedUserId={creator.userId} size="default" className="w-full" />
                         </div>
                       ) : !isAuthenticated ? (
                         <div className="text-center">
