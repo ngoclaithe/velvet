@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { requestDeposit } from "@/lib/api/requestDeposit"
+import { transactionAPI } from "@/lib/api/transaction"
 import { useToast } from "@/hooks/use-toast"
 import { Icons } from "@/components/common/Icons"
 import { RefreshCw, CheckCircle2, XCircle, Clock, Banknote, User as UserIcon, Hash } from "lucide-react"
@@ -78,7 +78,7 @@ export default function AdminDepositsPage() {
         // reflect frontend status names for UI consistency
         setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
         toast({
-          title: status === "approved" ? "Đã phê duyệt" : "Đã từ chối",
+          title: status === "approved" ? "Đã phê duyệt" : "Đã từ ch��i",
           description: `Yêu cầu ${status === "approved" ? "được phê duyệt" : "bị từ chối"}.`,
           variant: "default",
         })
