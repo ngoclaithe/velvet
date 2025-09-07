@@ -444,7 +444,7 @@ export default function CreatorList() {
         <TabsList className={`grid w-full ${isAuthenticated && (user?.role === 'user' || user?.role === 'admin') ? 'grid-cols-3' : 'grid-cols-2'} bg-gray-800 border-gray-700`}>
           <TabsTrigger value="all" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
-            Tất c��
+            Tất cả
           </TabsTrigger>
           {isAuthenticated && (user?.role === 'user' || user?.role === 'admin') && (
             <TabsTrigger
@@ -494,6 +494,62 @@ export default function CreatorList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {followingCreators.map(creator => renderCreatorCard(creator, false))}
             </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="callgirl" className="space-y-4">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-xs text-gray-400">Thành phố</label>
+                  <Select value={callgirlCity} onValueChange={(v) => { setCallgirlCity(v); setCgPage(1) }}>
+                    <SelectTrigger className="mt-1 bg-gray-900 border-gray-700 text-gray-200">
+                      <SelectValue placeholder="Chọn thành phố" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-900 border-gray-700">
+                      <SelectItem value="">Tất cả</SelectItem>
+                      {VIETNAM_CITIES.map(c => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Giá tối thiểu (VND)</label>
+                  <Input type="number" className="mt-1 bg-gray-900 border-gray-700 text-gray-200" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="0" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Giá tối đa (VND)</label>
+                  <Input type="number" className="mt-1 bg-gray-900 border-gray-700 text-gray-200" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="" />
+                </div>
+                <div className="flex items-end gap-2">
+                  <Button onClick={() => { setCgPage(1); fetchCallgirls() }}>Lọc</Button>
+                  <Button variant="outline" onClick={() => { setCallgirlCity(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls() }}>Xóa lọc</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {callgirlLoading ? (
+            renderSkeleton()
+          ) : callgirls.length === 0 ? (
+            <Card className="p-6 text-center bg-gray-800 border-gray-700">
+              <h3 className="text-white">Không tìm thấy kết quả</h3>
+            </Card>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {callgirls.map(c => renderCreatorCard(c, false))}
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <div className="text-sm text-gray-400">Trang {cgPage}/{cgTotalPages} • Tổng {cgTotal.toLocaleString('vi-VN')}</div>
+                <div className="flex gap-2">
+                  <Button variant="outline" disabled={cgPage <= 1} onClick={() => setCgPage(p => Math.max(1, p - 1))}>Trước</Button>
+                  <Button variant="outline" disabled={cgPage >= cgTotalPages} onClick={() => setCgPage(p => Math.min(cgTotalPages, p + 1))}>Sau</Button>
+                </div>
+              </div>
+            </>
           )}
         </TabsContent>
 
