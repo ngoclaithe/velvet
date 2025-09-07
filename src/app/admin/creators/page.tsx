@@ -360,7 +360,7 @@ export default function CreatorsAdminPage() {
                         <SelectValue placeholder="Chọn" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Chưa chọn</SelectItem>
+                        <SelectItem value="none">Chưa chọn</SelectItem>
                         <SelectItem value="male">Nam</SelectItem>
                         <SelectItem value="female">Nữ</SelectItem>
                         <SelectItem value="other">Khác</SelectItem>
