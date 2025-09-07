@@ -163,10 +163,15 @@ export default function WalletPage() {
 
         // Fetch transactions
         const transactionsResponse = await transactionAPI.getTransactions()
-        if (transactionsResponse.success && transactionsResponse.data && transactionsResponse.data.data) {
-          setTransactions(transactionsResponse.data.data.map((t: any) => ({
-            ...t,
-            date: new Date(t.date || t.createdAt)
+        if (transactionsResponse.success && Array.isArray(transactionsResponse.data)) {
+          setTransactions(transactionsResponse.data.map((t: any) => ({
+            id: String(t.id ?? ''),
+            type: t.type === 'withdraw' ? 'withdrawal' : t.type,
+            amount: typeof t.amount === 'string' ? parseFloat(t.amount) : Number(t.amount ?? t.tokenAmount ?? 0),
+            description: t.description ?? '',
+            date: new Date(t.createdAt ?? t.date ?? Date.now()),
+            status: (t.status === 'processing' ? 'pending' : t.status) ?? 'pending',
+            transactionId: t.referenceId ?? t.reference ?? (t.metadata && t.metadata.codePay) ?? undefined,
           })))
         }
 
@@ -265,7 +270,7 @@ export default function WalletPage() {
       }
     } catch (error) {
       toast({
-        title: "Lỗi tạo yêu cầu",
+        title: "L��i tạo yêu cầu",
         description: "Không thể tạo yêu cầu nạp tiền. Vui lòng thử lại.",
         variant: "destructive"
       })
