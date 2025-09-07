@@ -355,6 +355,36 @@ export default function CreatorsAdminPage() {
                     <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
                   </div>
                   <div>
+                    <Label>Ngày sinh</Label>
+                    <Input type="date" value={form.dateOfBirth} onChange={(e) => setField('dateOfBirth', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Giới tính</Label>
+                    <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Chưa chọn</SelectItem>
+                        <SelectItem value="male">Nam</SelectItem>
+                        <SelectItem value="female">Nữ</SelectItem>
+                        <SelectItem value="other">Khác</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Quốc gia</Label>
+                    <Input value={form.country} onChange={(e) => setField('country', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Múi giờ</Label>
+                    <Input value={form.timezone} onChange={(e) => setField('timezone', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Mã giới thiệu (referral code)</Label>
+                    <Input value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)} />
+                  </div>
+                  <div>
                     <Label>Nghệ danh</Label>
                     <Input value={form.stageName} onChange={(e) => setField('stageName', e.target.value)} />
                   </div>
@@ -569,7 +599,7 @@ export default function CreatorsAdminPage() {
           <div className="p-4 sm:p-6 overflow-auto flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label>Họ</Label>
+                <Label>H��</Label>
                 <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
               </div>
               <div>
