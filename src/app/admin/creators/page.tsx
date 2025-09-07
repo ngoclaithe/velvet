@@ -264,33 +264,33 @@ export default function CreatorsAdminPage() {
             <div className="text-gray-600">Chưa có creators</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
+              <table className="min-w-full bg-white text-gray-900">
                 <thead>
                   <tr className="text-left bg-gray-50">
-                    <th className="px-4 py-2">Avatar</th>
-                    <th className="px-4 py-2">Name / Username</th>
-                    <th className="px-4 py-2">City</th>
-                    <th className="px-4 py-2">Specialties</th>
-                    <th className="px-4 py-2">Booking Price</th>
-                    <th className="px-4 py-2">Followers</th>
-                    <th className="px-4 py-2">Actions</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Avatar</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Name / Username</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">City</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Specialties</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Booking Price</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Followers</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {creators.map((c: any) => (
                     <tr key={c.id} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-3 align-top">
+                      <td className="px-4 py-3 align-top text-gray-900">
                         <img src={c.avatar || c.user?.avatar} alt={c.stageName || c.user?.username || c.username} className="w-10 h-10 rounded-full object-cover" />
                       </td>
-                      <td className="px-4 py-3 align-top">
-                        <div className="font-semibold">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
+                      <td className="px-4 py-3 align-top text-gray-900">
+                        <div className="font-semibold text-gray-900">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
                         <div className="text-xs text-gray-500">@{c.user?.username || c.username}</div>
                       </td>
-                      <td className="px-4 py-3 align-top">{c.user?.city || c.city || '-'}</td>
-                      <td className="px-4 py-3 align-top">{Array.isArray(c.specialties) ? c.specialties.join(', ') : c.specialties || '-'}</td>
-                      <td className="px-4 py-3 align-top">{c.bookingPrice ?? '-'}</td>
-                      <td className="px-4 py-3 align-top">{c.followersCount ?? '-'}</td>
-                      <td className="px-4 py-3 align-top">
+                      <td className="px-4 py-3 align-top text-gray-900">{c.user?.city || c.city || '-'}</td>
+                      <td className="px-4 py-3 align-top text-gray-900">{Array.isArray(c.specialties) ? c.specialties.join(', ') : c.specialties || '-'}</td>
+                      <td className="px-4 py-3 align-top text-gray-900">{c.bookingPrice ?? '-'}</td>
+                      <td className="px-4 py-3 align-top text-gray-900">{c.followersCount ?? '-'}</td>
+                      <td className="px-4 py-3 align-top text-gray-900">
                         <div className="flex gap-2">
                           <Button size="sm" onClick={() => fetchCreatorAndOpen(Number(c.id))}>Chi tiết</Button>
                           <Button variant="outline" size="sm" onClick={() => fetchCreatorAndOpen(Number(c.id))}>Sửa</Button>
