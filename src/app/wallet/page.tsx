@@ -83,9 +83,13 @@ export default function WalletPage() {
   
   // New deposit flow state
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<InfoPayment[]>([])
-  const [selectedInfoPaymentId, setSelectedInfoPaymentId] = useState<string>('')
+  // default to infoPayment id 1 for quicker deposits
+  const [selectedInfoPaymentId, setSelectedInfoPaymentId] = useState<string>('1')
   const [depositAmount, setDepositAmount] = useState('')
-  
+
+  // Transaction filter state: all | deposit | withdraw | tip | gift
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<string>('all')
+
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [bankName, setBankName] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
@@ -270,7 +274,7 @@ export default function WalletPage() {
       }
     } catch (error) {
       toast({
-        title: "L��i tạo yêu cầu",
+        title: "Lỗi tạo yêu cầu",
         description: "Không thể tạo yêu cầu nạp tiền. Vui lòng thử lại.",
         variant: "destructive"
       })
@@ -875,7 +879,7 @@ export default function WalletPage() {
                     <h4 className="font-medium text-blue-900 mb-2">Thông tin quan trọng:</h4>
                     <ul className="text-sm text-blue-800 space-y-1">
                       <li>• Kiểm tra kỹ thông tin ngân hàng trước khi gửi</li>
-                      <li>• Tên chủ tài khoản phải trùng với tên đăng ký</li>
+                      <li>• T��n chủ tài khoản phải trùng với tên đăng ký</li>
                       <li>• Số tài khoản phải chính xác và hoạt động</li>
                       <li>• Yêu cầu rút tiền sẽ được xử lý trong 1-3 ngày làm việc</li>
                     </ul>
