@@ -414,7 +414,7 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Số dư hiện tại</CardTitle>
+              <CardTitle className="text-sm font-medium">Token hiện có</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
@@ -426,7 +426,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} VND` : '••••••'}
+                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} Token` : '••••••'}
               </div>
               <p className="text-xs text-muted-foreground">
                 Khả dụng cho rút tiền
@@ -468,7 +468,7 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
           <Card className="max-w-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Số dư ví</CardTitle>
+              <CardTitle className="text-sm font-medium">Token</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
@@ -480,14 +480,14 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} VND` : '••••••'}
+                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} Token` : '••••••'}
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                Số dư khả dụng để sử dụng trong ứng dụng
+                Token khả dụng để sử dụng trong ứng dụng
               </p>
               {(balance || 0) === 0 && (
                 <p className="text-xs text-orange-600 mt-1">
-                  Chưa có số dư. Nạp tiền để bắt đầu sử dụng.
+                  Chưa có token. Nạp tiền để bắt đầu sử dụng.
                 </p>
               )}
             </CardContent>
@@ -609,7 +609,7 @@ export default function WalletPage() {
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
                     <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
-                    <li>• Liên hệ hỗ trợ nếu không nhận được tiền sau 30 phút</li>
+                    <li>• Liên hệ h�� trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>
                 </div>
 
@@ -791,7 +791,7 @@ export default function WalletPage() {
                     step="1000"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Số dư khả dụng: {(Number(balance || 0) - Number(lockedBalance || 0)).toLocaleString('vi-VN')} VND
+                    Token khả dụng: {(Number(balance || 0) - Number(lockedBalance || 0)).toLocaleString('vi-VN')} Token
                   </p>
                 </div>
 
