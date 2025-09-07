@@ -86,7 +86,7 @@ export default function CreatorsAdminPage() {
     fetch()
   }, [])
 
-  const [form, setForm] = useState<any>({
+  const getInitialForm = () => ({
     firstName: '',
     lastName: '',
     phoneNumber: '',
@@ -106,7 +106,7 @@ export default function CreatorsAdminPage() {
     isVerified: false,
     minBookingDuration: '',
     maxConcurrentBookings: '',
-    specialties: [] as string[], // Loại creator
+    specialties: [] as string[],
     languages: ['vi'] as string[],
     bodyType: '',
     height: '',
@@ -123,6 +123,8 @@ export default function CreatorsAdminPage() {
     subscriptionPrice: '',
     availabilitySchedule: {} as Record<string, any>,
   })
+
+  const [form, setForm] = useState<any>(getInitialForm())
 
   const setField = (key: string, value: any) => setForm((prev: any) => ({ ...prev, [key]: value }))
 
@@ -289,15 +291,12 @@ export default function CreatorsAdminPage() {
                     <th className="px-4 py-2 text-sm font-medium text-gray-700">Avatar</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700">Name / Username</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700">City</th>
-                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Specialties</th>
-                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Booking Price</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700">Followers</th>
-                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {creators.map((c: any) => (
-                    <tr key={c.id} className="border-t hover:bg-gray-50">
+                    <tr key={c.id} className="border-t hover:bg-gray-50 cursor-pointer" onClick={() => fetchCreatorAndOpen(Number(c.id))}>
                       <td className="px-4 py-3 align-top text-gray-900">
                         <img src={c.avatar || c.user?.avatar} alt={c.stageName || c.user?.username || c.username} className="w-10 h-10 rounded-full object-cover" />
                       </td>
@@ -306,14 +305,7 @@ export default function CreatorsAdminPage() {
                         <div className="text-xs text-gray-500">@{c.user?.username || c.username}</div>
                       </td>
                       <td className="px-4 py-3 align-top text-gray-900">{c.user?.city || c.city || '-'}</td>
-                      <td className="px-4 py-3 align-top text-gray-900">{Array.isArray(c.specialties) ? c.specialties.join(', ') : c.specialties || '-'}</td>
-                      <td className="px-4 py-3 align-top text-gray-900">{c.bookingPrice ?? '-'}</td>
                       <td className="px-4 py-3 align-top text-gray-900">{c.followersCount ?? '-'}</td>
-                      <td className="px-4 py-3 align-top text-gray-900">
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => fetchCreatorAndOpen(Number(c.id))}>Chi tiết</Button>
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -325,7 +317,7 @@ export default function CreatorsAdminPage() {
 
       <div className="flex items-center justify-end gap-3">
         <Button variant="outline" onClick={() => window.history.back()}>Hủy</Button>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setSelectedCreatorId(null); setForm(getInitialForm()) } }}>
           <DialogTrigger asChild>
             <Button>Thêm Creator</Button>
           </DialogTrigger>
@@ -354,7 +346,7 @@ export default function CreatorsAdminPage() {
                     <Input type="date" value={form.dateOfBirth} onChange={(e) => setField('dateOfBirth', e.target.value)} />
                   </div>
                   <div>
-                    <Label>Giới tính</Label>
+                    <Label>Giới t��nh</Label>
                     <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn" />
@@ -523,12 +515,19 @@ export default function CreatorsAdminPage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <Label>Ảnh Bio (nhiều ảnh)</Label>
-                    <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
-                      const urls = results.map((r:any) => r.secure_url).filter(Boolean)
-                      setField('bioUrls', [...form.bioUrls, ...urls])
-                    }} hideResults />
+                <Label>Ảnh Bio (nhiều ảnh)</Label>
+                <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
+                  const urls = results.map((r:any) => r.secure_url).filter(Boolean)
+                  setField('bioUrls', [...form.bioUrls, ...urls])
+                }} hideResults />
+                {Array.isArray(form.bioUrls) && form.bioUrls.length > 0 && (
+                  <div className="mt-2 grid grid-cols-5 sm:grid-cols-8 gap-2">
+                    {form.bioUrls.map((url: string, idx: number) => (
+                      <img key={idx} src={url} className="w-16 h-16 object-cover rounded" alt={`bio-${idx}`} />
+                    ))}
                   </div>
+                )}
+              </div>
 
                   <div className="flex items-center gap-2">
                     <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
@@ -594,7 +593,7 @@ export default function CreatorsAdminPage() {
           <div className="p-4 sm:p-6 overflow-auto flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label>H��</Label>
+                <Label>Họ</Label>
                 <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
               </div>
               <div>
@@ -617,7 +616,7 @@ export default function CreatorsAdminPage() {
                 <Label>Giới tính</Label>
                 <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Ch��n" />
+                    <SelectValue placeholder="Chọn" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Chưa chọn</SelectItem>
@@ -702,6 +701,13 @@ export default function CreatorsAdminPage() {
                   const urls = results.map((r:any) => r.secure_url).filter(Boolean)
                   setField('bioUrls', [...form.bioUrls, ...urls])
                 }} hideResults />
+                {Array.isArray(form.bioUrls) && form.bioUrls.length > 0 && (
+                  <div className="mt-2 grid grid-cols-5 sm:grid-cols-8 gap-2">
+                    {form.bioUrls.map((url: string, idx: number) => (
+                      <img key={idx} src={url} className="w-16 h-16 object-cover rounded" alt={`bio-${idx}`} />
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
