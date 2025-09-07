@@ -94,7 +94,7 @@ function LiveStreamsTab() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
             <p className="text-gray-400 text-sm sm:text-base">Xem các creator đang stream trực tiếp</p>
@@ -119,7 +119,7 @@ function LiveStreamsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
           <p className="text-gray-400 text-sm sm:text-base">Xem các creator đang stream trực tiếp</p>
