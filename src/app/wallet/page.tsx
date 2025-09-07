@@ -188,6 +188,49 @@ export default function WalletPage() {
     fetchWalletData()
   }, [user, toast])
 
+  // Fetch transactions separately and support filtering by type
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!user) return
+      try {
+        const params: Record<string, string> | undefined = (transactionTypeFilter && transactionTypeFilter !== 'all')
+          ? { type: transactionTypeFilter === 'withdrawal' ? 'withdraw' : transactionTypeFilter }
+          : undefined
+
+        const response = await transactionAPI.getTransactions(params)
+        if (response.success && Array.isArray(response.data)) {
+          setTransactions(response.data.map((t: any) => {
+            const mappedType = (() => {
+              if (t.type === 'deposit') return 'deposit'
+              if (t.type === 'withdraw' || t.type === 'withdrawal') return 'withdrawal'
+              if (t.type === 'tip') return 'spending'
+              if (t.type === 'gift') {
+                const fromId = t.fromUserId ?? (t.fromUser && (t.fromUser.id))
+                if (fromId && user?.id && String(fromId) === String(user.id)) return 'gift_sent'
+                return 'gift_received'
+              }
+              return (t.type as Transaction['type']) || 'spending'
+            })()
+
+            return {
+              id: String(t.id ?? ''),
+              type: mappedType as Transaction['type'],
+              amount: typeof t.amount === 'string' ? parseFloat(t.amount) : Number(t.amount ?? t.tokenAmount ?? 0),
+              description: t.description ?? '',
+              date: new Date(t.createdAt ?? t.date ?? Date.now()),
+              status: (t.status === 'processing' ? 'pending' : t.status) ?? 'pending',
+              transactionId: t.referenceId ?? t.reference ?? (t.metadata && t.metadata.codePay) ?? undefined,
+            }
+          }))
+        }
+      } catch (error) {
+        console.error('Failed to fetch transactions', error)
+      }
+    }
+
+    fetchTransactions()
+  }, [user, transactionTypeFilter])
+
   const handleCreateDepositRequest = async () => {
     if (!depositAmount || !selectedInfoPaymentId) {
       toast({
@@ -766,7 +809,7 @@ export default function WalletPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Minus className="h-5 w-5" />
-                  <span>Rút tiền</span>
+                  <span>Rút ti��n</span>
                 </CardTitle>
                 <CardDescription>
                   Rút ti��n từ ví về tài khoản của bạn
