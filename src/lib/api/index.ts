@@ -8,6 +8,7 @@ export { postsApi } from './posts'
 export { commentApi } from './comment'
 export { cloudinaryApi } from './cloudinary'
 export { transactionAPI } from './transaction'
+export { reportApi } from './report'
 export {
   infoPaymentApi,
   infoPaymentUtils,

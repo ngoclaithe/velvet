@@ -786,10 +786,12 @@ export default function WalletPage() {
                           })
                         }
                       }}
-                      className="h-16 flex flex-col"
+                      className="h-16 flex flex-col items-center justify-center text-center"
                     >
-                      <span className="text-lg font-bold">{amount.toLocaleString('vi-VN')} VND</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis text-sm sm:text-base md:text-lg">
+                        {amount.toLocaleString('vi-VN')} VND
+                      </span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">
                         Nạp nhanh
                       </span>
                     </Button>

@@ -31,6 +31,7 @@ import { reviewApi, type Review } from '@/lib/api/review'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
+import ReportButton from '@/components/report/ReportButton'
 import {
   UserPlus,
   UserMinus,
@@ -46,7 +47,8 @@ import {
   Award,
   Palette,
   Scissors,
-  ArrowRight
+  ArrowRight,
+  Flag
 } from 'lucide-react'
 
 interface Creator {
@@ -541,6 +543,14 @@ export default function CreatorDetailPage() {
                       )}
                       {creator.bio && <p className="text-gray-300 text-sm leading-relaxed mb-3 whitespace-pre-line break-words">{creator.bio}</p>}
 
+                      {creator.tags && creator.tags.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-2 mb-3">
+                          {creator.tags.map((t) => (
+                            <Badge key={t} variant="secondary" className="bg-gray-700 text-gray-200">#{t}</Badge>
+                          ))}
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-2 gap-3 mb-3">
                         <div className="text-center">
                           <p className="text-white font-bold text-lg">{formatCount(creator.followersCount)}</p>
@@ -558,7 +568,7 @@ export default function CreatorDetailPage() {
                       </div>
 
                       {isAuthenticated && creator.userId.toString() !== user?.id ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <Button onClick={handleFollow} disabled={actionLoading} className={`${creator.isFollowing ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'} w-full`}>
                             {actionLoading ? (
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -613,6 +623,7 @@ export default function CreatorDetailPage() {
                               Đặt lịch
                             </Button>
                           )}
+                          <ReportButton reportedUserId={creator.userId} size="default" className="w-full" />
                         </div>
                       ) : !isAuthenticated ? (
                         <div className="text-center">
@@ -641,21 +652,6 @@ export default function CreatorDetailPage() {
                 </Card>
               )}
 
-              {(creator.category || (creator.tags && creator.tags.length > 0)) && (
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-4">
-                    <h3 className="text-lg font-semibold text-white mb-3">Phân loại & Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {creator.category && (
-                        <Badge variant="outline" className="border-gray-600 text-gray-300 px-3 py-1.5">{creator.category}</Badge>
-                      )}
-                      {creator.tags?.map((t) => (
-                        <Badge key={t} variant="secondary" className="bg-gray-700 text-gray-200">#{t}</Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           </div>
 
@@ -829,7 +825,7 @@ export default function CreatorDetailPage() {
                     <span className="text-gray-400 text-sm">Lọc:</span>
                     <Select value={String(filterRating)} onValueChange={(v) => { setFilterRating(v === 'all' ? 'all' : Number(v) as any); setPage(1) }}>
                       <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Tất cả" />
+                        <SelectValue placeholder="Tất c���" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả</SelectItem>
