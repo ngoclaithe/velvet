@@ -732,7 +732,7 @@ export default function WalletPage() {
                     <div className="bg-blue-50 p-3 rounded">
                       <p className="text-sm font-medium text-blue-900">Mã giao dịch</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-mono text-blue-900">{generatedCodePay}</span>
+                        <span className="text-lg font-mono text-blue-900">{lastDepositData?.codePay ?? generatedCodePay}</span>
                         <Button size="sm" variant="ghost" onClick={() => copyToClipboard(generatedCodePay)}>
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -829,7 +829,7 @@ export default function WalletPage() {
                 <div className="bg-yellow-50 p-4 rounded-lg">
                   <h4 className="font-medium text-yellow-900 mb-2">Lưu ý rút tiền:</h4>
                   <ul className="text-sm text-yellow-800 space-y-1">
-                    <li>• Số tiền rút tối thiểu: 10,000 VND</li>
+                    <li>��� Số tiền rút tối thiểu: 10,000 VND</li>
                     <li>• Phí rút tiền: 2,000 VND cho giao dịch dưới 100,000 VND</li>
                     <li>• Thời gian xử lý: 1-3 ngày làm việc</li>
                     <li>• Có thể bị khóa tạm thời để xác minh</li>
