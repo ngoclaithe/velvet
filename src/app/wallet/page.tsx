@@ -155,7 +155,7 @@ export default function WalletPage() {
         // Fetch wallet balance
         const walletResponse = await walletAPI.getWallet()
         if (walletResponse.success && walletResponse.data) {
-          setBalance(Number(walletResponse.data.balance) || 0)
+          setBalance(Number(walletResponse.data.tokens) || 0)
         setLockedBalance(Number(walletResponse.data.lockedBalance) || 0)
         setTotalEarnings(Number(walletResponse.data.totalEarnings) || 0)
         setMonthlyIncome(Number(walletResponse.data.monthlyIncome) || 0)
