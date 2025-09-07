@@ -241,6 +241,53 @@ export default function CreatorList() {
     }
   }
 
+  // Fetch callgirls
+  const fetchCallgirls = useCallback(async () => {
+    try {
+      setCallgirlLoading(true)
+      const params: any = { page: cgPage, limit: cgLimit }
+      if (callgirlCity) params.city = callgirlCity
+      if (minPrice) params.minPrice = Number(minPrice)
+      if (maxPrice) params.maxPrice = Number(maxPrice)
+      const res = await creatorAPI.getCallgirl(params)
+      if (res?.success) {
+        const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.items) ? res.data.items : []
+        const transformed: Creator[] = list.map((item: any) => ({
+          id: Number(item?.id || item?.userId || 0),
+          userId: Number(item?.userId || 0),
+          username: item?.user?.username || '',
+          firstName: item?.user?.firstName || '',
+          lastName: item?.user?.lastName || '',
+          stageName: item?.stageName || '',
+          avatar: item?.user?.avatar || '',
+          bio: item?.bio || '',
+          followerCount: Number(item?.followersCount || item?.followerCount || 0),
+          followingCount: Number(item?.followingCount || 0),
+          isVerified: Boolean(item?.isVerified),
+          isOnline: Boolean(item?.isLive),
+          category: 'callgirl',
+          location: item?.user?.city || item?.city || '',
+          isFollowing: Boolean(item?.isFollowing)
+        }))
+        setCallgirls(transformed)
+        const pag = res.pagination || res.data?.pagination || {}
+        setCgTotal(Number(pag.total || pag.totalItems || transformed.length))
+        setCgTotalPages(Number(pag.totalPages || Math.ceil((pag.total || transformed.length) / cgLimit) || 1))
+      } else {
+        setCallgirls([])
+        setCgTotal(0)
+        setCgTotalPages(1)
+      }
+    } catch (e) {
+      console.error('Error fetching callgirls', e)
+      setCallgirls([])
+      setCgTotal(0)
+      setCgTotalPages(1)
+    } finally {
+      setCallgirlLoading(false)
+    }
+  }, [cgPage, cgLimit, callgirlCity, minPrice, maxPrice])
+
   // Load data based on active tab
   useEffect(() => {
     switch (activeTab) {
@@ -253,8 +300,11 @@ export default function CreatorList() {
       case 'followers':
         fetchFollowers()
         break
+      case 'callgirl':
+        fetchCallgirls()
+        break
     }
-  }, [activeTab, fetchAllCreators, fetchFollowingCreators, fetchFollowers])
+  }, [activeTab, fetchAllCreators, fetchFollowingCreators, fetchFollowers, fetchCallgirls])
 
   // Format follower count
   const formatCount = (count?: number) => {
