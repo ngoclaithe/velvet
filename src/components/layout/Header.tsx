@@ -40,6 +40,7 @@ export default function Header() {
   const { notifications, unreadCount } = useNotification()
   const [searchText, setSearchText] = useState('')
   const [tokens, setTokens] = useState<number>(0)
+  const [showCreators, setShowCreators] = useState(false)
 
   const openNotification = (n: any) => {
     const isCall = ['audio', 'video', 'call'].includes(String(n.type))
