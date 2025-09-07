@@ -366,9 +366,10 @@ export default function Header() {
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-2 md:px-3">
-                  <LogIn className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">Đăng nhập / Đăng ký</span>
+                <Button size="sm" className="group relative overflow-hidden rounded-full h-9 md:h-10 px-3 md:px-5 text-white font-semibold bg-gradient-to-r from-fuchsia-600 via-pink-600 to-violet-600 hover:from-fuchsia-500 hover:via-pink-500 hover:to-violet-500 shadow-lg shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 ring-1 ring-white/10 hover:ring-white/20 transition-all">
+                  <LogIn className="w-4 h-4 mr-1 md:mr-2" />
+                  <span className="md:inline hidden">Đăng nhập / Đăng ký</span>
+                  <span className="inline md:hidden">Đăng nhập</span>
                 </Button>
               </Link>
             </>
