@@ -272,7 +272,7 @@ export default function WalletPage() {
     // Ensure amount is multiple of 1000
     if (amount % 1000 !== 0) {
       toast({
-        title: "L��i",
+        title: "Lỗi",
         description: "Số tiền phải là bội của 1,000 VND",
         variant: "destructive"
       })
@@ -324,7 +324,7 @@ export default function WalletPage() {
       } else {
         toast({
           title: "Lỗi tạo yêu cầu",
-          description: response.error || "Không thể tạo yêu c��u nạp tiền",
+          description: response.error || "Không thể tạo yêu cầu nạp tiền",
           variant: "destructive"
         })
       }
@@ -353,7 +353,7 @@ export default function WalletPage() {
     if (amount > balance) {
       toast({
         title: "Số dư không đủ",
-        description: "S�� tiền rút vượt quá số dư hiện tại",
+        description: "Số tiền rút vượt quá số dư hiện tại",
         variant: "destructive"
       })
       return
@@ -437,7 +437,7 @@ export default function WalletPage() {
       } else {
         toast({
           title: "Lỗi rút tiền",
-          description: response.error || "Không thể t���o yêu cầu rút tiền",
+          description: response.error || "Không thể tạo yêu cầu rút tiền",
           variant: "destructive"
         })
       }
@@ -500,7 +500,7 @@ export default function WalletPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
           <Icons.spinner className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Đang tải dữ li��u ví...</span>
+          <span className="ml-2">Đang tải dữ liệu ví...</span>
         </div>
       </div>
     )
@@ -549,7 +549,7 @@ export default function WalletPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">T���ng thu nhập</CardTitle>
+              <CardTitle className="text-sm font-medium">Tổng thu nhập</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -600,7 +600,7 @@ export default function WalletPage() {
               </p>
               {(balance || 0) === 0 && (
                 <p className="text-xs text-orange-600 mt-1">
-                  Chưa có token. Nạp tiền đ�� bắt đầu sử dụng.
+                  Chưa có token. Nạp tiền để bắt đầu sử dụng.
                 </p>
               )}
             </CardContent>
@@ -803,10 +803,10 @@ export default function WalletPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center space-x-2">
                   <CheckCircle className="h-6 w-6 text-green-600" />
-                  <span className="text-lg font-semibold text-white">Yêu cầu đã ���ược tạo</span>
+                  <span className="text-lg font-semibold text-white">Yêu cầu đã được tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
-                  Vui lòng chuyển khoản theo thông tin bên dưới. Ki��m tra kỹ mã giao dịch và số tiền.
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
                 </DialogDescription>
               </DialogHeader>
 
@@ -818,7 +818,7 @@ export default function WalletPage() {
                       p => p.id.toString() === selectedInfoPaymentId
                     )
                     if (!selectedPayment) return (
-                      <div className="p-3 rounded bg-gray-50 text-sm text-gray-700">Không có thông tin phương th���c thanh toán.</div>
+                      <div className="p-3 rounded bg-gray-50 text-sm text-gray-700">Không có thông tin phương thức thanh toán.</div>
                     )
 
                     const amountToShow = lastDepositData?.amount ?? Number(depositAmount || 0)
@@ -1025,7 +1025,7 @@ export default function WalletPage() {
                     <ul className="text-sm text-blue-800 space-y-1">
                       <li>• Kiểm tra kỹ thông tin ngân hàng trước khi gửi</li>
                       <li>• Tên chủ tài khoản phải trùng với tên đăng ký</li>
-                      <li>• Số tài khoản phải chính xác và ho��t động</li>
+                      <li>• Số tài khoản phải chính xác và hoạt động</li>
                       <li>• Yêu cầu rút tiền sẽ được xử lý trong 1-3 ngày làm việc</li>
                     </ul>
                   </div>
@@ -1034,7 +1034,7 @@ export default function WalletPage() {
                     <h4 className="font-medium text-yellow-900 mb-2">Chú ý bảo mật:</h4>
                     <ul className="text-sm text-yellow-800 space-y-1">
                       <li>• Không chia sẻ thông tin tài khoản với người khác</li>
-                      <li>• Kiểm tra email xác nhận sau khi gửi yêu c��u</li>
+                      <li>• Kiểm tra email xác nhận sau khi gửi yêu cầu</li>
                       <li>• Liên hệ hỗ trợ nếu có vấn đề</li>
                     </ul>
                   </div>
