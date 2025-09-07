@@ -674,10 +674,13 @@ export default function WalletPage() {
                 {selectedInfoPaymentId && (
                   <div className="space-y-3">
                     {(() => {
-                      const selectedPayment = availablePaymentMethods.find(
+                      const selectedPayment = lastDepositData?.payment ?? availablePaymentMethods.find(
                         p => p.id.toString() === selectedInfoPaymentId
                       )
                       if (!selectedPayment) return null
+
+                      const amountToShow = lastDepositData?.amount ?? Number(depositAmount || 0)
+                      const codePayToShow = lastDepositData?.codePay ?? generatedCodePay
 
                       return (
                         <>
@@ -708,8 +711,8 @@ export default function WalletPage() {
                                   accountNumber: selectedPayment.bankNumber,
                                   name: selectedPayment.accountName,
                                   bank: selectedPayment.bankName,
-                                  amount: Number(depositAmount || 0),
-                                  code_pay: generatedCodePay
+                                  amount: amountToShow,
+                                  code_pay: codePayToShow
                                 })}
                                 alt="QR Code thanh toán"
                                 className="w-48 h-48 border rounded"
