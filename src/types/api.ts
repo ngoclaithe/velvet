@@ -33,10 +33,12 @@ export interface UploadResponse {
 }
 
 export interface WalletApiResponse {
-  balance: number
-  lockedBalance: number
-  totalEarnings: number
-  monthlyIncome: number
+  balance?: number | string
+  tokens: number
+  lockedBalance?: number
+  totalEarnings?: number
+  monthlyIncome?: number
+  updatedAt?: string
 }
 
 export interface RequestDepositApiResponse {
