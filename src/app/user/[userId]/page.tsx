@@ -14,6 +14,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { postsApi } from '@/lib/api/posts'
 import { reviewApi, type Review } from '@/lib/api/review'
 import { userApi } from '@/lib/api/user'
+import { createConversation } from '@/lib/api/conversation'
+import { subscribeTopic } from '@/lib/mqttClient'
+import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'
 import ReportButton from '@/components/report/ReportButton'
 import { Heart, MessageCircle, Share2, Eye, ArrowLeft, ArrowRight, Flag } from 'lucide-react'
 
@@ -64,6 +69,10 @@ export default function PublicUserPage() {
   const [showFollowing, setShowFollowing] = useState(false)
 
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
+  const { isAuthenticated, user: authUser } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [chatLoading, setChatLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -162,10 +171,46 @@ export default function PublicUserPage() {
               <div>
                 <h1 className="text-xl font-semibold">{displayName}</h1>
                 <p className="text-sm text-muted-foreground">@{user.username}</p>
-                <div className="mt-1 flex items-center gap-2">
+                <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Button variant="ghost" size="sm" className="h-7 px-2 text-sm" onClick={() => setShowFollowing(true)}>
                     Đang theo dõi {followingCount}
                   </Button>
+                  {isAuthenticated && authUser?.id?.toString() !== user.id.toString() && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-sm"
+                      disabled={chatLoading}
+                      onClick={async () => {
+                        if (!isAuthenticated) {
+                          toast({ title: 'Yêu cầu đăng nhập', description: 'Vui lòng đăng nhập để nhắn tin' })
+                          return
+                        }
+                        try {
+                          setChatLoading(true)
+                          const resp = await createConversation({ receiverId: Number(userId) })
+                          if (!resp.success || !resp.data || !(resp.data as any).conversation) {
+                            throw new Error(resp.error || 'Không tạo được cuộc trò chuyện')
+                          }
+                          const { conversation, mqttTopic } = resp.data as any
+                          const topic = mqttTopic || conversation?.topic
+                          if (topic) { try { await subscribeTopic(topic) } catch {} }
+                          router.push(`/messages?conversationId=${conversation.id}`)
+                        } catch (e: any) {
+                          toast({ title: 'Lỗi', description: e?.message || 'Không thể nhắn tin' })
+                        } finally {
+                          setChatLoading(false)
+                        }
+                      }}
+                    >
+                      {chatLoading ? (
+                        <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-1" />
+                      ) : (
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                      )}
+                      Nhắn tin
+                    </Button>
+                  )}
                   <ReportButton reportedUserId={Number(user.id)} size="sm" />
                 </div>
               </div>
