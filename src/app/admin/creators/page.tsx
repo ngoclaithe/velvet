@@ -133,6 +133,42 @@ export default function CreatorsAdminPage() {
     })
   }
 
+  // Edit modal state
+  const [selectedCreatorId, setSelectedCreatorId] = useState<number | null>(null)
+  const [editOpen, setEditOpen] = useState(false)
+
+  const fetchCreatorAndOpen = async (id: number) => {
+    try {
+      setLoadingCreators(true)
+      const res: any = await creatorAPI.getCreatorById(id)
+      const data = res?.data || res
+      // map backend fields into form
+      setForm((prev: any) => ({
+        ...prev,
+        ...data,
+        firstName: data.user?.firstName || prev.firstName,
+        lastName: data.user?.lastName || prev.lastName,
+        email: data.user?.email || prev.email,
+        phoneNumber: data.user?.phoneNumber || prev.phoneNumber,
+        avatar: data.user?.avatar || data.avatar || prev.avatar,
+        city: data.user?.city || data.city || prev.city,
+        tags: data.tags || prev.tags,
+        specialties: data.specialties || prev.specialties,
+        bioUrls: data.bioUrls || prev.bioUrls,
+        bookingPrice: data.bookingPrice ?? prev.bookingPrice,
+        subscriptionPrice: data.subscriptionPrice ?? prev.subscriptionPrice,
+        isVerified: Boolean(data.isVerified ?? prev.isVerified),
+      }))
+      setSelectedCreatorId(id)
+      setEditOpen(true)
+    } catch (e) {
+      console.error(e)
+      toast.error('Không thể lấy chi tiết creator')
+    } finally {
+      setLoadingCreators(false)
+    }
+  }
+
   const onSubmit = async () => {
     setSubmitting(true)
     setCredentials(null)
@@ -159,9 +195,45 @@ export default function CreatorsAdminPage() {
       const data = res?.data ?? {}
       setCredentials(data?.credentials || null)
       toast.success('Admin đã tạo profile creator thành công')
+      // refresh list
+      const all: any = await creatorAPI.getAllCreators()
+      setCreators(Array.isArray(all?.data) ? all.data : [])
     } catch (e: any) {
       console.error(e)
       toast.error(e?.message || 'Có lỗi xảy ra khi tạo creator')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const onEditSubmit = async () => {
+    if (!selectedCreatorId) return
+    setSubmitting(true)
+    try {
+      const payload: any = {
+        ...form,
+        hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
+        minBookingDuration: form.minBookingDuration ? Number(form.minBookingDuration) : undefined,
+        height: form.height ? Number(form.height) : undefined,
+        weight: form.weight ? Number(form.weight) : undefined,
+        bookingPrice: form.bookingPrice ? Number(form.bookingPrice) : undefined,
+        subscriptionPrice: form.subscriptionPrice ? Number(form.subscriptionPrice) : undefined,
+        tags: Array.isArray(form.tags) ? form.tags : String(form.tags || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
+        specialties: Array.isArray(form.specialties) ? form.specialties : String(form.specialties || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
+        languages: Array.isArray(form.languages) ? form.languages : String(form.languages || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
+        bioUrls: Array.isArray(form.bioUrls) ? form.bioUrls : [],
+      }
+      if (payload.city === 'all') delete payload.city
+      const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
+      if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
+      toast.success('Cập nhật creator thành công')
+      // refresh list
+      const all: any = await creatorAPI.getAllCreators()
+      setCreators(Array.isArray(all?.data) ? all.data : [])
+      setEditOpen(false)
+    } catch (e: any) {
+      console.error(e)
+      toast.error(e?.message || 'Có lỗi xảy ra khi cập nhật')
     } finally {
       setSubmitting(false)
     }
