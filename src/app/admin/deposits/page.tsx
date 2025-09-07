@@ -179,6 +179,7 @@ export default function AdminDepositsPage() {
                     <th className="px-3 py-2 font-medium text-gray-800">Mã</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Người dùng</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Số tiền</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Loại</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Phương thức</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Trạng thái</th>
                     <th className="px-3 py-2 font-medium text-gray-800">Thời gian</th>
