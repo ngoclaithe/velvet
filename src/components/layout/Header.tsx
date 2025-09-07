@@ -124,10 +124,10 @@ export default function Header() {
                 </Link>
               )}
 
-              <Link href="/create-post">
+              <Link href="/wallet?tab=deposit">
                 <Button variant="ghost" size="sm" className="text-pink-600 px-2 md:px-3">
-                  <MessageCircle className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Tạo bài viết</span>
+                  <DollarSign className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Nạp tiền</span>
                 </Button>
               </Link>
 
