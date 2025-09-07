@@ -170,7 +170,7 @@ function LiveStreamsTab() {
                   <CardContent className="p-3 sm:p-4">
                     <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">{stream.title}</h3>
                     <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center">
                         <span className="text-white text-xs font-bold">
                           {stream.creator?.stageName?.charAt(0) || stream.creator?.displayName?.charAt(0) || 'U'}
                         </span>
