@@ -254,17 +254,16 @@ export default function HomePage() {
 
               {/* Main Content */}
               <div className="flex-1">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 mb-3 sm:mb-4 bg-gray-800 border-gray-700 gap-1">
-                  <TabsTrigger value="livestream" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-3 mb-2 bg-gray-800 border-gray-700 gap-0.5">
+                  <TabsTrigger value="livestream" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-1 sm:px-3">
                     <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>Live</span>
                   </TabsTrigger>
-                  <TabsTrigger value="newsfeed" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
+                  <TabsTrigger value="newsfeed" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-1 sm:px-3">
                     <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Bảng tin</span>
-                    <span className="sm:hidden">Tin</span>
+                    <span className="inline">Bảng tin</span>
                   </TabsTrigger>
-                  <TabsTrigger value="creators" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
+                  <TabsTrigger value="creators" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-1 sm:px-3">
                     <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                     Creator
                   </TabsTrigger>
