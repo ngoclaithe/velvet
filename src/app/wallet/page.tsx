@@ -67,6 +67,8 @@ export default function WalletPage() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const defaultTab = (searchParams?.get('tab') === 'deposit') ? 'deposit' : 'transactions'
   const [showBalance, setShowBalance] = useState(true)
   const [isDepositing, setIsDepositing] = useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
@@ -539,7 +541,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} Token` : '••••••'}
+                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} Token` : '••��•••'}
               </div>
               <p className="text-xs text-muted-foreground">
                 Khả dụng cho rút tiền
@@ -736,7 +738,7 @@ export default function WalletPage() {
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
                     <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
-                    <li>• Liên hệ hệ trợ nếu không nhận được tiền sau 30 phút</li>
+                    <li>• Liên hệ h�� trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>
                 </div>
 
