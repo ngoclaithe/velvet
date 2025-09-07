@@ -83,7 +83,7 @@ const MOCK_STREAMS: StreamResponse[] = [
       avatar: ''
     },
     // explicit flag used by UI for 18+ badge (not in type)
-    isAdult: true as any
+    
   },
   {
     id: 'mock-2',
@@ -134,7 +134,7 @@ const MOCK_STREAMS: StreamResponse[] = [
       displayName: 'Max',
       avatar: ''
     },
-    isAdult: true as any
+    
   },
   {
     id: 'mock-3',
@@ -185,7 +185,7 @@ const MOCK_STREAMS: StreamResponse[] = [
       displayName: 'Mai',
       avatar: ''
     },
-    isAdult: false as any
+    
   }
 ]
 
@@ -309,7 +309,7 @@ function LiveStreamsTab() {
                     LIVE
                   </Badge>
 
-                  {(stream as any).isAdult && (
+                  {(stream.category?.toLowerCase?.() === 'adult' || (Array.isArray(stream.tags) && stream.tags.includes('18+'))) && (
                     <div className="absolute top-2 right-2 bg-black text-white text-[10px] px-2 py-0.5 rounded">18+</div>
                   )}
 
