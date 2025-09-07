@@ -156,7 +156,14 @@ export default function ReportButton({ reportedUserId, className, size = 'icon' 
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
-            <Button onClick={submit} disabled={submitting || reason.trim().length < 10}>{submitting ? 'Đang gửi...' : 'Gửi báo cáo'}</Button>
+            <Button onClick={submit} disabled={submitting || reason.trim().length < 10}>
+              {submitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 inline-block align-[-2px]" />
+                  Đang gửi...
+                </>
+              ) : 'Gửi báo cáo'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
