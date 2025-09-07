@@ -12,8 +12,8 @@ export const requestDeposit = {
   // GET /request-deposits/:id - Lấy request theo ID
   getRequestDepositById: (id: string) => api.get(`/request-deposits/${id}`),
 
-  // PATCH /request-deposits/:id - Cập nhật status request (admin only)
-  updateRequestStatus: (id: string, data: any) => api.patch(`/request-deposits/${id}`, data),
+  // PUT /request-deposits/:id - Cập nhật status request (admin only)
+  updateRequestStatus: (id: string, data: any) => api.put(`/request-deposits/${id}`, data),
 
   // DELETE /request-deposits/:id - Xóa request (admin only)
   deleteRequest: (id: string) => api.delete(`/request-deposits/${id}`),
