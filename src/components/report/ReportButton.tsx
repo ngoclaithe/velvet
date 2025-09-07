@@ -96,65 +96,67 @@ export default function ReportButton({ reportedUserId, className, size = 'icon' 
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg w-[95vw]">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Báo cáo người dùng</DialogTitle>
             <DialogDescription>Vui lòng mô tả vấn đề bạn gặp phải</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div>
-              <Label>Loại báo cáo</Label>
-              <Select value={type} onValueChange={(v) => setType(v as ReportType)}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Chọn loại" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="harassment">Quấy rối</SelectItem>
-                  <SelectItem value="spam">Spam</SelectItem>
-                  <SelectItem value="inappropriate_content">Nội dung không phù hợp</SelectItem>
-                  <SelectItem value="fake_profile">Giả mạo hồ sơ</SelectItem>
-                  <SelectItem value="other">Khác</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Lý do</Label>
-              <Textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} placeholder="Nhập lý do chi tiết (tối thiểu 10 ký tự)" />
-              <div className="text-xs text-right text-muted-foreground">{reason.length}/1000</div>
-            </div>
-
-            <div>
-              <Label>Chứng cứ (ảnh/URL, tùy chọn)</Label>
-              <div className="mt-2">
-                <ImageUploader
-                  ref={uploaderRef}
-                  compact
-                  autoUpload={false}
-                  hideUploadButton
-                  maxFiles={5}
-                  uploadOptions={{ resource_type: 'image' }}
-                />
+          <div className="flex-1 overflow-y-auto pr-1">
+            <div className="space-y-4">
+              <div>
+                <Label>Loại báo cáo</Label>
+                <Select value={type} onValueChange={(v) => setType(v as ReportType)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Chọn loại" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="harassment">Quấy rối</SelectItem>
+                    <SelectItem value="spam">Spam</SelectItem>
+                    <SelectItem value="inappropriate_content">Nội dung không phù hợp</SelectItem>
+                    <SelectItem value="fake_profile">Giả mạo hồ sơ</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex gap-2 mt-3">
-                <Input value={newEvidence} onChange={(e) => setNewEvidence(e.target.value)} placeholder="Dán thêm URL minh chứng (tùy chọn)" />
-                <Button type="button" variant="secondary" onClick={addEvidence}>Thêm</Button>
+
+              <div>
+                <Label>Lý do</Label>
+                <Textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} placeholder="Nhập lý do chi tiết (tối thiểu 10 ký tự)" />
+                <div className="text-xs text-right text-muted-foreground">{reason.length}/1000</div>
               </div>
-              {evidence.length > 0 && (
-                <ul className="mt-2 space-y-1 text-sm">
-                  {evidence.map((u, idx) => (
-                    <li key={`${u}-${idx}`} className="flex items-center justify-between bg-muted/50 rounded px-2 py-1">
-                      <span className="truncate mr-2" title={u}>{u}</span>
-                      <Button variant="ghost" size="sm" onClick={() => removeEvidence(idx)}>Xóa</Button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+
+              <div>
+                <Label>Chứng cứ (ảnh/URL, tùy chọn)</Label>
+                <div className="mt-2">
+                  <ImageUploader
+                    ref={uploaderRef}
+                    compact
+                    autoUpload={false}
+                    hideUploadButton
+                    maxFiles={5}
+                    uploadOptions={{ resource_type: 'image' }}
+                  />
+                </div>
+                <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                  <Input value={newEvidence} onChange={(e) => setNewEvidence(e.target.value)} placeholder="Dán thêm URL minh chứng (tùy chọn)" className="flex-1" />
+                  <Button type="button" variant="secondary" onClick={addEvidence} className="w-full sm:w-auto">Thêm</Button>
+                </div>
+                {evidence.length > 0 && (
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {evidence.map((u, idx) => (
+                      <li key={`${u}-${idx}`} className="flex items-center justify-between bg-muted/50 rounded px-2 py-1">
+                        <span className="truncate mr-2" title={u}>{u}</span>
+                        <Button variant="ghost" size="sm" onClick={() => removeEvidence(idx)}>Xóa</Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
             <Button onClick={submit} disabled={submitting || reason.trim().length < 10}>
               {submitting ? (
