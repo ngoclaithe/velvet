@@ -94,7 +94,7 @@ export default function CreatorsAdminPage() {
     avatar: '',
     gender: '',
     country: '',
-    city: '',
+    city: 'all',
     timezone: 'Asia/Ho_Chi_Minh',
     language: 'vi',
     referralCode: '',
