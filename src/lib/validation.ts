@@ -68,7 +68,6 @@ export const profileUpdateSchema = z.object({
   displayName: z.string().max(50, 'Display name must be at most 50 characters').optional(),
   bio: z.string().max(500, 'Bio must be at most 500 characters').optional(),
   location: z.string().max(100, 'Location must be at most 100 characters').optional(),
-  website: z.string().url('Please enter a valid URL').or(z.literal('')).optional(),
   socialLinks: z.object({
     twitter: z.string().max(50).optional(),
     instagram: z.string().max(50).optional(),

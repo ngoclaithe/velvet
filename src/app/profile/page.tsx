@@ -60,7 +60,6 @@ interface FormData {
   phoneNumber: string;
   bio: string;
   location: string;
-  website: string;
   gender: Gender | '';
   dateOfBirth: string;
 }
@@ -79,7 +78,6 @@ export default function ProfilePage() {
     phoneNumber: user?.phoneNumber || '',
     bio: user?.bio || '',
     location: user?.location || '',
-    website: user?.website || '',
     gender: user?.gender || '',
     dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
   })
@@ -177,7 +175,6 @@ export default function ProfilePage() {
         phoneNumber: user.phoneNumber || '',
         bio: user.bio || '',
         location: user.location || '',
-        website: user.website || '',
         gender: user.gender || '',
         dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
       })
@@ -435,7 +432,6 @@ export default function ProfilePage() {
         phoneNumber: user.phoneNumber || '',
         bio: user.bio || '',
         location: user.location || '',
-        website: user.website || '',
         gender: user.gender || '',
         dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
       })
@@ -556,34 +552,6 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Become Creator Card - Only for regular users */}
-          {user?.role === 'user' && (
-            <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                      <UserPlus className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">Trở thành Creator</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Chia sẻ đam mê, kiếm tiền từ nội dung và xây dựng cộng đồng riêng
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                    onClick={() => router.push('/become-creator')}
-                  >
-                    <Gift className="w-4 h-4 mr-2" />
-                    Bắt đầu ngay
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Profile Information */}
           <Card>
             <CardHeader>
@@ -691,17 +659,6 @@ export default function ProfilePage() {
                     placeholder="Thành phố, Quốc gia"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  value={formData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="https://your-website.com"
-                />
               </div>
 
               <div className="space-y-2">

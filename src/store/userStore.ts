@@ -46,7 +46,6 @@ export const useUserStore = create<UserState>((set, get) => ({
         banner: '/api/placeholder/800/200',
         bio: 'This is a sample user profile.',
         location: 'New York, USA',
-        website: 'https://example.com',
         socialLinks: {
           twitter: '@sample_user',
           instagram: '@sample_user',

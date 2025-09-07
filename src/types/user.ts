@@ -7,7 +7,6 @@ export interface UserProfile {
   banner?: string
   bio?: string
   location?: string
-  website?: string
   socialLinks: {
     twitter?: string
     instagram?: string

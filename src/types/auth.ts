@@ -8,7 +8,6 @@ export interface User {
   bio?: string
   phoneNumber?: string
   location?: string
-  website?: string
   gender?: 'male' | 'female' | 'other'
   dateOfBirth?: Date | string
   isVerified: boolean
