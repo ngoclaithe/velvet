@@ -394,13 +394,6 @@ export default function HomePage() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="video" className="space-y-6">
-                  <div className="text-center py-8 sm:py-12">
-                    <Video className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Video 18+ đang được phát triển</h3>
-                    <p className="text-gray-400 text-sm sm:text-base">Kho video 18+ với nội dung độc quyền sẽ có sớm!</p>
-                  </div>
-                </TabsContent>
               </div>
             </div>
           </Tabs>
