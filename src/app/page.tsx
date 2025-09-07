@@ -93,7 +93,7 @@ function LiveStreamsTab() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
@@ -135,7 +135,7 @@ function LiveStreamsTab() {
         <div className="text-center py-8 sm:py-12">
           <Video className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Chưa có stream nào đang live</h3>
-          <p className="text-gray-400 text-sm sm:text-base">Hãy quay lại sau để xem các creator y��u thích!</p>
+          <p className="text-gray-400 text-sm sm:text-base">Hãy quay lại sau để xem các creator yêu thích!</p>
         </div>
       ) : (
         <>
