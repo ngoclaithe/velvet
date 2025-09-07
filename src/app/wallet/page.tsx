@@ -323,7 +323,7 @@ export default function WalletPage() {
       } else {
         toast({
           title: "Lỗi tạo yêu cầu",
-          description: response.error || "Không thể tạo yêu cầu nạp tiền",
+          description: response.error || "Không thể tạo yêu c��u nạp tiền",
           variant: "destructive"
         })
       }
@@ -370,7 +370,7 @@ export default function WalletPage() {
 
     setIsWithdrawing(true)
     try {
-      const response = await walletAPI.withdraw({
+      const response = await transactionAPI.createWithdraw({
         amount: amount,
         bankName: bankName,
         accountNumber: accountNumber,
@@ -510,7 +510,7 @@ export default function WalletPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tổng thu nhập</CardTitle>
+              <CardTitle className="text-sm font-medium">T���ng thu nhập</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -764,10 +764,10 @@ export default function WalletPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center space-x-2">
                   <CheckCircle className="h-6 w-6 text-green-600" />
-                  <span className="text-lg font-semibold text-white">Yêu cầu đã ��ược tạo</span>
+                  <span className="text-lg font-semibold text-white">Yêu cầu đã ���ược tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
-                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Ki��m tra kỹ mã giao dịch và số tiền.
                 </DialogDescription>
               </DialogHeader>
 
