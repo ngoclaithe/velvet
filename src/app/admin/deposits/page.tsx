@@ -78,7 +78,7 @@ export default function AdminDepositsPage() {
           variant: "default",
         })
       } else {
-        toast({ title: "Thao tác th���t bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
+        toast({ title: "Thao tác thất bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
       }
     } catch (e) {
       toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
@@ -139,12 +139,12 @@ export default function AdminDepositsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-40 items-center justify-center text-sm text-gray-600">
               <Icons.spinner className="h-5 w-5 animate-spin" />
               <span className="ml-2">Đang tải dữ liệu...</span>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-40 items-center justify-center text-sm text-gray-600">
               Không có yêu cầu nào
             </div>
           ) : (
