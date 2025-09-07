@@ -81,7 +81,7 @@ export default function AdminDepositsPage() {
         toast({ title: "Thao tác thất bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
       }
     } catch (e) {
-      toast({ title: "Thao tác thất b��i", description: "Không thể cập nhật trạng thái", variant: "destructive" })
+      toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
     } finally {
       setUpdatingId(null)
     }
@@ -176,7 +176,7 @@ export default function AdminDepositsPage() {
                           <div>
                             <div className="font-medium">{r.user?.username || r.user?.email || r.user?.id || "—"}</div>
                             {r.user?.email && (
-                              <div className="text-xs text-muted-foreground">{r.user.email}</div>
+                              <div className="text-xs text-gray-600">{r.user.email}</div>
                             )}
                           </div>
                         </div>
