@@ -232,7 +232,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Main Content */}
-      <section className="py-4 sm:py-8 bg-gray-900">
+      <section className="py-3 sm:py-6 bg-gray-900">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="livestream" className="w-full">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
