@@ -100,7 +100,7 @@ function LiveStreamsTab() {
             <p className="text-gray-400 text-sm sm:text-base">Xem các creator đang stream trực tiếp</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="bg-gray-800 border-gray-700 animate-pulse">
               <div className="aspect-video bg-gray-700 rounded-t-lg" />
@@ -139,7 +139,7 @@ function LiveStreamsTab() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {liveStreams.map((stream) => (
               <Link key={stream.id} href={`/watch/${stream.id}`}>
                 <Card className="bg-gray-800 border-gray-700 hover:border-red-500/50 transition-colors cursor-pointer group">
