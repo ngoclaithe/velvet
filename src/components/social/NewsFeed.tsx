@@ -922,15 +922,32 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={rv.isAnonymous ? '' : (rv.user?.avatar || '')} alt={rv.isAnonymous ? 'Ẩn danh' : (rv.user?.username || 'User')} />
-                      <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
-                        {(rv.isAnonymous ? 'A' : (rv.user?.username || 'U')).slice(0,1).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    {rv.isAnonymous ? (
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={''} alt={'Ẩn danh'} />
+                        <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                          A
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Link href={`/user/${rv.user?.id}`} className="cursor-pointer">
+                        <Avatar className="w-12 h-12 hover:opacity-90">
+                          <AvatarImage src={rv.user?.avatar || ''} alt={rv.user?.username || 'User'} />
+                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                            {(rv.user?.username || 'U').slice(0,1).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Link>
+                    )}
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">{rv.isAnonymous ? 'Ẩn danh' : (rv.user?.firstName || rv.user?.lastName ? `${rv.user?.firstName || ''} ${rv.user?.lastName || ''}`.trim() : rv.user?.username)}</span>
+                        {rv.isAnonymous ? (
+                          <span className="font-semibold">Ẩn danh</span>
+                        ) : (
+                          <Link href={`/user/${rv.user?.id}`} className="font-semibold hover:underline">
+                            {rv.user?.firstName || rv.user?.lastName ? `${rv.user?.firstName || ''} ${rv.user?.lastName || ''}`.trim() : rv.user?.username}
+                          </Link>
+                        )}
                         <span className="text-xs text-muted-foreground">• {new Date(rv.createdAt).toLocaleString('vi-VN')}</span>
                       </div>
                       {rv.creator && (
