@@ -367,11 +367,6 @@ export default function HomePage() {
                     <span className="hidden sm:inline">Chat 18+</span>
                     <span className="sm:hidden">Chat</span>
                   </TabsTrigger>
-                  <TabsTrigger value="video" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-700 px-2 sm:px-3">
-                    <Video className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Video 18+</span>
-                    <span className="sm:hidden">Video</span>
-                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="newsfeed">
