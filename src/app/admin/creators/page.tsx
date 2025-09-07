@@ -51,6 +51,40 @@ const LANGUAGE_OPTIONS = [
 export default function CreatorsAdminPage() {
   const [submitting, setSubmitting] = useState(false)
   const [credentials, setCredentials] = useState<Credentials | null>(null)
+  const [open, setOpen] = useState(false)
+
+  const [creators, setCreators] = useState<any[]>([])
+  const [loadingCreators, setLoadingCreators] = useState(false)
+
+  const downloadCredentials = () => {
+    if (!credentials) return
+    const content = `Email: ${credentials.email}\nUsername: ${credentials.username}\nPassword: ${credentials.password}\n`
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `creator_credentials_${credentials.username}.txt`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        setLoadingCreators(true)
+        const res: any = await creatorAPI.getAllCreators()
+        const list = Array.isArray(res?.data) ? res.data : []
+        setCreators(list)
+      } catch (e) {
+        setCreators([])
+      } finally {
+        setLoadingCreators(false)
+      }
+    }
+    fetch()
+  }, [])
 
   const [form, setForm] = useState<any>({
     firstName: '',
