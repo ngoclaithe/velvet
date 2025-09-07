@@ -166,7 +166,7 @@ export default function PublicUserPage() {
                   <Button variant="ghost" size="sm" className="h-7 px-2 text-sm" onClick={() => setShowFollowing(true)}>
                     Đang theo dõi {followingCount}
                   </Button>
-                  <ReportButton reportedUserId={Number(user.id)} size="icon" />
+                  <ReportButton reportedUserId={Number(user.id)} size="sm" />
                 </div>
               </div>
             </div>
@@ -232,7 +232,7 @@ export default function PublicUserPage() {
 
           <TabsContent value="reviews" className="space-y-4 mt-4">
             {loadingReviews ? (
-              <Card><CardContent className="py-8 text-center text-muted-foreground">Đang tải đánh giá...</CardContent></Card>
+              <Card><CardContent className="py-8 text-center text-muted-foreground">Đang tải ��ánh giá...</CardContent></Card>
             ) : reviews.length === 0 ? (
               <Card><CardContent className="py-8 text-center text-muted-foreground">Chưa có đánh giá</CardContent></Card>
             ) : (
