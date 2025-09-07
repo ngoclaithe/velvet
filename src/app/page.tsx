@@ -30,16 +30,18 @@ import { streamApi } from '@/lib/api'
 import { creatorAPI } from '@/lib/api/creator'
 import type { StreamResponse, StreamsApiResponse } from '@/types/streaming'
 
-// Mock streams used as fallback/demo data
+// Mock streams used as fallback/demo data (18+ oriented)
 const MOCK_STREAMS: StreamResponse[] = [
   {
     id: 'mock-1',
-    title: 'Morning Chill with Lina',
-    description: 'Relaxing music and chat',
-    category: 'Music',
-    tags: ['relax', 'music'],
+    title: 'Late Night Chill (18+)',
+    description: 'Relaxing music, adult chat and tips',
+    category: 'Adult',
+    tags: ['18+', 'chill', 'adult'],
     creator: { id: 1, displayName: 'Lina', stageName: 'Lina', avatar: '', isVerified: true },
     isLive: true,
+    // explicit flag used by UI for 18+ badge
+    isAdult: true as any,
     viewerCount: 342,
     maxViewers: 1200,
     startTime: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
@@ -47,12 +49,13 @@ const MOCK_STREAMS: StreamResponse[] = [
   },
   {
     id: 'mock-2',
-    title: 'Gaming Night: Apex Legends',
-    description: 'Competitive gameplay and commentary',
-    category: 'Gaming',
-    tags: ['gaming', 'apex'],
+    title: 'Private Show: MaxPlays (18+)',
+    description: 'Exclusive adult stream',
+    category: 'Adult',
+    tags: ['18+', 'private'],
     creator: { id: 2, displayName: 'Max', stageName: 'MaxPlays', avatar: '', isVerified: false },
     isLive: true,
+    isAdult: true as any,
     viewerCount: 1289,
     maxViewers: 5000,
     startTime: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
@@ -66,6 +69,7 @@ const MOCK_STREAMS: StreamResponse[] = [
     tags: ['cooking', 'food'],
     creator: { id: 3, displayName: 'Mai', stageName: 'ChefMai', avatar: '', isVerified: false },
     isLive: false,
+    isAdult: false as any,
     viewerCount: 56,
     maxViewers: 120,
     startTime: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
