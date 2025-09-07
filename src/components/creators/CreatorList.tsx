@@ -270,7 +270,7 @@ export default function CreatorList() {
           isFollowing: Boolean(item?.isFollowing)
         }))
         setCallgirls(transformed)
-        const pag = res.pagination || res.data?.pagination || {}
+        const pag = (res as any).pagination || (res.data as any)?.pagination || {}
         setCgTotal(Number(pag.total || pag.totalItems || transformed.length))
         setCgTotalPages(Number(pag.totalPages || Math.ceil((pag.total || transformed.length) / cgLimit) || 1))
       } else {
