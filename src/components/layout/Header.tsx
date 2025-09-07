@@ -311,7 +311,7 @@ export default function Header() {
                       <span>Tạo bài viết</span>
                     </Link>
                   </DropdownMenuItem>
-                  {(user?.role === 'creator' || user?.role === 'admin') && (
+                  {user?.role === 'admin' && (
                     <DropdownMenuItem asChild>
                       <Link href="/streams" prefetch={false} className="cursor-pointer">
                         <Zap className="mr-2 h-4 w-4" />
@@ -319,14 +319,6 @@ export default function Header() {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {user?.role === 'creator' ? (
-                    <DropdownMenuItem asChild>
-                      <Link href="/stream" prefetch={false} className="cursor-pointer">
-                        <Zap className="mr-2 h-4 w-4 text-red-500" />
-                        <span>Stream Dashboard</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ) : null }
                   <DropdownMenuItem asChild>
                     <Link href="/messages" prefetch={false} className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />
