@@ -16,4 +16,5 @@ export const creatorAPI = {
         if (params?.sortBy) qp.sortBy = params.sortBy
         return api.get('/creators/callgirls', qp)
     },
+    updateCreator: (id: number, data: any) => api.put(`/creators/${id}`, data),
 }
