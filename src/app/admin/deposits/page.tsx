@@ -30,6 +30,7 @@ export default function AdminDepositsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [requests, setRequests] = useState<AdminRequestDeposit[]>([])
   const [filter, setFilter] = useState<DepositStatus | "all">("pending")
+  const [typeFilter, setTypeFilter] = useState<'all'|'deposit'|'withdraw'>('all')
 
   const filtered = useMemo(() => {
     if (filter === "all") return requests
