@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { postsApi } from '@/lib/api/posts'
 import { reviewApi, type Review } from '@/lib/api/review'
 import { userApi } from '@/lib/api/user'
-import { Heart, MessageCircle, Share2, Eye, ArrowLeft, ArrowRight } from 'lucide-react'
+import ReportButton from '@/components/report/ReportButton'
+import { Heart, MessageCircle, Share2, Eye, ArrowLeft, ArrowRight, Flag } from 'lucide-react'
 
 interface PublicUser {
   id: number
@@ -161,10 +162,11 @@ export default function PublicUserPage() {
               <div>
                 <h1 className="text-xl font-semibold">{displayName}</h1>
                 <p className="text-sm text-muted-foreground">@{user.username}</p>
-                <div className="mt-1">
+                <div className="mt-1 flex items-center gap-2">
                   <Button variant="ghost" size="sm" className="h-7 px-2 text-sm" onClick={() => setShowFollowing(true)}>
                     Đang theo dõi {followingCount}
                   </Button>
+                  <ReportButton reportedUserId={Number(user.id)} size="icon" />
                 </div>
               </div>
             </div>
