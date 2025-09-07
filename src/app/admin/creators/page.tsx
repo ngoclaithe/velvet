@@ -43,7 +43,7 @@ const BODY_TYPES = [
 const LANGUAGE_OPTIONS = [
   { value: 'vi', label: 'Tiếng Việt' },
   { value: 'en', label: 'Tiếng Anh' },
-  { value: 'ja', label: 'Tiếng Nhật' },
+  { value: 'ja', label: 'Tiếng Nh��t' },
   { value: 'ko', label: 'Tiếng Hàn' },
   { value: 'zh', label: 'Tiếng Trung' },
 ]
@@ -159,6 +159,8 @@ export default function CreatorsAdminPage() {
         bookingPrice: data.bookingPrice ?? prev.bookingPrice,
         subscriptionPrice: data.subscriptionPrice ?? prev.subscriptionPrice,
         isVerified: Boolean(data.isVerified ?? prev.isVerified),
+        isTatto: Boolean(data.isTatto ?? prev.isTatto),
+        cosmeticSurgery: Boolean(data.cosmeticSurgery ?? prev.cosmeticSurgery),
       }))
       setSelectedCreatorId(id)
       setEditOpen(true)
@@ -190,6 +192,14 @@ export default function CreatorsAdminPage() {
       // Normalize city: 'all' means not selected
       if (payload.city === 'all') delete payload.city
 
+      // Parse availabilitySchedule if admin entered JSON string
+      if (typeof payload.availabilitySchedule === 'string') {
+        try {
+          payload.availabilitySchedule = JSON.parse(payload.availabilitySchedule)
+        } catch (e) {
+          payload.availabilitySchedule = {}
+        }
+      }
       const res: any = await adminAPI.createCreator(payload)
       if (res?.success === false) throw new Error(res?.message || res?.error || 'Tạo creator thất bại')
 
@@ -225,6 +235,14 @@ export default function CreatorsAdminPage() {
         bioUrls: Array.isArray(form.bioUrls) ? form.bioUrls : [],
       }
       if (payload.city === 'all') delete payload.city
+      // Parse availabilitySchedule if admin entered JSON string
+      if (typeof payload.availabilitySchedule === 'string') {
+        try {
+          payload.availabilitySchedule = JSON.parse(payload.availabilitySchedule)
+        } catch (e) {
+          payload.availabilitySchedule = {}
+        }
+      }
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
       if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
       toast.success('Cập nhật creator thành công')
@@ -335,6 +353,36 @@ export default function CreatorsAdminPage() {
                   <div>
                     <Label>Số điện thoại</Label>
                     <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Ngày sinh</Label>
+                    <Input type="date" value={form.dateOfBirth} onChange={(e) => setField('dateOfBirth', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Giới tính</Label>
+                    <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Chưa chọn</SelectItem>
+                        <SelectItem value="male">Nam</SelectItem>
+                        <SelectItem value="female">Nữ</SelectItem>
+                        <SelectItem value="other">Khác</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Quốc gia</Label>
+                    <Input value={form.country} onChange={(e) => setField('country', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Múi giờ</Label>
+                    <Input value={form.timezone} onChange={(e) => setField('timezone', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Mã giới thiệu (referral code)</Label>
+                    <Input value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)} />
                   </div>
                   <div>
                     <Label>Nghệ danh</Label>
@@ -491,6 +539,18 @@ export default function CreatorsAdminPage() {
                     <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
                     <Label htmlFor="isVerified">Đã xác thực</Label>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <input id="isTatto" type="checkbox" checked={form.isTatto} onChange={(e) => setField('isTatto', e.target.checked)} />
+                    <Label htmlFor="isTatto">Có xăm</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input id="cosmeticSurgery" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
+                    <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label>Lịch khả dụng (JSON)</Label>
+                    <Textarea value={typeof form.availabilitySchedule === 'string' ? form.availabilitySchedule : JSON.stringify(form.availabilitySchedule || {}, null, 2)} onChange={(e) => setField('availabilitySchedule', e.target.value)} />
+                  </div>
                 </div>
               </div>
 
@@ -539,7 +599,7 @@ export default function CreatorsAdminPage() {
           <div className="p-4 sm:p-6 overflow-auto flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label>Họ</Label>
+                <Label>H��</Label>
                 <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
               </div>
               <div>
@@ -553,6 +613,36 @@ export default function CreatorsAdminPage() {
               <div>
                 <Label>Số điện thoại</Label>
                 <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
+              </div>
+              <div>
+                <Label>Ngày sinh</Label>
+                <Input type="date" value={form.dateOfBirth} onChange={(e) => setField('dateOfBirth', e.target.value)} />
+              </div>
+              <div>
+                <Label>Giới tính</Label>
+                <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Chưa chọn</SelectItem>
+                    <SelectItem value="male">Nam</SelectItem>
+                    <SelectItem value="female">Nữ</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Quốc gia</Label>
+                <Input value={form.country} onChange={(e) => setField('country', e.target.value)} />
+              </div>
+              <div>
+                <Label>Múi giờ</Label>
+                <Input value={form.timezone} onChange={(e) => setField('timezone', e.target.value)} />
+              </div>
+              <div>
+                <Label>Mã giới thiệu (referral code)</Label>
+                <Input value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)} />
               </div>
               <div>
                 <Label>Nghệ danh</Label>
@@ -621,6 +711,18 @@ export default function CreatorsAdminPage() {
               <div className="flex items-center gap-2">
                 <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
                 <Label htmlFor="isVerified">Đã xác thực</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input id="isTatto" type="checkbox" checked={form.isTatto} onChange={(e) => setField('isTatto', e.target.checked)} />
+                <Label htmlFor="isTatto">Có xăm</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input id="cosmeticSurgery" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
+                <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Lịch khả dụng (JSON)</Label>
+                <Textarea value={typeof form.availabilitySchedule === 'string' ? form.availabilitySchedule : JSON.stringify(form.availabilitySchedule || {}, null, 2)} onChange={(e) => setField('availabilitySchedule', e.target.value)} />
               </div>
             </div>
           </div>
