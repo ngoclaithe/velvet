@@ -322,10 +322,16 @@ export default function StreamsPage() {
 
                   {/* Live Badge */}
                   {stream.isLive && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                      LIVE
-                    </Badge>
+                    <>
+                      <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
+                        LIVE
+                      </Badge>
+
+                      {stream.isAdult && (
+                        <div className="absolute top-2 right-2 bg-black text-white text-[10px] px-2 py-0.5 rounded">18+</div>
+                      )}
+                    </>
                   )}
 
                   {/* Viewer Count */}
