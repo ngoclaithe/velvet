@@ -193,11 +193,15 @@ function LiveStreamsTab() {
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
 
                     <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-xs">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                      LIVE
-                    </Badge>
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
+                    LIVE
+                  </Badge>
 
-                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                  {stream.isAdult && (
+                    <div className="absolute top-2 right-2 bg-black text-white text-[10px] px-2 py-0.5 rounded">18+</div>
+                  )}
+
+                  <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
                       <Eye className="inline w-3 h-3 mr-1" />
                       {stream.viewerCount?.toLocaleString() || '0'}
                     </div>
