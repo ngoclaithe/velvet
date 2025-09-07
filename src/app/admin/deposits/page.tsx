@@ -78,7 +78,7 @@ export default function AdminDepositsPage() {
           variant: "default",
         })
       } else {
-        toast({ title: "Thao tác thất bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
+        toast({ title: "Thao tác th���t bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
       }
     } catch (e) {
       toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
@@ -110,7 +110,7 @@ export default function AdminDepositsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Quản lý yêu cầu nạp tiền</h1>
-          <p className="text-sm text-muted-foreground">Xem và phê duyệt các yêu cầu nạp tiền của người dùng</p>
+          <p className="text-sm text-gray-600">Xem và phê duyệt các yêu cầu nạp tiền của người dùng</p>
         </div>
         <Button variant="ghost" onClick={loadData} disabled={loading}>
           {loading ? <Icons.spinner className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
