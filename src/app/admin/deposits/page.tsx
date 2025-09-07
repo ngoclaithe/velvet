@@ -40,20 +40,23 @@ export default function AdminDepositsPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await transactionAPI.getDeposits()
+      const res = await transactionAPI.getTransactions()
       if (res.success && Array.isArray(res.data)) {
         setRequests(
-          res.data.map((rd: any) => {
-            const raw = String(rd.status || '').toLowerCase()
-            const status: DepositStatus = raw === 'completed' || raw === 'approved' || raw === 'paid'
-              ? 'approved'
-              : (raw === 'failed' || raw === 'cancelled' || raw === 'rejected' ? 'rejected' : 'pending')
-            return {
-              ...rd,
-              status,
-              createdAt: rd.createdAt ?? new Date().toISOString(),
-            }
-          })
+          res.data
+            .filter((t: any) => (t.type === 'deposit' || t.type === 'withdraw' || t.type === 'withdrawal'))
+            .map((rd: any) => {
+              const raw = String(rd.status || '').toLowerCase()
+              const status: DepositStatus = raw === 'completed' || raw === 'approved' || raw === 'paid'
+                ? 'approved'
+                : (raw === 'failed' || raw === 'cancelled' || raw === 'rejected' ? 'rejected' : 'pending')
+              return {
+                ...rd,
+                status,
+                txType: rd.type === 'deposit' ? 'deposit' : 'withdraw',
+                createdAt: rd.createdAt ?? new Date().toISOString(),
+              }
+            })
         )
       } else {
         toast({
@@ -96,7 +99,7 @@ export default function AdminDepositsPage() {
     } catch (e) {
       console.error('updateStatus error', e)
       try { console.debug('error detail:', (e as any)?.response || (e as any)) } catch {}
-      toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
+      toast({ title: "Thao tác th���t bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
     } finally {
       setUpdatingId(null)
     }
