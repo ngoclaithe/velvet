@@ -58,6 +58,18 @@ export default function CreatorList() {
   const [followers, setFollowers] = useState<Creator[]>([])
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  // Callgirl tab state
+  const [callgirls, setCallgirls] = useState<Creator[]>([])
+  const [callgirlLoading, setCallgirlLoading] = useState(false)
+  const [callgirlCity, setCallgirlCity] = useState<string>('')
+  const [minPrice, setMinPrice] = useState<string>('')
+  const [maxPrice, setMaxPrice] = useState<string>('')
+  const [cgPage, setCgPage] = useState(1)
+  const [cgLimit, setCgLimit] = useState(9)
+  const [cgTotalPages, setCgTotalPages] = useState(1)
+  const [cgTotal, setCgTotal] = useState(0)
+
   // Removed creator detail modal state since we're navigating to a new page
   const { toast } = useToast()
   const { user, isAuthenticated } = useAuth()
