@@ -92,6 +92,8 @@ export default function WalletPage() {
   const [accountHolderName, setAccountHolderName] = useState('')
   const [generatedCodePay, setGeneratedCodePay] = useState('')
   const [showDepositInstructions, setShowDepositInstructions] = useState(false)
+  // Snapshot of last created deposit to ensure dialog can show QR even after form is reset
+  const [lastDepositData, setLastDepositData] = useState<{ payment?: InfoPayment; amount: number; codePay: string } | null>(null)
 
   // Generate unique codepay
   const generateCodePay = () => {
@@ -231,8 +233,11 @@ export default function WalletPage() {
 
       if (response.success) {
         setGeneratedCodePay(codePay)
+        // Capture snapshot of selected payment so dialog can render even after we reset the form
+        const selectedPaymentSnapshot = availablePaymentMethods.find(p => p.id.toString() === selectedInfoPaymentId)
+        setLastDepositData({ payment: selectedPaymentSnapshot, amount, codePay })
         setShowDepositInstructions(true)
-        
+
         toast({
           title: "Tạo yêu cầu nạp tiền thành công!",
           description: `Mã giao dịch: ${codePay}`,
@@ -397,7 +402,7 @@ export default function WalletPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Ví của tôi</h1>
-          <p className="text-muted-foreground">Quản lý tài chính và giao dịch</p>
+          <p className="text-muted-foreground">Qu���n lý tài chính và giao dịch</p>
         </div>
         <Button variant="outline" size="icon">
           <RefreshCw className="h-4 w-4" />
@@ -666,13 +671,16 @@ export default function WalletPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                {selectedInfoPaymentId && (
+                {(selectedInfoPaymentId || lastDepositData?.payment) && (
                   <div className="space-y-3">
                     {(() => {
-                      const selectedPayment = availablePaymentMethods.find(
+                      const selectedPayment = lastDepositData?.payment ?? availablePaymentMethods.find(
                         p => p.id.toString() === selectedInfoPaymentId
                       )
                       if (!selectedPayment) return null
+
+                      const amountToShow = lastDepositData?.amount ?? Number(depositAmount || 0)
+                      const codePayToShow = lastDepositData?.codePay ?? generatedCodePay
 
                       return (
                         <>
@@ -703,8 +711,8 @@ export default function WalletPage() {
                                   accountNumber: selectedPayment.bankNumber,
                                   name: selectedPayment.accountName,
                                   bank: selectedPayment.bankName,
-                                  amount: Number(depositAmount || 0),
-                                  code_pay: generatedCodePay
+                                  amount: amountToShow,
+                                  code_pay: codePayToShow
                                 })}
                                 alt="QR Code thanh toán"
                                 className="w-48 h-48 border rounded"
@@ -724,8 +732,8 @@ export default function WalletPage() {
                     <div className="bg-blue-50 p-3 rounded">
                       <p className="text-sm font-medium text-blue-900">Mã giao dịch</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-mono text-blue-900">{generatedCodePay}</span>
-                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(generatedCodePay)}>
+                        <span className="text-lg font-mono text-blue-900">{lastDepositData?.codePay ?? generatedCodePay}</span>
+                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(lastDepositData?.codePay ?? generatedCodePay)}>
                           <Copy className="h-4 w-4" />
                         </Button>
                       </div>
@@ -736,7 +744,7 @@ export default function WalletPage() {
                     
                     <div className="bg-green-50 p-3 rounded">
                       <p className="text-sm font-medium text-green-900">Số tiền</p>
-                      <p className="text-xl font-bold text-green-900">{Number(depositAmount || 0).toLocaleString('vi-VN')} VND</p>
+                      <p className="text-xl font-bold text-green-900">{Number(lastDepositData?.amount ?? Number(depositAmount || 0)).toLocaleString('vi-VN')} VND</p>
                     </div>
                   </div>
                 )}
@@ -852,7 +860,7 @@ export default function WalletPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Lưu ý quan trọng</CardTitle>
-                <CardDescription>Thông tin cần lưu ý khi rút tiền</CardDescription>
+                <CardDescription>Thông tin cần lưu ý khi r��t tiền</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

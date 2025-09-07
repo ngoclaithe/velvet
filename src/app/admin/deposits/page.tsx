@@ -69,7 +69,9 @@ export default function AdminDepositsPage() {
   const updateStatus = async (id: string, status: Exclude<DepositStatus, "pending">) => {
     setUpdatingId(id)
     try {
+      console.debug('updateStatus request payload', { id, status })
       const res = await requestDeposit.updateRequestStatus(id, { status })
+      console.debug('updateStatus response', res)
       if (res.success) {
         setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
         toast({
@@ -78,9 +80,12 @@ export default function AdminDepositsPage() {
           variant: "default",
         })
       } else {
-        toast({ title: "Thao tác thất bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
+        console.debug('updateStatus response (failure)', res)
+        toast({ title: "Thao tác thất bại", description: res.error || res.message || "Vui lòng thử lại", variant: "destructive" })
       }
     } catch (e) {
+      console.error('updateStatus error', e)
+      try { console.debug('error detail:', (e as any)?.response || (e as any)) } catch {}
       toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
     } finally {
       setUpdatingId(null)
@@ -110,7 +115,7 @@ export default function AdminDepositsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Quản lý yêu cầu nạp tiền</h1>
-          <p className="text-sm text-muted-foreground">Xem và phê duyệt các yêu cầu nạp tiền của người dùng</p>
+          <p className="text-sm text-gray-600">Xem và phê duyệt các yêu cầu nạp tiền của người dùng</p>
         </div>
         <Button variant="ghost" onClick={loadData} disabled={loading}>
           {loading ? <Icons.spinner className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -139,12 +144,12 @@ export default function AdminDepositsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-40 items-center justify-center text-sm text-gray-600">
               <Icons.spinner className="h-5 w-5 animate-spin" />
               <span className="ml-2">Đang tải dữ liệu...</span>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-40 items-center justify-center text-sm text-gray-600">
               Không có yêu cầu nào
             </div>
           ) : (
@@ -152,12 +157,12 @@ export default function AdminDepositsPage() {
               <table className="min-w-full table-auto text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40 text-left">
-                    <th className="px-3 py-2 font-medium">Mã</th>
-                    <th className="px-3 py-2 font-medium">Người dùng</th>
-                    <th className="px-3 py-2 font-medium">Số tiền</th>
-                    <th className="px-3 py-2 font-medium">Phương thức</th>
-                    <th className="px-3 py-2 font-medium">Trạng thái</th>
-                    <th className="px-3 py-2 font-medium">Thời gian</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Mã</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Người dùng</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Số tiền</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Phương thức</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Trạng thái</th>
+                    <th className="px-3 py-2 font-medium text-gray-800">Thời gian</th>
                     <th className="px-3 py-2 font-medium text-right">Thao tác</th>
                   </tr>
                 </thead>
@@ -166,17 +171,17 @@ export default function AdminDepositsPage() {
                     <tr key={r.id} className="border-b">
                       <td className="px-3 py-2 align-top">
                         <div className="flex items-center gap-2">
-                          <Hash className="h-3 w-3 text-muted-foreground" />
+                          <Hash className="h-3 w-3 text-gray-500" />
                           <div className="font-medium">{r.codePay || r.transactionCode || r.id}</div>
                         </div>
                       </td>
                       <td className="px-3 py-2 align-top">
                         <div className="flex items-center gap-2">
-                          <UserIcon className="h-4 w-4 text-muted-foreground" />
+                          <UserIcon className="h-4 w-4 text-gray-500" />
                           <div>
                             <div className="font-medium">{r.user?.username || r.user?.email || r.user?.id || "—"}</div>
                             {r.user?.email && (
-                              <div className="text-xs text-muted-foreground">{r.user.email}</div>
+                              <div className="text-xs text-gray-600">{r.user.email}</div>
                             )}
                           </div>
                         </div>
@@ -188,7 +193,7 @@ export default function AdminDepositsPage() {
                         <div>
                           <div className="font-medium">{r.infoPayment?.bankName || r.infoPayment?.provider || "Chuyển khoản"}</div>
                           {r.infoPayment?.accountNumber && (
-                            <div className="text-xs text-muted-foreground">{r.infoPayment.accountNumber}</div>
+                            <div className="text-xs text-gray-600">{r.infoPayment.accountNumber}</div>
                           )}
                         </div>
                       </td>
