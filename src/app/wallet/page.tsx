@@ -164,19 +164,6 @@ export default function WalletPage() {
         setMonthlyIncome(Number(walletResponse.data.monthlyIncome) || 0)
         }
 
-        // Fetch transactions
-        const transactionsResponse = await transactionAPI.getTransactions()
-        if (transactionsResponse.success && Array.isArray(transactionsResponse.data)) {
-          setTransactions(transactionsResponse.data.map((t: any) => ({
-            id: String(t.id ?? ''),
-            type: t.type === 'withdraw' ? 'withdrawal' : t.type,
-            amount: typeof t.amount === 'string' ? parseFloat(t.amount) : Number(t.amount ?? t.tokenAmount ?? 0),
-            description: t.description ?? '',
-            date: new Date(t.createdAt ?? t.date ?? Date.now()),
-            status: (t.status === 'processing' ? 'pending' : t.status) ?? 'pending',
-            transactionId: t.referenceId ?? t.reference ?? (t.metadata && t.metadata.codePay) ?? undefined,
-          })))
-        }
 
         // Fetch request deposits
         const requestDepositsResponse = await transactionAPI.getDeposits()
@@ -295,7 +282,7 @@ export default function WalletPage() {
     const amount = parseFloat(withdrawAmount)
     if (amount > balance) {
       toast({
-        title: "S��� dư không đủ",
+        title: "Số dư không đủ",
         description: "Số tiền rút vượt quá số dư hiện tại",
         variant: "destructive"
       })
@@ -764,7 +751,7 @@ export default function WalletPage() {
                   </div>
 
                   <div className="p-3 rounded bg-gray-50 border">
-                    <p className="text-sm text-gray-700">Nếu cần trợ giúp, liên hệ bộ phận hỗ trợ.</p>
+                    <p className="text-sm text-gray-700">Nếu cần trợ giúp, liên hệ bộ phận h�� trợ.</p>
                   </div>
                 </div>
               </div>
