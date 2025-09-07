@@ -106,6 +106,7 @@ export default function CreatorsAdminPage() {
     isVerified: false,
     hourlyRate: '',
     minBookingDuration: '',
+    maxConcurrentBookings: '',
     specialties: [] as string[], // Loại creator
     languages: ['vi'] as string[],
     bodyType: '',
@@ -114,10 +115,11 @@ export default function CreatorsAdminPage() {
     measurement: '',
     eyeColor: '',
     service: '',
-    isTatto: false,
     signature: '',
     hairColor: '',
     cosmeticSurgery: false,
+    isTatto: false,
+    hourlyRate: '',
     bookingPrice: '',
     subscriptionPrice: '',
     availabilitySchedule: {} as Record<string, any>,
@@ -340,6 +342,10 @@ export default function CreatorsAdminPage() {
                     <Input value={form.stageName} onChange={(e) => setField('stageName', e.target.value)} />
                   </div>
                   <div>
+                    <Label>Tiêu đề Bio</Label>
+                    <Input value={form.titleBio} onChange={(e) => setField('titleBio', e.target.value)} />
+                  </div>
+                  <div>
                     <Label>Thành phố</Label>
                     <Select value={form.city} onValueChange={(v) => setField('city', v)}>
                       <SelectTrigger>
@@ -357,10 +363,24 @@ export default function CreatorsAdminPage() {
                     <Label>Bio</Label>
                     <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} />
                   </div>
+
                   <div>
                     <Label>Tags (phân tách bằng dấu phẩy)</Label>
                     <Input value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags} onChange={(e) => setField('tags', e.target.value)} />
                   </div>
+
+                  <div>
+                    <Label>Ngôn ngữ</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {LANGUAGE_OPTIONS.map(opt => (
+                        <label key={opt.value} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
+                          <input type="checkbox" checked={Array.isArray(form.languages) && form.languages.includes(opt.value)} onChange={() => toggleArrayField('languages', opt.value)} />
+                          <span>{opt.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <Label>Loại creator</Label>
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -376,14 +396,81 @@ export default function CreatorsAdminPage() {
                       ))}
                     </div>
                   </div>
+
+                  <div>
+                    <Label>Loại thân hình</Label>
+                    <Select value={form.bodyType} onValueChange={(v) => setField('bodyType', v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BODY_TYPES.map(b => (
+                          <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Chiều cao (cm)</Label>
+                    <Input type="number" value={form.height} onChange={(e) => setField('height', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Cân nặng (kg)</Label>
+                    <Input type="number" value={form.weight} onChange={(e) => setField('weight', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Số đo</Label>
+                    <Input value={form.measurement} onChange={(e) => setField('measurement', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Màu mắt</Label>
+                    <Input value={form.eyeColor} onChange={(e) => setField('eyeColor', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Màu tóc</Label>
+                    <Input value={form.hairColor} onChange={(e) => setField('hairColor', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Dịch vụ</Label>
+                    <Textarea value={form.service} onChange={(e) => setField('service', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Đặc điểm nhận dạng</Label>
+                    <Input value={form.signature} onChange={(e) => setField('signature', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Giờ công / hourly rate</Label>
+                    <Input type="number" value={form.hourlyRate} onChange={(e) => setField('hourlyRate', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Thời lượng đặt tối thiểu (phút)</Label>
+                    <Input type="number" value={form.minBookingDuration} onChange={(e) => setField('minBookingDuration', e.target.value)} />
+                  </div>
+
+                  <div>
+                    <Label>Số booking cùng lúc tối đa</Label>
+                    <Input type="number" value={form.maxConcurrentBookings} onChange={(e) => setField('maxConcurrentBookings', e.target.value)} />
+                  </div>
+
                   <div>
                     <Label>Giá đặt lịch</Label>
                     <Input type="number" value={form.bookingPrice} onChange={(e) => setField('bookingPrice', e.target.value)} />
                   </div>
+
                   <div>
                     <Label>Giá subscription</Label>
                     <Input type="number" value={form.subscriptionPrice} onChange={(e) => setField('subscriptionPrice', e.target.value)} />
                   </div>
+
                   <div>
                     <Label>Ảnh avatar</Label>
                     <ImageUploader maxFiles={1} compact onUploadComplete={(results) => {
@@ -392,6 +479,7 @@ export default function CreatorsAdminPage() {
                     }} hideResults />
                     {form.avatar && <div className="mt-2"><img src={form.avatar} className="w-20 h-20 rounded-full object-cover" /></div>}
                   </div>
+
                   <div className="sm:col-span-2">
                     <Label>Ảnh Bio (nhiều ảnh)</Label>
                     <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
@@ -399,6 +487,7 @@ export default function CreatorsAdminPage() {
                       setField('bioUrls', [...form.bioUrls, ...urls])
                     }} hideResults />
                   </div>
+
                   <div className="flex items-center gap-2">
                     <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
                     <Label htmlFor="isVerified">Đã xác thực</Label>
