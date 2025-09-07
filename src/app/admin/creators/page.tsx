@@ -312,103 +312,105 @@ export default function CreatorsAdminPage() {
             <Button>Thêm Creator</Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl w-[95vw] p-0">
-            <DialogHeader>
-              <DialogTitle>Thêm Creator mới</DialogTitle>
-            </DialogHeader>
+            <div className="flex flex-col max-h-[80vh] w-full">
+              <DialogHeader>
+                <DialogTitle>Thêm Creator mới</DialogTitle>
+              </DialogHeader>
 
-            <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>Họ</Label>
-                  <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Tên</Label>
-                  <Input value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input value={form.email} onChange={(e) => setField('email', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Số điện thoại</Label>
-                  <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Nghệ danh</Label>
-                  <Input value={form.stageName} onChange={(e) => setField('stageName', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Thành phố</Label>
-                  <Select value={form.city} onValueChange={(v) => setField('city', v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn thành phố" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Chưa chọn</SelectItem>
-                      {VIETNAM_CITIES.map(c => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              <div className="p-4 sm:p-6 overflow-auto flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Họ</Label>
+                    <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Tên</Label>
+                    <Input value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input value={form.email} onChange={(e) => setField('email', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Số điện thoại</Label>
+                    <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Nghệ danh</Label>
+                    <Input value={form.stageName} onChange={(e) => setField('stageName', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Thành phố</Label>
+                    <Select value={form.city} onValueChange={(v) => setField('city', v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn thành phố" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Chưa chọn</SelectItem>
+                        {VIETNAM_CITIES.map(c => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label>Bio</Label>
+                    <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Tags (phân tách bằng dấu phẩy)</Label>
+                    <Input value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags} onChange={(e) => setField('tags', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Loại creator</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {CREATOR_TYPES.map((type) => (
+                        <label key={type} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
+                          <input
+                            type="checkbox"
+                            checked={Array.isArray(form.specialties) && form.specialties.includes(type)}
+                            onChange={() => toggleArrayField('specialties', type)}
+                          />
+                          <span>{type}</span>
+                        </label>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>Bio</Label>
-                  <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Tags (phân tách bằng dấu phẩy)</Label>
-                  <Input value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags} onChange={(e) => setField('tags', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Loại creator</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {CREATOR_TYPES.map((type) => (
-                      <label key={type} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
-                        <input
-                          type="checkbox"
-                          checked={Array.isArray(form.specialties) && form.specialties.includes(type)}
-                          onChange={() => toggleArrayField('specialties', type)}
-                        />
-                        <span>{type}</span>
-                      </label>
-                    ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Giá đặt lịch</Label>
+                    <Input type="number" value={form.bookingPrice} onChange={(e) => setField('bookingPrice', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Giá subscription</Label>
+                    <Input type="number" value={form.subscriptionPrice} onChange={(e) => setField('subscriptionPrice', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Ảnh avatar</Label>
+                    <ImageUploader maxFiles={1} compact onUploadComplete={(results) => {
+                      const url = results?.[0]?.secure_url
+                      if (url) setField('avatar', url)
+                    }} hideResults />
+                    {form.avatar && <div className="mt-2"><img src={form.avatar} className="w-20 h-20 rounded-full object-cover" /></div>}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label>Ảnh Bio (nhiều ảnh)</Label>
+                    <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
+                      const urls = results.map((r:any) => r.secure_url).filter(Boolean)
+                      setField('bioUrls', [...form.bioUrls, ...urls])
+                    }} hideResults />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
+                    <Label htmlFor="isVerified">Đã xác thực</Label>
                   </div>
                 </div>
-                <div>
-                  <Label>Giá đặt lịch</Label>
-                  <Input type="number" value={form.bookingPrice} onChange={(e) => setField('bookingPrice', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Giá subscription</Label>
-                  <Input type="number" value={form.subscriptionPrice} onChange={(e) => setField('subscriptionPrice', e.target.value)} />
-                </div>
-                <div>
-                  <Label>Ảnh avatar</Label>
-                  <ImageUploader maxFiles={1} compact onUploadComplete={(results) => {
-                    const url = results?.[0]?.secure_url
-                    if (url) setField('avatar', url)
-                  }} hideResults />
-                  {form.avatar && <div className="mt-2"><img src={form.avatar} className="w-20 h-20 rounded-full object-cover" /></div>}
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>Ảnh Bio (nhiều ảnh)</Label>
-                  <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
-                    const urls = results.map((r:any) => r.secure_url).filter(Boolean)
-                    setField('bioUrls', [...form.bioUrls, ...urls])
-                  }} hideResults />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
-                  <Label htmlFor="isVerified">Đã xác thực</Label>
-                </div>
               </div>
-            </div>
 
-            <div className="sticky bottom-0 bg-background/80 backdrop-blur/10 py-3 px-4 sm:px-6 border-t">
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
-                <Button onClick={async () => { await onSubmit(); setOpen(false) }} disabled={submitting}>{submitting ? 'Đang tạo...' : 'Tạo'}</Button>
+              <div className="flex-shrink-0 bg-card/90 backdrop-blur border-t px-4 py-3 sm:px-6">
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
+                  <Button onClick={async () => { await onSubmit(); setOpen(false) }} disabled={submitting}>{submitting ? 'Đang tạo...' : 'Tạo'}</Button>
+                </div>
               </div>
             </div>
           </DialogContent>
