@@ -313,7 +313,7 @@ export default function WalletPage() {
         // Refresh wallet data
         const walletResponse = await walletAPI.getWallet()
         if (walletResponse.success && walletResponse.data) {
-          setBalance(Number(walletResponse.data.balance) || 0)
+          setBalance(Number(walletResponse.data.tokens) || 0)
           setLockedBalance(Number(walletResponse.data.lockedBalance) || 0)
         }
 
