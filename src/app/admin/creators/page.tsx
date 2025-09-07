@@ -176,249 +176,35 @@ export default function CreatorsAdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Thông tin cơ bản</CardTitle>
+          <CardTitle>Danh sách creators</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Họ</Label>
-              <Input value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
-            </div>
-            <div>
-              <Label>Tên</Label>
-              <Input value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
-            </div>
-            <div>
-              <Label>Số điện thoại</Label>
-              <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
-            </div>
-            <div>
-              <Label>Ngày sinh</Label>
-              <Input type="date" value={form.dateOfBirth} onChange={(e) => setField('dateOfBirth', e.target.value)} />
-            </div>
-            <div>
-              <Label>Giới tính</Label>
-              <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn giới tính" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Nam</SelectItem>
-                  <SelectItem value="female">Nữ</SelectItem>
-                  <SelectItem value="other">Khác</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Quốc gia</Label>
-              <Input value={form.country} onChange={(e) => setField('country', e.target.value)} />
-            </div>
-            <div>
-              <Label>Thành phố</Label>
-              <Select value={form.city} onValueChange={(v) => setField('city', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn thành phố" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Chưa chọn</SelectItem>
-                  {VIETNAM_CITIES.map(c => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Múi giờ</Label>
-              <Input value={form.timezone} onChange={(e) => setField('timezone', e.target.value)} placeholder="Asia/Ho_Chi_Minh" />
-            </div>
-            <div>
-              <Label>Mã giới thiệu</Label>
-              <Input value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)} />
-            </div>
-            <div>
-              <Label>Nghệ danh</Label>
-              <Input value={form.stageName} onChange={(e) => setField('stageName', e.target.value)} />
-            </div>
-            <div>
-              <Label>Tiêu đề Bio</Label>
-              <Input value={form.titleBio} onChange={(e) => setField('titleBio', e.target.value)} />
-            </div>
-            <div className="md:col-span-2">
-              <Label>Bio</Label>
-              <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Ảnh đại diện và Bộ sưu tập</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label className="mb-2 block">Avatar (1 ảnh)</Label>
-            <ImageUploader
-              maxFiles={1}
-              compact
-              onUploadComplete={(results) => {
-                const url = results?.[0]?.secure_url
-                if (url) setField('avatar', url)
-              }}
-              hideResults
-            />
-            {form.avatar && (
-              <div className="mt-3">
-                <img src={form.avatar} alt="avatar" className="h-20 w-20 rounded-full object-cover border" />
+        <CardContent>
+          {loadingCreators ? (
+            <div className="space-y-2">
+              <div className="h-6 bg-gray-200 rounded w-1/3 animate-pulse" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="p-4 bg-gray-50 rounded border" />
+                ))}
               </div>
-            )}
-          </div>
-          <div>
-            <Label className="mb-2 block">Ảnh Bio (nhiều ảnh)</Label>
-            <ImageUploader
-              maxFiles={10}
-              compact
-              onUploadComplete={(results) => {
-                const urls = results.map((r) => r.secure_url).filter(Boolean)
-                setField('bioUrls', [...form.bioUrls, ...urls])
-              }}
-              hideResults
-            />
-            {form.bioUrls?.length > 0 && (
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {form.bioUrls.map((u: string, i: number) => (
-                  <div key={i} className="relative">
-                    <img src={u} alt={`bio-${i}`} className="h-24 w-full object-cover rounded border" />
-                    <button
-                      type="button"
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6"
-                      onClick={() => setField('bioUrls', form.bioUrls.filter((_: string, idx: number) => idx !== i))}
-                    >
-                      ×
-                    </button>
+            </div>
+          ) : creators.length === 0 ? (
+            <div className="text-gray-600">Chưa có creators</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {creators.map((c: any) => (
+                <a key={c.id} href={`/creator/${c.id}`} className="block p-4 bg-white rounded border hover:shadow">
+                  <div className="flex items-center gap-3">
+                    <img src={c.avatar || c.user?.avatar} alt={c.stageName || c.user?.username || c.username} className="w-12 h-12 rounded-full object-cover" />
+                    <div>
+                      <div className="font-semibold text-sm">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
+                      <div className="text-xs text-gray-500">{c.user?.city || c.city || ''}</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin chi tiết</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label>Tags (phân tách bằng dấu phẩy)</Label>
-              <Input value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags} onChange={(e) => setField('tags', e.target.value)} />
+                </a>
+              ))}
             </div>
-            <div>
-              <Label>Loại creator</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {CREATOR_TYPES.map((type) => (
-                  <label key={type} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
-                    <input
-                      type="checkbox"
-                      checked={Array.isArray(form.specialties) && form.specialties.includes(type)}
-                      onChange={() => toggleArrayField('specialties', type)}
-                    />
-                    <span>{type}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label>Ngôn ngữ</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {LANGUAGE_OPTIONS.map((opt) => (
-                  <label key={opt.value} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
-                    <input
-                      type="checkbox"
-                      checked={Array.isArray(form.languages) && form.languages.includes(opt.value)}
-                      onChange={() => toggleArrayField('languages', opt.value)}
-                    />
-                    <span>{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label>Giá theo giờ</Label>
-              <Input type="number" value={form.hourlyRate} onChange={(e) => setField('hourlyRate', e.target.value)} />
-            </div>
-            <div>
-              <Label>Thời lượng đặt tối thiểu (phút)</Label>
-              <Input type="number" value={form.minBookingDuration} onChange={(e) => setField('minBookingDuration', e.target.value)} />
-            </div>
-            <div>
-              <Label>Giá đặt lịch</Label>
-              <Input type="number" value={form.bookingPrice} onChange={(e) => setField('bookingPrice', e.target.value)} />
-            </div>
-            <div>
-              <Label>Giá subscription</Label>
-              <Input type="number" value={form.subscriptionPrice} onChange={(e) => setField('subscriptionPrice', e.target.value)} />
-            </div>
-            <div>
-              <Label>Dáng ngư��i</Label>
-              <Select value={form.bodyType} onValueChange={(v) => setField('bodyType', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn dáng người" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BODY_TYPES.map((b) => (
-                    <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Chiều cao (cm)</Label>
-              <Input type="number" value={form.height} onChange={(e) => setField('height', e.target.value)} />
-            </div>
-            <div>
-              <Label>Cân nặng (kg)</Label>
-              <Input type="number" value={form.weight} onChange={(e) => setField('weight', e.target.value)} />
-            </div>
-            <div>
-              <Label>Số đo</Label>
-              <Input value={form.measurement} onChange={(e) => setField('measurement', e.target.value)} />
-            </div>
-            <div>
-              <Label>Màu mắt</Label>
-              <Input value={form.eyeColor} onChange={(e) => setField('eyeColor', e.target.value)} />
-            </div>
-            <div>
-              <Label>Các dịch vụ</Label>
-              <Input value={form.service} onChange={(e) => setField('service', e.target.value)} />
-            </div>
-            <div>
-              <Label>Đặc điểm nhận dạng</Label>
-              <Input value={form.signature} onChange={(e) => setField('signature', e.target.value)} />
-            </div>
-            <div>
-              <Label>Màu tóc</Label>
-              <Input value={form.hairColor} onChange={(e) => setField('hairColor', e.target.value)} />
-            </div>
-            <div className="flex items-center gap-2">
-              <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
-              <Label htmlFor="isVerified">Đã xác thực</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <input id="isTatto" type="checkbox" checked={form.isTatto} onChange={(e) => setField('isTatto', e.target.checked)} />
-              <Label htmlFor="isTatto">Có xăm</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                id="cosmeticSurgery"
-                type="checkbox"
-                checked={form.cosmeticSurgery}
-                onChange={(e) => setField('cosmeticSurgery', e.target.checked)}
-              />
-              <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 

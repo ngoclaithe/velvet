@@ -292,7 +292,7 @@ export default function HomePage() {
                                       </div>
                                     )}
                                   </div>
-                                  <p className="text-xs text-gray-400">{creator.followersCount} followers</p>
+                                  <p className="text-xs text-gray-400">{creator.followersCount} followers • {creator.user?.city || creator.city || ''}</p>
                                   <p className="text-xs text-gray-400 truncate">@{creator.user.username}</p>
                                 </div>
                               </div>
