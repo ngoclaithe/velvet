@@ -43,7 +43,7 @@ const BODY_TYPES = [
 const LANGUAGE_OPTIONS = [
   { value: 'vi', label: 'Tiếng Việt' },
   { value: 'en', label: 'Tiếng Anh' },
-  { value: 'ja', label: 'Tiếng Nhật' },
+  { value: 'ja', label: 'Tiếng Nh��t' },
   { value: 'ko', label: 'Tiếng Hàn' },
   { value: 'zh', label: 'Tiếng Trung' },
 ]
@@ -159,6 +159,8 @@ export default function CreatorsAdminPage() {
         bookingPrice: data.bookingPrice ?? prev.bookingPrice,
         subscriptionPrice: data.subscriptionPrice ?? prev.subscriptionPrice,
         isVerified: Boolean(data.isVerified ?? prev.isVerified),
+        isTatto: Boolean(data.isTatto ?? prev.isTatto),
+        cosmeticSurgery: Boolean(data.cosmeticSurgery ?? prev.cosmeticSurgery),
       }))
       setSelectedCreatorId(id)
       setEditOpen(true)
@@ -491,6 +493,14 @@ export default function CreatorsAdminPage() {
                     <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
                     <Label htmlFor="isVerified">Đã xác thực</Label>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <input id="isTatto" type="checkbox" checked={form.isTatto} onChange={(e) => setField('isTatto', e.target.checked)} />
+                    <Label htmlFor="isTatto">Có xăm</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input id="cosmeticSurgery" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
+                    <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
+                  </div>
                 </div>
               </div>
 
@@ -621,6 +631,14 @@ export default function CreatorsAdminPage() {
               <div className="flex items-center gap-2">
                 <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
                 <Label htmlFor="isVerified">Đã xác thực</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input id="isTatto" type="checkbox" checked={form.isTatto} onChange={(e) => setField('isTatto', e.target.checked)} />
+                <Label htmlFor="isTatto">Có xăm</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input id="cosmeticSurgery" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
+                <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
               </div>
             </div>
           </div>
