@@ -80,7 +80,8 @@ export default function AdminDepositsPage() {
           variant: "default",
         })
       } else {
-        toast({ title: "Thao tác thất bại", description: res.error || "Vui lòng thử lại", variant: "destructive" })
+        console.debug('updateStatus response (failure)', res)
+        toast({ title: "Thao tác thất bại", description: res.error || res.message || "Vui lòng thử lại", variant: "destructive" })
       }
     } catch (e) {
       toast({ title: "Thao tác thất bại", description: "Không thể cập nhật trạng thái", variant: "destructive" })
@@ -127,7 +128,7 @@ export default function AdminDepositsPage() {
             Danh sách yêu cầu
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant={filter === "all" ? "default" : "secondary"} size="sm" onClick={() => setFilter("all")}>Tất cả ({counts.all})</Button>
+            <Button variant={filter === "all" ? "default" : "secondary"} size="sm" onClick={() => setFilter("all")}>T��t cả ({counts.all})</Button>
             <Button variant={filter === "pending" ? "default" : "secondary"} size="sm" onClick={() => setFilter("pending")}>
               <Clock className="mr-1 h-4 w-4" /> Chờ duyệt ({counts.pending})
             </Button>
