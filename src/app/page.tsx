@@ -171,11 +171,6 @@ function LiveStreamsTab() {
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
           <p className="text-gray-400 text-sm sm:text-base">Xem các creator đang stream trực tiếp</p>
         </div>
-        <Link href="/streams">
-          <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 w-full sm:w-auto">
-            Xem tất cả
-          </Button>
-        </Link>
       </div>
 
       {liveStreams.length === 0 ? (
