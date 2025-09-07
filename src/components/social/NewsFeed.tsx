@@ -873,16 +873,16 @@ export default function NewsFeed({ activeTab: propActiveTab }: NewsFeedProps = {
         <div className="flex items-center justify-between mb-6">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="flex-1">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="reviews-new" className="flex items-center gap-2">
-                <Star className="w-4 h-4" />
+              <TabsTrigger value="reviews-new" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Review mới
               </TabsTrigger>
-              <TabsTrigger value="for-you" className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
+              <TabsTrigger value="for-you" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Dành cho bạn
               </TabsTrigger>
-              <TabsTrigger value="following" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
+              <TabsTrigger value="following" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Đang theo dõi
               </TabsTrigger>
             </TabsList>
