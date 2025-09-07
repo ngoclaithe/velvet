@@ -233,8 +233,11 @@ export default function WalletPage() {
 
       if (response.success) {
         setGeneratedCodePay(codePay)
+        // Capture snapshot of selected payment so dialog can render even after we reset the form
+        const selectedPaymentSnapshot = availablePaymentMethods.find(p => p.id.toString() === selectedInfoPaymentId)
+        setLastDepositData({ payment: selectedPaymentSnapshot, amount, codePay })
         setShowDepositInstructions(true)
-        
+
         toast({
           title: "Tạo yêu cầu nạp tiền thành công!",
           description: `Mã giao dịch: ${codePay}`,
@@ -854,7 +857,7 @@ export default function WalletPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Lưu ý quan trọng</CardTitle>
-                <CardDescription>Thông tin cần lưu ý khi rút tiền</CardDescription>
+                <CardDescription>Thông tin cần lưu ý khi r��t tiền</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
