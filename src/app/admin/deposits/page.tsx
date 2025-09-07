@@ -188,7 +188,7 @@ export default function AdminDepositsPage() {
                         <div>
                           <div className="font-medium">{r.infoPayment?.bankName || r.infoPayment?.provider || "Chuyển khoản"}</div>
                           {r.infoPayment?.accountNumber && (
-                            <div className="text-xs text-muted-foreground">{r.infoPayment.accountNumber}</div>
+                            <div className="text-xs text-gray-600">{r.infoPayment.accountNumber}</div>
                           )}
                         </div>
                       </td>
