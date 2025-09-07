@@ -1028,7 +1028,7 @@ export default function ProfilePage() {
                             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <h4 className="font-medium">Tiến độ tải ảnh</h4>
+                                  <h4 className="font-medium text-black">Tiến độ tải ảnh</h4>
                                   <p className="text-sm text-muted-foreground">
                                     {Object.values(kycPreviewUrls).filter(url => url).length}/3 ảnh đã tải lên
                                   </p>
