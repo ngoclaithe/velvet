@@ -269,7 +269,7 @@ export default function HomePage() {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="livestream" className="space-y-4">
+                <TabsContent value="livestream" className="space-y-4 pt-2">
                   <LiveStreamsTab />
                 </TabsContent>
 
