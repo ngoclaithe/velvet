@@ -251,6 +251,16 @@ export default function WalletPage() {
       return
     }
 
+    // Ensure amount is multiple of 1000
+    if (amount % 1000 !== 0) {
+      toast({
+        title: "Lỗi",
+        description: "Số tiền phải là bội của 1,000 VND",
+        variant: "destructive"
+      })
+      return
+    }
+
     const codePay = generateCodePay()
 
     // Prepare data according to backend validator
@@ -284,7 +294,8 @@ export default function WalletPage() {
 
         // Reset form
         setDepositAmount('')
-        setSelectedInfoPaymentId('')
+        // keep default infopayment as 1 for convenience
+        setSelectedInfoPaymentId('1')
 
         // Refresh request deposits
         const requestDepositsResponse = await transactionAPI.getDeposits()
@@ -809,7 +820,7 @@ export default function WalletPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Minus className="h-5 w-5" />
-                  <span>Rút ti��n</span>
+                  <span>Rút tiền</span>
                 </CardTitle>
                 <CardDescription>
                   Rút ti��n từ ví về tài khoản của bạn
