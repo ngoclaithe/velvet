@@ -325,24 +325,6 @@ export default function HomePage() {
                   </Card>
                 )}
 
-                {isAuthenticated && user?.role === 'user' && (
-                  <Card className="border-2 border-purple-500/20 bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur">
-                    <CardContent className="p-4 sm:p-6 text-center">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                        <Video className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                      </div>
-                      <h3 className="text-base sm:text-lg font-semibold mb-2 text-white">Trở thành Creator!</h3>
-                      <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4">
-                        Bắt đầu streaming, kiếm tiền tiền nội dung và xây dựng cộng đồng riêng
-                      </p>
-                      <Link href="/become-creator">
-                        <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-sm">
-                          Bắt đầu ngay
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
 
               {/* Main Content */}
