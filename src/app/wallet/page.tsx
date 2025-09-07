@@ -722,7 +722,7 @@ export default function WalletPage() {
                               />
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">
-                              Quét mã QR để thanh toán nhanh
+                              Quét mã QR đ�� thanh toán nhanh
                             </p>
                           </div>
                         </>
@@ -744,7 +744,7 @@ export default function WalletPage() {
                     
                     <div className="bg-green-50 p-3 rounded">
                       <p className="text-sm font-medium text-green-900">Số tiền</p>
-                      <p className="text-xl font-bold text-green-900">{Number(depositAmount || 0).toLocaleString('vi-VN')} VND</p>
+                      <p className="text-xl font-bold text-green-900">{Number(lastDepositData?.amount ?? Number(depositAmount || 0)).toLocaleString('vi-VN')} VND</p>
                     </div>
                   </div>
                 )}
@@ -829,7 +829,7 @@ export default function WalletPage() {
                 <div className="bg-yellow-50 p-4 rounded-lg">
                   <h4 className="font-medium text-yellow-900 mb-2">Lưu ý rút tiền:</h4>
                   <ul className="text-sm text-yellow-800 space-y-1">
-                    <li>��� Số tiền rút tối thiểu: 10,000 VND</li>
+                    <li>• Số tiền rút tối thiểu: 10,000 VND</li>
                     <li>• Phí rút tiền: 2,000 VND cho giao dịch dưới 100,000 VND</li>
                     <li>• Thời gian xử lý: 1-3 ngày làm việc</li>
                     <li>• Có thể bị khóa tạm thời để xác minh</li>
