@@ -62,7 +62,7 @@ export default function CreatorList() {
   // Callgirl tab state
   const [callgirls, setCallgirls] = useState<Creator[]>([])
   const [callgirlLoading, setCallgirlLoading] = useState(false)
-  const [callgirlCity, setCallgirlCity] = useState<string>('')
+  const [callgirlCity, setCallgirlCity] = useState<string>('all')
   const [minPrice, setMinPrice] = useState<string>('')
   const [maxPrice, setMaxPrice] = useState<string>('')
   const [cgPage, setCgPage] = useState(1)
