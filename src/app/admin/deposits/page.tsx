@@ -217,9 +217,11 @@ export default function AdminDepositsPage() {
 
                       <td className="px-3 py-2 align-top">
                         <div>
-                          <div className="font-medium">{r.infoPayment?.bankName || r.infoPayment?.provider || "Chuyển khoản"}</div>
-                          {r.infoPayment?.accountNumber && (
-                            <div className="text-xs text-gray-600">{r.infoPayment.accountNumber}</div>
+                          <div className="font-medium">
+                            {r.txType === 'withdraw' ? (r.bankInfo?.bankCode || r.bankInfo?.accountName || 'Tài khoản rút') : (r.infoPayment?.bankName || r.infoPayment?.provider || 'Chuyển khoản')}
+                          </div>
+                          {(r.txType === 'withdraw' ? r.bankInfo?.accountNumber : r.infoPayment?.accountNumber) && (
+                            <div className="text-xs text-gray-600">{r.txType === 'withdraw' ? r.bankInfo?.accountNumber : r.infoPayment?.accountNumber}</div>
                           )}
                         </div>
                       </td>
