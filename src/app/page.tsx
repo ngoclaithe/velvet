@@ -243,13 +243,15 @@ function LiveStreamsTab() {
 
 export default function HomePage() {
   const { user, isAuthenticated, isGuest } = useAuth()
+  const searchParams = useSearchParams()
+  const defaultTab = (searchParams?.get('tab') as string) || 'livestream'
 
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Main Content */}
       <section className="py-3 sm:py-6 bg-gray-900">
         <div className="container mx-auto px-3">
-          <Tabs defaultValue="livestream" className="w-full">
+          <Tabs defaultValue={defaultTab} key={defaultTab} className="w-full">
             <div className="flex flex-col gap-4 sm:gap-6">
 
               {/* Main Content */}
