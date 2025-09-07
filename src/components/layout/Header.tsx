@@ -184,13 +184,7 @@ export default function Header() {
         <nav className="flex items-center space-x-2 md:space-x-4">
           {isAuthenticated ? (
             <>
-              <Link href="/streams">
-                <Button variant="ghost" size="sm" className="px-2 md:px-3">
-                  <Zap className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Live Streams</span>
-                </Button>
-              </Link>
-
+    
               {user?.role === 'creator' && (
                 <Link href="/stream">
                   <Button variant="ghost" size="sm" className="text-red-600 px-2 md:px-3">
@@ -283,6 +277,12 @@ export default function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile/posts" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Trang cá nhân</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
