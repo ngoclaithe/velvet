@@ -162,7 +162,7 @@ export default function WalletPage() {
         }
 
         // Fetch transactions
-        const transactionsResponse = await walletAPI.getTransactions()
+        const transactionsResponse = await transactionAPI.getTransactions()
         if (transactionsResponse.success && transactionsResponse.data && transactionsResponse.data.data) {
           setTransactions(transactionsResponse.data.data.map((t: any) => ({
             ...t,
