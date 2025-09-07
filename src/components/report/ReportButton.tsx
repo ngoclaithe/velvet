@@ -126,9 +126,19 @@ export default function ReportButton({ reportedUserId, className, size = 'icon' 
             </div>
 
             <div>
-              <Label>Chứng cứ (URL, tùy chọn)</Label>
-              <div className="flex gap-2 mt-1">
-                <Input value={newEvidence} onChange={(e) => setNewEvidence(e.target.value)} placeholder="Dán URL minh chứng" />
+              <Label>Chứng cứ (ảnh/URL, tùy chọn)</Label>
+              <div className="mt-2">
+                <ImageUploader
+                  ref={uploaderRef}
+                  compact
+                  autoUpload={false}
+                  hideUploadButton
+                  maxFiles={5}
+                  uploadOptions={{ resource_type: 'image' }}
+                />
+              </div>
+              <div className="flex gap-2 mt-3">
+                <Input value={newEvidence} onChange={(e) => setNewEvidence(e.target.value)} placeholder="Dán thêm URL minh chứng (tùy chọn)" />
                 <Button type="button" variant="secondary" onClick={addEvidence}>Thêm</Button>
               </div>
               {evidence.length > 0 && (
