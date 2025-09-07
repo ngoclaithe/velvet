@@ -26,15 +26,17 @@ import {
   Shield,
   Calendar,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useNotification } from '@/components/notification/NotificationProvider'
+import { walletAPI } from '@/lib/api/wallet'
 
 export default function Header() {
   const { user, isAuthenticated, isGuest, logout } = useAuth()
   const router = useRouter()
   const { notifications, unreadCount } = useNotification()
   const [searchText, setSearchText] = useState('')
+  const [tokens, setTokens] = useState<number>(0)
 
   const openNotification = (n: any) => {
     const isCall = ['audio', 'video', 'call'].includes(String(n.type))
@@ -54,6 +56,22 @@ export default function Header() {
       router.push(`/messages${params.toString() ? `?${params.toString()}` : ''}`)
     }
   }
+
+  useEffect(() => {
+    const fetchWallet = async () => {
+      try {
+        if (!isAuthenticated) return
+        const res = await walletAPI.getWallet()
+        if (res && res.success && res.data) {
+          setTokens(Number((res.data as any).tokens) || 0)
+        }
+      } catch (e) {
+        console.error('Failed to load wallet in header:', e)
+      }
+    }
+
+    fetchWallet()
+  }, [isAuthenticated])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -179,7 +197,7 @@ export default function Header() {
                       <div className="flex items-center space-x-2 mt-2">
                         <Badge variant="secondary" className="text-xs">
                           <DollarSign className="h-3 w-3 mr-1" />
-                          0
+                          {tokens}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
                           <Heart className="h-3 w-3 mr-1 text-red-500" />
