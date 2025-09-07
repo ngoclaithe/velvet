@@ -246,7 +246,7 @@ export default function CreatorList() {
     try {
       setCallgirlLoading(true)
       const params: any = { page: cgPage, limit: cgLimit }
-      if (callgirlCity) params.city = callgirlCity
+      if (callgirlCity && callgirlCity !== 'all') params.city = callgirlCity
       if (minPrice) params.minPrice = Number(minPrice)
       if (maxPrice) params.maxPrice = Number(maxPrice)
       const res: any = await creatorAPI.getCallgirl(params)
@@ -325,7 +325,7 @@ export default function CreatorList() {
     if (days > 0) return `${days} ngày trước`
     if (hours > 0) return `${hours} giờ trước`
     if (minutes > 0) return `${minutes} phút trước`
-    return 'Vừa xong'
+    return 'V���a xong'
   }
 
   // Safe function to get display name with fallback
