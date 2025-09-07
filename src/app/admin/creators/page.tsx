@@ -225,7 +225,7 @@ export default function CreatorsAdminPage() {
       }
       if (payload.city === 'all') delete payload.city
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
-      if (res?.success === false) throw new Error(res?.message || res?.error || 'C��p nhật thất bại')
+      if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
       toast.success('Cập nhật creator thành công')
       // refresh list
       const all: any = await creatorAPI.getAllCreators()
@@ -311,12 +311,11 @@ export default function CreatorsAdminPage() {
           <DialogTrigger asChild>
             <Button>Thêm Creator</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl w-[95vw]">
+          <DialogContent className="max-w-4xl w-[95vw]">
             <DialogHeader>
               <DialogTitle>Thêm Creator mới</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {/* Reuse form fields - simplify by showing summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Họ</Label>
@@ -333,6 +332,74 @@ export default function CreatorsAdminPage() {
                 <div>
                   <Label>Số điện thoại</Label>
                   <Input value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Nghệ danh</Label>
+                  <Input value={form.stageName} onChange={(e) => setField('stageName', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Thành phố</Label>
+                  <Select value={form.city} onValueChange={(v) => setField('city', v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn thành phố" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Chưa chọn</SelectItem>
+                      {VIETNAM_CITIES.map(c => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Bio</Label>
+                  <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Tags (phân tách bằng dấu phẩy)</Label>
+                  <Input value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags} onChange={(e) => setField('tags', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Loại creator</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {CREATOR_TYPES.map((type) => (
+                      <label key={type} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
+                        <input
+                          type="checkbox"
+                          checked={Array.isArray(form.specialties) && form.specialties.includes(type)}
+                          onChange={() => toggleArrayField('specialties', type)}
+                        />
+                        <span>{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label>Giá đặt lịch</Label>
+                  <Input type="number" value={form.bookingPrice} onChange={(e) => setField('bookingPrice', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Giá subscription</Label>
+                  <Input type="number" value={form.subscriptionPrice} onChange={(e) => setField('subscriptionPrice', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Ảnh avatar</Label>
+                  <ImageUploader maxFiles={1} compact onUploadComplete={(results) => {
+                    const url = results?.[0]?.secure_url
+                    if (url) setField('avatar', url)
+                  }} hideResults />
+                  {form.avatar && <div className="mt-2"><img src={form.avatar} className="w-20 h-20 rounded-full object-cover" /></div>}
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Ảnh Bio (nhiều ảnh)</Label>
+                  <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
+                    const urls = results.map((r:any) => r.secure_url).filter(Boolean)
+                    setField('bioUrls', [...form.bioUrls, ...urls])
+                  }} hideResults />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
+                  <Label htmlFor="isVerified">Đã xác thực</Label>
                 </div>
               </div>
             </div>
