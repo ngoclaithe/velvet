@@ -541,7 +541,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} Token` : '••��•••'}
+                {showBalance ? `${Number(balance || 0).toLocaleString('vi-VN')} Token` : '••••••'}
               </div>
               <p className="text-xs text-muted-foreground">
                 Khả dụng cho rút tiền
@@ -610,7 +610,7 @@ export default function WalletPage() {
         </div>
       )}
 
-      <Tabs defaultValue="transactions" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
           <TabsTrigger value="deposit">Nạp tiền</TabsTrigger>
@@ -738,7 +738,7 @@ export default function WalletPage() {
                     <li>• Số tiền nạp tối thiểu: 1,000 VND</li>
                     <li>• Thời gian xử lý: 5-15 phút sau khi chuyển khoản</li>
                     <li>• Vui lòng giữ lại mã giao dịch để tra cứu</li>
-                    <li>• Liên hệ h�� trợ nếu không nhận được tiền sau 30 phút</li>
+                    <li>• Liên hệ hệ trợ nếu không nhận được tiền sau 30 phút</li>
                   </ul>
                 </div>
 
@@ -808,7 +808,7 @@ export default function WalletPage() {
                   <span className="text-lg font-semibold text-white">Yêu cầu đã được tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
-                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch v�� số tiền.
                 </DialogDescription>
               </DialogHeader>
 
