@@ -37,7 +37,7 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { walletAPI } from '@/lib/api/wallet'
-import { requestDeposit } from '@/lib/api/requestDeposit'
+import { transactionAPI } from '@/lib/api/transaction'
 import { infoPaymentApi, type InfoPayment } from '@/lib/api/infoPayment'
 import { generateSepayQRUrl } from '@/lib/utils' 
 
@@ -171,7 +171,7 @@ export default function WalletPage() {
         }
 
         // Fetch request deposits
-        const requestDepositsResponse = await requestDeposit.getRequestDeposit()
+        const requestDepositsResponse = await transactionAPI.getDeposits()
         if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
@@ -229,7 +229,7 @@ export default function WalletPage() {
 
     setIsDepositing(true)
     try {
-      const response = await requestDeposit.createRequestDeposit(depositData)
+      const response = await transactionAPI.createDeposit(depositData)
 
       if (response.success) {
         setGeneratedCodePay(codePay)
@@ -249,7 +249,7 @@ export default function WalletPage() {
         setSelectedInfoPaymentId('')
 
         // Refresh request deposits
-        const requestDepositsResponse = await requestDeposit.getRequestDeposit()
+        const requestDepositsResponse = await transactionAPI.getDeposits()
         if (requestDepositsResponse.success && requestDepositsResponse.data && Array.isArray(requestDepositsResponse.data)) {
           setRequestDeposits(requestDepositsResponse.data.map((rd: any) => ({
             ...rd,
@@ -774,7 +774,7 @@ export default function WalletPage() {
                   <span>Rút tiền</span>
                 </CardTitle>
                 <CardDescription>
-                  Rút tiền từ ví về tài khoản của bạn
+                  Rút ti��n từ ví về tài khoản của bạn
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

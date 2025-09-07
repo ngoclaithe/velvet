@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { requestDeposit } from "@/lib/api/requestDeposit"
+import { transactionAPI } from "@/lib/api/transaction"
 import { useToast } from "@/hooks/use-toast"
 import { Icons } from "@/components/common/Icons"
 import { RefreshCw, CheckCircle2, XCircle, Clock, Banknote, User as UserIcon, Hash } from "lucide-react"
@@ -40,7 +40,7 @@ export default function AdminDepositsPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await requestDeposit.getRequestDeposit()
+      const res = await transactionAPI.getDeposits()
       if (res.success && Array.isArray(res.data)) {
         setRequests(
           res.data.map((rd: any) => ({
@@ -72,7 +72,7 @@ export default function AdminDepositsPage() {
       // Map frontend status to backend expected values
       const mappedStatus = status === 'approved' ? 'completed' : 'failed'
       console.debug('updateStatus request payload', { id, status, mappedStatus })
-      const res = await requestDeposit.updateRequestStatus(id, { status: mappedStatus })
+      const res = await transactionAPI.updateTransactionStatus(id, { status: mappedStatus })
       console.debug('updateStatus response', res)
       if (res.success) {
         // reflect frontend status names for UI consistency

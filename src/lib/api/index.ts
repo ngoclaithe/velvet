@@ -7,7 +7,7 @@ export { walletAPI } from './wallet'
 export { postsApi } from './posts'
 export { commentApi } from './comment'
 export { cloudinaryApi } from './cloudinary'
-export { requestDeposit } from './requestDeposit'
+export { transactionAPI } from './transaction'
 export {
   infoPaymentApi,
   infoPaymentUtils,
