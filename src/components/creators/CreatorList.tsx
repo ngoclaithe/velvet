@@ -366,6 +366,7 @@ export default function CreatorList() {
                 )}
               </div>
               <p className="text-gray-400 text-sm">@{creator.username || 'unknown'}</p>
+              <p className="text-xs text-gray-400">{(creator as any).location || (creator as any).user?.city || ''}</p>
             </div>
           </div>
           <Eye className="w-5 h-5 text-gray-400" />
