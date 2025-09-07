@@ -67,6 +67,8 @@ export default function WalletPage() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const defaultTab = (searchParams?.get('tab') === 'deposit') ? 'deposit' : 'transactions'
   const [showBalance, setShowBalance] = useState(true)
   const [isDepositing, setIsDepositing] = useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
@@ -608,7 +610,7 @@ export default function WalletPage() {
         </div>
       )}
 
-      <Tabs defaultValue="transactions" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
           <TabsTrigger value="deposit">Nạp tiền</TabsTrigger>
@@ -806,7 +808,7 @@ export default function WalletPage() {
                   <span className="text-lg font-semibold text-white">Yêu cầu đã được tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
-                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch và số tiền.
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch v�� số tiền.
                 </DialogDescription>
               </DialogHeader>
 

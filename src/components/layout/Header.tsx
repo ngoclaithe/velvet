@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { creatorAPI } from '@/lib/api/creator'
 import {
   Search,
   Bell,
@@ -25,11 +27,78 @@ import {
   MessageCircle,
   Shield,
   Calendar,
+  Users,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useNotification } from '@/components/notification/NotificationProvider'
 import { walletAPI } from '@/lib/api/wallet'
+
+function FeaturedCreatorsList({ onSelect }: { onSelect?: (id: number) => void }) {
+  const [creators, setCreators] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        setLoading(true)
+        const res = await creatorAPI.getFeaturedCreator()
+        if (res && res.success && res.data && Array.isArray(res.data)) {
+          setCreators(res.data.slice(0, 8))
+        } else {
+          setCreators([])
+        }
+      } catch (e) {
+        console.error('Failed to load featured creators:', e)
+        setCreators([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetch()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex items-center gap-3 p-3 bg-gray-900 border border-gray-700 rounded">
+            <div className="w-10 h-10 bg-gray-700 rounded-full" />
+            <div className="flex-1">
+              <div className="h-4 bg-gray-700 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-gray-700 rounded w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {creators.map((c) => (
+        <div key={c.id} className="flex items-center gap-3 p-3 bg-gray-900 border border-gray-700 rounded hover:bg-gray-800/60 cursor-pointer" onClick={() => onSelect?.(Number(c.id))}>
+          <div className="relative flex-shrink-0">
+            {c?.user?.avatar ? (
+              <img src={c.user.avatar} alt={c.stageName} className="w-12 h-12 rounded-full object-cover" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center text-white font-bold">{(c.stageName || (c.user && c.user.username) || 'U').charAt(0)}</div>
+            )}
+            {c.isLive && <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-red-500 border-2 border-gray-900 rounded-full" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="font-semibold text-sm text-white truncate">{c.stageName || c.user?.displayName || c.user?.username}</div>
+              {c.isVerified && <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><span className="text-white text-[10px]">✓</span></div>}
+            </div>
+            <div className="text-xs text-gray-400">{Number(c.followersCount || 0).toLocaleString()} followers</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function Header() {
   const { user, isAuthenticated, isGuest, logout } = useAuth()
@@ -37,6 +106,7 @@ export default function Header() {
   const { notifications, unreadCount } = useNotification()
   const [searchText, setSearchText] = useState('')
   const [tokens, setTokens] = useState<number>(0)
+  const [showCreators, setShowCreators] = useState(false)
 
   const openNotification = (n: any) => {
     const isCall = ['audio', 'video', 'call'].includes(String(n.type))
@@ -86,8 +156,8 @@ export default function Header() {
           <Badge className="hidden sm:inline-flex text-xs bg-red-100 text-red-700 ml-2">18+</Badge>
         </Link>
 
-        <div className="hidden md:flex flex-1 max-w-md mx-2 md:mx-8">
-          <div className="relative w-full">
+        <div className="hidden md:flex items-center space-x-2 max-w-[520px] mx-1 md:mx-4">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               type="text"
@@ -103,18 +173,18 @@ export default function Header() {
               }}
             />
           </div>
+
+          {/* Featured creators modal trigger */}
+          <Button variant="ghost" size="sm" className="px-2 md:px-3" onClick={() => setShowCreators(true)}>
+            <Users className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Creators nổi bật</span>
+          </Button>
         </div>
 
         <nav className="flex items-center space-x-2 md:space-x-4">
           {isAuthenticated ? (
             <>
-              <Link href="/streams">
-                <Button variant="ghost" size="sm" className="px-2 md:px-3">
-                  <Zap className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Live Streams</span>
-                </Button>
-              </Link>
-
+    
               {user?.role === 'creator' && (
                 <Link href="/stream">
                   <Button variant="ghost" size="sm" className="text-red-600 px-2 md:px-3">
@@ -124,12 +194,21 @@ export default function Header() {
                 </Link>
               )}
 
-              <Link href="/create-post">
+              <Link href="/wallet?tab=deposit">
                 <Button variant="ghost" size="sm" className="text-pink-600 px-2 md:px-3">
-                  <MessageCircle className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Tạo bài viết</span>
+                  <DollarSign className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">N��p tiền</span>
                 </Button>
               </Link>
+
+              {(user?.role === 'user' || user?.role === 'admin') && (
+                <Link href="/bookings">
+                  <Button variant="ghost" size="sm" className="text-yellow-400 px-2 md:px-3">
+                    <Calendar className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Booking</span>
+                  </Button>
+                </Link>
+              )}
 
               <Link href="/search" className="md:hidden">
                 <Button variant="ghost" size="icon">
@@ -208,6 +287,12 @@ export default function Header() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
+                    <Link href="/profile/posts" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Trang cá nhân</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Hồ sơ</span>
@@ -217,6 +302,13 @@ export default function Header() {
                     <Link href="/wallet" className="cursor-pointer">
                       <DollarSign className="mr-2 h-4 w-4" />
                       <span>Ví của tôi</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/create-post" className="cursor-pointer">
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      <span>Tạo bài viết</span>
                     </Link>
                   </DropdownMenuItem>
                   {(user?.role === 'creator' || user?.role === 'admin') && (
@@ -234,14 +326,7 @@ export default function Header() {
                         <span>Stream Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem asChild>
-                      <Link href="/become-creator" className="cursor-pointer">
-                        <UserPlus className="mr-2 h-4 w-4 text-purple-500" />
-                        <span>Become Creator</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+                  ) : null }
                   <DropdownMenuItem asChild>
                     <Link href="/messages" className="cursor-pointer">
                       <MessageCircle className="mr-2 h-4 w-4" />
@@ -293,6 +378,17 @@ export default function Header() {
           )}
         </nav>
       </div>
+      {/* Creators Dialog */}
+      <Dialog open={showCreators} onOpenChange={setShowCreators}>
+        <DialogContent className="max-w-4xl w-full">
+          <DialogHeader>
+            <DialogTitle>Creators nổi bật</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2">
+            <FeaturedCreatorsList onSelect={(id) => { setShowCreators(false); router.push(`/creator/${id}`) }} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }
