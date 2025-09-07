@@ -373,6 +373,10 @@ export default function HomePage() {
                   </TabsTrigger>
                 </TabsList>
 
+                <TabsContent value="livestream" className="space-y-4">
+                  <LiveStreamsTab />
+                </TabsContent>
+
                 <TabsContent value="newsfeed">
                   <NewsFeed />
                 </TabsContent>
