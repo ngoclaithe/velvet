@@ -161,7 +161,7 @@ function LiveStreamsTab() {
                     </div>
 
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur">
+                      <div className="w-14 h-14 sm:w-18 sm:h-18 bg-white/20 rounded-full flex items-center justify-center backdrop-blur">
                         <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" />
                       </div>
                     </div>
