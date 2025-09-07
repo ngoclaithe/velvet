@@ -49,7 +49,7 @@ interface Creator {
 
 
 // Define the tab type explicitly
-type TabType = 'all' | 'following' | 'followers'
+type TabType = 'all' | 'following' | 'followers' | 'callgirl'
 
 export default function CreatorList() {
   const [activeTab, setActiveTab] = useState<TabType>('all')
