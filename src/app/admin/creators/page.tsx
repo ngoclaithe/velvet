@@ -312,7 +312,6 @@ export default function CreatorsAdminPage() {
                       <td className="px-4 py-3 align-top text-gray-900">
                         <div className="flex gap-2">
                           <Button size="sm" onClick={() => fetchCreatorAndOpen(Number(c.id))}>Chi tiết</Button>
-                          <Button variant="outline" size="sm" onClick={() => fetchCreatorAndOpen(Number(c.id))}>Sửa</Button>
                         </div>
                       </td>
                     </tr>
@@ -345,10 +344,6 @@ export default function CreatorsAdminPage() {
                   <div>
                     <Label>Tên</Label>
                     <Input value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>Email</Label>
-                    <Input value={form.email} onChange={(e) => setField('email', e.target.value)} />
                   </div>
                   <div>
                     <Label>Số điện thoại</Label>
@@ -608,7 +603,7 @@ export default function CreatorsAdminPage() {
               </div>
               <div>
                 <Label>Email</Label>
-                <Input value={form.email} onChange={(e) => setField('email', e.target.value)} />
+                <Input value={form.email} disabled />
               </div>
               <div>
                 <Label>Số điện thoại</Label>
@@ -622,7 +617,7 @@ export default function CreatorsAdminPage() {
                 <Label>Giới tính</Label>
                 <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn" />
+                    <SelectValue placeholder="Ch��n" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Chưa chọn</SelectItem>
