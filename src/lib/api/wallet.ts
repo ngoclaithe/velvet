@@ -14,9 +14,6 @@ export const walletAPI = {
   getTransactions: (params?: Record<string, string>) =>
     api.get<{ success: boolean; data: Transaction[] }>('/wallet/transactions', params),
 
-  // POST /wallet/transfer - Chuyển tiền cho user khác
-  transferFunds: (data: any) => api.post('/wallet/transfer', data),
-
   // POST /wallet/withdraw - Yêu cầu rút tiền từ wallet
   withdraw: (data: any) => api.post('/wallet/withdraw', data),
 
