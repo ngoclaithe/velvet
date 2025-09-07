@@ -55,27 +55,27 @@ export default function Footer() {
             <h4 className="font-semibold">Khám phá</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/feed" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/feed" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Bảng tin
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/blog" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Blog & Bài viết
                 </Link>
               </li>
               <li>
-                <Link href="/creators" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/creators" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Creators
                 </Link>
               </li>
               <li>
-                <Link href="/categories" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/categories" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Danh mục
                 </Link>
               </li>
               <li>
-                <Link href="/premium" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/premium" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Nội dung Premium
                 </Link>
               </li>
@@ -87,27 +87,27 @@ export default function Footer() {
             <h4 className="font-semibold">Hỗ trợ</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/help" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/help" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Trung tâm trợ giúp
                 </Link>
               </li>
               <li>
-                <Link href="/verification" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/verification" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Xác minh tài khoản
                 </Link>
               </li>
               <li>
-                <Link href="/community-guidelines" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/community-guidelines" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Quy tắc cộng đồng
                 </Link>
               </li>
               <li>
-                <Link href="/safety" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/safety" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   An toàn & Bảo mật
                 </Link>
               </li>
               <li>
-                <Link href="/report" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/report" prefetch={false} className="text-muted-foreground hover:text-foreground transition-colors">
                   Báo cáo vi phạm
                 </Link>
               </li>
@@ -152,16 +152,16 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-            <Link href="/terms" className="hover:text-foreground transition-colors">
+            <Link href="/terms" prefetch={false} className="hover:text-foreground transition-colors">
               Điều khoản sử dụng
             </Link>
-            <Link href="/privacy" className="hover:text-foreground transition-colors">
+            <Link href="/privacy" prefetch={false} className="hover:text-foreground transition-colors">
               Chính sách bảo mật
             </Link>
-            <Link href="/cookies" className="hover:text-foreground transition-colors">
+            <Link href="/cookies" prefetch={false} className="hover:text-foreground transition-colors">
               Chính sách Cookie
             </Link>
-            <Link href="/dmca" className="hover:text-foreground transition-colors">
+            <Link href="/dmca" prefetch={false} className="hover:text-foreground transition-colors">
               DMCA
             </Link>
           </div>

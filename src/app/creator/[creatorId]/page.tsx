@@ -368,7 +368,7 @@ export default function CreatorDetailPage() {
       setActionLoading(true)
       if (creator.isFollowing) {
         await userApi.unfollowCreator(creator.id.toString())
-        toast({ title: 'Đã bỏ theo dõi', description: 'Bạn đã bỏ theo dõi creator này' })
+        toast({ title: 'Đã b��� theo dõi', description: 'Bạn đã bỏ theo dõi creator này' })
       } else {
         await userApi.followCreator(creator.id.toString())
         toast({ title: 'Đã theo dõi', description: 'Bạn đã theo dõi creator này' })
@@ -476,7 +476,7 @@ export default function CreatorDetailPage() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <Card className="bg-gray-800 border-gray-700 p-6 text-center">
-          <h2 className="text-xl font-bold text-white mb-3">Không tìm thấy creator</h2>
+          <h2 className="text-xl font-bold text-white mb-3">Không t��m thấy creator</h2>
           <p className="text-gray-400 mb-4">Creator này không tồn tại hoặc đã bị xóa</p>
           <Button onClick={() => router.push('/?tab=creators')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -507,7 +507,7 @@ export default function CreatorDetailPage() {
                   <div className="flex flex-col items-center text-center gap-3">
                     <div className="relative">
                       <Avatar className="w-24 h-24 sm:w-28 sm:h-28">
-                        <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
+                        <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} loading="lazy" decoding="async" />
                         <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-3xl">
                           {getDisplayName(creator).charAt(0).toUpperCase()}
                         </AvatarFallback>
@@ -875,7 +875,7 @@ export default function CreatorDetailPage() {
                               <div className="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2">
                             {r.images.map((u, idx) => (
                               <button key={`${r.id}-${idx}`} type="button" onClick={() => setLightbox({ images: r.images || [], index: idx })} className="block focus:outline-none">
-                                <img src={u} alt={`rv-${idx}`} className="w-full h-16 sm:h-20 object-cover rounded cursor-zoom-in" />
+                                <img src={u} alt={`rv-${idx}`} className="w-full h-16 sm:h-20 object-cover rounded cursor-zoom-in" loading="lazy" decoding="async" />
                               </button>
                             ))}
                           </div>
@@ -902,7 +902,7 @@ export default function CreatorDetailPage() {
       <Dialog open={reviewOpen} onOpenChange={(open) => { if (!open) clearRvMedia(); setReviewOpen(open) }}>
         <DialogContent className="max-w-lg w-[95vw]">
           <DialogHeader>
-            <DialogTitle>Thêm đánh giá</DialogTitle>
+            <DialogTitle>Thêm ��ánh giá</DialogTitle>
             <DialogDescription>Chia sẻ trải nghiệm của bạn về creator</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
