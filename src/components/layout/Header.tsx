@@ -197,9 +197,18 @@ export default function Header() {
               <Link href="/wallet?tab=deposit">
                 <Button variant="ghost" size="sm" className="text-pink-600 px-2 md:px-3">
                   <DollarSign className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">Nạp tiền</span>
+                  <span className="hidden md:inline">N��p tiền</span>
                 </Button>
               </Link>
+
+              {(user?.role === 'user' || user?.role === 'admin') && (
+                <Link href="/bookings">
+                  <Button variant="ghost" size="sm" className="text-yellow-400 px-2 md:px-3">
+                    <Calendar className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Booking</span>
+                  </Button>
+                </Link>
+              )}
 
               <Link href="/search" className="md:hidden">
                 <Button variant="ghost" size="icon">
