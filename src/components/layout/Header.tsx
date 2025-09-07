@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import CreatorList from '@/components/creators/CreatorList'
+import { creatorAPI } from '@/lib/api/creator'
 import {
   Search,
   Bell,
