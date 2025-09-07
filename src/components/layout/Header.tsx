@@ -174,10 +174,10 @@ export default function Header() {
             />
           </div>
 
-          {/* Creators modal trigger */}
+          {/* Featured creators modal trigger */}
           <Button variant="ghost" size="sm" className="px-2 md:px-3" onClick={() => setShowCreators(true)}>
             <Users className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Creators</span>
+            <span className="hidden md:inline">Creators nổi bật</span>
           </Button>
         </div>
 
@@ -341,7 +341,7 @@ export default function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
                     <LogIn className="mr-2 h-4 w-4 rotate-180" />
-                    <span>Đăng xuất</span>
+                    <span>Đăng xu���t</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
