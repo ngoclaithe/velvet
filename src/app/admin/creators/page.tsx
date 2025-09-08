@@ -31,13 +31,11 @@ const CREATOR_TYPES = [
 ]
 
 const BODY_TYPES = [
-  { value: 'slim', label: 'mình dây' },
-  { value: 'chubby', label: 'chubby' },
-  { value: 'curvy', label: 'đầy đặn' },
-  { value: 'hourglass', label: 'Đồng hồ cát' },
-  { value: 'triangle', label: 'Tam giác' },
-  { value: 'inverted_triangle', label: 'Tam giác ngược' },
-  { value: 'athletic', label: 'Athletic/Gym' },
+  { value: 'slim', label: 'Mảnh mai' },
+  { value: 'athletic', label: 'Vận động/Thể hình' },
+  { value: 'average', label: 'Trung bình' },
+  { value: 'curvy', label: 'Đẫy đà' },
+  { value: 'plus-size', label: 'Ngoại cỡ' },
 ]
 
 const LANGUAGE_OPTIONS = [
@@ -212,11 +210,18 @@ export default function CreatorsAdminPage() {
       const payload: any = {
         ...form,
         hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
-        minBookingDuration: form.minBookingDuration ? Number(form.minBookingDuration) : undefined,
+        minBookingDuration: form.minBookingDuration ? parseInt(String(form.minBookingDuration), 10) : undefined,
+        maxConcurrentBookings: form.maxConcurrentBookings ? parseInt(String(form.maxConcurrentBookings), 10) : undefined,
         height: form.height ? Number(form.height) : undefined,
         weight: form.weight ? Number(form.weight) : undefined,
         bookingPrice: form.bookingPrice ? Number(form.bookingPrice) : undefined,
         subscriptionPrice: form.subscriptionPrice ? Number(form.subscriptionPrice) : undefined,
+        service: Array.isArray(form.service)
+          ? form.service
+          : String(form.service || '')
+              .split(/,|\n/)
+              .map((s: string) => s.trim())
+              .filter(Boolean),
         tags: Array.isArray(form.tags) ? form.tags : String(form.tags || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
         specialties: Array.isArray(form.specialties) ? form.specialties : String(form.specialties || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
         languages: Array.isArray(form.languages) ? form.languages : String(form.languages || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
@@ -224,6 +229,15 @@ export default function CreatorsAdminPage() {
       }
       // Normalize city: 'all' means not selected
       if (payload.city === 'all') delete payload.city
+      // Remove non-selected gender
+      if (!payload.gender || payload.gender === 'none') delete payload.gender
+      // Filter invalid enum values to satisfy BE validation
+      const allowedBodyTypes = ['slim','athletic','average','curvy','plus-size']
+      const allowedEyeColors = ['brown','blue','green','hazel','gray','amber','other']
+      const allowedHairColors = ['black','brown','blonde','red','gray','white','other']
+      if (payload.bodyType && !allowedBodyTypes.includes(payload.bodyType)) delete payload.bodyType
+      if (payload.eyeColor && !allowedEyeColors.includes(payload.eyeColor)) delete payload.eyeColor
+      if (payload.hairColor && !allowedHairColors.includes(payload.hairColor)) delete payload.hairColor
 
       // Parse availabilitySchedule if admin entered JSON string
       if (typeof payload.availabilitySchedule === 'string') {
@@ -257,17 +271,31 @@ export default function CreatorsAdminPage() {
       const payload: any = {
         ...form,
         hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
-        minBookingDuration: form.minBookingDuration ? Number(form.minBookingDuration) : undefined,
+        minBookingDuration: form.minBookingDuration ? parseInt(String(form.minBookingDuration), 10) : undefined,
+        maxConcurrentBookings: form.maxConcurrentBookings ? parseInt(String(form.maxConcurrentBookings), 10) : undefined,
         height: form.height ? Number(form.height) : undefined,
         weight: form.weight ? Number(form.weight) : undefined,
         bookingPrice: form.bookingPrice ? Number(form.bookingPrice) : undefined,
         subscriptionPrice: form.subscriptionPrice ? Number(form.subscriptionPrice) : undefined,
+        service: Array.isArray(form.service)
+          ? form.service
+          : String(form.service || '')
+              .split(/,|\n/)
+              .map((s: string) => s.trim())
+              .filter(Boolean),
         tags: Array.isArray(form.tags) ? form.tags : String(form.tags || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
         specialties: Array.isArray(form.specialties) ? form.specialties : String(form.specialties || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
         languages: Array.isArray(form.languages) ? form.languages : String(form.languages || '')?.split(',').map((s: string) => s.trim()).filter(Boolean),
         bioUrls: Array.isArray(form.bioUrls) ? form.bioUrls : [],
       }
       if (payload.city === 'all') delete payload.city
+      if (!payload.gender || payload.gender === 'none') delete payload.gender
+      const allowedBodyTypes = ['slim','athletic','average','curvy','plus-size']
+      const allowedEyeColors = ['brown','blue','green','hazel','gray','amber','other']
+      const allowedHairColors = ['black','brown','blonde','red','gray','white','other']
+      if (payload.bodyType && !allowedBodyTypes.includes(payload.bodyType)) delete payload.bodyType
+      if (payload.eyeColor && !allowedEyeColors.includes(payload.eyeColor)) delete payload.eyeColor
+      if (payload.hairColor && !allowedHairColors.includes(payload.hairColor)) delete payload.hairColor
       // Parse availabilitySchedule if admin entered JSON string
       if (typeof payload.availabilitySchedule === 'string') {
         try {
@@ -278,7 +306,7 @@ export default function CreatorsAdminPage() {
       }
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
       if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
-      toast.success('Cập nhật creator thành công')
+      toast.success('Cập nhật creator thành c��ng')
       // refresh list
       const all: any = await creatorAPI.getAllCreators()
       setCreators(Array.isArray(all?.data) ? all.data : [])
@@ -391,7 +419,7 @@ export default function CreatorsAdminPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label>Quốc gia</Label>
+                    <Label>Qu��c gia</Label>
                     <Input value={form.country} onChange={(e) => setField('country', e.target.value)} />
                   </div>
                   <div>
