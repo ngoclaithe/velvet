@@ -233,11 +233,7 @@ export default function CreatorsAdminPage() {
       if (!payload.gender || payload.gender === 'none') delete payload.gender
       // Filter invalid enum values to satisfy BE validation
       const allowedBodyTypes = ['slim','athletic','average','curvy','plus-size']
-      const allowedEyeColors = ['brown','blue','green','hazel','gray','amber','other']
-      const allowedHairColors = ['black','brown','blonde','red','gray','white','other']
       if (payload.bodyType && !allowedBodyTypes.includes(payload.bodyType)) delete payload.bodyType
-      if (payload.eyeColor && !allowedEyeColors.includes(payload.eyeColor)) delete payload.eyeColor
-      if (payload.hairColor && !allowedHairColors.includes(payload.hairColor)) delete payload.hairColor
 
       // Parse availabilitySchedule if admin entered JSON string
       if (typeof payload.availabilitySchedule === 'string') {
@@ -291,11 +287,7 @@ export default function CreatorsAdminPage() {
       if (payload.city === 'all') delete payload.city
       if (!payload.gender || payload.gender === 'none') delete payload.gender
       const allowedBodyTypes = ['slim','athletic','average','curvy','plus-size']
-      const allowedEyeColors = ['brown','blue','green','hazel','gray','amber','other']
-      const allowedHairColors = ['black','brown','blonde','red','gray','white','other']
       if (payload.bodyType && !allowedBodyTypes.includes(payload.bodyType)) delete payload.bodyType
-      if (payload.eyeColor && !allowedEyeColors.includes(payload.eyeColor)) delete payload.eyeColor
-      if (payload.hairColor && !allowedHairColors.includes(payload.hairColor)) delete payload.hairColor
       // Parse availabilitySchedule if admin entered JSON string
       if (typeof payload.availabilitySchedule === 'string') {
         try {
