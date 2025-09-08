@@ -43,7 +43,7 @@ const BODY_TYPES = [
 const LANGUAGE_OPTIONS = [
   { value: 'vi', label: 'Tiếng Việt' },
   { value: 'en', label: 'Tiếng Anh' },
-  { value: 'ja', label: 'Tiếng Nh��t' },
+  { value: 'ja', label: 'Tiếng Nhật' },
   { value: 'ko', label: 'Tiếng Hàn' },
   { value: 'zh', label: 'Tiếng Trung' },
 ]
@@ -246,7 +246,7 @@ export default function CreatorsAdminPage() {
         }
       }
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
-      if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật th��t bại')
+      if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
       toast.success('Cập nhật creator thành công')
       // refresh list
       const all: any = await creatorAPI.getAllCreators()
@@ -346,7 +346,7 @@ export default function CreatorsAdminPage() {
                     <Input type="date" value={form.dateOfBirth} onChange={(e) => setField('dateOfBirth', e.target.value)} />
                   </div>
                   <div>
-                    <Label>Giới t��nh</Label>
+                    <Label>Giới tính</Label>
                     <Select value={form.gender} onValueChange={(v) => setField('gender', v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn" />

@@ -810,7 +810,7 @@ export default function WalletPage() {
                   <span className="text-lg font-semibold text-white">Yêu cầu đã được tạo</span>
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-700">
-                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch v�� số tiền.
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Kiểm tra kỹ mã giao dịch về số tiền.
                 </DialogDescription>
               </DialogHeader>
 

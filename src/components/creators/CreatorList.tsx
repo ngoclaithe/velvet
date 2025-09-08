@@ -325,7 +325,7 @@ export default function CreatorList() {
     if (days > 0) return `${days} ngày trước`
     if (hours > 0) return `${hours} giờ trước`
     if (minutes > 0) return `${minutes} phút trước`
-    return 'V���a xong'
+    return 'Vừa xong'
   }
 
   // Safe function to get display name with fallback

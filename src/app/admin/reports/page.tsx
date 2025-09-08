@@ -94,7 +94,7 @@ export default function ReportsPage() {
     switch (type) {
       case 'harassment': return '🚫'
       case 'spam': return '🗑️'
-      case 'inappropriate_content': return '⚠���'
+      case 'inappropriate_content': return '⚠️'
       case 'fake_profile': return '🎭'
       default: return '❓'
     }
@@ -118,7 +118,7 @@ export default function ReportsPage() {
     try {
       setUpdating(true)
       const res = await reportApi.updateStatus(id, { status, adminNotes: notes || undefined })
-      if (!res.success) throw new Error(res.error || 'C���p nhật thất bại')
+      if (!res.success) throw new Error(res.error || 'Cập nhật thất bại')
       toast.success('Đã cập nhật trạng thái')
       setDetail(prev => prev && prev.id === id ? (res.data as any) : prev)
       setReports(prev => prev.map(r => r.id === id ? (res.data as any) : r))
