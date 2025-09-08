@@ -89,6 +89,7 @@ export default function CreatorsAdminPage() {
   const getInitialForm = () => ({
     firstName: '',
     lastName: '',
+    email: '',
     phoneNumber: '',
     dateOfBirth: '',
     avatar: '',
@@ -145,25 +146,55 @@ export default function CreatorsAdminPage() {
       setLoadingCreators(true)
       const res: any = await creatorAPI.getCreatorById(id)
       const data = res?.data || res
-      // map backend fields into form
-      setForm((prev: any) => ({
-        ...prev,
-        ...data,
-        firstName: data.user?.firstName || prev.firstName,
-        lastName: data.user?.lastName || prev.lastName,
-        email: data.user?.email || prev.email,
-        phoneNumber: data.user?.phoneNumber || prev.phoneNumber,
-        avatar: data.user?.avatar || data.avatar || prev.avatar,
-        city: data.user?.city || data.city || prev.city,
-        tags: data.tags || prev.tags,
-        specialties: data.specialties || prev.specialties,
-        bioUrls: data.bioUrls || prev.bioUrls,
-        bookingPrice: data.bookingPrice ?? prev.bookingPrice,
-        subscriptionPrice: data.subscriptionPrice ?? prev.subscriptionPrice,
-        isVerified: Boolean(data.isVerified ?? prev.isVerified),
-        isTatto: Boolean(data.isTatto ?? prev.isTatto),
-        cosmeticSurgery: Boolean(data.cosmeticSurgery ?? prev.cosmeticSurgery),
-      }))
+      
+      // Reset form to initial state first
+      const initialForm = getInitialForm()
+      
+      // Map all fields from the response properly
+      const mappedForm = {
+        ...initialForm,
+        // User fields
+        firstName: data.user?.firstName || '',
+        lastName: data.user?.lastName || '',
+        email: data.user?.email || '',
+        phoneNumber: data.user?.phoneNumber || '',
+        dateOfBirth: data.user?.dateOfBirth ? data.user.dateOfBirth.split('T')[0] : '',
+        avatar: data.user?.avatar || '',
+        gender: data.user?.gender || '',
+        country: data.user?.country || '',
+        city: data.user?.city || 'all',
+        timezone: data.user?.timezone || 'Asia/Ho_Chi_Minh',
+        language: data.user?.language || 'vi',
+        referralCode: data.user?.affiliateCode || '',
+        
+        // Creator fields
+        stageName: data.stageName || '',
+        titleBio: data.titleBio || '',
+        bio: data.bio || '',
+        bioUrls: Array.isArray(data.bioUrls) ? data.bioUrls : [],
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        isVerified: Boolean(data.isVerified),
+        hourlyRate: data.hourlyRate ? String(data.hourlyRate) : '',
+        minBookingDuration: data.minBookingDuration ? String(data.minBookingDuration) : '',
+        maxConcurrentBookings: data.maxConcurrentBookings ? String(data.maxConcurrentBookings) : '',
+        specialties: Array.isArray(data.specialties) ? data.specialties : [],
+        languages: Array.isArray(data.languages) && data.languages.length > 0 ? data.languages : ['vi'],
+        bodyType: data.bodyType || '',
+        height: data.height ? String(data.height) : '',
+        weight: data.weight ? String(data.weight) : '',
+        measurement: data.measurement || '',
+        eyeColor: data.eyeColor || '',
+        service: data.service || '',
+        signature: data.signature || '',
+        hairColor: data.hairColor || '',
+        cosmeticSurgery: Boolean(data.cosmeticSurgery),
+        isTatto: Boolean(data.isTatto),
+        bookingPrice: data.bookingPrice ? String(data.bookingPrice) : '',
+        subscriptionPrice: data.subscriptionPrice ? String(data.subscriptionPrice) : '',
+        availabilitySchedule: data.availabilitySchedule || {},
+      }
+      
+      setForm(mappedForm)
       setSelectedCreatorId(id)
       setEditOpen(true)
     } catch (e) {
@@ -587,7 +618,7 @@ export default function CreatorsAdminPage() {
         <DialogContent className="max-w-4xl w-[95vw] p-0">
         <div className="flex flex-col max-h-[80vh] w-full">
           <DialogHeader>
-            <DialogTitle>Chi tiết Creator</DialogTitle>
+            <DialogTitle>Chi tiết Creator - {form.stageName || form.firstName + ' ' + form.lastName}</DialogTitle>
           </DialogHeader>
 
           <div className="p-4 sm:p-6 overflow-auto flex-1">
@@ -602,7 +633,7 @@ export default function CreatorsAdminPage() {
               </div>
               <div>
                 <Label>Email</Label>
-                <Input value={form.email} disabled />
+                <Input value={form.email} disabled className="bg-gray-100" />
               </div>
               <div>
                 <Label>Số điện thoại</Label>
@@ -643,6 +674,10 @@ export default function CreatorsAdminPage() {
                 <Input value={form.stageName} onChange={(e) => setField('stageName', e.target.value)} />
               </div>
               <div>
+                <Label>Tiêu đề Bio</Label>
+                <Input value={form.titleBio} onChange={(e) => setField('titleBio', e.target.value)} />
+              </div>
+              <div>
                 <Label>Thành phố</Label>
                 <Select value={form.city} onValueChange={(v) => setField('city', v)}>
                   <SelectTrigger>
@@ -658,12 +693,26 @@ export default function CreatorsAdminPage() {
               </div>
               <div className="sm:col-span-2">
                 <Label>Bio</Label>
-                <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} />
+                <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} rows={4} />
               </div>
+
               <div>
                 <Label>Tags (phân tách bằng dấu phẩy)</Label>
                 <Input value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags} onChange={(e) => setField('tags', e.target.value)} />
               </div>
+
+              <div>
+                <Label>Ngôn ngữ</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {LANGUAGE_OPTIONS.map(opt => (
+                    <label key={opt.value} className="flex items-center gap-2 text-sm border rounded px-2 py-1">
+                      <input type="checkbox" checked={Array.isArray(form.languages) && form.languages.includes(opt.value)} onChange={() => toggleArrayField('languages', opt.value)} />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <Label>Loại creator</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -679,22 +728,90 @@ export default function CreatorsAdminPage() {
                   ))}
                 </div>
               </div>
+
+              <div>
+                <Label>Loại thân hình</Label>
+                <Select value={form.bodyType} onValueChange={(v) => setField('bodyType', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BODY_TYPES.map(b => (
+                      <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Chiều cao (cm)</Label>
+                <Input type="number" value={form.height} onChange={(e) => setField('height', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Cân nặng (kg)</Label>
+                <Input type="number" value={form.weight} onChange={(e) => setField('weight', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Số đo</Label>
+                <Input value={form.measurement} onChange={(e) => setField('measurement', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Màu mắt</Label>
+                <Input value={form.eyeColor} onChange={(e) => setField('eyeColor', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Màu tóc</Label>
+                <Input value={form.hairColor} onChange={(e) => setField('hairColor', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Dịch vụ</Label>
+                <Textarea value={form.service} onChange={(e) => setField('service', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Đặc điểm nhận dạng</Label>
+                <Input value={form.signature} onChange={(e) => setField('signature', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Giờ công / hourly rate</Label>
+                <Input type="number" value={form.hourlyRate} onChange={(e) => setField('hourlyRate', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Thời lượng đặt tối thiểu (phút)</Label>
+                <Input type="number" value={form.minBookingDuration} onChange={(e) => setField('minBookingDuration', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Số booking cùng lúc tối đa</Label>
+                <Input type="number" value={form.maxConcurrentBookings} onChange={(e) => setField('maxConcurrentBookings', e.target.value)} />
+              </div>
+
               <div>
                 <Label>Giá đặt lịch</Label>
                 <Input type="number" value={form.bookingPrice} onChange={(e) => setField('bookingPrice', e.target.value)} />
               </div>
+
               <div>
                 <Label>Giá subscription</Label>
                 <Input type="number" value={form.subscriptionPrice} onChange={(e) => setField('subscriptionPrice', e.target.value)} />
               </div>
+
               <div>
                 <Label>Ảnh avatar</Label>
                 <ImageUploader maxFiles={1} compact onUploadComplete={(results) => {
                   const url = results?.[0]?.secure_url
                   if (url) setField('avatar', url)
                 }} hideResults />
-                {form.avatar && <div className="mt-2"><img src={form.avatar} className="w-20 h-20 rounded-full object-cover" /></div>}
+                {form.avatar && <div className="mt-2"><img src={form.avatar} className="w-20 h-20 rounded-full object-cover" alt="Avatar" /></div>}
               </div>
+
               <div className="sm:col-span-2">
                 <Label>Ảnh Bio (nhiều ảnh)</Label>
                 <ImageUploader maxFiles={10} compact onUploadComplete={(results) => {
@@ -704,26 +821,37 @@ export default function CreatorsAdminPage() {
                 {Array.isArray(form.bioUrls) && form.bioUrls.length > 0 && (
                   <div className="mt-2 grid grid-cols-5 sm:grid-cols-8 gap-2">
                     {form.bioUrls.map((url: string, idx: number) => (
-                      <img key={idx} src={url} className="w-16 h-16 object-cover rounded" alt={`bio-${idx}`} />
+                      <div key={idx} className="relative">
+                        <img src={url} className="w-16 h-16 object-cover rounded" alt={`bio-${idx}`} />
+                        <button 
+                          onClick={() => setField('bioUrls', form.bioUrls.filter((_: any, i: number) => i !== idx))}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center"
+                        >×</button>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
+
               <div className="flex items-center gap-2">
-                <input id="isVerified" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
-                <Label htmlFor="isVerified">Đã xác thực</Label>
+                <input id="isVerified-edit" type="checkbox" checked={form.isVerified} onChange={(e) => setField('isVerified', e.target.checked)} />
+                <Label htmlFor="isVerified-edit">Đã xác thực</Label>
               </div>
               <div className="flex items-center gap-2">
-                <input id="isTatto" type="checkbox" checked={form.isTatto} onChange={(e) => setField('isTatto', e.target.checked)} />
-                <Label htmlFor="isTatto">Có xăm</Label>
+                <input id="isTatto-edit" type="checkbox" checked={form.isTatto} onChange={(e) => setField('isTatto', e.target.checked)} />
+                <Label htmlFor="isTatto-edit">Có xăm</Label>
               </div>
               <div className="flex items-center gap-2">
-                <input id="cosmeticSurgery" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
-                <Label htmlFor="cosmeticSurgery">Phẫu thuật thẩm mỹ</Label>
+                <input id="cosmeticSurgery-edit" type="checkbox" checked={form.cosmeticSurgery} onChange={(e) => setField('cosmeticSurgery', e.target.checked)} />
+                <Label htmlFor="cosmeticSurgery-edit">Phẫu thuật thẩm mỹ</Label>
               </div>
               <div className="sm:col-span-2">
                 <Label>Lịch khả dụng (JSON)</Label>
-                <Textarea value={typeof form.availabilitySchedule === 'string' ? form.availabilitySchedule : JSON.stringify(form.availabilitySchedule || {}, null, 2)} onChange={(e) => setField('availabilitySchedule', e.target.value)} />
+                <Textarea 
+                  value={typeof form.availabilitySchedule === 'string' ? form.availabilitySchedule : JSON.stringify(form.availabilitySchedule || {}, null, 2)} 
+                  onChange={(e) => setField('availabilitySchedule', e.target.value)} 
+                  rows={6}
+                />
               </div>
             </div>
           </div>
@@ -731,7 +859,7 @@ export default function CreatorsAdminPage() {
           <div className="flex-shrink-0 bg-card/90 backdrop-blur border-t px-4 py-3 sm:px-6">
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditOpen(false)}>Hủy</Button>
-              <Button onClick={onEditSubmit} disabled={submitting}>{submitting ? 'Đang lưu...' : 'Lưu'}</Button>
+              <Button onClick={onEditSubmit} disabled={submitting}>{submitting ? 'Đang lưu...' : 'Lưu thay đổi'}</Button>
             </div>
           </div>
         </div>

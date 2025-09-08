@@ -57,7 +57,7 @@ export default function RegisterPage() {
     if (username.length < 3) return
 
     // Tạm thời bỏ qua việc kiểm tra username qua API
-    // vì backend ch��a sẵn sàng
+    // vì backend chưa sẵn sàng
     console.log('Username check skipped for:', username)
   }
 
