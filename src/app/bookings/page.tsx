@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { creatorAPI } from '@/lib/api/creator'
 import { useToast } from '@/hooks/use-toast'
+import { RefreshCw } from 'lucide-react'
+import Link from 'next/link'
 
 const statusOptions: { value: 'all' | BookingStatus; label: string }[] = [
   { value: 'all', label: 'Tất cả' },
@@ -163,6 +165,26 @@ export default function BookingsPage() {
 
   React.useEffect(() => { fetchData() }, [fetchData])
 
+  if (!isAuthenticated) {
+    return (
+      <div className="container py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Quản lý Booking</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
+              <p className="text-muted-foreground">Bạn cần đăng nhập để xem và tạo booking.</p>
+              <Button asChild>
+                <Link href="/login">Đăng nhập</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   const withAction = async (id: number, fn: () => Promise<any>, successMsg: string) => {
     setActionLoading(prev => ({ ...prev, [id]: true }))
     try {
@@ -221,7 +243,9 @@ export default function BookingsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="secondary" onClick={fetchData} disabled={loading}>Làm mới</Button>
+            <Button variant="secondary" size="icon" onClick={fetchData} disabled={loading} aria-label="Làm mới" title="Làm mới">
+              <RefreshCw className={loading ? 'animate-spin' : ''} />
+            </Button>
 
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
