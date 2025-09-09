@@ -170,15 +170,15 @@ interface RelatedCreator {
   languages: string[]
   isAvailableForBooking: boolean
   createdAt: string
-  placeOfOperation: string | null
+  placeOfOperation: string | { province?: string | null; district?: string | null } | null
   user: {
     id: number
     username: string
     firstName: string
     lastName: string
-    avatar: string
-    city: string
-    placeOfOperation?: string
+    avatar?: string
+    city?: string
+    placeOfOperation?: string | { province?: string | null; district?: string | null } | null
   }
 }
 
