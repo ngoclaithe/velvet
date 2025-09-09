@@ -271,12 +271,6 @@ export default function StreamPage() {
                     Recording
                   </Badge>
                 )}
-                {currentStream && (
-                  <Button variant="outline" size="sm" onClick={copyStreamLink}>
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Chia sẻ
-                  </Button>
-                )}
               </div>
               <div className="flex items-center space-x-2">
                 {!currentStream ? (
