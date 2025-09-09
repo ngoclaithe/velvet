@@ -33,7 +33,7 @@ const CREATOR_TYPES = [
 const BODY_TYPES = [
   { value: 'slim', label: 'Mảnh mai' },
   { value: 'athletic', label: 'Vận động/Thể hình' },
-  { value: 'average', label: 'Trung b��nh' },
+  { value: 'average', label: 'Trung bình' },
   { value: 'curvy', label: 'Đẫy đà' },
   { value: 'plus-size', label: 'Ngoại cỡ' },
 ]
@@ -265,7 +265,7 @@ export default function CreatorsAdminPage() {
       setCreators(Array.isArray(all?.data) ? all.data : [])
     } catch (e: any) {
       console.error(e)
-      toast.error(e?.message || 'C�� lỗi xảy ra khi tạo creator')
+      toast.error(e?.message || 'Có lỗi xảy ra khi tạo creator')
     } finally {
       setSubmitting(false)
     }
@@ -578,7 +578,7 @@ export default function CreatorsAdminPage() {
                   </div>
 
                   <div>
-                    <Label>Thời lượng đặt tối thi��u (phút)</Label>
+                    <Label>Thời lượng đặt tối thiểu (phút)</Label>
                     <Input type="number" value={form.minBookingDuration} onChange={(e) => setField('minBookingDuration', e.target.value)} />
                   </div>
 

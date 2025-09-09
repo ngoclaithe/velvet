@@ -43,7 +43,7 @@ export const VIETNAM_CITIES: { value: string; label: string }[] = [
   { value: 'Nghệ An', label: 'Nghệ An' },
   { value: 'Ninh Bình', label: 'Ninh Bình' },
   { value: 'Ninh Thuận', label: 'Ninh Thuận' },
-  { value: 'Phú Thọ', label: 'Phú Th���' },
+  { value: 'Phú Thọ', label: 'Phú Thọ' },
   { value: 'Phú Yên', label: 'Phú Yên' },
   { value: 'Quảng Bình', label: 'Quảng Bình' },
   { value: 'Quảng Nam', label: 'Quảng Nam' },
