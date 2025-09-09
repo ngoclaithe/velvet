@@ -44,6 +44,9 @@ interface Creator {
   isOnline?: boolean
   category?: string
   location?: string
+  city?: string
+  bookingPrice?: string | number | null
+  rating?: number
   isFollowing?: boolean
 }
 
@@ -97,6 +100,9 @@ export default function CreatorList() {
           isOnline: Boolean(item?.isLive),
           category: item?.category || '',
           location: item?.location || '',
+          city: item?.user?.city || item?.city || item?.location || '',
+          bookingPrice: item?.bookingPrice ?? null,
+          rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
           isFollowing: Boolean(item?.isFollowing)
         }))
         setCreators(transformedCreators)
@@ -266,7 +272,10 @@ export default function CreatorList() {
           isVerified: Boolean(item?.isVerified),
           isOnline: Boolean(item?.isLive),
           category: 'callgirl',
-          location: item?.user?.city || item?.city || '',
+          location: item?.location || '',
+          city: item?.user?.city || item?.city || '',
+          bookingPrice: item?.bookingPrice ?? null,
+          rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
           isFollowing: Boolean(item?.isFollowing)
         }))
         setCallgirls(transformed)
@@ -335,6 +344,13 @@ export default function CreatorList() {
     return fullName || creator.username || 'Unknown'
   }
 
+  const formatVnd = (v?: string | number | null) => {
+    if (v === null || v === undefined || v === '') return '-'
+    const n = typeof v === 'string' ? Number(v) : v
+    if (!isFinite(Number(n))) return '-'
+    return Number(n).toLocaleString('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
+  }
+
   // Render creator card
   const renderCreatorCard = (creator: Creator, showRemoveButton = false) => (
     <Card
@@ -342,64 +358,60 @@ export default function CreatorList() {
       className="bg-gray-800 border-gray-700 hover:border-pink-500/50 transition-colors cursor-pointer"
       onClick={() => handleCreatorClick(creator.id as number)}
     >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="w-16 h-16">
-                <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} />
-                <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-lg">
-                  {getDisplayName(creator).charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              {creator.isOnline && (
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-800 rounded-full"></div>
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-white text-lg">
-                  {getDisplayName(creator)}
-                </h3>
-                {creator.isVerified && (
-                  <Verified className="w-5 h-5 text-blue-500" />
-                )}
+      <CardContent className="p-0">
+        <div className="w-full">
+          <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg bg-gradient-to-r from-pink-500 to-purple-500">
+            {creator.avatar ? (
+              <img src={creator.avatar} alt={getDisplayName(creator)} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white text-3xl font-semibold">
+                {getDisplayName(creator).charAt(0).toUpperCase()}
               </div>
-              <p className="text-gray-400 text-sm">@{creator.username || 'unknown'}</p>
-              <p className="text-xs text-gray-400">{(creator as any).location || (creator as any).user?.city || ''}</p>
+            )}
+            {creator.isOnline && (
+              <div className="absolute top-2 left-2 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
+            )}
+            {creator.isVerified && (
+              <div className="absolute top-2 right-2 text-blue-500"><Verified className="w-5 h-5" /></div>
+            )}
+          </div>
+          <div className="p-4 space-y-2">
+            <h3 className="font-semibold text-white text-base line-clamp-1">{getDisplayName(creator)}</h3>
+            <div className="text-sm text-gray-400 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                {(creator.city || creator.location || '') || '—'}
+              </span>
+              <span className="font-medium text-gray-200">{formatVnd(creator.bookingPrice)}</span>
             </div>
+            <div className="text-sm text-gray-300 flex items-center gap-1">
+              <Star className="w-4 h-4 text-yellow-400" />
+              {creator.rating && creator.rating > 0 ? `${creator.rating.toFixed(1)}` : 'Chưa có đánh giá'}
+            </div>
+            {showRemoveButton && (
+              <div className="pt-2 flex justify-end">
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleRemoveFollower(creator.id.toString())
+                  }}
+                  disabled={actionLoading === creator.id.toString()}
+                  variant="destructive"
+                  size="sm"
+                >
+                  {actionLoading === creator.id.toString() ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <UserX className="w-4 h-4 mr-2" />
+                      Xóa
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
-          <Eye className="w-5 h-5 text-gray-400" />
         </div>
-
-        {creator.bio && (
-          <p className="text-gray-300 text-sm mb-4 leading-relaxed line-clamp-2">
-            {creator.bio}
-          </p>
-        )}
-
-        {showRemoveButton && (
-          <div className="flex justify-end">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleRemoveFollower(creator.id.toString())
-              }}
-              disabled={actionLoading === creator.id.toString()}
-              variant="destructive"
-              size="sm"
-            >
-              {actionLoading === creator.id.toString() ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <UserX className="w-4 h-4 mr-2" />
-                  Xóa
-                </>
-              )}
-            </Button>
-          </div>
-        )}
       </CardContent>
     </Card>
   )
@@ -453,7 +465,7 @@ export default function CreatorList() {
               className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
             >
               <UserPlus className="w-4 h-4" />
-              Đang theo dõi
+              ��ang theo dõi
             </TabsTrigger>
           )}
           <TabsTrigger value="callgirl" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
