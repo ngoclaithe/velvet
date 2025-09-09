@@ -257,7 +257,8 @@ export default function CreatorList() {
     try {
       setCallgirlLoading(true)
       const params: any = { page: cgPage, limit: cgLimit }
-      if (callgirlCity && callgirlCity !== 'all') params.city = callgirlCity
+      if (callgirlProvince && callgirlProvince !== 'all') params.province = callgirlProvince
+      if (callgirlDistrict) params.district = callgirlDistrict
       if (minPrice) params.minPrice = Number(minPrice)
       if (maxPrice) params.maxPrice = Number(maxPrice)
       const res: any = await creatorAPI.getCallgirl(params)
@@ -523,7 +524,7 @@ export default function CreatorList() {
             <Card className="p-6 text-center bg-gray-800 border-gray-700">
               <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Chưa theo dõi ai</h3>
-              <p className="text-gray-400 mb-4">Hãy theo dõi một số creator để xem họ ở đây</p>
+              <p className="text-gray-400 mb-4">Hãy theo dõi một s��� creator để xem họ ở đây</p>
               <Button onClick={() => setActiveTab('all')}>
                 Khám phá creators
               </Button>
