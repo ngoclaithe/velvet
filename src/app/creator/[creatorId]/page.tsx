@@ -375,6 +375,9 @@ export default function CreatorDetailPage() {
             isLive: Boolean(apiData.isLive),
             category: apiData.category || '',
             location: apiData.location || '',
+            placeOfOperation: (typeof (apiData as any)?.placeOfOperation === 'object')
+              ? ((apiData as any)?.placeOfOperation?.province || (apiData as any)?.placeOfOperation?.district || '')
+              : ((apiData as any)?.placeOfOperation || apiData.location || apiData.user?.placeOfOperation || apiData.user?.city || ''),
             isFollowing: Boolean(apiData.isFollowing),
             streamTitle: apiData.streamTitle || '',
             hourlyRate: apiData.hourlyRate || '0',
