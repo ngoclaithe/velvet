@@ -33,7 +33,7 @@ const CREATOR_TYPES = [
 const BODY_TYPES = [
   { value: 'slim', label: 'Mảnh mai' },
   { value: 'athletic', label: 'Vận động/Thể hình' },
-  { value: 'average', label: 'Trung bình' },
+  { value: 'average', label: 'Trung b��nh' },
   { value: 'curvy', label: 'Đẫy đà' },
   { value: 'plus-size', label: 'Ngoại cỡ' },
 ]
@@ -265,7 +265,7 @@ export default function CreatorsAdminPage() {
       setCreators(Array.isArray(all?.data) ? all.data : [])
     } catch (e: any) {
       console.error(e)
-      toast.error(e?.message || 'Có lỗi xảy ra khi tạo creator')
+      toast.error(e?.message || 'C�� lỗi xảy ra khi tạo creator')
     } finally {
       setSubmitting(false)
     }
@@ -366,7 +366,10 @@ export default function CreatorsAdminPage() {
                         <div className="font-semibold text-gray-900">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
                         <div className="text-xs text-gray-500">@{c.user?.username || c.username}</div>
                       </td>
-                      <td className="px-4 py-3 align-top text-gray-900">{(c.placeOfOperation && typeof c.placeOfOperation === 'object' ? (c.placeOfOperation.province || c.placeOfOperation.district) : c.placeOfOperation) || (c.user?.placeOfOperation && typeof c.user.placeOfOperation === 'object' ? (c.user.placeOfOperation.province || c.user.placeOfOperation.district) : c.user?.placeOfOperation) || c.user?.city || c.city || '-'}</td>
+                      <td className="px-4 py-3 align-top text-gray-900">{(() => {
+                        const getPlaceProvince = (p?: any) => { if (!p) return '' ; if (typeof p === 'object') return p.province || p.district || '' ; return String(p) }
+                        return getPlaceProvince(c.placeOfOperation) || getPlaceProvince(c.user?.placeOfOperation) || c.user?.city || c.city || '-'
+                      })()}</td>
                       <td className="px-4 py-3 align-top text-gray-900">{c.followersCount ?? '-'}</td>
                     </tr>
                   ))}
