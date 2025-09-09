@@ -594,7 +594,7 @@ export default function CreatorList() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <div className="ml-auto">
-                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlCity(''); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Xóa lọc</Button>
+                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlProvince(''); setCallgirlDistrict(''); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Xóa lọc</Button>
                   </div>
                 </div>
               </div>
