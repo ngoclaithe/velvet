@@ -355,6 +355,26 @@ export default function CreatorList() {
     return `${Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
   }
 
+  const PRIORITY_CITY_LABELS = [
+    'Hà Nội',
+    'Thành phố Hồ Chí Minh',
+    'Bình Dương',
+    'Đà Nẵng',
+    'Đồng Nai',
+    'Lâm Đồng',
+    'Bà Rịa - Vũng Tàu',
+    'Khánh Hòa'
+  ]
+
+  const orderedCities = (() => {
+    const set = new Set(PRIORITY_CITY_LABELS)
+    const priority = PRIORITY_CITY_LABELS
+      .map(lbl => VIETNAM_CITIES.find(c => c.label === lbl))
+      .filter(Boolean) as typeof VIETNAM_CITIES
+    const others = VIETNAM_CITIES.filter(c => !set.has(c.label))
+    return [...(priority as any), ...others]
+  })()
+
   // Render creator card
   const renderCreatorCard = (creator: Creator, showRemoveButton = false) => (
     <Card
@@ -527,18 +547,18 @@ export default function CreatorList() {
               <div className="space-y-2">
                 <div>
                   <label className="text-[11px] text-gray-400">Thành phố</label>
-                  <div className="mt-1 flex flex-wrap gap-1">
+                  <div className="mt-1 grid grid-flow-col auto-cols-max grid-rows-3 overflow-x-auto gap-1 pr-1">
                     <Button
                       size="sm"
-                      className="h-8 px-2 text-[11px]"
+                      className="h-7 px-2 text-[10px]"
                       variant={callgirlCity === 'all' ? 'default' : 'outline'}
                       onClick={() => { setCallgirlCity('all'); setCgPage(1); }}
                     >Tất cả</Button>
-                    {VIETNAM_CITIES.map(c => (
+                    {orderedCities.map(c => (
                       <Button
                         key={c.value}
                         size="sm"
-                        className="h-8 px-2 text-[11px]"
+                        className="h-7 px-2 text-[10px]"
                         variant={callgirlCity === c.value ? 'default' : 'outline'}
                         onClick={() => { setCallgirlCity(c.value); setCgPage(1); }}
                       >{c.label}</Button>
@@ -546,10 +566,9 @@ export default function CreatorList() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-[11px] text-gray-400">Giá</label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="outline" className="h-8 px-2 text-xs">Chọn mốc</Button>
+                      <span className="text-[11px] text-gray-400 cursor-pointer select-none">Giá</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-36">
                       <DropdownMenuItem onClick={() => { setPriceRange('lt600'); setMinPrice(''); setMaxPrice('600'); setCgPage(1); }}>Dưới 600</DropdownMenuItem>
