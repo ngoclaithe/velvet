@@ -352,25 +352,6 @@ export default function CreatorList() {
     return `${Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
   }
 
-  const PRIORITY_CITY_LABELS = [
-    'Hà Nội',
-    'Thành phố Hồ Chí Minh',
-    'Bình Dương',
-    'Đà Nẵng',
-    'Đồng Nai',
-    'Lâm Đồng',
-    'Bà Rịa - Vũng Tàu',
-    'Khánh Hòa'
-  ]
-
-  const orderedCities = (() => {
-    const set = new Set(PRIORITY_CITY_LABELS)
-    const priority = PRIORITY_CITY_LABELS
-      .map(lbl => VIETNAM_CITIES.find(c => c.label === lbl))
-      .filter(Boolean) as typeof VIETNAM_CITIES
-    const others = VIETNAM_CITIES.filter(c => !set.has(c.label))
-    return [...(priority as any), ...others]
-  })()
 
   // Render creator card
   const renderCreatorCard = (creator: Creator, showRemoveButton = false) => (
