@@ -306,7 +306,7 @@ function LiveStreamsTab() {
               <Link key={stream.id} href={`/watch/${stream.id}`}>
                 <Card className="bg-gray-800 border-gray-700 hover:border-red-500/50 transition-colors cursor-pointer group">
                   <div className="relative aspect-[3/5] sm:aspect-[3/4] lg:aspect-[9/8] overflow-hidden rounded-t-lg">
-                    <img src={THUMBNAILS[idx % THUMBNAILS.length]} alt={stream.title} className="w-full h-full object-cover" />
+                    <img src={stream.thumbnail || stream.creator?.streamThumbnail || THUMBNAILS[idx % THUMBNAILS.length]} alt={stream.title} className="w-full h-full object-cover" />
 
                     <div className="absolute inset-0 bg-black/10 transition-colors" />
 
