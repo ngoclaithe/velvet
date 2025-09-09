@@ -1022,7 +1022,7 @@ export default function CreatorDetailPage() {
                           <div className="mt-1 flex items-center justify-between text-xs text-gray-300">
                             <span className="flex items-center gap-1 text-gray-200">
                               <MapPin className="w-4 h-4 text-red-500" />
-                              {(rc.placeOfOperation && typeof rc.placeOfOperation === 'object' ? (rc.placeOfOperation.province || rc.placeOfOperation.district) : rc.placeOfOperation) || (rc.user?.placeOfOperation && typeof rc.user.placeOfOperation === 'object' ? (rc.user.placeOfOperation.province || rc.user.placeOfOperation.district) : rc.user?.placeOfOperation) || rc.user?.city || '-'}
+                              {getPlaceProvince(rc.placeOfOperation) || getPlaceProvince(rc.user?.placeOfOperation) || rc.user?.city || '-'}
                             </span>
                             <span className="flex items-center gap-1 text-yellow-400">
                               {/* token icon */}
