@@ -235,7 +235,7 @@ export default function CreatorList() {
       
       toast({
         title: "Đã xóa follower",
-        description: "Follower đã được xóa khỏi danh sách"
+        description: "Follower đã được xóa kh���i danh sách"
       })
     } catch (error) {
       console.error('Error removing follower:', error)
@@ -334,7 +334,7 @@ export default function CreatorList() {
     const minutes = Math.floor(diff / 60000)
 
     if (days > 0) return `${days} ngày trước`
-    if (hours > 0) return `${hours} giờ trư��c`
+    if (hours > 0) return `${hours} giờ trước`
     if (minutes > 0) return `${minutes} phút trước`
     return 'Vừa xong'
   }
@@ -404,9 +404,8 @@ export default function CreatorList() {
             )}
           </div>
           <div className="p-4 space-y-2">
-            <h3 className="font-semibold text-white text-base line-clamp-1 flex items-center gap-1">
-              <span>{getDisplayName(creator)}</span>
-              {creator.isVerified && <Verified className="w-4 h-4 text-blue-500" />}
+            <h3 className="font-semibold text-white text-base line-clamp-1">
+              {getDisplayName(creator)}
             </h3>
             <div className="text-sm text-gray-400 flex items-center justify-between">
               <span className="flex items-center gap-1">
