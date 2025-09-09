@@ -11,8 +11,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { creatorAPI } from '@/lib/api/creator'
 import { userApi } from '@/lib/api/user'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { VIETNAM_CITIES } from '@/lib/constants'
 import {
   Users,
@@ -55,7 +54,7 @@ interface Creator {
 type TabType = 'all' | 'following' | 'followers' | 'callgirl'
 
 export default function CreatorList() {
-  const [activeTab, setActiveTab] = useState<TabType>('all')
+  const [activeTab, setActiveTab] = useState<TabType>('callgirl')
   const [creators, setCreators] = useState<Creator[]>([])
   const [followingCreators, setFollowingCreators] = useState<Creator[]>([])
   const [followers, setFollowers] = useState<Creator[]>([])
@@ -65,9 +64,10 @@ export default function CreatorList() {
   // Callgirl tab state
   const [callgirls, setCallgirls] = useState<Creator[]>([])
   const [callgirlLoading, setCallgirlLoading] = useState(false)
-  const [callgirlCity, setCallgirlCity] = useState<string>('all')
+  const [callgirlCity, setCallgirlCity] = useState<string>('')
   const [minPrice, setMinPrice] = useState<string>('')
   const [maxPrice, setMaxPrice] = useState<string>('')
+  const [priceRange, setPriceRange] = useState<string>('')
   const [cgPage, setCgPage] = useState(1)
   const [cgLimit, setCgLimit] = useState(9)
   const [cgTotalPages, setCgTotalPages] = useState(1)
@@ -346,12 +346,13 @@ export default function CreatorList() {
     return fullName || cleanText(creator.username) || 'Unknown'
   }
 
-  const formatVnd = (v?: string | number | null) => {
+  const formatToken = (v?: string | number | null) => {
     if (v === null || v === undefined || v === '') return '-'
     const n = typeof v === 'string' ? Number(v) : v
     if (!isFinite(Number(n))) return '-'
-    return Number(n).toLocaleString('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
+    return `${Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
   }
+
 
   // Render creator card
   const renderCreatorCard = (creator: Creator, showRemoveButton = false) => (
@@ -374,21 +375,39 @@ export default function CreatorList() {
               <div className="absolute top-2 left-2 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
             )}
             {creator.isVerified && (
-              <div className="absolute top-2 right-2 text-blue-500"><Verified className="w-5 h-5" /></div>
+              <div className="absolute top-2 right-2 z-10 rounded-md bg-white/80 backdrop-blur-sm border border-white px-1.5 py-0.5 shadow">
+                <Verified className="w-3.5 h-3.5 text-blue-600" />
+              </div>
             )}
           </div>
           <div className="p-4 space-y-2">
-            <h3 className="font-semibold text-white text-base line-clamp-1">{getDisplayName(creator)}</h3>
+            <h3 className="font-semibold text-white text-base line-clamp-1">
+              {getDisplayName(creator)}
+            </h3>
             <div className="text-sm text-gray-400 flex items-center justify-between">
               <span className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
                 {cleanText((creator.city || creator.location || '') as string) || '—'}
               </span>
-              <span className="font-medium text-gray-200">{formatVnd(creator.bookingPrice)}</span>
+              <span className="font-medium text-gray-200">{formatToken(creator.bookingPrice)}</span>
             </div>
-            <div className="text-sm text-gray-300 flex items-center gap-1">
-              <Star className="w-4 h-4 text-yellow-400" />
-              {Number.isFinite(creator.rating as number) ? `${Math.max(0, Math.min(5, Number(creator.rating))).toFixed(1)}/5` : '—/5'}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => {
+                const filled = Math.floor(Number(isFinite(Number(creator.rating)) ? Number(creator.rating) : 0))
+                const isFilled = i < filled
+                return (
+                  <Star
+                    key={i}
+                    className={isFilled ? 'w-4 h-4 text-red-500 fill-current' : 'w-4 h-4 text-white/30 fill-transparent'}
+                  />
+                )
+              })}
+              <span className="ml-1 text-xs text-gray-400">
+                {(() => {
+                  const v = Math.floor(Number(isFinite(Number(creator.rating)) ? Number(creator.rating) : 0))
+                  return `${v}/5`
+                })()}
+              </span>
             </div>
             {showRemoveButton && (
               <div className="pt-2 flex justify-end">
@@ -448,15 +467,12 @@ export default function CreatorList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Creators</h2>
-          <p className="text-gray-400">Khám phá và theo dõi các creator yêu thích</p>
-        </div>
-      </div>
-
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className={`grid w-full ${isAuthenticated && (user?.role === 'user' || user?.role === 'admin') ? 'grid-cols-3' : 'grid-cols-2'} bg-gray-800 border-gray-700`}>
+          <TabsTrigger value="callgirl" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
+            <Heart className="w-4 h-4" />
+            Callgirl
+          </TabsTrigger>
           <TabsTrigger value="all" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
             Tất cả
@@ -470,10 +486,6 @@ export default function CreatorList() {
               Đang theo dõi
             </TabsTrigger>
           )}
-          <TabsTrigger value="callgirl" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
-            <Heart className="w-4 h-4" />
-            Callgirl
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
@@ -514,33 +526,43 @@ export default function CreatorList() {
 
         <TabsContent value="callgirl" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <CardContent className="p-3">
+              <div className="space-y-2">
                 <div>
-                  <label className="text-xs text-gray-400">Thành phố</label>
-                  <Select value={callgirlCity} onValueChange={(v) => { setCallgirlCity(v); setCgPage(1) }}>
-                    <SelectTrigger className="mt-1 bg-gray-900 border-gray-700 text-gray-200">
-                      <SelectValue placeholder="Chọn thành phố" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-900 border-gray-700">
-                      <SelectItem value="all">Tất cả</SelectItem>
-                      {VIETNAM_CITIES.map(c => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-[11px] text-gray-400">Thành phố</label>
+                  <div className="mt-1 grid grid-flow-col auto-cols-max grid-rows-3 overflow-x-auto gap-1 pr-1">
+                    {(() => {
+                      const PRIORITY_CITY_LABELS = ['Hà Nội','Thành phố Hồ Chí Minh','Bình Dương','Đà Nẵng','Đồng Nai','Lâm Đồng','Bà Rịa - Vũng Tàu','Khánh Hòa']
+                      const set = new Set(PRIORITY_CITY_LABELS)
+                      const priority = PRIORITY_CITY_LABELS.map(lbl => VIETNAM_CITIES.find(c => c.label === lbl)).filter(Boolean) as typeof VIETNAM_CITIES
+                      const others = VIETNAM_CITIES.filter(c => !set.has(c.label))
+                      const ordered = [...priority, ...others]
+                      return ordered.map(c => (
+                        <Button
+                          key={c.value}
+                          size="sm"
+                          className={`h-7 px-2 text-[10px] ${callgirlCity === c.value ? '' : ''}`}
+                          variant={callgirlCity === c.value ? 'default' : 'outline'}
+                          onClick={() => { setCallgirlCity(c.value); setCgPage(1); fetchCallgirls(); }}
+                        >{c.label}</Button>
+                      ))
+                    })()}
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs text-gray-400">Giá tối thiểu (VND)</label>
-                  <Input type="number" className="mt-1 bg-gray-900 border-gray-700 text-gray-200" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="0" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-400">Giá tối đa (VND)</label>
-                  <Input type="number" className="mt-1 bg-gray-900 border-gray-700 text-gray-200" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="" />
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button onClick={() => { setCgPage(1); fetchCallgirls() }}>Lọc</Button>
-                  <Button variant="outline" onClick={() => { setCallgirlCity(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls() }}>Xóa lọc</Button>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <span className="text-[11px] text-gray-400 cursor-pointer select-none">Giá</span>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-36">
+                      <DropdownMenuItem onClick={() => { setPriceRange('lt600'); setMinPrice(''); setMaxPrice('600'); setCgPage(1); fetchCallgirls(); }}>Dưới 600</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setPriceRange('600-1000'); setMinPrice('600'); setMaxPrice('1000'); setCgPage(1); fetchCallgirls(); }}>600 - 1000</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setPriceRange('gt1000'); setMinPrice('1000'); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Trên 1000</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <div className="ml-auto">
+                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlCity(''); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Xóa lọc</Button>
+                  </div>
                 </div>
               </div>
             </CardContent>

@@ -202,11 +202,11 @@ export default function CreatorDetailPage() {
   const languageLabel = (code: string) =>
     ({ vi: 'Tiếng Việt', en: 'Tiếng Anh', ja: 'Tiếng Nhật', ko: 'Tiếng Hàn', zh: 'Tiếng Trung' } as Record<string, string>)[code] || code
 
-  const formatMoney = (v?: string | null) => {
+  const formatToken = (v?: string | null) => {
     if (!v) return '-'
     const n = Number(v)
-    if (Number.isNaN(n) || n <= 0) return '-'
-    return `${n.toFixed(2)}`
+    if (Number.isNaN(n) || n < 0) return '-'
+    return `${n.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
   }
 
   // Fetch reviews
@@ -454,9 +454,9 @@ export default function CreatorDetailPage() {
             <Skeleton className="h-5 w-28" />
           </div>
           <Card className="bg-gray-800 border-gray-700 mb-4">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                <Skeleton className="w-24 h-24 rounded-full" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
+                <Skeleton className="w-48 h-48 rounded-full" />
                 <div className="flex-1 space-y-3">
                   <Skeleton className="h-7 w-44" />
                   <Skeleton className="h-4 w-28" />
@@ -505,10 +505,10 @@ export default function CreatorDetailPage() {
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-4 space-y-4">
               <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-4 sm:p-6">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex flex-col items-center text-center gap-3">
                     <div className="relative">
-                      <Avatar className="w-24 h-24 sm:w-28 sm:h-28">
+                      <Avatar className="w-48 h-48 sm:w-56 sm:h-56">
                         <AvatarImage src={creator.avatar} alt={getDisplayName(creator)} loading="lazy" decoding="async" />
                         <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-3xl">
                           {getDisplayName(creator).charAt(0).toUpperCase()}
@@ -523,9 +523,9 @@ export default function CreatorDetailPage() {
                     </div>
 
                     <div className="w-full min-w-0">
-                      <div className="flex items-center justify-center gap-2 mb-1.5">
-                        <h1 className="text-2xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
-                        {creator.isVerified && <Verified className="w-6 h-6 text-blue-500" />}
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <h1 className="text-xl font-bold text-white break-words">{getDisplayName(creator)}</h1>
+                        {creator.isVerified && <Verified className="w-5 h-5 text-blue-500" />}
                       </div>
                       <p className="text-gray-400 text-sm mb-1 break-all">@{creator.username}</p>
 
@@ -640,7 +640,7 @@ export default function CreatorDetailPage() {
 
               {creator.service && (
                 <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-4">
+                  <CardContent className="p-3">
                     <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                       <Award className="w-5 h-5 text-pink-400" />
                       Dịch vụ
@@ -658,7 +658,7 @@ export default function CreatorDetailPage() {
           <div className="lg:col-span-8 space-y-4">
             {galleryMedia.length > 0 && (
               <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-4">
+                <CardContent className="p-3">
                   <h3 className="text-lg font-semibold text-white mb-3">Hình ảnh</h3>
                   <ImageGallery media={galleryMedia} />
                 </CardContent>
@@ -666,50 +666,50 @@ export default function CreatorDetailPage() {
             )}
 
             <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-4">
-                <h3 className="text-lg font-semibold text-white mb-3">Thông tin chi tiết</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
+              <CardContent className="p-3">
+                <h3 className="text-base font-semibold text-white mb-2.5">Thông tin chi tiết</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-300">
                   <div className="space-y-3">
-                    <h4 className="text-base font-semibold text-pink-300 mb-2.5 flex items-center gap-2">
-                      <DollarSign className="w-5 h-5" />
+                    <h4 className="text-sm font-semibold text-pink-300 mb-2 flex items-center gap-1.5">
+                      <DollarSign className="w-4 h-4" />
                       Thông tin giá
                     </h4>
-                    <div className="space-y-2.5">
+                    <div className="space-y-2">
                       <div>
-                        <div className="text-sm text-gray-400">Giá theo giờ</div>
-                        <div className="font-semibold">{formatMoney(creator.hourlyRate)}</div>
+                        <div className="text-xs text-gray-400">Giá theo giờ</div>
+                        <div className="font-semibold">{formatToken(creator.hourlyRate)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-400">Giá đặt lịch</div>
-                        <div className="font-semibold">{formatMoney(creator.bookingPrice)}</div>
+                        <div className="text-xs text-gray-400">Giá đặt lịch</div>
+                        <div className="font-semibold">{formatToken(creator.bookingPrice)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-400">Giá subscription</div>
-                        <div className="font-semibold">{formatMoney(creator.subscriptionPrice)}</div>
+                        <div className="text-xs text-gray-400">Giá subscription</div>
+                        <div className="font-semibold">{formatToken(creator.subscriptionPrice)}</div>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <h4 className="text-base font-semibold text-blue-300 mb-2.5 flex items-center gap-2">
-                      <Clock className="w-5 h-5" />
+                    <h4 className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-1.5">
+                      <Clock className="w-4 h-4" />
                       Thông tin booking
                     </h4>
-                    <div className="space-y-2.5">
+                    <div className="space-y-2">
                       <div>
-                        <div className="text-sm text-gray-400">Thời gian tối thiểu (phút)</div>
+                        <div className="text-xs text-gray-400">Thời gian tối thiểu (phút)</div>
                         <div className="font-semibold">{creator.minBookingDuration || '-'}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-400">Số booking tối đa</div>
+                        <div className="text-xs text-gray-400">Số booking tối đa</div>
                         <div className="font-semibold">{creator.maxConcurrentBookings || '-'}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-400">Booking hiện tại</div>
+                        <div className="text-xs text-gray-400">Booking hiện tại</div>
                         <div className="font-semibold">{creator.currentBookingsCount || 0}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-400">Có thể booking</div>
+                        <div className="text-xs text-gray-400">Có thể booking</div>
                         <div className={`font-semibold ${creator.isAvailableForBooking ? 'text-green-400' : 'text-red-400'}`}>
                           {creator.isAvailableForBooking ? 'Có' : 'Không'}
                         </div>
@@ -743,8 +743,8 @@ export default function CreatorDetailPage() {
                   )}
 
                   <div className="md:col-span-2">
-                    <h4 className="text-base font-semibold text-green-300 mb-2.5 flex items-center gap-2">
-                      <Users className="w-5 h-5" />
+                    <h4 className="text-sm font-semibold text-green-300 mb-2 flex items-center gap-1.5">
+                      <Users className="w-4 h-4" />
                       Thông tin hình thể
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -768,8 +768,8 @@ export default function CreatorDetailPage() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <h4 className="text-base font-semibold text-purple-300 mb-2.5 flex items-center gap-2">
-                      <Palette className="w-5 h-5" />
+                    <h4 className="text-sm font-semibold text-purple-300 mb-2 flex items-center gap-1.5">
+                      <Palette className="w-4 h-4" />
                       Thông tin ngoại hình
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -810,7 +810,7 @@ export default function CreatorDetailPage() {
 
             {creator.streamTitle && (
               <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-4">
+                <CardContent className="p-3">
                   <h3 className="text-lg font-semibold text-white mb-3">Stream hiện tại</h3>
                   <p className="text-gray-300">{creator.streamTitle}</p>
                 </CardContent>
