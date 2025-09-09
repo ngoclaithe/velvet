@@ -421,7 +421,7 @@ export default function CreatorList() {
 
   // Render loading skeleton
   const renderSkeleton = () => (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
         <Card key={i} className="bg-gray-800 border-gray-700">
           <CardContent className="p-6">
@@ -480,7 +480,7 @@ export default function CreatorList() {
           {loading ? (
             renderSkeleton()
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
               {creators.map(creator => renderCreatorCard(creator, false))}
             </div>
           )}
@@ -500,13 +500,13 @@ export default function CreatorList() {
             <Card className="p-6 text-center bg-gray-800 border-gray-700">
               <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Chưa theo dõi ai</h3>
-              <p className="text-gray-400 mb-4">Hãy theo dõi một số creator để xem họ ở đây</p>
+              <p className="text-gray-400 mb-4">Hãy theo dõi m��t số creator để xem họ ở đây</p>
               <Button onClick={() => setActiveTab('all')}>
                 Khám phá creators
               </Button>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
               {followingCreators.map(creator => renderCreatorCard(creator, false))}
             </div>
           )}
@@ -554,7 +554,7 @@ export default function CreatorList() {
             </Card>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                 {callgirls.map(c => renderCreatorCard(c, false))}
               </div>
               <div className="flex items-center justify-between pt-2">
@@ -579,7 +579,7 @@ export default function CreatorList() {
                 <p className="text-gray-400">Chia sẻ nội dung để thu hút followers</p>
               </Card>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                 {followers.map(follower => renderCreatorCard(follower, true))}
               </div>
             )}
