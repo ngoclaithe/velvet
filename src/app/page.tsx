@@ -262,7 +262,7 @@ function LiveStreamsTab() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="bg-gray-800 border-gray-700 animate-pulse">
-              <div className="aspect-video bg-gray-700 rounded-t-lg" />
+              <div className="aspect-[8/9] sm:aspect-video bg-gray-700 rounded-t-lg" />
               <CardContent className="p-3 sm:p-4">
                 <div className="space-y-2">
                   <div className="h-4 bg-gray-700 rounded w-3/4" />
@@ -297,7 +297,7 @@ function LiveStreamsTab() {
             {liveStreams.map((stream) => (
               <Link key={stream.id} href={`/watch/${stream.id}`}>
                 <Card className="bg-gray-800 border-gray-700 hover:border-red-500/50 transition-colors cursor-pointer group">
-                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                  <div className="relative aspect-[8/9] sm:aspect-video overflow-hidden rounded-t-lg">
                     <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
                       <Play className="w-8 h-8 sm:w-12 sm:h-12 text-white opacity-70 group-hover:opacity-100 transition-opacity" />
                     </div>
