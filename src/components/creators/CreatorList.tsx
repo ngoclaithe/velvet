@@ -11,9 +11,6 @@ import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { creatorAPI } from '@/lib/api/creator'
 import { userApi } from '@/lib/api/user'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { VIETNAM_CITIES } from '@/lib/constants'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import {
   Users,
@@ -235,7 +232,7 @@ export default function CreatorList() {
       
       toast({
         title: "Đã xóa follower",
-        description: "Follower đã được xóa kh���i danh sách"
+        description: "Follower đã được xóa khỏi danh sách"
       })
     } catch (error) {
       console.error('Error removing follower:', error)
