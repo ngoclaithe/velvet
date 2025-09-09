@@ -334,7 +334,7 @@ export default function CreatorList() {
     const minutes = Math.floor(diff / 60000)
 
     if (days > 0) return `${days} ngày trước`
-    if (hours > 0) return `${hours} giờ trước`
+    if (hours > 0) return `${hours} giờ trư��c`
     if (minutes > 0) return `${minutes} phút trước`
     return 'Vừa xong'
   }
@@ -356,7 +356,7 @@ export default function CreatorList() {
   }
 
   const PRIORITY_CITY_LABELS = [
-    'Hà N���i',
+    'Hà Nội',
     'Thành phố Hồ Chí Minh',
     'Bình Dương',
     'Đà Nẵng',
@@ -394,6 +394,13 @@ export default function CreatorList() {
             )}
             {creator.isOnline && (
               <div className="absolute top-2 left-2 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
+            )}
+            {creator.isVerified && (
+              <div className="absolute top-2 right-2 z-10">
+                <div className="bg-blue-500/90 text-white rounded-full p-1.5 shadow-lg ring-2 ring-white/80">
+                  <Verified className="w-4 h-4" />
+                </div>
+              </div>
             )}
           </div>
           <div className="p-4 space-y-2">
