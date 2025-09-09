@@ -959,45 +959,53 @@ export default function CreatorDetailPage() {
           <div className="lg:col-span-3 space-y-4">
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-3">
-                <h3 className="text-lg font-semibold text-white mb-3">Creator liên quan</h3>
-                
+                {/* Title intentionally removed as requested */}
+
                 {loadingRelated ? (
                   <div className="space-y-3">
                     {[1, 2].map((item) => (
-                      <div key={item} className="flex items-center gap-3 p-2 rounded-md bg-gray-700/50">
-                        <Skeleton className="w-12 h-12 rounded-full" />
-                        <div className="flex-1">
-                          <Skeleton className="h-4 w-24 mb-2" />
-                          <Skeleton className="h-3 w-16" />
-                        </div>
+                      <div key={item} className="p-2 rounded-md bg-gray-700/50">
+                        <Skeleton className="w-full h-32 rounded-md mb-2" />
+                        <Skeleton className="h-4 w-3/4 mb-1" />
+                        <Skeleton className="h-3 w-1/2" />
                       </div>
                     ))}
                   </div>
                 ) : relatedCreators.length > 0 ? (
                   <div className="space-y-3">
-                    {relatedCreators.map((relatedCreator) => (
-                      <div 
-                        key={relatedCreator.id} 
-                        className="flex items-center gap-3 p-2 rounded-md bg-gray-700/50 hover:bg-gray-700/70 cursor-pointer transition-colors"
-                        onClick={() => router.push(`/creator/${relatedCreator.id}`)}
+                    {relatedCreators.map((rc) => (
+                      <div
+                        key={rc.id}
+                        className="bg-gray-700/50 rounded-md overflow-hidden hover:bg-gray-700/70 cursor-pointer transition-colors"
+                        onClick={() => router.push(`/creator/${rc.id}`)}
                       >
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={relatedCreator.user.avatar} alt={relatedCreator.stageName} />
-                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
-                            {relatedCreator.stageName?.charAt(0) || relatedCreator.user.firstName?.charAt(0) || 'C'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1">
-                            <h4 className="text-sm font-medium text-white truncate">
-                              {relatedCreator.stageName || `${relatedCreator.user.firstName} ${relatedCreator.user.lastName}`}
-                            </h4>
-                            {relatedCreator.isVerified && <Verified className="w-3 h-3 text-blue-500 flex-shrink-0" />}
+                        <div className="relative w-full aspect-[3/4] bg-gradient-to-r from-pink-500 to-purple-500">
+                          {rc.user?.avatar ? (
+                            <img src={rc.user.avatar} alt={rc.stageName || rc.user.firstName} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white text-2xl font-semibold">
+                              {(rc.stageName || rc.user.firstName || 'C').charAt(0).toUpperCase()
+                            }</div>
+                          )}
+                          {rc.isVerified && (
+                            <div className="absolute top-2 right-2 z-10 rounded-md bg-white/80 backdrop-blur-sm border border-white px-1 py-0.5">
+                              <Verified className="w-3 h-3 text-blue-600" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-white truncate">{rc.stageName || `${rc.user.firstName} ${rc.user.lastName}`}</h4>
                           </div>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-gray-300">
-                              {Number(relatedCreator.rating).toFixed(1)} ({relatedCreator.totalRatings})
+                          <div className="mt-2 flex items-center justify-between text-xs text-gray-300">
+                            <span className="flex items-center gap-1 text-gray-200">
+                              <MapPin className="w-4 h-4 text-red-500" />
+                              {rc.user?.city || rc.placeOfOperation || '-'}
+                            </span>
+                            <span className="flex items-center gap-1 text-yellow-400">
+                              {/* token icon */}
+                              <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 2a1 1 0 0 1 2 0v1.06a6.5 6.5 0 0 1 4.94 4.94H19a1 1 0 1 1 0 2h-1.06a6.5 6.5 0 0 1-4.94 4.94V19a1 1 0 1 1-2 0v-1.06A6.5 6.5 0 0 1 6.06 10H5a1 1 0 1 1 0-2h1.06A6.5 6.5 0 0 1 11 3.06V2zm1 4a4.5 4.5 0 1 0 0 9a4.5 4.5 0 0 0 0-9z"/></svg>
+                              {Number.isFinite(Number(rc.bookingPrice)) ? Number(rc.bookingPrice as any).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) : '-'}
                             </span>
                           </div>
                         </div>
@@ -1181,7 +1189,7 @@ export default function CreatorDetailPage() {
                 <p className="text-xs text-gray-400 mt-1">Để trống nếu muốn bắt đầu ngay khi được chấp nhận</p>
               </div>
               <div>
-                <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
+                <Label htmlFor="notes">Ghi ch�� (tùy chọn)</Label>
                 <Textarea id="notes" maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Yêu cầu chi tiết..." />
                 <div className="text-xs text-gray-500 mt-1 text-right">{notes.length}/500</div>
               </div>
