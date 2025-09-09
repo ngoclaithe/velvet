@@ -102,7 +102,7 @@ export default function CreatorList() {
           category: item?.category || '',
           location: item?.location || '',
           placeOfOperation: typeof item?.placeOfOperation === 'object'
-            ? (item?.placeOfOperation?.province || item?.placeOfOperation?.district || '')
+            ? ((item?.placeOfOperation as any)?.province || (item?.placeOfOperation as any)?.district || '')
             : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? (item?.user?.placeOfOperation?.province || item?.user?.placeOfOperation?.district) : item?.user?.placeOfOperation) || ''),
           city: item?.user?.city || item?.city || item?.location || '',
           bookingPrice: item?.bookingPrice ?? null,
@@ -278,7 +278,7 @@ export default function CreatorList() {
           category: 'callgirl',
           location: item?.location || '',
           placeOfOperation: typeof item?.placeOfOperation === 'object'
-            ? (item?.placeOfOperation?.province || item?.placeOfOperation?.district || '')
+            ? ((item?.placeOfOperation as any)?.province || (item?.placeOfOperation as any)?.district || '')
             : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? (item?.user?.placeOfOperation?.province || item?.user?.placeOfOperation?.district) : item?.user?.placeOfOperation) || ''),
           city: item?.user?.city || item?.city || '',
           bookingPrice: item?.bookingPrice ?? null,
