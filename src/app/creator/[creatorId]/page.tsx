@@ -689,7 +689,7 @@ export default function CreatorDetailPage() {
                         </div>
                       ) : !isAuthenticated ? (
                         <div className="text-center">
-                          <p className="text-gray-400 mb-3">Đăng nhập đ�� theo dõi creator</p>
+                          <p className="text-gray-400 mb-3">Đăng nhập để theo dõi creator</p>
                           <Button onClick={() => (window.location.href = '/login')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
                             Đăng nhập
                           </Button>
@@ -977,10 +977,10 @@ export default function CreatorDetailPage() {
                     {relatedCreators.map((rc) => (
                       <div
                         key={rc.id}
-                        className="bg-gray-700/50 rounded-md overflow-hidden hover:bg-gray-700/70 cursor-pointer transition-colors min-w-[180px] flex-shrink-0 md:min-w-full"
+                        className="bg-gray-700/50 rounded-md overflow-hidden hover:bg-gray-700/70 cursor-pointer transition-colors w-[160px] sm:w-[180px] flex-shrink-0 md:w-full"
                         onClick={() => router.push(`/creator/${rc.id}`)}
                       >
-                        <div className="relative w-full aspect-[5/4] bg-gradient-to-r from-pink-500 to-purple-500">
+                        <div className="relative w-full h-40 sm:h-44 md:aspect-[5/4] bg-gradient-to-r from-pink-500 to-purple-500">
                           {rc.user?.avatar ? (
                             <img src={rc.user.avatar} alt={rc.stageName || rc.user.firstName} className="w-full h-full object-cover" />
                           ) : (
@@ -1187,7 +1187,7 @@ export default function CreatorDetailPage() {
                   value={scheduledTime}
                   onChange={(e) => setScheduledTime(e.target.value)}
                 />
-                <p className="text-xs text-gray-400 mt-1">Để trống nếu muốn bắt đầu ngay khi được chấp nhận</p>
+                <p className="text-xs text-gray-400 mt-1">Đ�� trống nếu muốn bắt đầu ngay khi được chấp nhận</p>
               </div>
               <div>
                 <Label htmlFor="notes">Ghi ch�� (tùy chọn)</Label>
