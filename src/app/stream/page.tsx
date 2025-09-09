@@ -24,8 +24,6 @@ import {
   Mic,
   MicOff,
   VideoOff,
-  Share2,
-  Save,
   Play,
   Square
 } from 'lucide-react'
@@ -196,13 +194,6 @@ export default function StreamPage() {
     }
   }
 
-  const copyStreamLink = () => {
-    if (currentStream) {
-      const link = `${window.location.origin}/watch/${currentStream.id}`
-      navigator.clipboard.writeText(link)
-      toast.success('Link stream đã được sao chép!')
-    }
-  }
 
   if (authLoading) {
     return (
@@ -272,12 +263,6 @@ export default function StreamPage() {
                   <Badge variant="default" className="bg-green-500">
                     Recording
                   </Badge>
-                )}
-                {currentStream && (
-                  <Button variant="outline" size="sm" onClick={copyStreamLink}>
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Chia sẻ
-                  </Button>
                 )}
               </div>
               <div className="flex items-center space-x-2">
@@ -574,14 +559,6 @@ export default function StreamPage() {
               />
             </div>
             
-            {!currentStream && (
-              <div className="flex justify-end">
-                <Button onClick={handleStartStream} disabled={isStartingStream}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Lưu & Bắt đầu Stream
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
         )}
