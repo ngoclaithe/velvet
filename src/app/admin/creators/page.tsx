@@ -700,7 +700,7 @@ export default function CreatorsAdminPage() {
                     <SelectValue placeholder="Chọn" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Chưa chọn</SelectItem>
+                    <SelectItem value="none">Chưa ch��n</SelectItem>
                     <SelectItem value="male">Nam</SelectItem>
                     <SelectItem value="female">Nữ</SelectItem>
                     <SelectItem value="other">Khác</SelectItem>
@@ -728,7 +728,7 @@ export default function CreatorsAdminPage() {
                 <Input value={form.titleBio} onChange={(e) => setField('titleBio', e.target.value)} />
               </div>
               <div>
-                <Label>Thành phố</Label>
+                <Label>Thành ph��</Label>
                 <Select value={form.city} onValueChange={(v) => setField('city', v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn thành phố" />
@@ -741,6 +741,27 @@ export default function CreatorsAdminPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div>
+                <Label>Nơi hoạt động (placeOfOperation)</Label>
+                <Input value={form.placeOfOperation} onChange={(e) => setField('placeOfOperation', e.target.value)} />
+              </div>
+
+              <div>
+                <Label>Telegram</Label>
+                <Input value={form.telegram} onChange={(e) => setField('telegram', e.target.value)} placeholder="@username hoặc link" />
+              </div>
+
+              <div>
+                <Label>Instagram</Label>
+                <Input value={form.instagram} onChange={(e) => setField('instagram', e.target.value)} placeholder="username hoặc link" />
+              </div>
+
+              <div>
+                <Label>Facebook</Label>
+                <Input value={form.facebook} onChange={(e) => setField('facebook', e.target.value)} placeholder="profile hoặc link" />
+              </div>
+
               <div className="sm:col-span-2">
                 <Label>Bio</Label>
                 <Textarea value={form.bio} onChange={(e) => setField('bio', e.target.value)} rows={4} />
