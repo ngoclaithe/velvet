@@ -66,6 +66,8 @@ interface Creator {
   isOnline?: boolean
   category?: string
   location?: string
+  placeOfOperation?: string
+  user?: { placeOfOperation?: string; city?: string }
   isFollowing?: boolean
   isLive?: boolean
   streamTitle?: string
