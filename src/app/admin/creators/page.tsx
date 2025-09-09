@@ -700,7 +700,7 @@ export default function CreatorsAdminPage() {
                     <SelectValue placeholder="Chọn" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Chưa ch��n</SelectItem>
+                    <SelectItem value="none">Chưa chọn</SelectItem>
                     <SelectItem value="male">Nam</SelectItem>
                     <SelectItem value="female">Nữ</SelectItem>
                     <SelectItem value="other">Khác</SelectItem>
@@ -728,7 +728,7 @@ export default function CreatorsAdminPage() {
                 <Input value={form.titleBio} onChange={(e) => setField('titleBio', e.target.value)} />
               </div>
               <div>
-                <Label>Thành ph��</Label>
+                <Label>Thành phố</Label>
                 <Select value={form.city} onValueChange={(v) => setField('city', v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn thành phố" />
@@ -743,7 +743,7 @@ export default function CreatorsAdminPage() {
               </div>
 
               <div>
-                <Label>Nơi hoạt động (placeOfOperation)</Label>
+                <Label>Khu vực hoạt động</Label>
                 <Input value={form.placeOfOperation} onChange={(e) => setField('placeOfOperation', e.target.value)} />
               </div>
 

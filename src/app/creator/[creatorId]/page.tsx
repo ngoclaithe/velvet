@@ -1187,10 +1187,10 @@ export default function CreatorDetailPage() {
                   value={scheduledTime}
                   onChange={(e) => setScheduledTime(e.target.value)}
                 />
-                <p className="text-xs text-gray-400 mt-1">Đ�� trống nếu muốn bắt đầu ngay khi được chấp nhận</p>
+                <p className="text-xs text-gray-400 mt-1">Để trống nếu muốn bắt đầu ngay khi được chấp nhận</p>
               </div>
               <div>
-                <Label htmlFor="notes">Ghi ch�� (tùy chọn)</Label>
+                <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
                 <Textarea id="notes" maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Yêu cầu chi tiết..." />
                 <div className="text-xs text-gray-500 mt-1 text-right">{notes.length}/500</div>
               </div>
