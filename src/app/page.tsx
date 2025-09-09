@@ -261,7 +261,6 @@ function LiveStreamsTab() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
-            
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -286,7 +285,11 @@ function LiveStreamsTab() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
-          
+        </div>
+        <div className="mt-2 sm:mt-0">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/streams">Xem tất cả</Link>
+          </Button>
         </div>
       </div>
 
