@@ -174,6 +174,7 @@ interface RelatedCreator {
     lastName: string
     avatar: string
     city: string
+    placeOfOperation?: string
   }
 }
 
