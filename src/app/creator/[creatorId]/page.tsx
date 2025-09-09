@@ -238,7 +238,7 @@ export default function CreatorDetailPage() {
     if (!v) return '-'
     const n = Number(v)
     if (Number.isNaN(n) || n < 0) return '-'
-    return `${n.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
+    return n.toLocaleString('vi-VN', { maximumFractionDigits: 0 })
   }
 
   // Fetch related creators
