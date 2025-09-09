@@ -16,5 +16,6 @@ export const creatorAPI = {
         if (params?.sortBy) qp.sortBy = params.sortBy
         return api.get('/creators/callgirls', qp)
     },
+    getRelatedCreator: (id: number, limit: number = 10) => api.get(`/creators/${id}/related`, { limit: String(limit) }),
     updateCreator: (id: number, data: any) => api.put(`/creators/${id}`, data),
 }

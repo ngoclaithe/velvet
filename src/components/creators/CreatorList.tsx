@@ -384,12 +384,15 @@ export default function CreatorList() {
             <h3 className="font-semibold text-white text-base line-clamp-1">
               {getDisplayName(creator)}
             </h3>
-            <div className="text-sm text-gray-400 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
+            <div className="text-sm flex items-center justify-between">
+              <span className="flex items-center gap-1 text-red-500">
+                <MapPin className="w-4 h-4 text-red-500" />
                 {cleanText((creator.city || creator.location || '') as string) || '—'}
               </span>
-              <span className="font-medium text-gray-200">{formatToken(creator.bookingPrice)}</span>
+              <span className="text-xs font-medium text-gray-200 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 2a1 1 0 0 1 2 0v1.06a6.5 6.5 0 0 1 4.94 4.94H19a1 1 0 1 1 0 2h-1.06a6.5 6.5 0 0 1-4.94 4.94V19a1 1 0 1 1-2 0v-1.06A6.5 6.5 0 0 1 6.06 10H5a1 1 0 1 1 0-2h1.06A6.5 6.5 0 0 1 11 3.06V2zm1 4a4.5 4.5 0 1 0 0 9a4.5 4.5 0 0 0 0-9z"/></svg>
+                {Number.isFinite(Number(creator.bookingPrice)) ? Number(creator.bookingPrice as any).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) : '-'}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => {
