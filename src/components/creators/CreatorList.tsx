@@ -101,7 +101,9 @@ export default function CreatorList() {
           isOnline: Boolean(item?.isLive),
           category: item?.category || '',
           location: item?.location || '',
-          placeOfOperation: item?.placeOfOperation || item?.place || item?.operatingPlace || item?.user?.placeOfOperation || '',
+          placeOfOperation: typeof item?.placeOfOperation === 'object'
+            ? (item?.placeOfOperation?.province || item?.placeOfOperation?.district || '')
+            : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? (item?.user?.placeOfOperation?.province || item?.user?.placeOfOperation?.district) : item?.user?.placeOfOperation) || ''),
           city: item?.user?.city || item?.city || item?.location || '',
           bookingPrice: item?.bookingPrice ?? null,
           rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
@@ -275,7 +277,9 @@ export default function CreatorList() {
           isOnline: Boolean(item?.isLive),
           category: 'callgirl',
           location: item?.location || '',
-          placeOfOperation: item?.placeOfOperation || item?.place || item?.operatingPlace || item?.user?.placeOfOperation || '',
+          placeOfOperation: typeof item?.placeOfOperation === 'object'
+            ? (item?.placeOfOperation?.province || item?.placeOfOperation?.district || '')
+            : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? (item?.user?.placeOfOperation?.province || item?.user?.placeOfOperation?.district) : item?.user?.placeOfOperation) || ''),
           city: item?.user?.city || item?.city || '',
           bookingPrice: item?.bookingPrice ?? null,
           rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
