@@ -92,7 +92,7 @@ export default function CreatorsAdminPage() {
     dateOfBirth: '',
     avatar: '',
     gender: '',
-    country: '',
+    country: 'Việt Nam',
     city: 'all',
     timezone: 'Asia/Ho_Chi_Minh',
     language: 'vi',
@@ -121,6 +121,10 @@ export default function CreatorsAdminPage() {
     bookingPrice: '',
     subscriptionPrice: '',
     availabilitySchedule: {} as Record<string, any>,
+    placeOfOperation: '',
+    telegram: '',
+    instagram: '',
+    facebook: '',
   })
 
   const [form, setForm] = useState<any>(getInitialForm())
