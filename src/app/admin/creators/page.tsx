@@ -411,7 +411,7 @@ export default function CreatorsAdminPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label>Qu��c gia</Label>
+                    <Label>Quốc gia</Label>
                     <Input value={form.country} onChange={(e) => setField('country', e.target.value)} />
                   </div>
                   <div>
