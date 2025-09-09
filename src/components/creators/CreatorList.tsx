@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { creatorAPI } from '@/lib/api/creator'
 import { userApi } from '@/lib/api/user'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { VIETNAM_CITIES } from '@/lib/constants'
+import { VIETNAM_CITIES, VIETNAM_DISTRICTS } from '@/lib/constants'
 import {
   Users,
   UserPlus,
