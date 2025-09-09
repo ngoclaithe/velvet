@@ -566,14 +566,6 @@ export default function StreamPage() {
               />
             </div>
             
-            {!currentStream && (
-              <div className="flex justify-end">
-                <Button onClick={handleStartStream} disabled={isStartingStream}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Lưu & Bắt đầu Stream
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
         )}
