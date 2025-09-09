@@ -337,11 +337,13 @@ export default function CreatorList() {
     return 'Vừa xong'
   }
 
+  const cleanText = (s?: string) => (s ?? '').replace(/\uFFFD/g, '')
+
   // Safe function to get display name with fallback
   const getDisplayName = (creator: Creator) => {
-    if (creator.stageName) return creator.stageName
-    const fullName = `${creator.firstName} ${creator.lastName}`.trim()
-    return fullName || creator.username || 'Unknown'
+    if (creator.stageName) return cleanText(creator.stageName)
+    const fullName = cleanText(`${creator.firstName} ${creator.lastName}`.trim())
+    return fullName || cleanText(creator.username) || 'Unknown'
   }
 
   const formatVnd = (v?: string | number | null) => {
@@ -365,7 +367,7 @@ export default function CreatorList() {
               <img src={creator.avatar} alt={getDisplayName(creator)} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-white text-3xl font-semibold">
-                {getDisplayName(creator).charAt(0).toUpperCase()}
+                {cleanText(getDisplayName(creator)).charAt(0).toUpperCase()}
               </div>
             )}
             {creator.isOnline && (
@@ -380,13 +382,13 @@ export default function CreatorList() {
             <div className="text-sm text-gray-400 flex items-center justify-between">
               <span className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
-                {(creator.city || creator.location || '') || '—'}
+                {cleanText((creator.city || creator.location || '') as string) || '—'}
               </span>
               <span className="font-medium text-gray-200">{formatVnd(creator.bookingPrice)}</span>
             </div>
             <div className="text-sm text-gray-300 flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-400" />
-              {creator.rating && creator.rating > 0 ? `${creator.rating.toFixed(1)}` : 'Chưa có đánh giá'}
+              {Number.isFinite(creator.rating as number) ? `${Math.max(0, Math.min(5, Number(creator.rating))).toFixed(1)}/5` : '—/5'}
             </div>
             {showRemoveButton && (
               <div className="pt-2 flex justify-end">
@@ -419,7 +421,7 @@ export default function CreatorList() {
 
   // Render loading skeleton
   const renderSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
         <Card key={i} className="bg-gray-800 border-gray-700">
           <CardContent className="p-6">
@@ -465,7 +467,7 @@ export default function CreatorList() {
               className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white"
             >
               <UserPlus className="w-4 h-4" />
-              ��ang theo dõi
+              Đang theo dõi
             </TabsTrigger>
           )}
           <TabsTrigger value="callgirl" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
@@ -478,7 +480,7 @@ export default function CreatorList() {
           {loading ? (
             renderSkeleton()
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {creators.map(creator => renderCreatorCard(creator, false))}
             </div>
           )}
@@ -504,7 +506,7 @@ export default function CreatorList() {
               </Button>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {followingCreators.map(creator => renderCreatorCard(creator, false))}
             </div>
           )}
@@ -552,7 +554,7 @@ export default function CreatorList() {
             </Card>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {callgirls.map(c => renderCreatorCard(c, false))}
               </div>
               <div className="flex items-center justify-between pt-2">
@@ -577,7 +579,7 @@ export default function CreatorList() {
                 <p className="text-gray-400">Chia sẻ nội dung để thu hút followers</p>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {followers.map(follower => renderCreatorCard(follower, true))}
               </div>
             )}
