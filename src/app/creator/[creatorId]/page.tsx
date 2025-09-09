@@ -66,6 +66,8 @@ interface Creator {
   isOnline?: boolean
   category?: string
   location?: string
+  placeOfOperation?: string
+  user?: { placeOfOperation?: string; city?: string }
   isFollowing?: boolean
   isLive?: boolean
   streamTitle?: string
@@ -174,6 +176,7 @@ interface RelatedCreator {
     lastName: string
     avatar: string
     city: string
+    placeOfOperation?: string
   }
 }
 
@@ -238,7 +241,7 @@ export default function CreatorDetailPage() {
     if (!v) return '-'
     const n = Number(v)
     if (Number.isNaN(n) || n < 0) return '-'
-    return `${n.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
+    return n.toLocaleString('vi-VN', { maximumFractionDigits: 0 })
   }
 
   // Fetch related creators
@@ -600,7 +603,7 @@ export default function CreatorDetailPage() {
                       {creator.location && (
                         <div className="flex items-center justify-center gap-2 text-gray-400 text-xs mb-2">
                           <MapPin className="w-4 h-4" />
-                          {creator.location}
+                          {creator.placeOfOperation || creator.location || creator.user?.placeOfOperation || creator.user?.city || ''}
                         </div>
                       )}
                       {creator.bio && <p className="text-gray-300 text-sm leading-relaxed mb-3 whitespace-pre-line break-words">{creator.bio}</p>}
@@ -1001,7 +1004,7 @@ export default function CreatorDetailPage() {
                           <div className="mt-1 flex items-center justify-between text-xs text-gray-300">
                             <span className="flex items-center gap-1 text-gray-200">
                               <MapPin className="w-4 h-4 text-red-500" />
-                              {rc.user?.city || rc.placeOfOperation || '-'}
+                              {rc.placeOfOperation || rc.user?.placeOfOperation || rc.user?.city || '-'}
                             </span>
                             <span className="flex items-center gap-1 text-yellow-400">
                               {/* token icon */}

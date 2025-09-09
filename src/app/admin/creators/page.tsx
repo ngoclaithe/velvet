@@ -350,7 +350,7 @@ export default function CreatorsAdminPage() {
                   <tr className="text-left bg-gray-50">
                     <th className="px-4 py-2 text-sm font-medium text-gray-700">Avatar</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700">Name / Username</th>
-                    <th className="px-4 py-2 text-sm font-medium text-gray-700">City</th>
+                    <th className="px-4 py-2 text-sm font-medium text-gray-700">Nơi hoạt động</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700">Followers</th>
                   </tr>
                 </thead>
@@ -364,7 +364,7 @@ export default function CreatorsAdminPage() {
                         <div className="font-semibold text-gray-900">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
                         <div className="text-xs text-gray-500">@{c.user?.username || c.username}</div>
                       </td>
-                      <td className="px-4 py-3 align-top text-gray-900">{c.user?.city || c.city || '-'}</td>
+                      <td className="px-4 py-3 align-top text-gray-900">{c.placeOfOperation || c.user?.placeOfOperation || c.user?.city || c.city || '-'}</td>
                       <td className="px-4 py-3 align-top text-gray-900">{c.followersCount ?? '-'}</td>
                     </tr>
                   ))}
@@ -567,7 +567,7 @@ export default function CreatorsAdminPage() {
                   </div>
 
                   <div>
-                    <Label>Thời lượng đặt tối thiểu (phút)</Label>
+                    <Label>Thời lượng đặt tối thi��u (phút)</Label>
                     <Input type="number" value={form.minBookingDuration} onChange={(e) => setField('minBookingDuration', e.target.value)} />
                   </div>
 

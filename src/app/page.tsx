@@ -221,6 +221,11 @@ interface FeaturedCreatorsResponse {
 function LiveStreamsTab() {
   const [liveStreams, setLiveStreams] = useState<StreamResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const THUMBNAILS = [
+    'https://stat.avstatic.com/cdn1/contents/videos_screenshots/94000/94900/preview.jpg',
+    'https://pbs.twimg.com/media/G0Wf897XMAAzL22.jpg',
+    'https://pbs.twimg.com/media/G0Ur9TEakAAsVnp?format=jpg&name=large',
+  ]
 
   useEffect(() => {
     const fetchLiveStreams = async () => {
@@ -256,7 +261,7 @@ function LiveStreamsTab() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
-            <p className="text-gray-400 text-sm sm:text-base">Xem các creator đang stream trực tiếp</p>
+            
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -281,7 +286,7 @@ function LiveStreamsTab() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
-          <p className="text-gray-400 text-sm sm:text-base">Xem các creator đang stream trực tiếp</p>
+          
         </div>
       </div>
 
@@ -294,53 +299,20 @@ function LiveStreamsTab() {
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {liveStreams.map((stream) => (
+            {liveStreams.map((stream, idx) => (
               <Link key={stream.id} href={`/watch/${stream.id}`}>
                 <Card className="bg-gray-800 border-gray-700 hover:border-red-500/50 transition-colors cursor-pointer group">
-                  <div className="relative aspect-[8/9] sm:aspect-video overflow-hidden rounded-t-lg">
-                    <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
-                      <Play className="w-8 h-8 sm:w-12 sm:h-12 text-white opacity-70 group-hover:opacity-100 transition-opacity" />
-                    </div>
+                  <div className="relative aspect-[3/5] sm:aspect-[3/4] overflow-hidden rounded-t-lg">
+                    <img src={THUMBNAILS[idx % THUMBNAILS.length]} alt={stream.title} className="w-full h-full object-cover" />
 
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                    <div className="absolute inset-0 bg-black/10 transition-colors" />
 
-                    <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-xs">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                    LIVE
-                  </Badge>
-
-                  {(stream.category?.toLowerCase?.() === 'adult' || (Array.isArray(stream.tags) && stream.tags.includes('18+'))) && (
-                    <div className="absolute top-2 right-2 bg-black text-white text-[10px] px-2 py-0.5 rounded">18+</div>
-                  )}
-
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                      <Eye className="inline w-3 h-3 mr-1" />
-                      {stream.viewerCount?.toLocaleString() || '0'}
-                    </div>
-
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="w-14 h-14 sm:w-18 sm:h-18 bg-white/20 rounded-full flex items-center justify-center backdrop-blur">
-                        <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" />
+                    <div className="absolute bottom-3 left-3 z-20">
+                      <div className="bg-black/60 text-white px-3 py-1 rounded-md font-semibold text-sm">
+                        {stream.creator?.stageName || stream.creator?.displayName || 'Unknown'}
                       </div>
                     </div>
                   </div>
-
-                  <CardContent className="p-3 sm:p-4">
-                    <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">{stream.title}</h3>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">
-                          {stream.creator?.stageName?.charAt(0) || stream.creator?.displayName?.charAt(0) || 'U'}
-                        </span>
-                      </div>
-                      <span className="text-xs sm:text-sm text-gray-400">
-                        {stream.creator?.stageName || stream.creator?.displayName || 'Unknown'}
-                      </span>
-                    </div>
-                    <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
-                      {stream.category || 'General'}
-                    </Badge>
-                  </CardContent>
                 </Card>
               </Link>
             ))}
