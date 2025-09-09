@@ -24,8 +24,6 @@ import {
   Mic,
   MicOff,
   VideoOff,
-  Share2,
-  Save,
   Play,
   Square
 } from 'lucide-react'
