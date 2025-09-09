@@ -339,3 +339,35 @@ export const VIETNAM_CITIES: { value: string; label: string }[] = [
   { value: 'Vĩnh Phúc', label: 'Vĩnh Phúc' },
   { value: 'Yên Bái', label: 'Yên Bái' },
 ]
+
+// Districts mapping for selected provinces/cities (used for finer filtering)
+export const VIETNAM_DISTRICTS: Record<string, { value: string; label: string }[]> = {
+  'Hà Nội': [
+    { value: 'Ba Đình', label: 'Ba Đình' },
+    { value: 'Hoàn Kiếm', label: 'Hoàn Kiếm' },
+    { value: 'Đống Đa', label: 'Đống Đa' },
+    { value: 'Cầu Giấy', label: 'Cầu Giấy' },
+    { value: 'Thanh Xuân', label: 'Thanh Xuân' },
+    { value: 'Hai Bà Trưng', label: 'Hai Bà Trưng' },
+    { value: 'Hoàng Mai', label: 'Hoàng Mai' },
+    { value: 'Long Biên', label: 'Long Biên' },
+    { value: 'Tây Hồ', label: 'Tây Hồ' },
+    { value: 'Hà Đông', label: 'Hà Đông' },
+    { value: 'Ngã Tư Sở', label: 'Ngã Tư Sở' },
+  ],
+  'Thành phố Hồ Chí Minh': [
+    { value: 'Quận 1', label: 'Quận 1' },
+    { value: 'Quận 3', label: 'Quận 3' },
+    { value: 'Quận 5', label: 'Quận 5' },
+    { value: 'Quận 10', label: 'Quận 10' },
+    { value: 'Quận Bình Thạnh', label: 'Quận Bình Thạnh' },
+    { value: 'Quận Tân Bình', label: 'Quận Tân Bình' },
+    { value: 'Quận Phú Nhuận', label: 'Quận Phú Nhuận' },
+    { value: 'Quận 7', label: 'Quận 7' },
+  ],
+  'Đồng Nai': [
+    { value: 'Biên Hòa', label: 'Biên Hòa' },
+    { value: 'Long Thành', label: 'Long Thành' },
+    { value: 'Nhơn Trạch', label: 'Nhơn Trạch' },
+  ],
+}
