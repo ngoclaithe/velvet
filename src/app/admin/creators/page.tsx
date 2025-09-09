@@ -298,7 +298,7 @@ export default function CreatorsAdminPage() {
       }
       const res: any = await creatorAPI.updateCreator(selectedCreatorId, payload)
       if (res?.success === false) throw new Error(res?.message || res?.error || 'Cập nhật thất bại')
-      toast.success('Cập nhật creator thành c��ng')
+      toast.success('Cập nhật creator thành công')
       // refresh list
       const all: any = await creatorAPI.getAllCreators()
       setCreators(Array.isArray(all?.data) ? all.data : [])
