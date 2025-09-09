@@ -205,8 +205,8 @@ export default function CreatorDetailPage() {
   const formatToken = (v?: string | null) => {
     if (!v) return '-'
     const n = Number(v)
-    if (Number.isNaN(n) || n <= 0) return '-'
-    return `${n.toFixed(2)}`
+    if (Number.isNaN(n) || n < 0) return '-'
+    return `${n.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
   }
 
   // Fetch reviews
