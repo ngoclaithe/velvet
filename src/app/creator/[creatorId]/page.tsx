@@ -606,7 +606,7 @@ export default function CreatorDetailPage() {
                       {creator.location && (
                         <div className="flex items-center justify-center gap-2 text-gray-400 text-xs mb-2">
                           <MapPin className="w-4 h-4" />
-                          {creator.placeOfOperation || creator.location || creator.user?.placeOfOperation || creator.user?.city || ''}
+                          {(creator.placeOfOperation && typeof creator.placeOfOperation === 'object' ? (creator.placeOfOperation.province || creator.placeOfOperation.district) : creator.placeOfOperation) || creator.location || (creator.user?.placeOfOperation && typeof creator.user.placeOfOperation === 'object' ? (creator.user.placeOfOperation.province || creator.user.placeOfOperation.district) : creator.user?.placeOfOperation) || creator.user?.city || ''}
                         </div>
                       )}
                       {creator.bio && <p className="text-gray-300 text-sm leading-relaxed mb-3 whitespace-pre-line break-words">{creator.bio}</p>}
