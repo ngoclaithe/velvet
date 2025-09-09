@@ -386,9 +386,23 @@ export default function CreatorList() {
               </span>
               <span className="font-medium text-gray-200">{formatVnd(creator.bookingPrice)}</span>
             </div>
-            <div className="text-sm text-gray-300 flex items-center gap-1">
-              <Star className="w-4 h-4 text-yellow-400" />
-              {Number.isFinite(creator.rating as number) ? `${Math.max(0, Math.min(5, Number(creator.rating))).toFixed(1)}/5` : '—/5'}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => {
+                const filled = Math.floor(Number(isFinite(Number(creator.rating)) ? Number(creator.rating) : 0))
+                const isFilled = i < filled
+                return (
+                  <Star
+                    key={i}
+                    className={isFilled ? 'w-4 h-4 text-red-500 fill-current' : 'w-4 h-4 text-white/30 fill-transparent'}
+                  />
+                )
+              })}
+              <span className="ml-1 text-xs text-gray-400">
+                {(() => {
+                  const v = Math.floor(Number(isFinite(Number(creator.rating)) ? Number(creator.rating) : 0))
+                  return `${v}/5`
+                })()}
+              </span>
             </div>
             {showRemoveButton && (
               <div className="pt-2 flex justify-end">
