@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { creatorAPI } from '@/lib/api/creator'
 import { userApi } from '@/lib/api/user'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { VIETNAM_CITIES } from '@/lib/constants'
 import {
   Users,
   UserPlus,
@@ -63,7 +64,7 @@ export default function CreatorList() {
   // Callgirl tab state
   const [callgirls, setCallgirls] = useState<Creator[]>([])
   const [callgirlLoading, setCallgirlLoading] = useState(false)
-  const [callgirlCity, setCallgirlCity] = useState<string>('all')
+  const [callgirlCity, setCallgirlCity] = useState<string>('')
   const [minPrice, setMinPrice] = useState<string>('')
   const [maxPrice, setMaxPrice] = useState<string>('')
   const [priceRange, setPriceRange] = useState<string>('')
@@ -374,10 +375,8 @@ export default function CreatorList() {
               <div className="absolute top-2 left-2 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
             )}
             {creator.isVerified && (
-              <div className="absolute top-2 right-2 z-10">
-                <div className="bg-blue-500/90 text-white rounded-full p-1.5 shadow-lg ring-2 ring-white/80">
-                  <Verified className="w-4 h-4" />
-                </div>
+              <div className="absolute top-2 right-2 z-10 rounded-md bg-white/80 backdrop-blur-sm border border-white px-1.5 py-0.5 shadow">
+                <Verified className="w-3.5 h-3.5 text-blue-600" />
               </div>
             )}
           </div>
@@ -529,6 +528,27 @@ export default function CreatorList() {
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-3">
               <div className="space-y-2">
+                <div>
+                  <label className="text-[11px] text-gray-400">Thành phố</label>
+                  <div className="mt-1 grid grid-flow-col auto-cols-max grid-rows-3 overflow-x-auto gap-1 pr-1">
+                    {(() => {
+                      const PRIORITY_CITY_LABELS = ['Hà Nội','Thành phố Hồ Chí Minh','Bình Dương','Đà Nẵng','Đồng Nai','Lâm Đồng','Bà Rịa - Vũng Tàu','Khánh Hòa']
+                      const set = new Set(PRIORITY_CITY_LABELS)
+                      const priority = PRIORITY_CITY_LABELS.map(lbl => VIETNAM_CITIES.find(c => c.label === lbl)).filter(Boolean) as typeof VIETNAM_CITIES
+                      const others = VIETNAM_CITIES.filter(c => !set.has(c.label))
+                      const ordered = [...priority, ...others]
+                      return ordered.map(c => (
+                        <Button
+                          key={c.value}
+                          size="sm"
+                          className={`h-7 px-2 text-[10px] ${callgirlCity === c.value ? '' : ''}`}
+                          variant={callgirlCity === c.value ? 'default' : 'outline'}
+                          onClick={() => { setCallgirlCity(c.value); setCgPage(1); fetchCallgirls(); }}
+                        >{c.label}</Button>
+                      ))
+                    })()}
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -541,7 +561,7 @@ export default function CreatorList() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <div className="ml-auto">
-                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlCity('all'); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Xóa lọc</Button>
+                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlCity(''); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Xóa lọc</Button>
                   </div>
                 </div>
               </div>
