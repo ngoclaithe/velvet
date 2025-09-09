@@ -689,7 +689,7 @@ export default function CreatorDetailPage() {
                         </div>
                       ) : !isAuthenticated ? (
                         <div className="text-center">
-                          <p className="text-gray-400 mb-3">Đăng nhập để theo dõi creator</p>
+                          <p className="text-gray-400 mb-3">Đăng nhập đ�� theo dõi creator</p>
                           <Button onClick={() => (window.location.href = '/login')} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
                             Đăng nhập
                           </Button>
@@ -959,27 +959,28 @@ export default function CreatorDetailPage() {
           <div className="lg:col-span-3 space-y-4">
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-3">
-                {/* Title intentionally removed as requested */}
+                <h3 className="text-lg font-semibold text-white mb-3">Creator liên quan</h3>
 
                 {loadingRelated ? (
                   <div className="space-y-3">
                     {[1, 2].map((item) => (
                       <div key={item} className="p-2 rounded-md bg-gray-700/50">
-                        <Skeleton className="w-full h-32 rounded-md mb-2" />
+                        <Skeleton className="w-full h-28 rounded-md mb-2" />
                         <Skeleton className="h-4 w-3/4 mb-1" />
                         <Skeleton className="h-3 w-1/2" />
                       </div>
                     ))}
                   </div>
                 ) : relatedCreators.length > 0 ? (
-                  <div className="space-y-3">
+                  // On mobile make the list horizontally scrollable; on md+ show stacked list
+                  <div className="flex gap-3 overflow-x-auto md:flex-col md:space-y-3 md:overflow-visible -mx-3 px-3">
                     {relatedCreators.map((rc) => (
                       <div
                         key={rc.id}
-                        className="bg-gray-700/50 rounded-md overflow-hidden hover:bg-gray-700/70 cursor-pointer transition-colors"
+                        className="bg-gray-700/50 rounded-md overflow-hidden hover:bg-gray-700/70 cursor-pointer transition-colors min-w-[180px] flex-shrink-0 md:min-w-full"
                         onClick={() => router.push(`/creator/${rc.id}`)}
                       >
-                        <div className="relative w-full aspect-[3/4] bg-gradient-to-r from-pink-500 to-purple-500">
+                        <div className="relative w-full aspect-[5/4] bg-gradient-to-r from-pink-500 to-purple-500">
                           {rc.user?.avatar ? (
                             <img src={rc.user.avatar} alt={rc.stageName || rc.user.firstName} className="w-full h-full object-cover" />
                           ) : (
@@ -993,11 +994,11 @@ export default function CreatorDetailPage() {
                             </div>
                           )}
                         </div>
-                        <div className="p-3">
+                        <div className="p-2">
                           <div className="flex items-center justify-between">
                             <h4 className="text-sm font-medium text-white truncate">{rc.stageName || `${rc.user.firstName} ${rc.user.lastName}`}</h4>
                           </div>
-                          <div className="mt-2 flex items-center justify-between text-xs text-gray-300">
+                          <div className="mt-1 flex items-center justify-between text-xs text-gray-300">
                             <span className="flex items-center gap-1 text-gray-200">
                               <MapPin className="w-4 h-4 text-red-500" />
                               {rc.user?.city || rc.placeOfOperation || '-'}
