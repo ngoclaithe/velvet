@@ -194,6 +194,11 @@ export default function CreatorsAdminPage() {
         bookingPrice: data.bookingPrice ? String(data.bookingPrice) : '',
         subscriptionPrice: data.subscriptionPrice ? String(data.subscriptionPrice) : '',
         availabilitySchedule: data.availabilitySchedule || {},
+        // Social / location fields
+        placeOfOperation: data.placeOfOperation || data.place || data.operatingPlace || '',
+        telegram: data.telegram || data.user?.telegram || '',
+        instagram: data.instagram || data.user?.instagram || '',
+        facebook: data.facebook || data.user?.facebook || '',
       }
       
       setForm(mappedForm)
