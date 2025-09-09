@@ -55,7 +55,7 @@ interface Creator {
 type TabType = 'all' | 'following' | 'followers' | 'callgirl'
 
 export default function CreatorList() {
-  const [activeTab, setActiveTab] = useState<TabType>('all')
+  const [activeTab, setActiveTab] = useState<TabType>('callgirl')
   const [creators, setCreators] = useState<Creator[]>([])
   const [followingCreators, setFollowingCreators] = useState<Creator[]>([])
   const [followers, setFollowers] = useState<Creator[]>([])
@@ -68,6 +68,7 @@ export default function CreatorList() {
   const [callgirlCity, setCallgirlCity] = useState<string>('all')
   const [minPrice, setMinPrice] = useState<string>('')
   const [maxPrice, setMaxPrice] = useState<string>('')
+  const [priceRange, setPriceRange] = useState<string>('')
   const [cgPage, setCgPage] = useState(1)
   const [cgLimit, setCgLimit] = useState(9)
   const [cgTotalPages, setCgTotalPages] = useState(1)
@@ -239,7 +240,7 @@ export default function CreatorList() {
       console.error('Error removing follower:', error)
       toast({
         title: "Lỗi",
-        description: "Không thể xóa follower",
+        description: "Kh��ng thể xóa follower",
         variant: "destructive"
       })
     } finally {
@@ -462,15 +463,12 @@ export default function CreatorList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Creators</h2>
-          <p className="text-gray-400">Khám phá và theo dõi các creator yêu thích</p>
-        </div>
-      </div>
-
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className={`grid w-full ${isAuthenticated && (user?.role === 'user' || user?.role === 'admin') ? 'grid-cols-3' : 'grid-cols-2'} bg-gray-800 border-gray-700`}>
+          <TabsTrigger value="callgirl" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
+            <Heart className="w-4 h-4" />
+            Callgirl
+          </TabsTrigger>
           <TabsTrigger value="all" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
             Tất cả
@@ -484,10 +482,6 @@ export default function CreatorList() {
               Đang theo dõi
             </TabsTrigger>
           )}
-          <TabsTrigger value="callgirl" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white">
-            <Heart className="w-4 h-4" />
-            Callgirl
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
@@ -529,32 +523,34 @@ export default function CreatorList() {
         <TabsContent value="callgirl" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="space-y-3">
                 <div>
                   <label className="text-xs text-gray-400">Thành phố</label>
-                  <Select value={callgirlCity} onValueChange={(v) => { setCallgirlCity(v); setCgPage(1) }}>
-                    <SelectTrigger className="mt-1 bg-gray-900 border-gray-700 text-gray-200">
-                      <SelectValue placeholder="Chọn thành phố" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-900 border-gray-700">
-                      <SelectItem value="all">Tất cả</SelectItem>
-                      {VIETNAM_CITIES.map(c => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant={callgirlCity === 'all' ? 'default' : 'outline'}
+                      onClick={() => { setCallgirlCity('all'); setCgPage(1); }}
+                    >Tất cả</Button>
+                    {VIETNAM_CITIES.map(c => (
+                      <Button
+                        key={c.value}
+                        size="sm"
+                        variant={callgirlCity === c.value ? 'default' : 'outline'}
+                        onClick={() => { setCallgirlCity(c.value); setCgPage(1); }}
+                        className="text-xs"
+                      >{c.label}</Button>
+                    ))}
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Giá tối thiểu (VND)</label>
-                  <Input type="number" className="mt-1 bg-gray-900 border-gray-700 text-gray-200" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="0" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-400">Giá tối đa (VND)</label>
-                  <Input type="number" className="mt-1 bg-gray-900 border-gray-700 text-gray-200" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="" />
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button onClick={() => { setCgPage(1); fetchCallgirls() }}>Lọc</Button>
-                  <Button variant="outline" onClick={() => { setCallgirlCity(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls() }}>Xóa lọc</Button>
+                  <label className="text-xs text-gray-400">Giá</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button size="sm" variant={priceRange === 'lt600' ? 'default' : 'outline'} onClick={() => { setPriceRange('lt600'); setMinPrice(''); setMaxPrice('600'); setCgPage(1); }}>Dưới 600</Button>
+                    <Button size="sm" variant={priceRange === '600-1000' ? 'default' : 'outline'} onClick={() => { setPriceRange('600-1000'); setMinPrice('600'); setMaxPrice('1000'); setCgPage(1); }}>600 - 1000</Button>
+                    <Button size="sm" variant={priceRange === 'gt1000' ? 'default' : 'outline'} onClick={() => { setPriceRange('gt1000'); setMinPrice('1000'); setMaxPrice(''); setCgPage(1); }}>Trên 1000</Button>
+                    <Button variant="outline" className="ml-auto" onClick={() => { setCallgirlCity('all'); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); }}>Xóa lọc</Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
