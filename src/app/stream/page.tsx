@@ -194,13 +194,6 @@ export default function StreamPage() {
     }
   }
 
-  const copyStreamLink = () => {
-    if (currentStream) {
-      const link = `${window.location.origin}/watch/${currentStream.id}`
-      navigator.clipboard.writeText(link)
-      toast.success('Link stream đã được sao chép!')
-    }
-  }
 
   if (authLoading) {
     return (
