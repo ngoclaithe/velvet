@@ -202,7 +202,7 @@ export default function CreatorDetailPage() {
   const languageLabel = (code: string) =>
     ({ vi: 'Tiếng Việt', en: 'Tiếng Anh', ja: 'Tiếng Nhật', ko: 'Tiếng Hàn', zh: 'Tiếng Trung' } as Record<string, string>)[code] || code
 
-  const formatMoney = (v?: string | null) => {
+  const formatToken = (v?: string | null) => {
     if (!v) return '-'
     const n = Number(v)
     if (Number.isNaN(n) || n <= 0) return '-'
