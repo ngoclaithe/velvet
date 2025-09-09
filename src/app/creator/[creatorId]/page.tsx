@@ -66,8 +66,8 @@ interface Creator {
   isOnline?: boolean
   category?: string
   location?: string
-  placeOfOperation?: string
-  user?: { placeOfOperation?: string; city?: string }
+  placeOfOperation?: string | { province?: string | null; district?: string | null } | null
+  user?: { placeOfOperation?: string | { province?: string | null; district?: string | null } | null; city?: string }
   isFollowing?: boolean
   isLive?: boolean
   streamTitle?: string
@@ -149,6 +149,8 @@ interface CreatorApiResponse {
     lastName: string
     avatar?: string | null
     isOnline?: boolean
+    city?: string
+    placeOfOperation?: string | { province?: string | null; district?: string | null } | null
   }
 }
 
@@ -168,21 +170,29 @@ interface RelatedCreator {
   languages: string[]
   isAvailableForBooking: boolean
   createdAt: string
-  placeOfOperation: string | null
+  placeOfOperation: string | { province?: string | null; district?: string | null } | null
   user: {
     id: number
     username: string
     firstName: string
     lastName: string
-    avatar: string
-    city: string
-    placeOfOperation?: string
+    avatar?: string
+    city?: string
+    placeOfOperation?: string | { province?: string | null; district?: string | null } | null
   }
 }
 
 export default function CreatorDetailPage() {
   const params = useParams()
   const creatorId = params.creatorId as string
+
+  // Helper to safely extract province/district string from placeOfOperation
+  const getPlaceProvince = (p?: any) => {
+    if (!p) return ''
+    if (typeof p === 'object') return p.province || p.district || ''
+    return String(p)
+  }
+
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -260,7 +270,12 @@ export default function CreatorDetailPage() {
               : (raw && Array.isArray(raw.creators))
                 ? raw.creators
                 : []
-          setRelatedCreators(list as RelatedCreator[])
+          const normalized = list.map((rc: any) => ({
+            ...rc,
+            placeOfOperation: typeof rc.placeOfOperation === 'object' ? (rc.placeOfOperation?.province || rc.placeOfOperation?.district || '') : (rc.placeOfOperation || ''),
+            user: rc.user ? { ...rc.user, placeOfOperation: typeof rc.user.placeOfOperation === 'object' ? (rc.user.placeOfOperation?.province || rc.user.placeOfOperation?.district || '') : rc.user.placeOfOperation } : rc.user
+          })) as RelatedCreator[]
+          setRelatedCreators(normalized)
         } else {
           setRelatedCreators([])
         }
@@ -375,6 +390,9 @@ export default function CreatorDetailPage() {
             isLive: Boolean(apiData.isLive),
             category: apiData.category || '',
             location: apiData.location || '',
+            placeOfOperation: (typeof (apiData as any)?.placeOfOperation === 'object')
+              ? ((apiData as any)?.placeOfOperation?.province || (apiData as any)?.placeOfOperation?.district || '')
+              : ((apiData as any)?.placeOfOperation || apiData.location || apiData.user?.placeOfOperation || apiData.user?.city || ''),
             isFollowing: Boolean(apiData.isFollowing),
             streamTitle: apiData.streamTitle || '',
             hourlyRate: apiData.hourlyRate || '0',
@@ -603,7 +621,7 @@ export default function CreatorDetailPage() {
                       {creator.location && (
                         <div className="flex items-center justify-center gap-2 text-gray-400 text-xs mb-2">
                           <MapPin className="w-4 h-4" />
-                          {creator.placeOfOperation || creator.location || creator.user?.placeOfOperation || creator.user?.city || ''}
+                          {getPlaceProvince(creator.placeOfOperation) || creator.location || getPlaceProvince(creator.user?.placeOfOperation) || creator.user?.city || ''}
                         </div>
                       )}
                       {creator.bio && <p className="text-gray-300 text-sm leading-relaxed mb-3 whitespace-pre-line break-words">{creator.bio}</p>}
@@ -1004,7 +1022,7 @@ export default function CreatorDetailPage() {
                           <div className="mt-1 flex items-center justify-between text-xs text-gray-300">
                             <span className="flex items-center gap-1 text-gray-200">
                               <MapPin className="w-4 h-4 text-red-500" />
-                              {rc.placeOfOperation || rc.user?.placeOfOperation || rc.user?.city || '-'}
+                              {getPlaceProvince(rc.placeOfOperation) || getPlaceProvince(rc.user?.placeOfOperation) || rc.user?.city || '-'}
                             </span>
                             <span className="flex items-center gap-1 text-yellow-400">
                               {/* token icon */}

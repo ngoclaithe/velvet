@@ -33,7 +33,7 @@ const CREATOR_TYPES = [
 const BODY_TYPES = [
   { value: 'slim', label: 'Mảnh mai' },
   { value: 'athletic', label: 'Vận động/Thể hình' },
-  { value: 'average', label: 'Trung bình' },
+  { value: 'average', label: 'Trung b��nh' },
   { value: 'curvy', label: 'Đẫy đà' },
   { value: 'plus-size', label: 'Ngoại cỡ' },
 ]
@@ -121,7 +121,7 @@ export default function CreatorsAdminPage() {
     bookingPrice: '',
     subscriptionPrice: '',
     availabilitySchedule: {} as Record<string, any>,
-    placeOfOperation: '',
+    placeOfOperation: { province: '', district: '' },
     telegram: '',
     instagram: '',
     facebook: '',
@@ -195,7 +195,9 @@ export default function CreatorsAdminPage() {
         subscriptionPrice: data.subscriptionPrice ? String(data.subscriptionPrice) : '',
         availabilitySchedule: data.availabilitySchedule || {},
         // Social / location fields
-        placeOfOperation: data.placeOfOperation || data.place || data.operatingPlace || '',
+        placeOfOperation: typeof data.placeOfOperation === 'object'
+          ? { province: data.placeOfOperation?.province || '', district: data.placeOfOperation?.district || '' }
+          : { province: (data.placeOfOperation || data.place || data.operatingPlace || ''), district: '' },
         telegram: data.telegram || data.user?.telegram || '',
         instagram: data.instagram || data.user?.instagram || '',
         facebook: data.facebook || data.user?.facebook || '',
@@ -263,7 +265,7 @@ export default function CreatorsAdminPage() {
       setCreators(Array.isArray(all?.data) ? all.data : [])
     } catch (e: any) {
       console.error(e)
-      toast.error(e?.message || 'Có lỗi xảy ra khi tạo creator')
+      toast.error(e?.message || 'C�� lỗi xảy ra khi tạo creator')
     } finally {
       setSubmitting(false)
     }
@@ -364,7 +366,10 @@ export default function CreatorsAdminPage() {
                         <div className="font-semibold text-gray-900">{c.stageName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.user?.username || c.username}</div>
                         <div className="text-xs text-gray-500">@{c.user?.username || c.username}</div>
                       </td>
-                      <td className="px-4 py-3 align-top text-gray-900">{c.placeOfOperation || c.user?.placeOfOperation || c.user?.city || c.city || '-'}</td>
+                      <td className="px-4 py-3 align-top text-gray-900">{(() => {
+                        const getPlaceProvince = (p?: any) => { if (!p) return '' ; if (typeof p === 'object') return p.province || p.district || '' ; return String(p) }
+                        return getPlaceProvince(c.placeOfOperation) || getPlaceProvince(c.user?.placeOfOperation) || c.user?.city || c.city || '-'
+                      })()}</td>
                       <td className="px-4 py-3 align-top text-gray-900">{c.followersCount ?? '-'}</td>
                     </tr>
                   ))}
@@ -454,9 +459,15 @@ export default function CreatorsAdminPage() {
                     </Select>
                   </div>
 
-                  <div>
-                    <Label>Nơi hoạt động (placeOfOperation)</Label>
-                    <Input value={form.placeOfOperation} onChange={(e) => setField('placeOfOperation', e.target.value)} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <Label>Tỉnh/Thành (province)</Label>
+                      <Input value={form.placeOfOperation?.province || ''} onChange={(e) => setField('placeOfOperation', { ...(form.placeOfOperation || {}), province: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Quận/Huyện (district)</Label>
+                      <Input value={form.placeOfOperation?.district || ''} onChange={(e) => setField('placeOfOperation', { ...(form.placeOfOperation || {}), district: e.target.value })} />
+                    </div>
                   </div>
 
                   <div>
@@ -742,9 +753,15 @@ export default function CreatorsAdminPage() {
                 </Select>
               </div>
 
-              <div>
-                <Label>Khu vực hoạt động</Label>
-                <Input value={form.placeOfOperation} onChange={(e) => setField('placeOfOperation', e.target.value)} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <Label>Tỉnh/Thành (province)</Label>
+                  <Input value={form.placeOfOperation?.province || ''} onChange={(e) => setField('placeOfOperation', { ...(form.placeOfOperation || {}), province: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Quận/Huyện (district)</Label>
+                  <Input value={form.placeOfOperation?.district || ''} onChange={(e) => setField('placeOfOperation', { ...(form.placeOfOperation || {}), district: e.target.value })} />
+                </div>
               </div>
 
               <div>
