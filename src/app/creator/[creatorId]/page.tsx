@@ -248,8 +248,18 @@ export default function CreatorDetailPage() {
       try {
         setLoadingRelated(true)
         const response = await creatorAPI.getRelatedCreator(Number(creatorId))
-        if (response?.success && response?.data) {
-          setRelatedCreators(response.data)
+        if (response?.success) {
+          const raw: any = (response as any).data
+          const list = Array.isArray(raw)
+            ? raw
+            : (raw && Array.isArray(raw.items))
+              ? raw.items
+              : (raw && Array.isArray(raw.creators))
+                ? raw.creators
+                : []
+          setRelatedCreators(list as RelatedCreator[])
+        } else {
+          setRelatedCreators([])
         }
       } catch (error) {
         console.error('Error fetching related creators:', error)
