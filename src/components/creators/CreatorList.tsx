@@ -356,7 +356,7 @@ export default function CreatorList() {
   }
 
   const PRIORITY_CITY_LABELS = [
-    'Hà Nội',
+    'Hà N���i',
     'Thành phố Hồ Chí Minh',
     'Bình Dương',
     'Đà Nẵng',
@@ -545,26 +545,6 @@ export default function CreatorList() {
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-3">
               <div className="space-y-2">
-                <div>
-                  <label className="text-[11px] text-gray-400">Thành phố</label>
-                  <div className="mt-1 grid grid-flow-col auto-cols-max grid-rows-3 overflow-x-auto gap-1 pr-1">
-                    <Button
-                      size="sm"
-                      className="h-7 px-2 text-[10px]"
-                      variant={callgirlCity === 'all' ? 'default' : 'outline'}
-                      onClick={() => { setCallgirlCity('all'); setCgPage(1); }}
-                    >Tất cả</Button>
-                    {orderedCities.map(c => (
-                      <Button
-                        key={c.value}
-                        size="sm"
-                        className="h-7 px-2 text-[10px]"
-                        variant={callgirlCity === c.value ? 'default' : 'outline'}
-                        onClick={() => { setCallgirlCity(c.value); setCgPage(1); }}
-                      >{c.label}</Button>
-                    ))}
-                  </div>
-                </div>
                 <div className="flex items-center gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
