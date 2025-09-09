@@ -150,6 +150,33 @@ interface CreatorApiResponse {
   }
 }
 
+interface RelatedCreator {
+  id: number
+  userId: number
+  stageName: string
+  bio: string
+  tags: string[]
+  rating: string
+  totalRatings: number
+  isVerified: boolean
+  isLive: boolean
+  bookingPrice: string
+  subscriptionPrice: string
+  specialties: string[]
+  languages: string[]
+  isAvailableForBooking: boolean
+  createdAt: string
+  placeOfOperation: string | null
+  user: {
+    id: number
+    username: string
+    firstName: string
+    lastName: string
+    avatar: string
+    city: string
+  }
+}
+
 export default function CreatorDetailPage() {
   const params = useParams()
   const creatorId = params.creatorId as string
@@ -187,6 +214,11 @@ export default function CreatorDetailPage() {
   const [reviewOpen, setReviewOpen] = useState(false)
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
   const { uploadMultiple, uploading } = useCloudinaryUpload()
+  
+  // Related creators state
+  const [relatedCreators, setRelatedCreators] = useState<RelatedCreator[]>([])
+  const [loadingRelated, setLoadingRelated] = useState(false)
+
   const removeRvFile = (index: number) => {
     setRvFiles(prev => prev.filter((_, i) => i !== index))
     setRvPreviews(prev => {
@@ -208,6 +240,26 @@ export default function CreatorDetailPage() {
     if (Number.isNaN(n) || n < 0) return '-'
     return `${n.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
   }
+
+  // Fetch related creators
+  useEffect(() => {
+    const fetchRelatedCreators = async () => {
+      if (!creatorId) return
+      try {
+        setLoadingRelated(true)
+        const response = await creatorAPI.getRelatedCreator(Number(creatorId))
+        if (response?.success && response?.data) {
+          setRelatedCreators(response.data)
+        }
+      } catch (error) {
+        console.error('Error fetching related creators:', error)
+      } finally {
+        setLoadingRelated(false)
+      }
+    }
+
+    if (creatorId) fetchRelatedCreators()
+  }, [creatorId])
 
   // Fetch reviews
   useEffect(() => {
@@ -655,7 +707,7 @@ export default function CreatorDetailPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-8 space-y-4">
+          <div className="lg:col-span-5 space-y-4">
             {galleryMedia.length > 0 && (
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-3">
@@ -888,6 +940,62 @@ export default function CreatorDetailPage() {
                       </div>
                     )}
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Cột thứ 3 - Creator liên quan */}
+          <div className="lg:col-span-3 space-y-4">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-3">
+                <h3 className="text-lg font-semibold text-white mb-3">Creator liên quan</h3>
+                
+                {loadingRelated ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((item) => (
+                      <div key={item} className="flex items-center gap-3 p-2 rounded-md bg-gray-700/50">
+                        <Skeleton className="w-12 h-12 rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton className="h-4 w-24 mb-2" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : relatedCreators.length > 0 ? (
+                  <div className="space-y-3">
+                    {relatedCreators.map((relatedCreator) => (
+                      <div 
+                        key={relatedCreator.id} 
+                        className="flex items-center gap-3 p-2 rounded-md bg-gray-700/50 hover:bg-gray-700/70 cursor-pointer transition-colors"
+                        onClick={() => router.push(`/creator/${relatedCreator.id}`)}
+                      >
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={relatedCreator.user.avatar} alt={relatedCreator.stageName} />
+                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+                            {relatedCreator.stageName?.charAt(0) || relatedCreator.user.firstName?.charAt(0) || 'C'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1">
+                            <h4 className="text-sm font-medium text-white truncate">
+                              {relatedCreator.stageName || `${relatedCreator.user.firstName} ${relatedCreator.user.lastName}`}
+                            </h4>
+                            {relatedCreator.isVerified && <Verified className="w-3 h-3 text-blue-500 flex-shrink-0" />}
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                            <span className="text-xs text-gray-300">
+                              {Number(relatedCreator.rating).toFixed(1)} ({relatedCreator.totalRatings})
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm text-center py-4">Không có creator liên quan</p>
                 )}
               </CardContent>
             </Card>
