@@ -346,11 +346,11 @@ export default function CreatorList() {
     return fullName || cleanText(creator.username) || 'Unknown'
   }
 
-  const formatVnd = (v?: string | number | null) => {
+  const formatToken = (v?: string | number | null) => {
     if (v === null || v === undefined || v === '') return '-'
     const n = typeof v === 'string' ? Number(v) : v
     if (!isFinite(Number(n))) return '-'
-    return Number(n).toLocaleString('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
+    return `${Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
   }
 
   // Render creator card
@@ -373,18 +373,18 @@ export default function CreatorList() {
             {creator.isOnline && (
               <div className="absolute top-2 left-2 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
             )}
-            {creator.isVerified && (
-              <div className="absolute top-2 right-2 text-blue-500"><Verified className="w-5 h-5" /></div>
-            )}
           </div>
           <div className="p-4 space-y-2">
-            <h3 className="font-semibold text-white text-base line-clamp-1">{getDisplayName(creator)}</h3>
+            <h3 className="font-semibold text-white text-base line-clamp-1 flex items-center gap-1">
+              <span>{getDisplayName(creator)}</span>
+              {creator.isVerified && <Verified className="w-4 h-4 text-blue-500" />}
+            </h3>
             <div className="text-sm text-gray-400 flex items-center justify-between">
               <span className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
                 {cleanText((creator.city || creator.location || '') as string) || '—'}
               </span>
-              <span className="font-medium text-gray-200">{formatVnd(creator.bookingPrice)}</span>
+              <span className="font-medium text-gray-200">{formatToken(creator.bookingPrice)}</span>
             </div>
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => {
