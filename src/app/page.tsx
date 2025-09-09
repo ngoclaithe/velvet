@@ -261,7 +261,6 @@ function LiveStreamsTab() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
-            
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -286,7 +285,11 @@ function LiveStreamsTab() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Live Streams</h2>
-          
+        </div>
+        <div className="mt-2 sm:mt-0">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/streams">Xem tất cả</Link>
+          </Button>
         </div>
       </div>
 
@@ -303,7 +306,7 @@ function LiveStreamsTab() {
               <Link key={stream.id} href={`/watch/${stream.id}`}>
                 <Card className="bg-gray-800 border-gray-700 hover:border-red-500/50 transition-colors cursor-pointer group">
                   <div className="relative aspect-[3/5] sm:aspect-[3/4] lg:aspect-[9/8] overflow-hidden rounded-t-lg">
-                    <img src={THUMBNAILS[idx % THUMBNAILS.length]} alt={stream.title} className="w-full h-full object-cover" />
+                    <img src={stream.thumbnail || stream.creator?.streamThumbnail || THUMBNAILS[idx % THUMBNAILS.length]} alt={stream.title} className="w-full h-full object-cover" />
 
                     <div className="absolute inset-0 bg-black/10 transition-colors" />
 
