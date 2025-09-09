@@ -149,6 +149,8 @@ interface CreatorApiResponse {
     lastName: string
     avatar?: string | null
     isOnline?: boolean
+    city?: string
+    placeOfOperation?: string | { province?: string | null; district?: string | null } | null
   }
 }
 
