@@ -103,7 +103,7 @@ export default function CreatorList() {
           location: item?.location || '',
           placeOfOperation: typeof item?.placeOfOperation === 'object'
             ? ((item?.placeOfOperation as any)?.province || (item?.placeOfOperation as any)?.district || '')
-            : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? (item?.user?.placeOfOperation?.province || item?.user?.placeOfOperation?.district) : item?.user?.placeOfOperation) || ''),
+            : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? ((item?.user?.placeOfOperation as any)?.province || (item?.user?.placeOfOperation as any)?.district) : item?.user?.placeOfOperation) || ''),
           city: item?.user?.city || item?.city || item?.location || '',
           bookingPrice: item?.bookingPrice ?? null,
           rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
@@ -279,7 +279,7 @@ export default function CreatorList() {
           location: item?.location || '',
           placeOfOperation: typeof item?.placeOfOperation === 'object'
             ? ((item?.placeOfOperation as any)?.province || (item?.placeOfOperation as any)?.district || '')
-            : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? (item?.user?.placeOfOperation?.province || item?.user?.placeOfOperation?.district) : item?.user?.placeOfOperation) || ''),
+            : (item?.placeOfOperation || item?.place || item?.operatingPlace || (typeof item?.user?.placeOfOperation === 'object' ? ((item?.user?.placeOfOperation as any)?.province || (item?.user?.placeOfOperation as any)?.district) : item?.user?.placeOfOperation) || ''),
           city: item?.user?.city || item?.city || '',
           bookingPrice: item?.bookingPrice ?? null,
           rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
