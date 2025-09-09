@@ -260,7 +260,12 @@ export default function CreatorDetailPage() {
               : (raw && Array.isArray(raw.creators))
                 ? raw.creators
                 : []
-          setRelatedCreators(list as RelatedCreator[])
+          const normalized = list.map((rc: any) => ({
+            ...rc,
+            placeOfOperation: typeof rc.placeOfOperation === 'object' ? (rc.placeOfOperation?.province || rc.placeOfOperation?.district || '') : (rc.placeOfOperation || ''),
+            user: rc.user ? { ...rc.user, placeOfOperation: typeof rc.user.placeOfOperation === 'object' ? (rc.user.placeOfOperation?.province || rc.user.placeOfOperation?.district || '') : rc.user.placeOfOperation } : rc.user
+          })) as RelatedCreator[]
+          setRelatedCreators(normalized)
         } else {
           setRelatedCreators([])
         }
