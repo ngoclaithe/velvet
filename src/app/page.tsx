@@ -305,32 +305,14 @@ function LiveStreamsTab() {
                   <div className="relative aspect-[3/4] sm:aspect-[3/4] overflow-hidden rounded-t-lg">
                     <img src={THUMBNAILS[idx % THUMBNAILS.length]} alt={stream.title} className="w-full h-full object-cover" />
 
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                    <div className="absolute inset-0 bg-black/10 transition-colors" />
 
-                    <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20">
+                    <div className="absolute bottom-3 left-3 z-20">
                       <div className="bg-black/60 text-white px-3 py-1 rounded-md font-semibold text-sm">
                         {stream.creator?.stageName || stream.creator?.displayName || 'Unknown'}
                       </div>
                     </div>
-
-                    <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-xs">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1" />
-                      LIVE
-                    </Badge>
-
-                    {(stream.category?.toLowerCase?.() === 'adult' || (Array.isArray(stream.tags) && stream.tags.includes('18+'))) && (
-                      <div className="absolute top-2 right-2 bg-black text-white text-[10px] px-2 py-0.5 rounded">18+</div>
-                    )}
-
-                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                      <Eye className="inline w-3 h-3 mr-1" />
-                      {stream.viewerCount?.toLocaleString() || '0'}
-                    </div>
                   </div>
-
-                  <CardContent className="p-3 sm:p-4">
-                    <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">{stream.category || 'General'}</Badge>
-                  </CardContent>
                 </Card>
               </Link>
             ))}
