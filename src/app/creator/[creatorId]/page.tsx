@@ -185,6 +185,14 @@ interface RelatedCreator {
 export default function CreatorDetailPage() {
   const params = useParams()
   const creatorId = params.creatorId as string
+
+  // Helper to safely extract province/district string from placeOfOperation
+  const getPlaceProvince = (p?: any) => {
+    if (!p) return ''
+    if (typeof p === 'object') return p.province || p.district || ''
+    return String(p)
+  }
+
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
