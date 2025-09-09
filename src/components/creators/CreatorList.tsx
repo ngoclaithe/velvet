@@ -571,13 +571,13 @@ export default function CreatorList() {
                       <span className="text-[11px] text-gray-400 cursor-pointer select-none">Giá</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-36">
-                      <DropdownMenuItem onClick={() => { setPriceRange('lt600'); setMinPrice(''); setMaxPrice('600'); setCgPage(1); }}>Dưới 600</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setPriceRange('600-1000'); setMinPrice('600'); setMaxPrice('1000'); setCgPage(1); }}>600 - 1000</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setPriceRange('gt1000'); setMinPrice('1000'); setMaxPrice(''); setCgPage(1); }}>Trên 1000</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setPriceRange('lt600'); setMinPrice(''); setMaxPrice('600'); setCgPage(1); fetchCallgirls(); }}>Dưới 600</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setPriceRange('600-1000'); setMinPrice('600'); setMaxPrice('1000'); setCgPage(1); fetchCallgirls(); }}>600 - 1000</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setPriceRange('gt1000'); setMinPrice('1000'); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Trên 1000</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <div className="ml-auto">
-                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlCity('all'); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); }}>Xóa lọc</Button>
+                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlCity('all'); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); fetchCallgirls(); }}>Xóa lọc</Button>
                   </div>
                 </div>
               </div>
