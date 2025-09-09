@@ -14,6 +14,7 @@ import { userApi } from '@/lib/api/user'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { VIETNAM_CITIES } from '@/lib/constants'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import {
   Users,
   UserPlus,
@@ -240,7 +241,7 @@ export default function CreatorList() {
       console.error('Error removing follower:', error)
       toast({
         title: "Lỗi",
-        description: "Kh��ng thể xóa follower",
+        description: "Không thể xóa follower",
         variant: "destructive"
       })
     } finally {
@@ -522,13 +523,14 @@ export default function CreatorList() {
 
         <TabsContent value="callgirl" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
-              <div className="space-y-3">
+            <CardContent className="p-3">
+              <div className="space-y-2">
                 <div>
-                  <label className="text-xs text-gray-400">Thành phố</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <label className="text-[11px] text-gray-400">Thành phố</label>
+                  <div className="mt-1 flex flex-wrap gap-1">
                     <Button
                       size="sm"
+                      className="h-8 px-2 text-[11px]"
                       variant={callgirlCity === 'all' ? 'default' : 'outline'}
                       onClick={() => { setCallgirlCity('all'); setCgPage(1); }}
                     >Tất cả</Button>
@@ -536,20 +538,27 @@ export default function CreatorList() {
                       <Button
                         key={c.value}
                         size="sm"
+                        className="h-8 px-2 text-[11px]"
                         variant={callgirlCity === c.value ? 'default' : 'outline'}
                         onClick={() => { setCallgirlCity(c.value); setCgPage(1); }}
-                        className="text-xs"
                       >{c.label}</Button>
                     ))}
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs text-gray-400">Giá</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Button size="sm" variant={priceRange === 'lt600' ? 'default' : 'outline'} onClick={() => { setPriceRange('lt600'); setMinPrice(''); setMaxPrice('600'); setCgPage(1); }}>Dưới 600</Button>
-                    <Button size="sm" variant={priceRange === '600-1000' ? 'default' : 'outline'} onClick={() => { setPriceRange('600-1000'); setMinPrice('600'); setMaxPrice('1000'); setCgPage(1); }}>600 - 1000</Button>
-                    <Button size="sm" variant={priceRange === 'gt1000' ? 'default' : 'outline'} onClick={() => { setPriceRange('gt1000'); setMinPrice('1000'); setMaxPrice(''); setCgPage(1); }}>Trên 1000</Button>
-                    <Button variant="outline" className="ml-auto" onClick={() => { setCallgirlCity('all'); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); }}>Xóa lọc</Button>
+                <div className="flex items-center gap-2">
+                  <label className="text-[11px] text-gray-400">Giá</label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" className="h-8 px-2 text-xs">Chọn mốc</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-36">
+                      <DropdownMenuItem onClick={() => { setPriceRange('lt600'); setMinPrice(''); setMaxPrice('600'); setCgPage(1); }}>Dưới 600</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setPriceRange('600-1000'); setMinPrice('600'); setMaxPrice('1000'); setCgPage(1); }}>600 - 1000</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setPriceRange('gt1000'); setMinPrice('1000'); setMaxPrice(''); setCgPage(1); }}>Trên 1000</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <div className="ml-auto">
+                    <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => { setCallgirlCity('all'); setPriceRange(''); setMinPrice(''); setMaxPrice(''); setCgPage(1); }}>Xóa lọc</Button>
                   </div>
                 </div>
               </div>
