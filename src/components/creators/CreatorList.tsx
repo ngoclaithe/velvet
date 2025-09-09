@@ -549,13 +549,34 @@ export default function CreatorList() {
                       const priority = PRIORITY_CITY_LABELS.map(lbl => VIETNAM_CITIES.find(c => c.label === lbl)).filter(Boolean) as typeof VIETNAM_CITIES
                       const others = VIETNAM_CITIES.filter(c => !set.has(c.label))
                       const ordered = [...priority, ...others]
+
+                      if (callgirlProvince) {
+                        const districts = VIETNAM_DISTRICTS[callgirlProvince] || []
+                        return (
+                          <>
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-[10px]" onClick={() => { setCallgirlProvince(''); setCallgirlDistrict(''); setCgPage(1); fetchCallgirls(); }}>← Quay lại</Button>
+                            {districts.length === 0 ? (
+                              <div className="text-sm text-gray-400 ml-2">Không có danh sách quận cho tỉnh này</div>
+                            ) : districts.map(d => (
+                              <Button
+                                key={d.value}
+                                size="sm"
+                                className={`h-7 px-2 text-[10px] ${callgirlDistrict === d.value ? '' : ''}`}
+                                variant={callgirlDistrict === d.value ? 'default' : 'outline'}
+                                onClick={() => { setCallgirlDistrict(d.value); setCgPage(1); fetchCallgirls(); }}
+                              >{d.label}</Button>
+                            ))}
+                          </>
+                        )
+                      }
+
                       return ordered.map(c => (
                         <Button
                           key={c.value}
                           size="sm"
-                          className={`h-7 px-2 text-[10px] ${callgirlCity === c.value ? '' : ''}`}
-                          variant={callgirlCity === c.value ? 'default' : 'outline'}
-                          onClick={() => { setCallgirlCity(c.value); setCgPage(1); fetchCallgirls(); }}
+                          className={`h-7 px-2 text-[10px] ${callgirlProvince === c.value ? '' : ''}`}
+                          variant={callgirlProvince === c.value ? 'default' : 'outline'}
+                          onClick={() => { setCallgirlProvince(c.value); setCallgirlDistrict(''); setCgPage(1); fetchCallgirls(); }}
                         >{c.label}</Button>
                       ))
                     })()}
