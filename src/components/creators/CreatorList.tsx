@@ -43,6 +43,7 @@ interface Creator {
   isOnline?: boolean
   category?: string
   location?: string
+  placeOfOperation?: string
   city?: string
   bookingPrice?: string | number | null
   rating?: number
@@ -100,6 +101,7 @@ export default function CreatorList() {
           isOnline: Boolean(item?.isLive),
           category: item?.category || '',
           location: item?.location || '',
+          placeOfOperation: item?.placeOfOperation || item?.place || item?.operatingPlace || item?.user?.placeOfOperation || '',
           city: item?.user?.city || item?.city || item?.location || '',
           bookingPrice: item?.bookingPrice ?? null,
           rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
@@ -273,6 +275,7 @@ export default function CreatorList() {
           isOnline: Boolean(item?.isLive),
           category: 'callgirl',
           location: item?.location || '',
+          placeOfOperation: item?.placeOfOperation || item?.place || item?.operatingPlace || item?.user?.placeOfOperation || '',
           city: item?.user?.city || item?.city || '',
           bookingPrice: item?.bookingPrice ?? null,
           rating: item?.rating != null ? Number(item.rating) : (item?.avgRating != null ? Number(item.avgRating) : (item?.averageRating != null ? Number(item.averageRating) : undefined)),
@@ -350,7 +353,7 @@ export default function CreatorList() {
     if (v === null || v === undefined || v === '') return '-'
     const n = typeof v === 'string' ? Number(v) : v
     if (!isFinite(Number(n))) return '-'
-    return `${Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} token`
+    return Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 0 })
   }
 
 
@@ -387,7 +390,7 @@ export default function CreatorList() {
             <div className="text-sm flex items-center justify-between">
               <span className="flex items-center gap-1 text-red-500">
                 <MapPin className="w-4 h-4 text-red-500" />
-                {cleanText((creator.city || creator.location || '') as string) || '—'}
+                {cleanText((creator.placeOfOperation || creator.city || creator.location || '') as string) || '—'}
               </span>
               <span className="text-xs font-medium text-gray-200 flex items-center gap-1">
                 <svg className="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 2a1 1 0 0 1 2 0v1.06a6.5 6.5 0 0 1 4.94 4.94H19a1 1 0 1 1 0 2h-1.06a6.5 6.5 0 0 1-4.94 4.94V19a1 1 0 1 1-2 0v-1.06A6.5 6.5 0 0 1 6.06 10H5a1 1 0 1 1 0-2h1.06A6.5 6.5 0 0 1 11 3.06V2zm1 4a4.5 4.5 0 1 0 0 9a4.5 4.5 0 0 0 0-9z"/></svg>
